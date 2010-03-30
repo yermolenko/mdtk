@@ -1,0 +1,30 @@
+MDTK - Molecular Dynamics Toolkit
+==================================
+
+This is MDTK, the Molecular Dynamics Toolkit, a programming library
+and tools for performing molecular dynamics simulations.
+
+MDTK is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The GNU General Public License does not permit this software to be
+redistributed in proprietary programs.
+
+MDTK is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
+
+
+Installation
+============
+
+MDTK uses CMake for its build and installation procedure. Please
+consult the INSTALL file in this distribution for more detailed
+instructions.
+

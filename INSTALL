@@ -1,0 +1,110 @@
+MDTK - Molecular Dynamics Toolkit
+============================
+
+Installation Instructions
+=========================
+
+MDTK uses CMake for its build and installation procedure.
+
+To compile MDTK you will need 
+  * C++-compiler (GNU C++ version 3.4.5 or above is fine)
+  * CMake version 2.4.5 or above
+
+Also you need development files of
+  * GNU Scientific Library (GSL)
+  * zlib library
+  * Fast Light Toolkit (FLTK) version 1.1.x
+  * The OpenGL Utility Library (GLU), implementation from Mesa 3D
+    works fine
+
+
+After unpacking the distribution tarball, cd to mdtk-x.y.z directory.
+The Makefiles can be prepared using the command,
+
+  cmake .
+
+The dot is required. It specifies where the source files are located.
+You can then build MDTK by typing,
+
+  make
+
+and install it by typing,
+
+  make install
+
+The default installation directory prefix is CMake's default which is
+usually /usr/local. Installing in this directory will require root
+privileges on most systems (use "su" or "sudo").
+
+The installation directory can be changed with the
+-D CMAKE_INSTALL_PREFIX option to cmake.
+For example:
+
+  cmake -D CMAKE_INSTALL_PREFIX=/opt .
+  make
+  make install
+
+or
+
+  cmake -D CMAKE_INSTALL_PREFIX=~/my_apps .
+  make
+  make install
+
+
+To perform automatic build and installion you can try one of the
+following scripts:
+
+  ./configure-build-install-default.sh
+  ./configure-build-install-heavy-optimize.sh
+  ./configure-build-install-non-default-gcc.sh
+  ./configure-build-install-icc.sh
+  ./configure-build-install-icc-heavy-optimize.sh
+
+They perform out-of-source build of MDTK inside corresponding _build-*
+directories using specific customizations of the build process (take a
+look inside the scripts for details).
+
+
+Hints for Microsoft Windows
+===========================
+
+MDTK compiles with MinGW/MSYS, and should compile with GNU C++ under
+Cygwin on Microsoft Windows (but do not forget to install all
+dependencies and libraries at first).
+
+For standard MinGW/MSYS installation type,
+  cmake -G "MSYS Makefiles" .
+  make
+
+MDTK may also compile using Microsoft Visual C++. Project files can
+be generated using appropriate -G cmake option. For example:
+
+  cmake -G "Visual Studio 9 2008" .
+
+
+Testing the installation
+===========================
+
+To test the installation, cd to any directory (preferably empty - as it
+will be populated with a lot of files) and run the command,
+
+  mdC2H6 > simulation.log
+
+It performs molecular dynamics simulation of the ethane molecule.
+Current directory will be populated with some output files describing
+MD trajectory. Detailed log of the simulation is redirected to the log
+file.
+
+Then visualize MD trajectory by running the command,
+
+  mdtrajview -a
+
+Option -a instructs to start animation immediately.
+Now you should see two windows - one with animation and one with a lot
+of controls.
+
+If the directory with MDTK binaries is not in your $PATH, you can try
+to run the example directly like this:
+  1) cd to directory with mdC2H6 binary (e.g.,./examples/C2H6/)
+  2) ./mdC2H6 > simulation.log
+  3) ../../applications/mdtrajview/mdtrajview -a
