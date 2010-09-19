@@ -66,7 +66,7 @@ zip_stringstream(const char *zipName, std::stringstream &uzs)
   gzFile   zipped   = gzopen(zipName,"wb");
   REQUIRE(zipped != 0);
   int unzippedFileSize;
-  while((unzippedFileSize = uzs.readsome(buf,MDTK_GZ_BUFFER_SIZE)) > 0)
+  while((uzs.read(buf,MDTK_GZ_BUFFER_SIZE),unzippedFileSize = uzs.gcount()) > 0)
   {
     TRACE(unzippedFileSize);
     REQUIRE(unzippedFileSize != -1);
@@ -138,18 +138,12 @@ void unzip_stringstream(const char *zipName, std::stringstream& os)
 {
   using mdtk::Exception;
   char buf[MDTK_GZ_BUFFER_SIZE];
-//  TRACE(zipName);
   gzFile zipped   = gzopen(zipName,"rb");
   REQUIRE(zipped != 0);
-  //  FILE*  unzipped = fopen(unzipName,"wb");
-//  if (unzipped == 0) TRACE(unzipName);
-//  REQUIRE(unzipped != 0);
   int unzippedFileSize;
   while ((unzippedFileSize = gzread(zipped,buf,MDTK_GZ_BUFFER_SIZE)) > 0)
   {
-    //    int bytesWritten = fwrite(buf,unzippedFileSize,1,unzipped);
-    //    REQUIRE(1 == bytesWritten);
-    TRACE(unzippedFileSize);
+    //    TRACE(unzippedFileSize);
     os.write(buf,unzippedFileSize);
   }
   REQUIRE(unzippedFileSize == 0);
