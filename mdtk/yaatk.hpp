@@ -179,6 +179,14 @@ void chdir(const char *name)
 #define DIR_DELIMIT_CHAR '/'
 #define DIR_DELIMIT_STR "/"
 
+
+int
+zip_stringstream(const char *zipName, std::stringstream& uzs);
+void 
+unzip_stringstream(const char *zipName, std::stringstream& os);
+
+
+
 void unzip_file(const char *zipName, const char* unzipName);
 
 std::string extractDir(std::string trajNameFinal);
