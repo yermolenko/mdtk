@@ -118,13 +118,13 @@ namespace xmde
 
     ml_ = new mdtk::SimLoop();
 
+    setupPotentials(*ml_);
     if (base_state_filename == "simloop.conf") 
       {
 	ml_->loadstate();
       }
     else
       {
-	setupPotentials(*ml_);
 	ml_->initNLafterLoading = false;
 	YAATK_IFSTREAM_CREATE_ZIPPED(std::ifstream,fi,base_state_filename.c_str()); 
 	if (base_state_filename == "mde_init")
