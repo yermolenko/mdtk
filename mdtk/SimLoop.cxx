@@ -1,7 +1,7 @@
 /*
    The molecular dynamics simulation loop class.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -987,7 +987,7 @@ void SimLoop::initialize()
 
 
 void
-SimLoop::saveToMDE(std::ofstream& fo)
+SimLoop::saveToMDE(std::ostream& fo)
 {
   fo << atoms_.size() << std::endl;
   for(size_t i = 0; i < atoms_.size(); i++)
@@ -1012,7 +1012,7 @@ SimLoop::saveToMDE(std::ofstream& fo)
 
 
 void
-SimLoop::saveToNanoHive(std::ofstream& fo)
+SimLoop::saveToNanoHive(std::ostream& fo)
 {
   for(size_t i = 0; i < atoms_.size(); i++)
   {
@@ -1034,7 +1034,7 @@ SimLoop::saveToNanoHive(std::ofstream& fo)
 }
 
 void
-SimLoop::loadFromMDE(std::ifstream& fi)
+SimLoop::loadFromMDE(std::istream& fi)
 {
   freeAtoms();
   AtomsContainer& Ro = atoms_;
@@ -1070,7 +1070,7 @@ SimLoop::loadFromMDE(std::ifstream& fi)
 
 
 void
-SimLoop::loadFromMDE_OLD(std::ifstream& fi)
+SimLoop::loadFromMDE_OLD(std::istream& fi)
 {
   freeAtoms();
   AtomsContainer& Ro = atoms_;

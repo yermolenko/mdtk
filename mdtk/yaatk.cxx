@@ -68,7 +68,6 @@ zip_stringstream(const char *zipName, std::stringstream &uzs)
   int unzippedFileSize;
   while((uzs.read(buf,MDTK_GZ_BUFFER_SIZE),unzippedFileSize = uzs.gcount()) > 0)
   {
-    TRACE(unzippedFileSize);
     REQUIRE(unzippedFileSize != -1);
     int bytesWritten    = gzwrite(zipped,buf,unzippedFileSize);
     REQUIRE(unzippedFileSize == bytesWritten);
@@ -108,7 +107,7 @@ std::string extractLastItem(std::string trajNameFinal)
     return res;
 }  
 
-ZippedStreams zippedStreams;
+  // ZippedStreams zippedStreams; //deprecated
 
 
 #define  MDTK_GZ_BUFFER_SIZE 10000
@@ -143,12 +142,10 @@ void unzip_stringstream(const char *zipName, std::stringstream& os)
   int unzippedFileSize;
   while ((unzippedFileSize = gzread(zipped,buf,MDTK_GZ_BUFFER_SIZE)) > 0)
   {
-    //    TRACE(unzippedFileSize);
     os.write(buf,unzippedFileSize);
   }
   REQUIRE(unzippedFileSize == 0);
   gzclose(zipped);
-  //  fclose(unzipped);  
 }
 
 
