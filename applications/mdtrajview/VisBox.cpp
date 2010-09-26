@@ -119,6 +119,8 @@ namespace xmde
     ml_ = new mdtk::SimLoop();
 
     setupPotentials(*ml_);
+    if (base_state_filename != "")
+    {
     if (base_state_filename == "simloop.conf") 
       {
 	ml_->loadstate();
@@ -135,6 +137,7 @@ namespace xmde
 	YAATK_IFSTREAM_CLOSE_ZIPPED(fi,base_state_filename.c_str()); 
       }
     SetData(*ml_);
+    }
     size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
     callback(window_cb);
   }

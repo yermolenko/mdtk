@@ -61,7 +61,9 @@ namespace xmde
       Scale,MaxScale;
 	
     mdtk::AtomsContainer R,Ro;
+  public:
     mdtk::SimLoop* ml_;
+  private:
 
     unsigned long VertexColor,EdgeColor,BGColor;
     bool EnableAxes;
@@ -115,6 +117,7 @@ namespace xmde
     virtual ~VisBox(){delete ml_;};
 
     void SetData(mdtk::SimLoop &);
+    void updateData(){SetData(*ml_);}
 
     void SetFixedLightsState(bool);
     bool GetFixedLightsState();

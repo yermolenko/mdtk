@@ -33,6 +33,7 @@ FIND_PACKAGE(OpenGL)
 
 IF(OPENGL_FOUND AND FLTK_FOUND)
   add_subdirectory (mdtrajview)
+  add_subdirectory (mdbuilder)
 ELSEIF(OPENGL_FOUND AND FLTK_FOUND)
-  message("FLTK or OpenGL not found! Install it in order to visualize MD trajectories.")
+  message("FLTK or OpenGL not found! Install it in order to visualize MD trajectories and prepare experiments using mdbuilder.")
 ENDIF(OPENGL_FOUND AND FLTK_FOUND)
