@@ -29,6 +29,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "experiments/H2.hpp"
+
 int main(int argc, char *argv[])
 {
   if (argc > 1 && !strcmp(argv[1],"--version"))
@@ -54,11 +56,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
   xmde::VisBox visualizer(15,35,500,500,"","");
 
-  {
-    visualizer.ml_->atoms.push_back(new mdtk::Atom());
-    visualizer.ml_->atoms.push_back(new mdtk::Atom());
-    visualizer.ml_->atoms[1]->coords.x = 1.0*mdtk::Ao;
-  }
+  mdbuilder::place_H2(*visualizer.ml_);
 
   {
     std::ofstream fomde("two_atoms.mde");
