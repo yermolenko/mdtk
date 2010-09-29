@@ -1,7 +1,7 @@
 /*
    Yet another auxiliary toolkit.
 
-   Copyright (C) 2003, 2005, 2006, 2009 Oleksandr Yermolenko
+   Copyright (C) 2003, 2005, 2006, 2009, 2010 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -25,6 +25,8 @@
 
 #include <zlib.h>
 #include <cstring>
+
+#include <sstream>
 
 namespace yaatk
 {
@@ -52,6 +54,25 @@ zip_file(const char *zipName, const char* unzipName)
   }
   REQUIRE(unzippedFileSize == 0);
   gzclose(unzipped);  
+  gzclose(zipped);
+  return 0;
+}
+
+int
+zip_stringstream(const char *zipName, std::stringstream &uzs)
+{
+  using mdtk::Exception;
+  char buf[MDTK_GZ_BUFFER_SIZE];
+  gzFile   zipped   = gzopen(zipName,"wb");
+  REQUIRE(zipped != 0);
+  int unzippedFileSize;
+  while((uzs.read(buf,MDTK_GZ_BUFFER_SIZE),unzippedFileSize = uzs.gcount()) > 0)
+  {
+    REQUIRE(unzippedFileSize != -1);
+    int bytesWritten    = gzwrite(zipped,buf,unzippedFileSize);
+    REQUIRE(unzippedFileSize == bytesWritten);
+  }
+  REQUIRE(unzippedFileSize == 0);
   gzclose(zipped);
   return 0;
 }
@@ -86,7 +107,7 @@ std::string extractLastItem(std::string trajNameFinal)
     return res;
 }  
 
-ZippedStreams zippedStreams;
+  // ZippedStreams zippedStreams; //deprecated
 
 
 #define  MDTK_GZ_BUFFER_SIZE 10000
@@ -110,6 +131,21 @@ void unzip_file(const char *zipName, const char* unzipName)
   REQUIRE(unzippedFileSize == 0);
   gzclose(zipped);
   fclose(unzipped);  
+}
+
+void unzip_stringstream(const char *zipName, std::stringstream& os)
+{
+  using mdtk::Exception;
+  char buf[MDTK_GZ_BUFFER_SIZE];
+  gzFile zipped   = gzopen(zipName,"rb");
+  REQUIRE(zipped != 0);
+  int unzippedFileSize;
+  while ((unzippedFileSize = gzread(zipped,buf,MDTK_GZ_BUFFER_SIZE)) > 0)
+  {
+    os.write(buf,unzippedFileSize);
+  }
+  REQUIRE(unzippedFileSize == 0);
+  gzclose(zipped);
 }
 
 

@@ -1,7 +1,7 @@
 /*
    Yet another auxiliary toolkit (header file).
 
-   Copyright (C) 2003, 2005, 2006, 2009 Oleksandr Yermolenko
+   Copyright (C) 2003, 2005, 2006, 2009, 2010 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -30,6 +30,8 @@
 #include <mdtk/config.hpp>
 
 #include <stdio.h>
+
+#include <sstream>
 
 
 #ifndef __WIN32__
@@ -179,6 +181,14 @@ void chdir(const char *name)
 #define DIR_DELIMIT_CHAR '/'
 #define DIR_DELIMIT_STR "/"
 
+
+int
+zip_stringstream(const char *zipName, std::stringstream& uzs);
+void 
+unzip_stringstream(const char *zipName, std::stringstream& os);
+
+
+
 void unzip_file(const char *zipName, const char* unzipName);
 
 std::string extractDir(std::string trajNameFinal);
@@ -205,28 +215,22 @@ std::string extractLastItem(std::string trajNameFinal);
 }  
 
 #define YAATK_IFSTREAM_CREATE_ZIPPED(FSTREAM_CLASS,FSTREAM_VAR,ZIPPED_FILENAME_TO_OPEN) \
-  yaatk::zippedStreams.setZippedNameTMP(ZIPPED_FILENAME_TO_OPEN); \
-  YAATK_UNZIP_FILE(ZIPPED_FILENAME_TO_OPEN); \
-  YAATK_FSTREAM_CREATE(FSTREAM_CLASS,FSTREAM_VAR,yaatk::zippedStreams.getZippedNameTMP(ZIPPED_FILENAME_TO_OPEN));
+  std::stringstream FSTREAM_VAR(std::stringstream::in | std::stringstream::out); \
+  static char FSTREAM_VAR##param1[1024]; \
+  sprintf(FSTREAM_VAR##param1,"%s."YAATK_ZIP_EXT,ZIPPED_FILENAME_TO_OPEN); \
+  yaatk::unzip_stringstream(FSTREAM_VAR##param1,FSTREAM_VAR);
+
 
 #define YAATK_IFSTREAM_CREATE_ZIPPED_OPT(FSTREAM_CLASS,FSTREAM_VAR,ZIPPED_FILENAME_TO_OPEN,FSTREAM_OPT) \
-  yaatk::zippedStreams.setZippedNameTMP(ZIPPED_FILENAME_TO_OPEN); \
-  YAATK_UNZIP_FILE(ZIPPED_FILENAME_TO_OPEN); \
-  YAATK_FSTREAM_CREATE_OPT(FSTREAM_CLASS,FSTREAM_VAR,yaatk::zippedStreams.getZippedNameTMP(ZIPPED_FILENAME_TO_OPEN),FSTREAM_OPT);
+  std::stringstream FSTREAM_VAR(std::stringstream::in | std::stringstream::out | FSTREAM_OPT); \
+  static char FSTREAM_VAR##param1[1024]; \
+  sprintf(FSTREAM_VAR##param1,"%s."YAATK_ZIP_EXT,ZIPPED_FILENAME_TO_OPEN); \
+  yaatk::unzip_stringstream(FSTREAM_VAR##param1,FSTREAM_VAR);
 
 
 
 #define YAATK_IFSTREAM_CLOSE_ZIPPED(FSTREAM_VAR,ZIPPED_FILENAME_TO_OPEN) \
 { \
-  YAATK_FSTREAM_CLOSE(FSTREAM_VAR); \
-    { \
-      static char file_to_delete[1024]; \
-      sprintf(file_to_delete,"%s",yaatk::zippedStreams.getZippedNameTMP(ZIPPED_FILENAME_TO_OPEN)); \
-      int removeSuccess = std::remove(file_to_delete); \
-      if (removeSuccess != 0) TRACE(file_to_delete); \
-      REQUIRE(removeSuccess == 0); \
-    }  \
-  yaatk::zippedStreams.afterClose(ZIPPED_FILENAME_TO_OPEN); \
 }
 
 
@@ -292,7 +296,7 @@ public:
   }  
 };
 
-extern ZippedStreams zippedStreams;
+//extern ZippedStreams zippedStreams; // deprecated
 
 bool
 isIdentical(const std::string& file1,const std::string& file2);

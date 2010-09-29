@@ -1,7 +1,7 @@
 /*
    The molecular dynamics simulation loop class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -227,10 +227,10 @@ public:
   void writetrajXVA();
   void writetrajXVA_bin();
   void writetrajXYZ();
-  void saveToMDE(std::ofstream& fo);
-  void loadFromMDE(std::ifstream& fi);
-  void loadFromMDE_OLD(std::ifstream& fi);
-  void saveToNanoHive(std::ofstream& fo);
+  void saveToMDE(std::ostream& fo);
+  void loadFromMDE(std::istream& fi);
+  void loadFromMDE_OLD(std::istream& fi);
+  void saveToNanoHive(std::ostream& fo);
 public:
   FProxy fpot;
 public:
