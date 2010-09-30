@@ -332,6 +332,15 @@ FuncF::FuncF(int paramSet)
       dvdy[1][1][0] = DFCCDJ[i+1][j+1][k];
       dvdy[1][1][1] = DFCCDJ[i+1][j+1][k+1];
 
+      dvdz[0][0][0] = 0.0;
+      dvdz[0][0][1] = 0.0;
+      dvdz[0][1][0] = 0.0;
+      dvdz[0][1][1] = 0.0;
+      dvdz[1][0][0] = 0.0;
+      dvdz[1][0][1] = 0.0;
+      dvdz[1][1][0] = 0.0;
+      dvdz[1][1][1] = 0.0;
+
       spline[i][j][k] = Spline3D(x,y,z,v,dvdx,dvdy,dvdz);
     }  
 }    
