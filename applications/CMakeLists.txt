@@ -22,7 +22,7 @@
 add_subdirectory (mdtrajsim)
 
 IF(MSVC)
-  SET(FLTK_LIBRARIES fltk fltk_gl)
+  SET(FLTK_LIBRARIES fltk fltkgl)
   SET(FLTK_FOUND true)
 ELSE(MSVC)
   SET(FLTK_SKIP_FLUID true)
