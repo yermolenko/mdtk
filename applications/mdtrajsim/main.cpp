@@ -129,7 +129,7 @@ catch(mdtk::Exception& e)
 { 
   std::cerr << "MDTK exception in the main thread: "
             << e.what() << std::endl;
-  std::cerr << "Probably wrong input file format or no input file (default is in.mde.gz)" << std::endl;
+  std::cerr << "Probably wrong input file format or no input file (default is in.mde)" << std::endl;
   return 1;
 }
 catch(...)
