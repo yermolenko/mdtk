@@ -1,8 +1,8 @@
 /*
    The MainWindow class for the molecular dynamics trajectory viewer.
 
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -370,7 +370,7 @@ namespace xmde
       "MDTK" + " " +
       mdtk::release_info.PRODUCT_VERSION + 
       "\n\n" + 
-      "Copyright (C) 2003-2009 Oleksandr Yermolenko\n <oleksandr.yermolenko@@gmail.com>\n\n" +
+      "Copyright (C) 2003-2010 Oleksandr Yermolenko\n <oleksandr.yermolenko@@gmail.com>\n\n" +
       "Run the program with --version or --help options for details."
       ;
     about_box = new Fl_Box(5,25,690,485,product_info.c_str());

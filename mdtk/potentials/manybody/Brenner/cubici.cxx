@@ -3,8 +3,8 @@
    hydrocarbons. Splines.
    See [D.W. Brenner, Phys. Rev. B 42, 9458 (1990)]
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2009 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2009, 2010 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
