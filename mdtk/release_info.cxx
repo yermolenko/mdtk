@@ -28,7 +28,7 @@ namespace mdtk
 ReleaseInfo release_info
   (
     "(MDTK)",
-    "0.5.3",
+    "0.5.4",
     "",
     "2010 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>",
     "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\
