@@ -64,7 +64,11 @@ zip_stringstream(const char *zipName, std::stringstream &uzs)
   using mdtk::Exception;
   char buf[MDTK_GZ_BUFFER_SIZE];
   char cmd[2000];sprintf(cmd,"gzip -c >%s",zipName);
+#ifndef __WIN32__
   FILE* zipped   = popen(cmd,"w");
+#else
+  FILE* zipped   = _popen(cmd,"wb");
+#endif
   REQUIRE(zipped != 0);
   int unzippedFileSize;
   while((uzs.read(buf,MDTK_GZ_BUFFER_SIZE),unzippedFileSize = uzs.gcount()) > 0)
@@ -74,7 +78,11 @@ zip_stringstream(const char *zipName, std::stringstream &uzs)
     REQUIRE(unzippedFileSize == bytesWritten);
   }
   REQUIRE(unzippedFileSize == 0);
+#ifndef __WIN32__
   pclose(zipped);
+#else
+  _pclose(zipped);
+#endif
   return 0;
 }
 
@@ -139,7 +147,11 @@ void unzip_stringstream(const char *zipName, std::stringstream& os)
   using mdtk::Exception;
   char buf[MDTK_GZ_BUFFER_SIZE];
   char cmd[2000];sprintf(cmd,"gzip -dc %s",zipName);
+#ifndef __WIN32__
   FILE* zipped   = popen(cmd,"r");
+#else
+  FILE* zipped   = _popen(cmd,"rb");
+#endif
   REQUIRE(zipped != 0);
   int unzippedFileSize;
   while ((unzippedFileSize = fread(buf,1,MDTK_GZ_BUFFER_SIZE,zipped)) > 0)
@@ -148,7 +160,11 @@ void unzip_stringstream(const char *zipName, std::stringstream& os)
   }
   
   REQUIRE(unzippedFileSize == 0);
+#ifndef __WIN32__
   pclose(zipped);
+#else
+  _pclose(zipped);
+#endif
 }
 
 
