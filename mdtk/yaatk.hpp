@@ -182,6 +182,91 @@ void chdir(const char *name)
 #define DIR_DELIMIT_STR "/"
 
 
+  class Stream : public std::stringstream
+  {
+    int zipMe();
+    int unZipMe();
+    int zipMe_internal();
+    int unZipMe_internal();
+    std::string filename;
+    bool output;
+    bool opened;
+  public:
+    struct zipInvokeInfo
+    {
+      std::string command;
+      std::string extension;
+      zipInvokeInfo(std::string c, std::string e)
+	:command(c),extension(e){}
+    };
+    static std::vector<zipInvokeInfo> zipInvokeInfoList;
+    static std::vector<zipInvokeInfo> initZipInvokeInfoList();
+    std::string getZippedExt();
+    std::string getFileName() {return filename;}
+    void guessZipType();
+    void setFileName(std::string fname) {filename = fname;}
+    void setOutputMode(bool om) {output = om;}
+    std::string getZippedFileName() {return filename+getZippedExt();}
+    static std::string zipCmdGlobal;
+    std::string zipCmd;
+    Stream(std::string fname,bool isOutput,bool isBinary);
+    virtual ~Stream() { close(); }
+    void open();
+    void close();
+  };
+
+
+
+  class binary_fstream : public Stream
+  {
+  public:
+    binary_fstream(std::string fname,bool isOutput)
+      :Stream(fname,isOutput,true) {}
+    virtual ~binary_fstream() {}
+  };
+
+  class binary_ifstream : public binary_fstream
+  {
+  public:
+    binary_ifstream(std::string fname)
+      :binary_fstream(fname,false) {}
+    virtual ~binary_ifstream() {}
+  };
+
+  class binary_ofstream : public binary_fstream
+  {
+  public:
+    binary_ofstream(std::string fname)
+      :binary_fstream(fname,true) {}
+    virtual ~binary_ofstream() {}
+  };
+
+
+  class text_fstream : public Stream
+  {
+  public:
+    text_fstream(std::string fname,bool isOutput)
+      :Stream(fname,isOutput,false) {}
+    virtual ~text_fstream() {}
+  };
+
+  class text_ifstream : public text_fstream
+  {
+  public:
+    text_ifstream(std::string fname)
+      :text_fstream(fname,false) {}
+    virtual ~text_ifstream() {}
+  };
+
+  class text_ofstream : public text_fstream
+  {
+  public:
+    text_ofstream(std::string fname)
+      :text_fstream(fname,true) {}
+    virtual ~text_ofstream() {}
+  };
+
+
 int
 zip_stringstream(const char *zipName, std::stringstream& uzs);
 void 
