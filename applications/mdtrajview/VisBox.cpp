@@ -714,14 +714,13 @@ namespace xmde
   {
     using namespace mdtk;  
     using namespace std;  
-    std::ofstream fo(filename);
+    yaatk::text_ofstream fo(filename);
     {
       ml_->saveToMDE(fo);
     }
 
 
     fo.close();
-    YAATK_ZIP_FILE(filename);
   }  
 
   void	VisBox::QSaveImageToFile(char* filename)

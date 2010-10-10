@@ -30,61 +30,7 @@
 
 namespace yaatk
 {
-
-/*extern*/ int yaatk_extraID = 0;
-
 #define MDTK_GZ_BUFFER_SIZE 10000
-
-int
-zip_file(const char *zipName, const char* unzipName)
-{
-  using mdtk::Exception;
-  char buf[MDTK_GZ_BUFFER_SIZE];
-  gzFile   unzipped = gzopen(unzipName,"rb");
-//  if (unzipped == 0) TRACE(unzipName);
-  REQUIRE(unzipped != 0);
-  gzFile   zipped   = gzopen(zipName,"wb");
-  REQUIRE(zipped != 0);
-  int unzippedFileSize;
-  while((unzippedFileSize = gzread(unzipped,buf,MDTK_GZ_BUFFER_SIZE)) > 0)
-  {
-    REQUIRE(unzippedFileSize != -1);
-    int bytesWritten    = gzwrite(zipped,buf,unzippedFileSize);
-    REQUIRE(unzippedFileSize == bytesWritten);
-  }
-  REQUIRE(unzippedFileSize == 0);
-  gzclose(unzipped);  
-  gzclose(zipped);
-  return 0;
-}
-
-int
-zip_stringstream(const char *zipName, std::stringstream &uzs)
-{
-  using mdtk::Exception;
-  char buf[MDTK_GZ_BUFFER_SIZE];
-  char cmd[2000];sprintf(cmd,"gzip -c >%s",zipName);
-#ifndef __WIN32__
-  FILE* zipped   = popen(cmd,"w");
-#else
-  FILE* zipped   = _popen(cmd,"wb");
-#endif
-  REQUIRE(zipped != 0);
-  int unzippedFileSize;
-  while((uzs.read(buf,MDTK_GZ_BUFFER_SIZE),unzippedFileSize = uzs.gcount()) > 0)
-  {
-    REQUIRE(unzippedFileSize != -1);
-    int bytesWritten    = fwrite(buf,1,unzippedFileSize,zipped);
-    REQUIRE(unzippedFileSize == bytesWritten);
-  }
-  REQUIRE(unzippedFileSize == 0);
-#ifndef __WIN32__
-  pclose(zipped);
-#else
-  _pclose(zipped);
-#endif
-  return 0;
-}
 
 Stream::ZipInvokeInfo Stream::zipInvokeInfoGlobal=ZipInvokeInfo("gzip_internal",".gz");
 
@@ -316,57 +262,6 @@ std::string extractLastItem(std::string trajNameFinal)
     }  
     return res;
 }  
-
-  // ZippedStreams zippedStreams; //deprecated
-
-
-#define  MDTK_GZ_BUFFER_SIZE 10000
-
-void unzip_file(const char *zipName, const char* unzipName)
-{
-  using mdtk::Exception;
-  char buf[MDTK_GZ_BUFFER_SIZE];
-//  TRACE(zipName);
-  gzFile zipped   = gzopen(zipName,"rb");
-  REQUIRE(zipped != 0);
-  FILE*  unzipped = fopen(unzipName,"wb");
-//  if (unzipped == 0) TRACE(unzipName);
-  REQUIRE(unzipped != 0);
-  int unzippedFileSize;
-  while ((unzippedFileSize = gzread(zipped,buf,MDTK_GZ_BUFFER_SIZE)) > 0)
-  {
-    int bytesWritten = fwrite(buf,unzippedFileSize,1,unzipped);
-    REQUIRE(1 == bytesWritten);
-  }
-  REQUIRE(unzippedFileSize == 0);
-  gzclose(zipped);
-  fclose(unzipped);  
-}
-
-void unzip_stringstream(const char *zipName, std::stringstream& os)
-{
-  using mdtk::Exception;
-  char buf[MDTK_GZ_BUFFER_SIZE];
-  char cmd[2000];sprintf(cmd,"gzip -dc %s",zipName);
-#ifndef __WIN32__
-  FILE* zipped   = popen(cmd,"r");
-#else
-  FILE* zipped   = _popen(cmd,"rb");
-#endif
-  REQUIRE(zipped != 0);
-  int unzippedFileSize;
-  while ((unzippedFileSize = fread(buf,1,MDTK_GZ_BUFFER_SIZE,zipped)) > 0)
-  {
-    os.write(buf,unzippedFileSize);
-  }
-  
-  REQUIRE(unzippedFileSize == 0);
-#ifndef __WIN32__
-  pclose(zipped);
-#else
-  _pclose(zipped);
-#endif
-}
 
 
 #define  MDTK_FILECMP_BUFFER_SIZE 10000

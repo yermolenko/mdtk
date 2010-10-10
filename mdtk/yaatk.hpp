@@ -142,22 +142,6 @@ namespace yaatk
 #define YAATK_FSTREAM_READ(FSTREAM_INST,VAR_INST,SMODE) \
   if (SMODE == YAATK_FSTREAM_TEXT) {FSTREAM_INST >> VAR_INST;} else YAATK_BIN_READ (FSTREAM_INST, VAR_INST);
 
-/*
-#define YAATK_FSTREAM_CREATE(FSTREAM_CLASS,FSTREAM_INST,FSTREAM_FILENAME) \
-  FSTREAM_CLASS FSTREAM_INST(FSTREAM_FILENAME); \
-  REQUIRE(FSTREAM_INST!=0);
-
-#define YAATK_FSTREAM_CREATE_OPT(FSTREAM_CLASS,FSTREAM_INST,FSTREAM_FILENAME,FSTREAM_OPT) \
-  FSTREAM_CLASS FSTREAM_INST(FSTREAM_FILENAME,FSTREAM_OPT); \
-  REQUIRE(FSTREAM_INST!=0);
-
-#define YAATK_FSTREAM_CLOSE(FSTREAM_INST) \
-  REQUIRE(FSTREAM_INST!=0); \
-  FSTREAM_INST.close();
-*/
-
-
-
 inline
 void mkdir(const char *name)
 {
@@ -266,148 +250,11 @@ void chdir(const char *name)
     virtual ~text_ofstream() {}
   };
 
-
-int
-zip_stringstream(const char *zipName, std::stringstream& uzs);
-void 
-unzip_stringstream(const char *zipName, std::stringstream& os);
-
-
-
-void unzip_file(const char *zipName, const char* unzipName);
-
 std::string extractDir(std::string trajNameFinal);
 std::string extractLastItem(std::string trajNameFinal);
 
-
-#define YAATK_UNZIP_FILE(FILENAME_TO_UNZIP) \
-{ \
-  static char param1[1024]; \
-  sprintf(param1,"%s."YAATK_ZIP_EXT,FILENAME_TO_UNZIP); \
-  yaatk::unzip_file(param1,yaatk::zippedStreams.getZippedNameTMP(FILENAME_TO_UNZIP)); \
-  { \
-    bool unzipped_ok = false; \
-    { \
-      char unzipped_name[1024]; \
-      sprintf(unzipped_name,"%s",yaatk::zippedStreams.getZippedNameTMP(FILENAME_TO_UNZIP)); \
-      int handle; \
-      handle = _open(unzipped_name, _O_RDONLY | _O_BINARY); \
-      if (handle == -1) TRACE(errno); \
-      if ((handle != -1) && (_filelength(handle) > 0)) unzipped_ok = true; \
-      _close(handle); \
-    }  \
-  }  \
-}  
-
-/*
-#define YAATK_IFSTREAM_CREATE_ZIPPED(FSTREAM_CLASS,FSTREAM_VAR,ZIPPED_FILENAME_TO_OPEN) \
-  std::stringstream FSTREAM_VAR(std::stringstream::in | std::stringstream::out); \
-  static char FSTREAM_VAR##param1[1024]; \
-  sprintf(FSTREAM_VAR##param1,"%s."YAATK_ZIP_EXT,ZIPPED_FILENAME_TO_OPEN); \
-  yaatk::unzip_stringstream(FSTREAM_VAR##param1,FSTREAM_VAR);
-
-
-#define YAATK_IFSTREAM_CREATE_ZIPPED_OPT(FSTREAM_CLASS,FSTREAM_VAR,ZIPPED_FILENAME_TO_OPEN,FSTREAM_OPT) \
-  std::stringstream FSTREAM_VAR(std::stringstream::in | std::stringstream::out | FSTREAM_OPT); \
-  static char FSTREAM_VAR##param1[1024]; \
-  sprintf(FSTREAM_VAR##param1,"%s."YAATK_ZIP_EXT,ZIPPED_FILENAME_TO_OPEN); \
-  yaatk::unzip_stringstream(FSTREAM_VAR##param1,FSTREAM_VAR);
-
-
-
-#define YAATK_IFSTREAM_CLOSE_ZIPPED(FSTREAM_VAR,ZIPPED_FILENAME_TO_OPEN) \
-{ \
-}
-*/
-
-
-struct ZippedStream
-{
-  std::string filename;
-  std::string tmpname;
-  ZippedStream(std::string filename_, std::string tmpname_)
-  :filename(filename_), tmpname(tmpname_)
-  {
-  }  
-};  
-
-#define ZIPPED_TMP_FOLDER "_zipped_tmp"
-
-extern int yaatk_extraID;
-
-class ZippedStreams
-{
-  std::vector<ZippedStream> streams;
-public:  
-  void  setZippedNameTMP(std::string filename)
-  {
-    char tmp_[1024];
-    int i;
-    for(i = filename.size()-1; i >= 0; i--)
-      if (filename.c_str()[i] == '/' || filename.c_str()[i] == '\\')
-      { i++;
-        break;
-      }  
-    if (i < 0) i = 0;
-//    sprintf(tmp_,ZIPPED_TMP_FOLDER"\\""%s.%d",filename.substr(i,filename.size()-i).c_str(),streams.size());
-    int extraID = 0;
-#ifdef MDE_PARALLEL
-    extraID = mdtk::comm_rank;
-    TRACE(extraID);
-#endif
-    sprintf(tmp_,ZIPPED_TMP_FOLDER"/""%s.%lu.%d",filename.substr(i,filename.size()-i).c_str(),(unsigned long)streams.size(),extraID+yaatk_extraID);
-    streams.push_back(ZippedStream(filename,std::string(tmp_)));  
-  }  
-  const char* getZippedNameTMP(std::string filename)
-  {
-    using mdtk::Exception;
-    size_t i;
-    for(i = 0; i < streams.size(); i++)
-      if (streams[i].filename == filename) break;
-    REQUIRE(i < streams.size());
-    return streams[i].tmpname.c_str();
-  }
-  void afterClose(std::string filename)
-  {
-    using mdtk::Exception;
-    size_t i;
-    for(i = 0; i < streams.size(); i++)
-      if (streams[i].filename == filename) break;
-    REQUIRE(i < streams.size());
-    streams.erase(streams.begin()+i);
-  }  
-  ZippedStreams():streams()
-  {
-    mkdir(ZIPPED_TMP_FOLDER);
-  }  
-};
-
-//extern ZippedStreams zippedStreams; // deprecated
-
 bool
 isIdentical(const std::string& file1,const std::string& file2);
-
-
-int zip_file(const char *zipName, const char* unzipName);
-
-
-
-#define YAATK_ZIP_EXT "gz"
-
-
-
-#define YAATK_ZIP_FILE(FILENAME_TO_ZIP) \
-{ \
-  static char file_zipped[1024]; \
-  sprintf(file_zipped,"%s."YAATK_ZIP_EXT,FILENAME_TO_ZIP); \
-  if (!yaatk::zip_file(file_zipped,FILENAME_TO_ZIP)) \
-  { \
-  int removeSuccess = std::remove(FILENAME_TO_ZIP); \
-  if (removeSuccess != 0) TRACE(FILENAME_TO_ZIP); \
-  REQUIRE(removeSuccess == 0); \
-  } \
-}
-
 
 }
 
