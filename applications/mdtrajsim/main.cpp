@@ -67,9 +67,7 @@ try
   mdtk::SimLoop mdloop;
 
   setupPotentials(mdloop);
-  std::ifstream simloop_conf("simloop.conf.xz");
-  std::ifstream simloop_conf_bak("simloop.conf.bak.xz");
-  if (simloop_conf || simloop_conf_bak) // have to continue interrupted simulation ?
+  if (yaatk::exists("simloop.conf") || yaatk::exists("simloop.conf.bak")) // have to continue interrupted simulation ?
   {
 #ifdef MDE_PARALLEL
     MPI_Barrier(MPI_COMM_WORLD);
@@ -139,18 +137,7 @@ bool
 isAlreadyFinished()
 {
   {
-    std::ifstream ifinal("mde_final.xz");
-    if (ifinal)
-      return true;
-    else
-      ifinal.close();
-  }
-  {
-    std::ifstream ifinal("mde_final");
-    if (ifinal)
-      return true;
-    else
-      ifinal.close();
+    if (yaatk::exists("mde_final")) return true;
   }
   {
     std::ifstream ifinal("in.mde.after_crash");

@@ -50,7 +50,7 @@ findIntermediateStates(std::string trajDir,std::vector<std::string>& states)
 	  if (!fl_filename_isdir(entry->d_name))
 	    {
 	      if (entry->d_name[0] == 'm' && entry->d_name[1] == 'd' && entry->d_name[2] == 'e' &&
-		  entry->d_name[3] == '0' && strstr(entry->d_name,".xva.xz"))
+		  entry->d_name[3] == '0' && strstr(entry->d_name,".xva"))
 		{
 		  states.push_back(entry->d_name);
 		}
@@ -82,7 +82,7 @@ findBaseFiles(std::string trajDir,std::vector<std::string>& states)
 	  dirent* entry = list[i];
 	  if (!fl_filename_isdir(entry->d_name))
 	    {
-	      if (strstr(entry->d_name,".mde.xz"))
+	      if (strstr(entry->d_name,".mde"))
 		{
 		  states.push_back(entry->d_name);
 		}
@@ -143,15 +143,17 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     {
       if (argc > 1 && !strcmp(argv[1],"-a")) instantAnimate = true;
       std::vector<std::string> basefiles;
-      basefiles.push_back("in.mde.xz");
+      basefiles.push_back("in.mde");
       findBaseFiles("./",basefiles);
-      basefiles.push_back("mde_init.xz");
-      basefiles.push_back("simloop.conf.xz");
-      basefiles.push_back("mde_final.xz");
+      basefiles.push_back("mde_init");
+      basefiles.push_back("simloop.conf");
+      basefiles.push_back("mde_final");
       for(size_t i = 0; i < basefiles.size(); i++)
 	{
-	  std::ifstream fi(basefiles[i].c_str());
-	  if (fi) {fi.close();baseFile = basefiles[i];break;}
+	  if (yaatk::exists(basefiles[i])) 
+	    {baseFile = basefiles[i];break;}
+	  else
+	    {baseFile = "";}
 	}
       findIntermediateStates("./",fileList);
     }

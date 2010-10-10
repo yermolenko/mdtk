@@ -176,6 +176,7 @@ void chdir(const char *name)
     bool output;
     bool opened;
   public:
+    bool isOpened() {return opened;}
     struct ZipInvokeInfo
     {
       std::string command;
@@ -187,7 +188,8 @@ void chdir(const char *name)
     static std::vector<ZipInvokeInfo> initZipInvokeInfoList();
     std::string getZippedExt();
     std::string getFileName() {return filename;}
-    void guessZipType();
+    void guessZipTypeByExtension();
+    void guessZipTypeByPresence();
     void setFileName(std::string fname) {filename = fname;}
     void setOutputMode(bool om) {output = om;}
     std::string getZippedFileName() {return filename+getZippedExt();}
@@ -249,6 +251,18 @@ void chdir(const char *name)
       :text_fstream(fname,true) {}
     virtual ~text_ofstream() {}
   };
+
+inline
+bool exists(std::string filename)
+{
+  bool retval = false;
+  try
+  {
+    yaatk::binary_ifstream fi(filename);
+    if (fi.isOpened()) {fi.close(); retval = true;}
+  }catch (...) {;}
+  return retval;
+}
 
 std::string extractDir(std::string trajNameFinal);
 std::string extractLastItem(std::string trajNameFinal);

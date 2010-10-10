@@ -27,6 +27,7 @@
 #include <cstring>
 
 #include <sstream>
+#include <fstream>
 
 namespace yaatk
 {
@@ -54,7 +55,7 @@ Stream::getZippedExt()
 }
 
 void
-Stream::guessZipType()
+Stream::guessZipTypeByExtension()
 {
   for(size_t i = 0; i < zipInvokeInfoList.size(); i++)
   {
@@ -70,6 +71,26 @@ Stream::guessZipType()
   zipInvokeInfo = ZipInvokeInfo("nozip","");
 }
 
+void
+Stream::guessZipTypeByPresence()
+{
+  {
+    std::ifstream test(getZippedFileName().c_str());
+    if (test) return;
+  }
+
+  for(size_t i = 0; i < zipInvokeInfoList.size(); i++)
+  {
+    const ZipInvokeInfo& z = zipInvokeInfoList[i];
+    std::ifstream test((filename+z.extension).c_str());
+    if (test)
+    {
+	zipInvokeInfo = z;
+	return;
+    }
+  }
+}
+
 Stream::Stream(std::string fname,bool isOutput,bool isBinary)
       :std::stringstream(
 isBinary?
@@ -79,8 +100,8 @@ isBinary?
 )
       ,filename(fname),output(isOutput),opened(false),zipInvokeInfo(zipInvokeInfoGlobal)
 {
-  if (!output) guessZipType();
-  TRACE(zipInvokeInfo.command);
+  if (!output) guessZipTypeByExtension();
+  if (!output) guessZipTypeByPresence();
   open();
 }
 

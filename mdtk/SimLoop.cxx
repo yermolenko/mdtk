@@ -869,7 +869,7 @@ SimLoop::loadstate()
 try
 {
   std::cout << "Reading simloop.conf." << std::endl;
-  yaatk::binary_ifstream fo1("simloop.conf.xz");
+  yaatk::binary_ifstream fo1("simloop.conf");
   loadFromStream(fo1,YAATK_FSTREAM_BIN);
   
   REQUIRE(fo1!=0);
@@ -878,7 +878,7 @@ try
 catch(mdtk::Exception& e)
 { 
     std::cerr << "simloop.conf is corrupted. Trying simloop.conf.bak" << std::endl;
-    yaatk::binary_ifstream fo1bak("simloop.conf.bak.xz");
+    yaatk::binary_ifstream fo1bak("simloop.conf.bak");
     loadFromStream(fo1bak,YAATK_FSTREAM_BIN);
     if (fo1bak == 0)
     {
