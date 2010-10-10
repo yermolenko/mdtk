@@ -53,7 +53,7 @@ namespace xmde
       }
     else
       {
-	YAATK_IFSTREAM_CREATE_ZIPPED(std::ifstream,fi,base_state_filename.c_str()); 
+	yaatk::text_ifstream fi(base_state_filename.c_str()); 
 
 	ml_->initNLafterLoading = false;
 
@@ -66,16 +66,16 @@ namespace xmde
           ml_->allowPartialLoading = true; // hack, disables essential checks
           ml_->updateGlobalIndexes();
         }
-	YAATK_IFSTREAM_CLOSE_ZIPPED(fi,base_state_filename.c_str()); 
+	fi.close(); 
       }
     {
-      YAATK_IFSTREAM_CREATE_ZIPPED(std::ifstream,fixva,file.c_str()); 
+      yaatk::text_ifstream fixva(file.c_str()); 
       ml_->loadFromStreamXVA(fixva);
-      YAATK_IFSTREAM_CLOSE_ZIPPED(fixva,file.c_str()); 
+      fixva.close(); 
       /*
-	YAATK_IFSTREAM_CREATE_ZIPPED_OPT(std::ifstream,fixva,file.c_str(),std::ios::binary); 
+	yaatk::binary_ifstream fixva(file.c_str()); 
 	ml_->loadFromStreamXVA_bin(fixva);
-	YAATK_IFSTREAM_CLOSE_ZIPPED(fixva,file.c_str()); 
+	fixva.close(); 
       */
     }  
 
@@ -126,13 +126,13 @@ namespace xmde
     else
       {
 	ml_->initNLafterLoading = false;
-	YAATK_IFSTREAM_CREATE_ZIPPED(std::ifstream,fi,base_state_filename.c_str()); 
+	yaatk::text_ifstream fi(base_state_filename.c_str()); 
 	if (base_state_filename == "mde_init")
 	  ml_->loadFromStream(fi);
 	else
 	  ml_->loadFromMDE(fi);
 //	  ml_->loadFromMDE_OLD(fi);
-	YAATK_IFSTREAM_CLOSE_ZIPPED(fi,base_state_filename.c_str()); 
+	fi.close(); 
       }
     SetData(*ml_);
     size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);

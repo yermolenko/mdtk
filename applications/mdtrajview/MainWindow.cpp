@@ -830,16 +830,16 @@ MainWindow::timer_callback(void*)
       {
 	using mdtk::Exception;
 
-	YAATK_IFSTREAM_CREATE_ZIPPED(std::ifstream,fi,base_state_filename.c_str()); 
+	yaatk::text_ifstream fi(base_state_filename.c_str()); 
 
 	ml->loadFromStream(fi);
 	{
-	  YAATK_IFSTREAM_CREATE_ZIPPED(std::ifstream,fixva,stateList[i].c_str()); 
+	  yaatk::text_ifstream fixva(stateList[i].c_str()); 
 	  ml->loadFromStreamXVA(fixva);
-	  YAATK_IFSTREAM_CLOSE_ZIPPED(fixva,stateList[i].c_str()); 
+	  fixva.close(); 
 	}  
 
-	YAATK_IFSTREAM_CLOSE_ZIPPED(fi,base_state_filename.c_str()); 
+	fi.close(); 
  	  
 	ev.push_back(ml->getEnergyCur()/mdtk::eV);  	  
  	  
