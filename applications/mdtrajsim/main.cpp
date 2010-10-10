@@ -67,8 +67,8 @@ try
   mdtk::SimLoop mdloop;
 
   setupPotentials(mdloop);
-  std::ifstream simloop_conf("simloop.conf.gz");
-  std::ifstream simloop_conf_bak("simloop.conf.bak.gz");
+  std::ifstream simloop_conf("simloop.conf.xz");
+  std::ifstream simloop_conf_bak("simloop.conf.bak.xz");
   if (simloop_conf || simloop_conf_bak) // have to continue interrupted simulation ?
   {
 #ifdef MDE_PARALLEL
@@ -139,7 +139,7 @@ bool
 isAlreadyFinished()
 {
   {
-    std::ifstream ifinal("mde_final.gz");
+    std::ifstream ifinal("mde_final.xz");
     if (ifinal)
       return true;
     else

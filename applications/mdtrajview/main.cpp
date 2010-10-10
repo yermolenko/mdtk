@@ -50,7 +50,7 @@ findIntermediateStates(std::string trajDir,std::vector<std::string>& states)
 	  if (!fl_filename_isdir(entry->d_name))
 	    {
 	      if (entry->d_name[0] == 'm' && entry->d_name[1] == 'd' && entry->d_name[2] == 'e' &&
-		  entry->d_name[3] == '0' && strstr(entry->d_name,".xva.gz"))
+		  entry->d_name[3] == '0' && strstr(entry->d_name,".xva.xz"))
 		{
 		  states.push_back(entry->d_name);
 		}
@@ -82,7 +82,7 @@ findBaseFiles(std::string trajDir,std::vector<std::string>& states)
 	  dirent* entry = list[i];
 	  if (!fl_filename_isdir(entry->d_name))
 	    {
-	      if (strstr(entry->d_name,".mde.gz"))
+	      if (strstr(entry->d_name,".mde.xz"))
 		{
 		  states.push_back(entry->d_name);
 		}
@@ -143,11 +143,11 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     {
       if (argc > 1 && !strcmp(argv[1],"-a")) instantAnimate = true;
       std::vector<std::string> basefiles;
-      basefiles.push_back("in.mde.gz");
+      basefiles.push_back("in.mde.xz");
       findBaseFiles("./",basefiles);
-      basefiles.push_back("mde_init.gz");
-      basefiles.push_back("simloop.conf.gz");
-      basefiles.push_back("mde_final.gz");
+      basefiles.push_back("mde_init.xz");
+      basefiles.push_back("simloop.conf.xz");
+      basefiles.push_back("mde_final.xz");
       for(size_t i = 0; i < basefiles.size(); i++)
 	{
 	  std::ifstream fi(basefiles[i].c_str());
@@ -162,11 +162,11 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     return 1;
   }
 
-  baseFile.resize(baseFile.size()-3);
+  //  baseFile.resize(baseFile.size()-3);
   TRACE(baseFile);
   for(size_t i = 0; i < fileList.size(); i++)
     {
-      fileList[i].resize(fileList[i].size()-3);
+      //      fileList[i].resize(fileList[i].size()-3);
       TRACE(fileList[i]);
     }
 

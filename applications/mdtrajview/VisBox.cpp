@@ -47,7 +47,7 @@ namespace xmde
 
     TRACE(base_state_filename);
 
-    if (base_state_filename == "simloop.conf") 
+    if (base_state_filename.find("simloop.conf") != std::string::npos) 
       {
 	ml_->loadstate();
       }
@@ -57,7 +57,7 @@ namespace xmde
 
 	ml_->initNLafterLoading = false;
 
-	if (base_state_filename == "mde_init")
+	if (base_state_filename.find("mde_init") != std::string::npos)
 	  ml_->loadFromStream(fi);
 	else
         {
@@ -119,7 +119,7 @@ namespace xmde
     ml_ = new mdtk::SimLoop();
 
     setupPotentials(*ml_);
-    if (base_state_filename == "simloop.conf") 
+    if (base_state_filename.find("simloop.conf") != std::string::npos) 
       {
 	ml_->loadstate();
       }
@@ -127,7 +127,7 @@ namespace xmde
       {
 	ml_->initNLafterLoading = false;
 	yaatk::text_ifstream fi(base_state_filename.c_str()); 
-	if (base_state_filename == "mde_init")
+	if (base_state_filename.find("mde_init") != std::string::npos)
 	  ml_->loadFromStream(fi);
 	else
 	  ml_->loadFromMDE(fi);

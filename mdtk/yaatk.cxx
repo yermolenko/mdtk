@@ -32,7 +32,7 @@ namespace yaatk
 {
 #define MDTK_GZ_BUFFER_SIZE 10000
 
-Stream::ZipInvokeInfo Stream::zipInvokeInfoGlobal=ZipInvokeInfo("gzip_internal",".gz");
+Stream::ZipInvokeInfo Stream::zipInvokeInfoGlobal=ZipInvokeInfo("xz",".xz");
 
 std::vector<Stream::ZipInvokeInfo> Stream::zipInvokeInfoList = Stream::initZipInvokeInfoList();
 
