@@ -142,7 +142,7 @@ namespace yaatk
 #define YAATK_FSTREAM_READ(FSTREAM_INST,VAR_INST,SMODE) \
   if (SMODE == YAATK_FSTREAM_TEXT) {FSTREAM_INST >> VAR_INST;} else YAATK_BIN_READ (FSTREAM_INST, VAR_INST);
 
-
+/*
 #define YAATK_FSTREAM_CREATE(FSTREAM_CLASS,FSTREAM_INST,FSTREAM_FILENAME) \
   FSTREAM_CLASS FSTREAM_INST(FSTREAM_FILENAME); \
   REQUIRE(FSTREAM_INST!=0);
@@ -154,7 +154,7 @@ namespace yaatk
 #define YAATK_FSTREAM_CLOSE(FSTREAM_INST) \
   REQUIRE(FSTREAM_INST!=0); \
   FSTREAM_INST.close();
-
+*/
 
 
 
@@ -192,23 +192,23 @@ void chdir(const char *name)
     bool output;
     bool opened;
   public:
-    struct zipInvokeInfo
+    struct ZipInvokeInfo
     {
       std::string command;
       std::string extension;
-      zipInvokeInfo(std::string c, std::string e)
+      ZipInvokeInfo(std::string c, std::string e)
 	:command(c),extension(e){}
     };
-    static std::vector<zipInvokeInfo> zipInvokeInfoList;
-    static std::vector<zipInvokeInfo> initZipInvokeInfoList();
+    static std::vector<ZipInvokeInfo> zipInvokeInfoList;
+    static std::vector<ZipInvokeInfo> initZipInvokeInfoList();
     std::string getZippedExt();
     std::string getFileName() {return filename;}
     void guessZipType();
     void setFileName(std::string fname) {filename = fname;}
     void setOutputMode(bool om) {output = om;}
     std::string getZippedFileName() {return filename+getZippedExt();}
-    static std::string zipCmdGlobal;
-    std::string zipCmd;
+    static ZipInvokeInfo zipInvokeInfoGlobal;
+    ZipInvokeInfo zipInvokeInfo;
     Stream(std::string fname,bool isOutput,bool isBinary);
     virtual ~Stream() { close(); }
     void open();
@@ -299,6 +299,7 @@ std::string extractLastItem(std::string trajNameFinal);
   }  \
 }  
 
+/*
 #define YAATK_IFSTREAM_CREATE_ZIPPED(FSTREAM_CLASS,FSTREAM_VAR,ZIPPED_FILENAME_TO_OPEN) \
   std::stringstream FSTREAM_VAR(std::stringstream::in | std::stringstream::out); \
   static char FSTREAM_VAR##param1[1024]; \
@@ -317,7 +318,7 @@ std::string extractLastItem(std::string trajNameFinal);
 #define YAATK_IFSTREAM_CLOSE_ZIPPED(FSTREAM_VAR,ZIPPED_FILENAME_TO_OPEN) \
 { \
 }
-
+*/
 
 
 struct ZippedStream

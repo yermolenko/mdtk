@@ -24,13 +24,13 @@ main(int argc , char *argv[])
 
 
   {
-  yaatk::Stream::zipCmdGlobal="xz";
+  yaatk::Stream::zipInvokeInfoGlobal = yaatk::Stream::ZipInvokeInfo("xz",".xz");
 
   yaatk::Stream os("dummy.txt",true,false);
   os << "Test!!!";
   os.close();
 
-  yaatk::Stream is("dummy.txt",false,false);
+  yaatk::Stream is("dummy.txt.xz",false,false);
   std::string s;
   is >> s;
   std::cout << s << "\n";
@@ -38,50 +38,42 @@ main(int argc , char *argv[])
   }
   
   {
-  yaatk::Stream::zipCmdGlobal="gzip";
+  yaatk::Stream::zipInvokeInfoGlobal = yaatk::Stream::ZipInvokeInfo("gzip",".gz");
 
-  yaatk::Stream s("in.txt",false,false);
+  yaatk::Stream s("in.txt.gz",false,false);
   s.setOutputMode(true);
   s.setFileName("out.txt");
   s.close();
   }
 
   {
-  yaatk::Stream::zipCmdGlobal="gzip";
+  yaatk::Stream::zipInvokeInfoGlobal = yaatk::Stream::ZipInvokeInfo("gzip",".gz");
 
-  yaatk::Stream s("in.bin",false,true);
+  yaatk::Stream s("in.bin.gz",false,true);
   s.setOutputMode(true);
   s.setFileName("out.bin");
   s.close();
   }
   
   {
-  yaatk::Stream::zipCmdGlobal="gzip";
-  yaatk::binary_ifstream s("in.bin");
+  yaatk::Stream::zipInvokeInfoGlobal = yaatk::Stream::ZipInvokeInfo("gzip",".gz");
+  yaatk::binary_ifstream s("in.bin.gz");
   s.setOutputMode(true);
   s.setFileName("out.bis.bin");
-  s.zipCmd="bzip2";
+  s.zipInvokeInfo=yaatk::Stream::ZipInvokeInfo("bzip2",".bz2");
   s.close();
   }
 
   {
-  yaatk::Stream::zipCmdGlobal="gzip_internal";
-  yaatk::binary_ifstream s("in.bin");
+  yaatk::Stream::zipInvokeInfoGlobal = yaatk::Stream::ZipInvokeInfo("gzip_internal",".gz");
+  yaatk::binary_ifstream s("in.bin.gz");
   s.setOutputMode(true);
   s.setFileName("out.bis_internal.bin");
   s.close();
   }
 
   {
-  yaatk::Stream::zipCmdGlobal="gzip_internal";
-  yaatk::binary_ifstream s("in.bin.gz");
-  s.setOutputMode(true);
-  s.setFileName("out.bin.guessed");
-  s.close();
-  }
-
-  {
-  yaatk::Stream::zipCmdGlobal="nozip";
+    //  yaatk::Stream::zipInvokeInfoGlobal = yaatk::Stream::ZipInvokeInfo("nozip","");
   yaatk::binary_ifstream s("test1.cxx");
   s.setOutputMode(true);
   s.setFileName("test1.cxx.yaatk");
@@ -89,7 +81,7 @@ main(int argc , char *argv[])
   }
 
   {
-  yaatk::Stream::zipCmdGlobal="gzip_dontexist";
+  yaatk::Stream::zipInvokeInfoGlobal = yaatk::Stream::ZipInvokeInfo("gzip_dontexist","");
   yaatk::binary_ifstream s("in.bin.de");
   s.setOutputMode(true);
   s.setFileName("out.bis_internal.bin.de");
