@@ -1,4 +1,4 @@
-#  CMakeLists.txt file for MDTK applications and tools
+#  CMakeLists.txt file for Molecular Dynamics Postprocessor
 #
 #  Copyright (C) 2007, 2008, 2009, 2010 Oleksandr Yermolenko
 #  <oleksandr.yermolenko@gmail.com>
@@ -19,21 +19,26 @@
 #  along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-add_subdirectory (mdtrajsim)
-add_subdirectory (mdpp)
+SET(MDTK_CurrentTarget "mdpp${MDTK_BINARY_SUFFIX}")
 
-IF(MSVC)
-  SET(FLTK_LIBRARIES fltk fltkgl)
-  SET(FLTK_FOUND true)
-ELSE(MSVC)
-  SET(FLTK_SKIP_FLUID true)
-  FIND_PACKAGE(FLTK)
-ENDIF(MSVC)
+include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
 
-FIND_PACKAGE(OpenGL)
+link_directories (${MDTK_BINARY_DIR})
 
-IF(OPENGL_FOUND AND FLTK_FOUND)
-  add_subdirectory (mdtrajview)
-ELSEIF(OPENGL_FOUND AND FLTK_FOUND)
-  message("FLTK or OpenGL not found! Install it in order to visualize MD trajectories.")
-ENDIF(OPENGL_FOUND AND FLTK_FOUND)
+add_executable (${MDTK_CurrentTarget} main.cpp StatPostProcess.cpp)
+
+target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
+
+IF(CMAKE_COMPILER_IS_GNUCXX)
+  IF(WIN32)
+    SET_TARGET_PROPERTIES(${MDTK_CurrentTarget} PROPERTIES LINK_FLAGS "-s -static")
+  ELSE(WIN32)
+    SET_TARGET_PROPERTIES(${MDTK_CurrentTarget} PROPERTIES LINK_FLAGS "-s")
+  ENDIF(WIN32)
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
+install(TARGETS ${MDTK_CurrentTarget}
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
+
