@@ -59,12 +59,12 @@ try
   std::vector<std::string> trajDirNames;
 
   mdepp::findTrajDirs("../mdepp.in","../../trajset"DIR_DELIMIT_STR,trajDirNames,fpt);
-
+  /*
   for(size_t i = 0; i < trajDirNames.size(); i++)
     TRACE(trajDirNames[i]);
-
+  */
   mdepp::StatPostProcess pp(trajDirNames);
-  //  pp->execute();
+  pp.execute();
 
   yaatk::text_ofstream fo("pp.state");
   pp.saveToStream(fo);
