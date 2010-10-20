@@ -20,6 +20,9 @@
    along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef mdtk_apps_common_h
+#define mdtk_apps_common_h
+
 #include <mdtk/potentials/pairwise/FBM.hpp>
 #include <mdtk/potentials/pairwise/FBZL.hpp>
 #include <mdtk/potentials/pairwise/FLJ.hpp>
@@ -91,4 +94,5 @@ setupPotentials(mdtk::SimLoop& simloop)
 
 }
 
+#endif
 
