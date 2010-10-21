@@ -59,16 +59,76 @@ try
   std::vector<std::string> trajDirNames;
 
   mdepp::findTrajDirs("../mdepp.in","../../trajset"DIR_DELIMIT_STR,trajDirNames,fpt);
-  /*
-  for(size_t i = 0; i < trajDirNames.size(); i++)
-    TRACE(trajDirNames[i]);
-  */
-  mdepp::StatPostProcess pp(trajDirNames);
-  pp.execute();
 
-  yaatk::text_ofstream fo("pp.state");
-  pp.saveToStream(fo);
+  mdepp::StatPostProcess* pp = NULL;
+  bool fullpp = !yaatk::exists("pp.state.orig");
+
+  if (!fullpp)
+  {
+    yaatk::text_ifstream fi("pp.state.orig");
+    pp = new mdepp::StatPostProcess();
+    pp->loadFromStream(fi);
+    fi.close();
+  }
+  else
+  {
+    pp = new mdepp::StatPostProcess(trajDirNames);
+    pp->execute();
+  }
+
+  yaatk::mkdir("results");
+  yaatk::chdir("results");
+
+  for(size_t i = 0; i < pp->trajData.size(); i++)
+  {
+    TRACE(pp->trajData[i].trajDir);
+    TRACE(pp->trajData[i].aboveSpottedHeight);
+    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessCluster));
+    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessSubstrate));
+    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessClusterAndSubstrate));
+    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessProjectile));
+    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessAll));
+  }
+
+  TRACE(pp->getAboveSpottedHeightTotal());
+  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessCluster));
+  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessSubstrate));
+  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessClusterAndSubstrate));
+  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessProjectile));
+  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessAll));
+  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessCluster));
+  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessSubstrate));
+  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessClusterAndSubstrate));
+  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessProjectile));
+  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessAll));
+  TRACE(pp->getAverageYieldProgress(mdepp::StatPostProcess::ProcessCluster));
+  TRACE(pp->getAverageYieldProgress(mdepp::StatPostProcess::ProcessSubstrate));
+  TRACE(pp->getAverageYieldProgress(mdepp::StatPostProcess::ProcessClusterAndSubstrate));
+  TRACE(pp->getAverageYieldProgress(mdepp::StatPostProcess::ProcessProjectile));
+  TRACE(pp->getAverageYieldProgress(mdepp::StatPostProcess::ProcessAll));
+
+  TRACE(pp->getAverageEnergyOfSputtered(mdepp::StatPostProcess::ProcessCluster)/mdtk::eV);
+  TRACE(pp->getAverageEnergyOfSputtered(mdepp::StatPostProcess::ProcessSubstrate)/mdtk::eV);
+  TRACE(pp->getAverageEnergyOfSputtered(mdepp::StatPostProcess::ProcessClusterAndSubstrate)/mdtk::eV);
+  TRACE(pp->getAverageEnergyOfSputtered(mdepp::StatPostProcess::ProcessProjectile)/mdtk::eV);
+  TRACE(pp->getAverageEnergyOfSputtered(mdepp::StatPostProcess::ProcessAll)/mdtk::eV);
+
+  pp->printMoleculesTotal();
+
+  yaatk::chdir("..");
+
+  if (fullpp)
+  {
+    yaatk::text_ofstream fo("pp.state.orig");
+    pp->saveToStream(fo);
+    fo.close();
+  }
+
+  yaatk::text_ofstream fo("pp.state.after");
+  pp->saveToStream(fo);
   fo.close();
+
+  delete pp;
 }  
 catch(mdtk::Exception& e)
 { 
