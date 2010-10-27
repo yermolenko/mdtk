@@ -25,7 +25,7 @@ include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
 
 link_directories (${MDTK_BINARY_DIR})
 
-add_executable (${MDTK_CurrentTarget} main.cpp StatPostProcess.cpp)
+add_executable (${MDTK_CurrentTarget} main.cpp StatPostProcess.cpp Molecule.cpp Fragment.cpp)
 
 target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
 
