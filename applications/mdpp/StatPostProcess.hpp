@@ -48,47 +48,16 @@ using namespace std;
 namespace mdepp
 {
 
-
 inline
 void
 updateNeighborLists(mdtk::SimLoop* ml)
 {
-    ml->updateGlobalIndexes();
-    REF_POT_OF(ml->fpot)->NL_init(ml->atoms_);
-    REF_POT_OF(ml->fpot)->NL_UpdateIfNeeded(ml->atoms_); /// !!!!!!!!!!!!!
+  ml->updateGlobalIndexes();
+  REF_POT_OF(ml->fpot)->NL_init(ml->atoms_);
+  REF_POT_OF(ml->fpot)->NL_UpdateIfNeeded(ml->atoms_); /// !!!!!!!!!!!!!
 }
 
-struct _SavedStateSortStruct
-{
-  std::string fullTrajDirName;
-  std::string shortTrajDirName;
-  _SavedStateSortStruct(std::string stateFileName)
-   :fullTrajDirName(stateFileName), shortTrajDirName(yaatk::extractLastItem(yaatk::extractDir(stateFileName)))
-  {
-  }
-  friend int operator<(const _SavedStateSortStruct& left, const _SavedStateSortStruct& right);
-  friend int operator<(_SavedStateSortStruct& left, _SavedStateSortStruct& right);
-};
-    
-inline
-int operator<(const _SavedStateSortStruct& left, const _SavedStateSortStruct& right)
-{
-  return left.shortTrajDirName < right.shortTrajDirName;
-}
-        
-inline
-int operator<(_SavedStateSortStruct& left, _SavedStateSortStruct& right)
-{
-  return left.shortTrajDirName < right.shortTrajDirName;
-}
-
-
-  using namespace mdtk;
-
-//extern double SPOTTED_DISTANCE;
-
-
-
+using namespace mdtk;
 
 class Translation
 {
@@ -115,7 +84,6 @@ public:
   }  
 };
 
-
 class Translations
 {
 public:
@@ -139,7 +107,6 @@ public:
       translations[i].loadFromStream(is);
   }  
 };
-
 
 class StatPostProcess
 {
@@ -175,20 +142,17 @@ public:
   struct TrajData
   {
     std::string trajDir;
-    int aboveSpottedHeight;
     std::vector<Molecule> molecules;
     ClusterDynamics clusterDynamics;
     ProjectileDynamics projectileDynamics;
     Translations trans;
     TrajData() : 
       trajDir(),
-      aboveSpottedHeight(0),
       molecules(),
       clusterDynamics(), projectileDynamics(), trans() {;}
     void saveToStream(std::ostream& os) const
     {
       os << trajDir << "\n";
-      os << aboveSpottedHeight << "\n";
       os << molecules.size() << "\n";
       for(size_t i = 0; i < molecules.size(); i++)
         molecules[i].saveToStream(os);
@@ -201,7 +165,6 @@ public:
     void loadFromStream(std::istream& is)
     {
       is >> trajDir;
-      is >> aboveSpottedHeight;
       size_t sz;
       is >> sz;
       molecules.resize(sz);
@@ -247,11 +210,9 @@ public:
     SPOTTED_DISTANCE(-5.0*mdtk::Ao)
   {
   }  
+  
+  int   getAboveSpottedHeight(mdtk::SimLoop&) const; 
 
-/*  
-  int   getAboveSpottedHeight(mdtk::SimLoop&) const; // depends on states !!!!!
-  int   getAboveSpottedHeightTotal() const; 
-*/
   int   getYield(size_t trajIndex, FProcessMolecule fpm) const;
   int   getYieldSum( FProcessMolecule fpm) const;
 
@@ -302,22 +263,15 @@ public:
   
   void  buildMassSpectrum(FProcessMolecule fpm = &ProcessAll) const;
   
-  std::string
-  buildAtomByEnergy(const Float energyStep, FProcessMolecule fpm) const;
+  std::string  buildAtomByEnergy(const Float energyStep, FProcessMolecule fpm) const;
   
-  std::string
-  buildEnergyByPolar(const int n, bool byAtom = false, FProcessMolecule fpm = &ProcessAll) const;
-  std::string
-  buildAtomsCountByPolar(const int n, FProcessMolecule fpm) const;
-  std::string
-  buildEnergyByAzimuth(const int n, bool byAtom = false, FProcessMolecule fpm = &ProcessAll) const;
-  std::string
-  buildAtomsCountByAzimuth(const int n, FProcessMolecule fpm) const;
+  std::string  buildEnergyByPolar(const int n, bool byAtom = false, FProcessMolecule fpm = &ProcessAll) const;
+  std::string  buildAtomsCountByPolar(const int n, FProcessMolecule fpm) const;
+  std::string  buildEnergyByAzimuth(const int n, bool byAtom = false, FProcessMolecule fpm = &ProcessAll) const;
+  std::string  buildAtomsCountByAzimuth(const int n, FProcessMolecule fpm) const;
 
-  std::string
-  buildEnergyByPolarByAtomsInRange(const int n, FProcessMolecule fpm) const;
-  std::string
-  buildEnergyByAzimuthByAtomsInRange(const int n, FProcessMolecule fpm) const;
+  std::string  buildEnergyByPolarByAtomsInRange(const int n, FProcessMolecule fpm) const;
+  std::string  buildEnergyByAzimuthByAtomsInRange(const int n, FProcessMolecule fpm) const;
 
   void  histEnergyByPolar(gsl_histogram* h, bool byAtom = false, FProcessMolecule fpm = &ProcessAll) const;
   void  histAtomsCountByPolar(gsl_histogram* h, FProcessMolecule fpm) const;
@@ -326,25 +280,15 @@ public:
 
   void  histEnergyByPolarByAtomsInRange(gsl_histogram* h, FProcessMolecule fpm) const;
   void  histEnergyByAzimuthByAtomsInRange(gsl_histogram* h, FProcessMolecule fpm) const;
-/*
-  void  buildEnergyByPolarByAtom(const int n,
-    bool accountSputtered = true, bool accountBackScattered = true) const;
-  void  buildEnergyByAzimuthByAtom(const int n,
-    bool accountSputtered = true, bool accountBackScattered = true) const;
-*/  
 
-//  void  buildAngular() const;
   void  buildAngular2(FProcessMolecule fpm) const;
 
-//  void  buildByTime() const;
   void  buildByTime( FProcessMolecule fpm) const;
 
-//  void  setSpottedDistanceFromInit(std::string mde_init_filename) const;
   void  setSpottedDistanceFromInit();// const;
 
   void saveToStream(std::ostream& os) const
   {
-//    PostProcess::saveToStream(os);
     os << trajData.size() << "\n";
     for(size_t i = 0; i < trajData.size(); i++)
       trajData[i].saveToStream(os);
@@ -376,8 +320,6 @@ public:
   }  
   void execute();
 };
-
-
 
 struct MassCount
 {

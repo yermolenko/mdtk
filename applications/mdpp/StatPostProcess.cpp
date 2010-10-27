@@ -35,415 +35,6 @@ namespace mdepp
 mdtk::AtomsContainer dummy_ac;
 
 void
-depthHist2file(const char* filename, std::vector<Float>& depth, Float scale = 1.0)
-{
-  using mdtk::Exception;    
-
-/*  
-    const Float minDepth = -10.0;
-    const Float maxDepth =  20.0;
-    const int n = (maxDepth-minDepth)/(2.547);// for polyethylene // prev was (0.50);
-*/
-
-/*  // Graphite
-    const Float minDepth_desired   = -40.0;
-    const Float maxDepth_desired   =  40.0;
-    const Float matchPoint         =   0.0;
-    const Float c = 6.708;
-    const Float histStep           =   c/6.0;//2.547; // for polyethylene // prev was (0.50);
-*/
-/*  // Cu
-    const Float c = 3.61;
-    const Float minDepth_desired   = -c/2.0*15.123;
-    const Float maxDepth_desired   =  c/2.0*15.123;
-    const Float matchPoint         = -c/4.0;
-    const Float histStep           =   c/2.0;//2.547; // for polyethylene // prev was (0.50);
-*/
-
-  // PE
-    const Float c = 2.547;
-    const Float minDepth_desired   = -100.0;
-    const Float maxDepth_desired   =  100.0;
-    const Float matchPoint         =    0.0;
-    const Float histStep           =   c/3.0;//2.547; // for polyethylene // prev was (0.50);
-
-
-    REQUIRE(minDepth_desired < matchPoint);
-    REQUIRE(maxDepth_desired > matchPoint);
-    const int n_below_matchPoint = int( (matchPoint       - minDepth_desired)/histStep ) +1;
-    const int n_above_matchPoint = int( (maxDepth_desired - matchPoint      )/histStep ) +1;
-
-    const int n = n_above_matchPoint + n_below_matchPoint;
-    const Float minDepth   = matchPoint - n_below_matchPoint*histStep;
-    const Float maxDepth   = matchPoint + n_above_matchPoint*histStep;
-
-
-  {
-    std::ofstream fo((std::string(filename)+".plt").c_str());
-    fo << "reset\n#set yrange [*:0]\nset yrange [0:*]\nset xrange [-3:25]\nset format x \"%.1f\"\nset xtics " << c/2.0 << "\nset grid xtics\nplot \'" << filename << "\' with boxes\n";
-    fo.close();
-  }  
-  std::ofstream fo(filename);
-
-
-  fo << "# min depth = " << minDepth << " Ao" << std::endl
-     << "# max depth = " << maxDepth << " Ao" << std::endl
-     << "# number of bins = " << n << std::endl;
-    gsl_histogram * h = gsl_histogram_alloc (n);
-    gsl_histogram_set_ranges_uniform (h, minDepth, maxDepth);
-    for(size_t i = 0; i < depth.size(); i++)
-      gsl_histogram_increment (h, depth[i]);
-  for(int i = 0; i < n; i++)
-  {
-    double lower, upper;
-    gsl_histogram_get_range (h, i, &lower, &upper);
-    fo << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i)*scale << std::endl;
-  }  
-    gsl_histogram_free (h);
-  fo.close();
-}  
-
-void saveDepth(std::vector<Float>& depth,const char *filename)
-{
-  std::ofstream fo(filename);
-  fo << depth.size() << std::endl;
-  for(size_t i = 0; i < depth.size(); i++)
-    fo << depth[i] << std::endl;
-  fo.close();
-}
-
-
-
-void
-saveHistogram(gsl_histogram *h, const char *datFileName)
-{
-  std::string byEscapeTimeDatHist(datFileName);
-  std::ofstream foByEscapeHist(byEscapeTimeDatHist.c_str());
-  std::ofstream foByEscapeHistPlt((byEscapeTimeDatHist+".plt").c_str());
-  for(size_t i = 0; i < gsl_histogram_bins(h); i++)
-  {
-    double lower, upper;
-    gsl_histogram_get_range (h, i, &lower, &upper);
-    foByEscapeHist << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i) << std::endl;
-  }  
-//  gsl_histogram_free (h);
-  foByEscapeHist.close();
-  foByEscapeHistPlt << "#reset\nset yrange [0:*]\nplot \'" << byEscapeTimeDatHist << "\' with histeps\n";
-  foByEscapeHistPlt.close();
-}  
-
-void
-saveHistogram_new(gsl_histogram *h, const char *datFileName)
-{
-  std::string byEscapeTimeDatHist(datFileName);
-  std::ofstream foByEscapeHist(byEscapeTimeDatHist.c_str());
-  std::ofstream foByEscapeHistPlt((byEscapeTimeDatHist+".plt").c_str());
-  for(size_t i = 0; i < gsl_histogram_bins(h); i++)
-  {
-    double lower, upper;
-    gsl_histogram_get_range (h, i, &lower, &upper);
-    foByEscapeHist << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i) << std::endl;
-  }  
-//  gsl_histogram_free (h);
-  foByEscapeHist.close();
-  foByEscapeHistPlt << "reset\nset yrange [0:*]\nset xrange [-180:180]\nplot \'" << byEscapeTimeDatHist << "\' with boxes\n";
-  foByEscapeHistPlt << "pause -1 \"Press Enter\"\n";
-  foByEscapeHistPlt.close();
-}  
-
-void
-saveHistogram_polar(gsl_histogram *h, const char *datFileName/*, bool halfshift = false*/)
-{
-  std::string byEscapeTimeDatHist(datFileName);
-  std::ofstream foByEscapeHist(byEscapeTimeDatHist.c_str());
-  std::ofstream foByEscapeHistPlt((byEscapeTimeDatHist+".plt").c_str());
-
-  int n;
-  n = gsl_histogram_bins(h);
-
-  for(size_t i = 0; i < gsl_histogram_bins(h)+1; i++)
-  {
-    double lower, upper;
-    double index = i;
-    if (i == gsl_histogram_bins(h)) index = 0;
-    gsl_histogram_get_range (h, index, &lower, &upper);
-    Float ang = (lower+upper)/2.0;//-(halfshift?((360.0/n)/2.0):0.0);
-//    if (ang < -180) ang += ;
-    foByEscapeHist << ang << " " << gsl_histogram_get(h,index) << std::endl;
-  }  
-//  gsl_histogram_free (h);
-  foByEscapeHist.close();
-  foByEscapeHistPlt << "reset\nset style fill pattern 1\nset polar\nset angles degrees\nset size ratio -1\n\
-\nset grid polar\n\nplot \'" << byEscapeTimeDatHist << "\' with filledcurves lw 2 notitle,\\\n \'" << byEscapeTimeDatHist << "\' with impulses lw 2 notitle\n";
-//  foByEscapeHistPlt << "pause -1 \"Press Enter\"\n";
-  foByEscapeHistPlt.close();
-}  
-
-void
-findIntermediateStates(std::string trajDir,std::vector<std::string>& states);
-
-/*
-int
-StatPostProcess::getAboveSpottedHeightTotal() const
-{
-  int totalSpotted = 0;
-  for(size_t i = 0; i < trajData.size();i++)
-  {
-    totalSpotted += trajData[i].aboveSpottedHeight;
-  }  
-  return totalSpotted;
-}  
-
-int
-StatPostProcess::getAboveSpottedHeight(mdtk::SimLoop& state) const
-{
-  int spotted;
-  {
-    spotted = 0;
-    for(size_t atomIndex = 0; atomIndex < state.atoms_.size(); atomIndex++)
-    {
-      mdtk::Atom &atom = *(state.atoms_[atomIndex]);
-      if (atom.coords.z < SPOTTED_DISTANCE)
-      {
-        spotted++;
-      }  
-    }  
-//    cout << "Trajectory " << trajIndex;
-//    cout << " has " << spotted << " spotted atoms." << std::endl;
-  }  
-  return spotted;
-}  
-*/
-
-int
-StatPostProcess::getYieldSum( FProcessMolecule fpm) const
-{
-  int totalSpotted = 0;
-  for(size_t i = 0; i < trajData.size();i++)
-  {
-    totalSpotted += getYield(i,fpm);
-  }  
-  return totalSpotted;
-}  
-
-int
-StatPostProcess::getYield(size_t trajIndex, FProcessMolecule fpm) const
-{
-  int spotted = 0;
-  const TrajData& td = trajData[trajIndex];
-  for(size_t mi = 0; mi < td.molecules.size(); mi++)
-  {
-    const Molecule& mol = td.molecules[mi];
-    if (!fpm(mol)) continue;
-    spotted += mol.atoms.size();
-/*
-    for(size_t ai = 0; ai < td.molecules[mi].atoms.size(); ai++)
-    {
-      mdtk::Atom& atom = td.molecules[mi].atoms[ai];
-    } 
-*/
-  }  
-  return spotted;
-}  
-
-Float
-StatPostProcess::getAverageYield( FProcessMolecule fpm) const
-{
-  return Float(getYieldSum(fpm))/trajData.size();
-}  
-
-Float
-StatPostProcess::getAverageYieldProgress( FProcessMolecule fpm) const
-{
-  char ofilename[1024];
-  sprintf(ofilename,"average_Yield.dat");
-  {
-    std::ofstream fo((std::string(ofilename)+".plt").c_str());
-    fo << "reset\n#set yrange [0:*]\nplot '" << ofilename << "' with impulses";
-    fo.close();
-  }  
-
-  std::ofstream fo(ofilename);
-  Float avg = 0.0;
-  size_t i;
-  for(i = 0; i < trajData.size();i++)
-  {
-    avg += getYield(i,fpm);
-    fo << i+1 << " " << avg/(i+1) << "\n";
-  }  
-  fo.close();
-  return avg/i;
-}  
-
-
-
-
-
-
-Float
-StatPostProcess::getTotalEnergyOfSputtered( FProcessMolecule fpm) const
-{
-  Float totalSpotted = 0;
-  for(size_t i = 0; i < trajData.size();i++)
-  {
-    totalSpotted += getEnergyOfSputtered(i,fpm);
-  }  
-  return totalSpotted;
-}  
-
-Float
-StatPostProcess::getEnergyOfSputtered(size_t trajIndex, FProcessMolecule fpm) const
-{
-  Float spotted = 0;
-  const TrajData& td = trajData[trajIndex];
-  for(size_t mi = 0; mi < td.molecules.size(); mi++)
-  {
-    const Molecule& mol = td.molecules[mi];
-    if (!fpm(mol)) continue;
-    for(size_t ai = 0; ai < td.molecules[mi].atoms.size(); ai++)    {
-      const mdtk::Atom& atom = td.molecules[mi].atoms[ai];
-      spotted += SQR(atom.V.module())*atom.M/2.0;
-    } 
-  }  
-  return spotted;
-}  
-
-Float
-StatPostProcess::getAverageEnergyOfSputtered( FProcessMolecule fpm) const
-{
-  return Float(getTotalEnergyOfSputtered(fpm))/trajData.size();
-}  
-
-
-
-/*
-void
-StatPostProcess::buildSpottedMoleculesTotal()
-{
-  cout << "Building molecules started." << std::endl;
-  cerr << "Building molecules started." << std::endl;
-  for(size_t i = 0; i < trajData.size();i++)
-  {
-    buildSpottedMolecules(i);
-  }  
-  cout << "Building molecules done." << std::endl;
-  cerr << "Building molecules done." << std::endl;
-}  
-*/
-/*
-#include "dosdir/dosdir.h"
-
-
-#ifndef __WIN32__
-#define _finddata_t dd_ffblk
-#define name dd_name
-#define attrib dd_attribs
-#define _A_SUBDIR DD_DIREC
-#define _findfirst dd_findfirst
-#define _findnext dd_findnext
-#define _findclose dd_findclose
-#endif
-
-
-void
-findIntermediateStates(std::string trajDir,std::vector<std::string>& states)
-{
-//  TRACE("in find!");
-  char stateFileWildCard[10000];
-  sprintf(stateFileWildCard,"%smde0*",trajDir.c_str());
-  TRACE(stateFileWildCard);
-  struct _finddata_t ff;
-  int done = 0;
-  int findhandle;
-  findhandle = _findfirst(stateFileWildCard, &ff ,DD_NORMAL);
-  if (findhandle != -1)
-  {
-    while (!done)
-    {
-//      if ((ff.attrib & _A_SUBDIR) && strcmp(ff.name,".") && strcmp(ff.name,".."))
-      {
-        states.push_back(ff.name);
-      }  
-      done = _findnext(findhandle,&ff);
-    }
-//    _findclose(findhandle);
-  }  
-  sort(states.begin(), states.end());
-}  
-*/
-
-void
-removeDuplicates(std::vector<std::string>& states)
-{
-  size_t i;
-/*
-  for(i = 0; i < states.size(); i++)
-    TRACE(states[i]);
-*/
-  std::vector<std::string> states_new;
-  
-  if (states.size() >= 1) states_new.push_back(states[0]);
-  for(i = 1; i < states.size(); i++)
-  {
-    char it_prev_s[100];
-    char it_s[100];
-    strcpy(it_prev_s,states[i-1].substr(3,10).c_str());
-    strcpy(it_s,     states[i].  substr(3,10).c_str());
-    int it_prev; sscanf(it_prev_s,"%d",&it_prev);
-    int it;      sscanf(it_s,     "%d",&it);
-    if (it-it_prev>5)
-      states_new.push_back(states[i]);
-  }
-
-  states = states_new;
-/*
-  for(i = 0; i < states.size(); i++)
-    TRACE(states[i]);
-
-  throw;
-*/
-}
-
-#include <dirent.h>
-
-void
-findIntermediateStates(std::string trajDir,std::vector<std::string>& states)
-{
-  {
-    {
-      DIR* trajsetDirHandle = opendir(trajDir.c_str());
-//      REQUIRE(trajsetDirHandle != NULL);
-
-
-      struct dirent* entry = readdir(trajsetDirHandle);
-      while (entry != NULL)
-      {
-        if (entry->d_type == DT_REG)
-        {
-          if (entry->d_name[0] == 'm' && entry->d_name[1] == 'd' && entry->d_name[2] == 'e' &&
-              entry->d_name[3] == '0')
-          {
-            states.push_back(entry->d_name);
-//            TRACE(entry->d_name);
-          }
-/*
-          std::sprintf(trajdir_src,"%s%s",trajsetDir,entry->d_name);
-          std::sprintf(stateFileName,"%s"DIR_DELIMIT_STR,trajdir_src);          stateFileNames.push_back(stateFileName);
-          TRACE(stateFileName);
-*/
-        }
-        entry = readdir(trajsetDirHandle);
-      };
-
-      /*int res_closedir = */closedir(trajsetDirHandle);
-//      REQUIRE(res_closedir != NULL);
-    }  
-  }  
-  sort(states.begin(),states.end());
-  removeDuplicates(states);
-}
-
-void
 StatPostProcess::buildSputteredMolecules(mdtk::SimLoop& state,size_t trajIndex,
   StatPostProcess::StateType s)
 {
@@ -749,6 +340,8 @@ StatPostProcess::execute()
 
     cout << "State " << trajFinalName << " loaded." << std::endl;
 
+    TRACE(getAboveSpottedHeight(*state));
+
     buildSputteredMolecules(*state,trajIndex,STATE_FINAL);
     buildClusterDynamics(*state,trajIndex,STATE_FINAL);
     buildProjectileDynamics(*state,trajIndex,STATE_FINAL);
@@ -940,6 +533,253 @@ StatPostProcess::buildClusterFragmentsFromDyn()
   }  
 
 }
+
+int
+StatPostProcess::getAboveSpottedHeight(mdtk::SimLoop& state) const
+{
+  int spotted;
+  {
+    spotted = 0;
+    for(size_t atomIndex = 0; atomIndex < state.atoms_.size(); atomIndex++)
+    {
+      mdtk::Atom &atom = *(state.atoms_[atomIndex]);
+      if (atom.coords.z < SPOTTED_DISTANCE)
+      {
+        spotted++;
+      }  
+    }  
+  }  
+  return spotted;
+}  
+
+int
+StatPostProcess::getYieldSum( FProcessMolecule fpm) const
+{
+  int totalSpotted = 0;
+  for(size_t i = 0; i < trajData.size();i++)
+  {
+    totalSpotted += getYield(i,fpm);
+  }  
+  return totalSpotted;
+}  
+
+int
+StatPostProcess::getYield(size_t trajIndex, FProcessMolecule fpm) const
+{
+  int spotted = 0;
+  const TrajData& td = trajData[trajIndex];
+  for(size_t mi = 0; mi < td.molecules.size(); mi++)
+  {
+    const Molecule& mol = td.molecules[mi];
+    if (!fpm(mol)) continue;
+    spotted += mol.atoms.size();
+  }  
+  return spotted;
+}  
+
+Float
+StatPostProcess::getAverageYield( FProcessMolecule fpm) const
+{
+  return Float(getYieldSum(fpm))/trajData.size();
+}  
+
+Float
+StatPostProcess::getAverageYieldProgress( FProcessMolecule fpm) const
+{
+  char ofilename[1024];
+  sprintf(ofilename,"average_Yield.dat");
+  {
+    std::ofstream fo((std::string(ofilename)+".plt").c_str());
+    fo << "reset\n#set yrange [0:*]\nplot '" << ofilename << "' with impulses";
+    fo.close();
+  }  
+
+  std::ofstream fo(ofilename);
+  Float avg = 0.0;
+  size_t i;
+  for(i = 0; i < trajData.size();i++)
+  {
+    avg += getYield(i,fpm);
+    fo << i+1 << " " << avg/(i+1) << "\n";
+  }  
+  fo.close();
+  return avg/i;
+}  
+
+Float
+StatPostProcess::getTotalEnergyOfSputtered( FProcessMolecule fpm) const
+{
+  Float totalSpotted = 0;
+  for(size_t i = 0; i < trajData.size();i++)
+  {
+    totalSpotted += getEnergyOfSputtered(i,fpm);
+  }  
+  return totalSpotted;
+}  
+
+Float
+StatPostProcess::getEnergyOfSputtered(size_t trajIndex, FProcessMolecule fpm) const
+{
+  Float spotted = 0;
+  const TrajData& td = trajData[trajIndex];
+  for(size_t mi = 0; mi < td.molecules.size(); mi++)
+  {
+    const Molecule& mol = td.molecules[mi];
+    if (!fpm(mol)) continue;
+    for(size_t ai = 0; ai < td.molecules[mi].atoms.size(); ai++)    {
+      const mdtk::Atom& atom = td.molecules[mi].atoms[ai];
+      spotted += SQR(atom.V.module())*atom.M/2.0;
+    } 
+  }  
+  return spotted;
+}  
+
+Float
+StatPostProcess::getAverageEnergyOfSputtered( FProcessMolecule fpm) const
+{
+  return Float(getTotalEnergyOfSputtered(fpm))/trajData.size();
+}  
+
+void
+depthHist2file(const char* filename, std::vector<Float>& depth, Float scale = 1.0)
+{
+  using mdtk::Exception;    
+
+/*  
+    const Float minDepth = -10.0;
+    const Float maxDepth =  20.0;
+    const int n = (maxDepth-minDepth)/(2.547);// for polyethylene // prev was (0.50);
+*/
+
+/*  // Graphite
+    const Float minDepth_desired   = -40.0;
+    const Float maxDepth_desired   =  40.0;
+    const Float matchPoint         =   0.0;
+    const Float c = 6.708;
+    const Float histStep           =   c/6.0;//2.547; // for polyethylene // prev was (0.50);
+*/
+/*  // Cu
+    const Float c = 3.61;
+    const Float minDepth_desired   = -c/2.0*15.123;
+    const Float maxDepth_desired   =  c/2.0*15.123;
+    const Float matchPoint         = -c/4.0;
+    const Float histStep           =   c/2.0;//2.547; // for polyethylene // prev was (0.50);
+*/
+
+  // PE
+    const Float c = 2.547;
+    const Float minDepth_desired   = -100.0;
+    const Float maxDepth_desired   =  100.0;
+    const Float matchPoint         =    0.0;
+    const Float histStep           =   c/3.0;//2.547; // for polyethylene // prev was (0.50);
+
+
+    REQUIRE(minDepth_desired < matchPoint);
+    REQUIRE(maxDepth_desired > matchPoint);
+    const int n_below_matchPoint = int( (matchPoint       - minDepth_desired)/histStep ) +1;
+    const int n_above_matchPoint = int( (maxDepth_desired - matchPoint      )/histStep ) +1;
+
+    const int n = n_above_matchPoint + n_below_matchPoint;
+    const Float minDepth   = matchPoint - n_below_matchPoint*histStep;
+    const Float maxDepth   = matchPoint + n_above_matchPoint*histStep;
+
+
+  {
+    std::ofstream fo((std::string(filename)+".plt").c_str());
+    fo << "reset\n#set yrange [*:0]\nset yrange [0:*]\nset xrange [-3:25]\nset format x \"%.1f\"\nset xtics " << c/2.0 << "\nset grid xtics\nplot \'" << filename << "\' with boxes\n";
+    fo.close();
+  }  
+  std::ofstream fo(filename);
+
+
+  fo << "# min depth = " << minDepth << " Ao" << std::endl
+     << "# max depth = " << maxDepth << " Ao" << std::endl
+     << "# number of bins = " << n << std::endl;
+    gsl_histogram * h = gsl_histogram_alloc (n);
+    gsl_histogram_set_ranges_uniform (h, minDepth, maxDepth);
+    for(size_t i = 0; i < depth.size(); i++)
+      gsl_histogram_increment (h, depth[i]);
+  for(int i = 0; i < n; i++)
+  {
+    double lower, upper;
+    gsl_histogram_get_range (h, i, &lower, &upper);
+    fo << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i)*scale << std::endl;
+  }  
+    gsl_histogram_free (h);
+  fo.close();
+}  
+
+void saveDepth(std::vector<Float>& depth,const char *filename)
+{
+  std::ofstream fo(filename);
+  fo << depth.size() << std::endl;
+  for(size_t i = 0; i < depth.size(); i++)
+    fo << depth[i] << std::endl;
+  fo.close();
+}
+
+void
+saveHistogram(gsl_histogram *h, const char *datFileName)
+{
+  std::string byEscapeTimeDatHist(datFileName);
+  std::ofstream foByEscapeHist(byEscapeTimeDatHist.c_str());
+  std::ofstream foByEscapeHistPlt((byEscapeTimeDatHist+".plt").c_str());
+  for(size_t i = 0; i < gsl_histogram_bins(h); i++)
+  {
+    double lower, upper;
+    gsl_histogram_get_range (h, i, &lower, &upper);
+    foByEscapeHist << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i) << std::endl;
+  }  
+  foByEscapeHist.close();
+  foByEscapeHistPlt << "#reset\nset yrange [0:*]\nplot \'" << byEscapeTimeDatHist << "\' with histeps\n";
+  foByEscapeHistPlt.close();
+}  
+
+void
+saveHistogram_new(gsl_histogram *h, const char *datFileName)
+{
+  std::string byEscapeTimeDatHist(datFileName);
+  std::ofstream foByEscapeHist(byEscapeTimeDatHist.c_str());
+  std::ofstream foByEscapeHistPlt((byEscapeTimeDatHist+".plt").c_str());
+  for(size_t i = 0; i < gsl_histogram_bins(h); i++)
+  {
+    double lower, upper;
+    gsl_histogram_get_range (h, i, &lower, &upper);
+    foByEscapeHist << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i) << std::endl;
+  }  
+//  gsl_histogram_free (h);
+  foByEscapeHist.close();
+  foByEscapeHistPlt << "reset\nset yrange [0:*]\nset xrange [-180:180]\nplot \'" << byEscapeTimeDatHist << "\' with boxes\n";
+  foByEscapeHistPlt << "pause -1 \"Press Enter\"\n";
+  foByEscapeHistPlt.close();
+}  
+
+void
+saveHistogram_polar(gsl_histogram *h, const char *datFileName/*, bool halfshift = false*/)
+{
+  std::string byEscapeTimeDatHist(datFileName);
+  std::ofstream foByEscapeHist(byEscapeTimeDatHist.c_str());
+  std::ofstream foByEscapeHistPlt((byEscapeTimeDatHist+".plt").c_str());
+
+  int n;
+  n = gsl_histogram_bins(h);
+
+  for(size_t i = 0; i < gsl_histogram_bins(h)+1; i++)
+  {
+    double lower, upper;
+    double index = i;
+    if (i == gsl_histogram_bins(h)) index = 0;
+    gsl_histogram_get_range (h, index, &lower, &upper);
+    Float ang = (lower+upper)/2.0;//-(halfshift?((360.0/n)/2.0):0.0);
+//    if (ang < -180) ang += ;
+    foByEscapeHist << ang << " " << gsl_histogram_get(h,index) << std::endl;
+  }  
+  foByEscapeHist.close();
+  foByEscapeHistPlt << "reset\nset style fill pattern 1\nset polar\nset angles degrees\nset size ratio -1\n\
+\nset grid polar\n\nplot \'" << byEscapeTimeDatHist << "\' with filledcurves lw 2 notitle,\\\n \'" << byEscapeTimeDatHist << "\' with impulses lw 2 notitle\n";
+//  foByEscapeHistPlt << "pause -1 \"Press Enter\"\n";
+  foByEscapeHistPlt.close();
+}  
   
 void
 StatPostProcess::printMoleculesTotal() const

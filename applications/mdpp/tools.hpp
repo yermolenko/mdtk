@@ -124,6 +124,91 @@ findTrajDirs(const char* trajsetFileName, const char* stdTrajsetDir,
   std::sort(trajDirNames.begin(),trajDirNames.end());
 }
 
+inline
+void
+removeDuplicates(std::vector<std::string>& states)
+{
+  size_t i;
+  std::vector<std::string> states_new;
+  
+  if (states.size() >= 1) states_new.push_back(states[0]);
+  for(i = 1; i < states.size(); i++)
+  {
+    char it_prev_s[100];
+    char it_s[100];
+    strcpy(it_prev_s,states[i-1].substr(3,10).c_str());
+    strcpy(it_s,     states[i].  substr(3,10).c_str());
+    int it_prev; sscanf(it_prev_s,"%d",&it_prev);
+    int it;      sscanf(it_s,     "%d",&it);
+    if (it-it_prev>5)
+      states_new.push_back(states[i]);
+  }
+
+  states = states_new;
+}
+
+inline
+void
+findIntermediateStates(std::string trajDir,std::vector<std::string>& states)
+{
+  {
+    {
+      DIR* trajsetDirHandle = opendir(trajDir.c_str());
+//      REQUIRE(trajsetDirHandle != NULL);
+
+
+      struct dirent* entry = readdir(trajsetDirHandle);
+      while (entry != NULL)
+      {
+        if (entry->d_type == DT_REG)
+        {
+          if (entry->d_name[0] == 'm' && entry->d_name[1] == 'd' && entry->d_name[2] == 'e' &&
+              entry->d_name[3] == '0')
+          {
+            states.push_back(entry->d_name);
+//            TRACE(entry->d_name);
+          }
+/*
+          std::sprintf(trajdir_src,"%s%s",trajsetDir,entry->d_name);
+          std::sprintf(stateFileName,"%s"DIR_DELIMIT_STR,trajdir_src);          stateFileNames.push_back(stateFileName);
+          TRACE(stateFileName);
+*/
+        }
+        entry = readdir(trajsetDirHandle);
+      };
+
+      /*int res_closedir = */closedir(trajsetDirHandle);
+//      REQUIRE(res_closedir != NULL);
+    }  
+  }  
+  sort(states.begin(),states.end());
+  removeDuplicates(states);
+}
+
+struct _SavedStateSortStruct
+{
+  std::string fullTrajDirName;
+  std::string shortTrajDirName;
+  _SavedStateSortStruct(std::string stateFileName)
+   :fullTrajDirName(stateFileName), shortTrajDirName(yaatk::extractLastItem(yaatk::extractDir(stateFileName)))
+  {
+  }
+  friend int operator<(const _SavedStateSortStruct& left, const _SavedStateSortStruct& right);
+  friend int operator<(_SavedStateSortStruct& left, _SavedStateSortStruct& right);
+};
+    
+inline
+int operator<(const _SavedStateSortStruct& left, const _SavedStateSortStruct& right)
+{
+  return left.shortTrajDirName < right.shortTrajDirName;
+}
+        
+inline
+int operator<(_SavedStateSortStruct& left, _SavedStateSortStruct& right)
+{
+  return left.shortTrajDirName < right.shortTrajDirName;
+}
+
   
 };
 
