@@ -334,7 +334,18 @@ StatPostProcess::execute()
     setTags(state);
     fi.close();
 
+/*
+    {
+    yaatk::text_ofstream fo("mde_final_new_format"); 
+    state->saveToStream(fo);
+    fo.close();
+    exit(1);
+    }
+*/
+
     dummy_ac.setPBC(state->atoms_.getPBC());
+#warning SimLoop.cxx Legacy compat patch
+    dummy_ac.setPBC(Vector3D(43.32*Ao,43.32*Ao,10000*Ao));
     TRACE(dummy_ac.getPBC()/mdtk::Ao);
     TRACE(&dummy_ac);
 

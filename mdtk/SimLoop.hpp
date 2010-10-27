@@ -89,7 +89,8 @@ protected:
       YAATK_FSTREAM_WRITE(os,energyStart,smode);
       YAATK_FSTREAM_WRITE(os,energyCur,smode);
       YAATK_FSTREAM_WRITE(os,energy0,smode);
-      YAATK_FSTREAM_WRITE(os,temperatureCur,smode);
+#warning SimLoop.cxx Legacy compat patch
+//      YAATK_FSTREAM_WRITE(os,temperatureCur,smode);
       
       YAATK_FSTREAM_WRITE(os,checkEnergyAfter,smode);
       YAATK_FSTREAM_WRITE(os,checkEnergy,smode);
@@ -101,7 +102,8 @@ protected:
       YAATK_FSTREAM_READ(is,energyStart,smode);
       YAATK_FSTREAM_READ(is,energyCur,smode);
       YAATK_FSTREAM_READ(is,energy0,smode);
-      YAATK_FSTREAM_READ(is,temperatureCur,smode);
+#warning SimLoop.cxx Legacy compat patch
+//      YAATK_FSTREAM_READ(is,temperatureCur,smode);
       
       YAATK_FSTREAM_READ(is,checkEnergyAfter,smode);
       YAATK_FSTREAM_READ(is,checkEnergy,smode);
