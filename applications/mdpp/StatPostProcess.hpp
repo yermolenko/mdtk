@@ -836,7 +836,14 @@ public:
   Float getAverageYield( FProcessMolecule fpm) const;
   Float getAverageYieldProgress( FProcessMolecule fpm) const;
 
-  void  buildSpottedMolecules(mdtk::SimLoop&,size_t trajIndex);
+  enum StateType{STATE_FINAL,STATE_INIT,STATE_INTER};
+
+  void  buildSputteredMolecules(mdtk::SimLoop&,size_t trajIndex, StateType s);
+  void  buildClusterDynamics(mdtk::SimLoop&,size_t trajIndex, StateType s);
+  void  buildProjectileDynamics(mdtk::SimLoop&,size_t trajIndex, StateType s);
+  void  buildDummyDynamics(mdtk::SimLoop&,size_t trajIndex, StateType s);
+
+//  void  buildTransitions(mdtk::SimLoop&,size_t trajIndex, StateType s);
 
   void  printMolecules(size_t trajIndex) const;
   void  printMoleculesTotal() const;
