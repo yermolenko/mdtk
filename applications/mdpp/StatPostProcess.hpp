@@ -58,7 +58,7 @@ namespace mdepp
 
 inline
 void
-UPD_NL_REF_POT(mdtk::SimLoop* ml)
+updateNeighborLists(mdtk::SimLoop* ml)
 {
     ml->updateGlobalIndexes();
     REF_POT_OF(ml->fpot)->NL_init(ml->atoms_);
@@ -715,11 +715,10 @@ public:
 };
 
 
-class StatPostProcess/* : public PostProcess*/
+class StatPostProcess
 {
 public:
-  typedef bool (*FProcessMolecule)(const Molecule&) /*const*/;
-//  bool (*testProcessMolecule)(Molecule&);
+  typedef bool (*FProcessMolecule)(const Molecule&);
   FProcessMolecule testProcessMolecule;
   static
   bool ProcessAll(const Molecule&)
@@ -749,7 +748,6 @@ public:
   }
   struct TrajData
   {
-//    std::string trajNameFinal;
     std::string trajDir;
     int aboveSpottedHeight;
     std::vector<Molecule> molecules;
@@ -759,7 +757,7 @@ public:
     TrajData() : 
       trajDir(),
       aboveSpottedHeight(0),
-      /*trajName("unknown"),*/ molecules(),
+      molecules(),
       clusterDynamics(), projectileDynamics(), trans() {;}
     void saveToStream(std::ostream& os) const
     {
@@ -776,7 +774,6 @@ public:
     }  
     void loadFromStream(std::istream& is)
     {
-//      ERRTRACE("Loading TrajData....");
       is >> trajDir;
       is >> aboveSpottedHeight;
       size_t sz;
@@ -794,8 +791,7 @@ public:
   std::vector<TrajData> trajData;
   double SPOTTED_DISTANCE;
   StatPostProcess(std::vector<std::string>& savedStateNames)
-   :/*PostProcess(savedStateNames),*/
-    testProcessMolecule(&ProcessAll),
+   :testProcessMolecule(&ProcessAll),
     trajData(),
     SPOTTED_DISTANCE(-5.0*mdtk::Ao)
   {
@@ -821,18 +817,15 @@ public:
       TRACE(trajData[i].trajDir);
   }  
   StatPostProcess()
-   :/*PostProcess(),*/
-    trajData(),
+   :trajData(),
     SPOTTED_DISTANCE(-5.0*mdtk::Ao)
   {
   }  
 
-  /*virtual*/
-  void ProcessState(mdtk::SimLoop&,size_t i);
-  
+/*  
   int   getAboveSpottedHeight(mdtk::SimLoop&) const; // depends on states !!!!!
   int   getAboveSpottedHeightTotal() const; 
-
+*/
   int   getYield(size_t trajIndex, FProcessMolecule fpm) const;
   int   getYieldSum( FProcessMolecule fpm) const;
 
@@ -840,18 +833,10 @@ public:
   Float   getTotalEnergyOfSputtered( FProcessMolecule fpm) const;
   Float   getAverageEnergyOfSputtered( FProcessMolecule fpm) const;
 
-/*
-  int   getYieldCluster(size_t trajIndex, bool accountCu) const;
-  int   getYieldSumCluster(bool accountCu) const;
-*/
-
   Float getAverageYield( FProcessMolecule fpm) const;
   Float getAverageYieldProgress( FProcessMolecule fpm) const;
 
-//  Float getAverageYieldCluster(bool accountCu) const;
-
   void  buildSpottedMolecules(mdtk::SimLoop&,size_t trajIndex);
-//  void  buildSpottedMoleculesTotal();
 
   void  printMolecules(size_t trajIndex) const;
   void  printMoleculesTotal() const;
@@ -882,7 +867,6 @@ public:
 
   void  spottedByDepth() const;
   
-//  void  buildMassSpectrum_() const;
   void  buildMassSpectrum(FProcessMolecule fpm = &ProcessAll) const;
   
   std::string
@@ -936,9 +920,6 @@ public:
   }  
   void loadFromStream(std::istream& is)
   {
-//    ERRTRACE("Loading StatPostProcess....");
-
-//    PostProcess::loadFromStream(is);
     size_t sz;
     is >> sz;
     trajData.resize(sz);
@@ -949,9 +930,6 @@ public:
   }  
   void loadFromStreamADD(std::istream& is)
   {
-//    ERRTRACE("Loading StatPostProcess....");
-
-//    PostProcess::loadFromStream(is);
     size_t sz;
     is >> sz;
     size_t oldSize = trajData.size();

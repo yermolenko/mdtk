@@ -187,134 +187,98 @@ StatPostProcess::execute()
 {
   using mdtk::Exception;
 
-#define MDEPP_MIN_TRANSLATION_ACCOUNTED 1.0*mdtk::Ao
-//int totalTransitionCandidates = 0;
-
   cout << "PostProcess::execute() started." << std::endl;
   cerr << "PostProcess::execute() started." << std::endl;
 
-  for(size_t i = 0; i < /*getStatesSize()*/trajData.size(); i++)
+  for(size_t i = 0; i < trajData.size(); i++)
   {
     mdtk::SimLoop* currentState = new mdtk::SimLoop();
     currentState->allowToFreePotentials = true;
     currentState->allowToFreeAtoms = true;
     setupPotentials(*currentState);
-    std::string trajFinalName = trajData[i].trajDir+"mde_init"; //was mde_final
+
+    std::string trajFinalName = trajData[i].trajDir+"mde_init";
     cout << "Loading state " << trajFinalName << std::endl;
-
     yaatk::text_ifstream fi(trajFinalName.c_str()); 
-//    YAATK_FSTREAM_CREATE(ifstream,fi,savedStateNames[i].c_str()); 
-
-currentState->initNLafterLoading = false;
+    currentState->initNLafterLoading = false;
     currentState->loadFromStream(fi);
-UPD_NL_REF_POT(currentState);
+    updateNeighborLists(currentState);
     setTags(currentState);
-//currentState->initNLafterLoading = true;
-
     fi.close();
-
 
     dummy_ac.setPBC(currentState->atoms_.getPBC());
     TRACE(dummy_ac.getPBC()/mdtk::Ao);
     TRACE(&dummy_ac);
 
-{
-    std::vector<std::string> interStates;
-    findIntermediateStates(trajData[i].trajDir,interStates);
-TRACE(interStates.size());
-    int stateIndex = interStates.size()-1;
-//    for(int stateIndex = interStates.size()-1; stateIndex >= 0; stateIndex--)
+    TRACE("mde_final loaded!");
+
+    // Collect interlayer transitions info
     {
-      TRACE(interStates[stateIndex]); //exit(1);
-      std::string mde_inter_filename = trajData[i].trajDir+interStates[stateIndex];
-      //to remove .GZ simply resize
-      mde_inter_filename.resize(mde_inter_filename.size()-3);
+      mdtk::AtomsContainer atoms_start;
+      for(size_t i1 = 0; i1 < currentState->atoms_.size(); i1++)
+      {
+	mdtk::Atom *new_atom;
+	new_atom = new mdtk::Atom();
+	*new_atom = *(currentState->atoms_[i1]);
+	atoms_start.push_back(new_atom);
+      }  
+
+      std::vector<std::string> interStates;
+      findIntermediateStates(trajData[i].trajDir,interStates);
+      TRACE(interStates.size());
+      int stateIndex = interStates.size()-1; // the last state
+      TRACE(interStates[stateIndex]);
+      std::string mde_inter_filename = 
+	trajData[i].trajDir+interStates[stateIndex];
+      {
+	//to remove .GZ simply resize, maybe not necessary with modern MDTK
+	mde_inter_filename.resize(mde_inter_filename.size()-3);
+      }
       TRACE(mde_inter_filename);
-/*
-      YAATK_IFSTREAM_CREATE_ZIPPED_OPT(std::ifstream,fi,mde_inter_filename.c_str(),std::ios::binary); 
-      currentState->loadFromStreamXVA_bin(fi);
-*/
-
-
-mdtk::AtomsContainer atoms_start;
-  for(size_t i1 = 0; i1 < currentState->atoms_.size(); i1++)
-  {
-   mdtk::Atom *new_atom;
-   new_atom = new mdtk::Atom();
-   *new_atom = *(currentState->atoms_[i1]);
-   atoms_start.push_back(new_atom);
-  }  
 
       yaatk::text_ifstream fi(mde_inter_filename.c_str()); 
-      currentState->loadFromStreamXVA(fi/*,false*/);
-UPD_NL_REF_POT(currentState);
+      currentState->loadFromStreamXVA(fi);
+      updateNeighborLists(currentState);
       setTags(currentState);
       fi.close(); 
 
-mdtk::AtomsContainer atoms_end;
-  for(size_t i1 = 0; i1 < currentState->atoms_.size(); i1++)
-  {
-   mdtk::Atom *new_atom;
-   new_atom = new mdtk::Atom();
-   *new_atom = *(currentState->atoms_[i1]);
-   atoms_end.push_back(new_atom);
-  }  
+      mdtk::AtomsContainer atoms_end;
+      for(size_t i1 = 0; i1 < currentState->atoms_.size(); i1++)
+      {
+	mdtk::Atom *new_atom;
+	new_atom = new mdtk::Atom();
+	*new_atom = *(currentState->atoms_[i1]);
+	atoms_end.push_back(new_atom);
+      }  
 
-  REQUIRE(atoms_start.size() == atoms_end.size());
-  REQUIRE(atoms_start.size() == currentState->atoms_.size());
+      REQUIRE(atoms_start.size() == atoms_end.size());
+      REQUIRE(atoms_start.size() == currentState->atoms_.size());
 
-  for(size_t i1 = 0; i1 < atoms_start.size(); i1++)
-  {
-    Float trans_dist = fabs(atoms_start[i1]->coords.z - atoms_end[i1]->coords.z);
-    if (trans_dist > MDEPP_MIN_TRANSLATION_ACCOUNTED)
-    {
-//      TRACE("adding transition....");
-//      TRACE(trans_dist/mdtk::Ao);
-//      if (trans_dist > 3.61*mdtk::Ao/2.0) totalTransitionCandidates++;
-      trajData[i].trans.translations.push_back(Translation(*(atoms_start[i1]),*(atoms_end[i1])));
+      for(size_t i1 = 0; i1 < atoms_start.size(); i1++)
+      {
+	Float trans_dist = 
+	  fabs(atoms_start[i1]->coords.z - atoms_end[i1]->coords.z);
+	const Float MDEPP_MIN_TRANSLATION_ACCOUNTED = 1.0*mdtk::Ao;
+	if (trans_dist > MDEPP_MIN_TRANSLATION_ACCOUNTED)
+	{
+	  trajData[i].trans.translations.
+	    push_back(Translation(*(atoms_start[i1]),*(atoms_end[i1])));
+	}
+      }
+
+      for(size_t i1 = 0; i1 < atoms_start.size(); i1++) 
+	delete atoms_start[i1];
+      for(size_t i1 = 0; i1 < atoms_end.size(); i1++)
+	delete atoms_end[i1];
     }
-  }
 
-//TRACE("ADDING COMPLETED");
-
-  for(size_t i1 = 0; i1 < atoms_start.size(); i1++) delete atoms_start[i1];
-  for(size_t i1 = 0; i1 < atoms_end.size(); i1++)   delete atoms_end[i1];
-
-    }
-}
-
-    TRACE("mde_final loaded!");
-//    YAATK_FSTREAM_CLOSE(fi); 
-
-
-//    currentState->fpot.NL_init(currentState->atoms_);
-//    currentState->fpot.NL_UpdateIfNeeded(currentState->atoms_); /// DO NOT DELETE!!!!!!!!!!!!!
-//    NeighbourList_Update(&(currentState->fpot),currentState->atoms_,SPOTTED_DISTANCE);
-
-
-//    ProcessState(*currentState,savedStateFileNames[i]);
-    ProcessState(*currentState,i);
+    buildSpottedMolecules(*currentState,i);
     delete currentState;
   }  
-
-//  TRACE(totalTransitionCandidates);
 
   cout << "PostProcess::execute() done." << std::endl;
   cerr << "PostProcess::execute() done." << std::endl;
 }  
-
-
-void
-StatPostProcess::ProcessState(mdtk::SimLoop& state, size_t i)
-{
-//  trajData.push_back(TrajData());
-
-//  trajData[i].trajDir = extractDir(trajNameFinal);
-//  (trajData.end()-1)->trajNameFinal = trajNameFinal;
-  trajData[i].aboveSpottedHeight = getAboveSpottedHeight(state);
-  buildSpottedMolecules(state,i);
-}  
-
 
 bool
 Molecule::hasAtom(mdtk::Atom& a) const
@@ -366,7 +330,7 @@ Molecule::buildFromAtom(mdtk::Atom& a, mdtk::SimLoop& ml,double SPOTTED_DISTANCE
   }  
 }  
 
-
+/*
 int
 StatPostProcess::getAboveSpottedHeightTotal() const
 {
@@ -397,6 +361,7 @@ StatPostProcess::getAboveSpottedHeight(mdtk::SimLoop& state) const
   }  
   return spotted;
 }  
+*/
 
 int
 StatPostProcess::getYieldSum( FProcessMolecule fpm) const
@@ -633,42 +598,30 @@ StatPostProcess::buildSpottedMolecules(mdtk::SimLoop& state,size_t trajIndex)
 
   cout << "Building molecules for state ..." << std::endl;
   {
-//TRACE(states[trajIndex]->atoms_.size());
     for(size_t atomIndex = 0; atomIndex < state.atoms_.size(); atomIndex++)
     {
       mdtk::Atom &atom = *(state.atoms_[atomIndex]);
       if (atom.coords.z < SPOTTED_DISTANCE)
       {
-        {
-//TRACE(atom.globalIndex);
-          bool account_atom = true;
-//          TRACE(trajData[trajIndex].molecules.size());
-          for(size_t mi = 0; mi < trajData[trajIndex].molecules.size(); mi++)
-          {
-//TRACE(mi);
-            if (trajData[trajIndex].molecules[mi].hasAtom(atom))
-            {
-              account_atom = false;
-              break;
-            }  
-          }  
-//TRACE(account_atom);
-          if (account_atom) 
-          {
-//            TRACE("Building molecule.");
-            Molecule molecule;
-//            molecule.trajectory = trajIndex;//trajIndex;
-//TRACE(molecule.trajectory);            
-            molecule.buildFromAtom(atom,state,SPOTTED_DISTANCE);
-//TRACE("After build from atom.");
-//TRACE(molecule.atoms.size());
-            if (molecule.atoms.size() > 0 && molecule.getVelocity().z < 0.0)
-            {
-              cout << "Adding molecule." << std::endl;
-              trajData[trajIndex].molecules.push_back(molecule);
-            }  
-          }  
-        }  
+	bool account_atom = true;
+	for(size_t mi = 0; mi < trajData[trajIndex].molecules.size(); mi++)
+	{
+	  if (trajData[trajIndex].molecules[mi].hasAtom(atom))
+	  {
+	    account_atom = false;
+	    break;
+	  }  
+	}  
+	if (account_atom) 
+	{
+	  Molecule molecule;
+	  molecule.buildFromAtom(atom,state,SPOTTED_DISTANCE);
+	  if (molecule.atoms.size() > 0 && molecule.getVelocity().z < 0.0)
+	  {
+	    cout << "Adding molecule." << std::endl;
+	    trajData[trajIndex].molecules.push_back(molecule);
+	  }  
+	}  
       }  
     }  
   }  
@@ -677,13 +630,12 @@ StatPostProcess::buildSpottedMolecules(mdtk::SimLoop& state,size_t trajIndex)
   cout << "Building cluster dynamics for state ..." << std::endl;
   {
     trajData[trajIndex].clusterDynamics.PBC = state.getPBC();
-//TRACE(states[trajIndex]->atoms_.size());
     for(size_t atomIndex = 0; atomIndex < state.atoms_.size(); atomIndex++)
     {
       mdtk::Atom &atom = *(state.atoms_[atomIndex]);
-//      if (atom.ID != mdtk::Cu_EL) continue;
       if (!(atom.tag & ATOMTAG_CLUSTER)) continue;
-      trajData[trajIndex].clusterDynamics.atomTrajectories.push_back(AtomTrajectory(atom));
+      trajData[trajIndex].clusterDynamics.atomTrajectories.
+	push_back(AtomTrajectory(atom));
     }
   }
 // ~InnnerCluster() ----------------------
@@ -692,21 +644,19 @@ StatPostProcess::buildSpottedMolecules(mdtk::SimLoop& state,size_t trajIndex)
   cout << "Building projectile dynamics for state ..." << std::endl;
   {
     trajData[trajIndex].projectileDynamics.PBC = state.getPBC();
-//TRACE(states[trajIndex]->atoms_.size());
     for(size_t atomIndex = 0; atomIndex < state.atoms_.size(); atomIndex++)
     {
       mdtk::Atom &atom = *(state.atoms_[atomIndex]);
       if (atom.ID != mdtk::Ar_EL) continue;
-//      if (!(atom.tag & ATOMTAG_CLUSTER)) continue;
-      trajData[trajIndex].projectileDynamics.atomTrajectories.push_back(AtomTrajectory(atom));
+      trajData[trajIndex].projectileDynamics.atomTrajectories.
+	push_back(AtomTrajectory(atom));
     }
   }
 // ~Projectile() ----------------------
 
-  TrajData& td = trajData[trajIndex];//trajData[traj];
+  TrajData& td = trajData[trajIndex];
 //  if (td.molecules.size() > 0)
   {
-
     mdtk::SimLoop* mde_init = new mdtk::SimLoop();    
     mde_init->allowToFreePotentials = true;
     mde_init->allowToFreeAtoms = true;
@@ -714,9 +664,9 @@ StatPostProcess::buildSpottedMolecules(mdtk::SimLoop& state,size_t trajIndex)
     std::string mde_init_filename = td.trajDir+"mde_init";
     TRACE(mde_init_filename);
     yaatk::text_ifstream fi(mde_init_filename.c_str()); 
-mde_init->initNLafterLoading = false;
-    mde_init->loadFromStream(fi/*,false*/);
-UPD_NL_REF_POT(mde_init);
+    mde_init->initNLafterLoading = false;
+    mde_init->loadFromStream(fi);
+    updateNeighborLists(mde_init);
     setTags(mde_init);
     fi.close(); 
 
@@ -727,32 +677,44 @@ UPD_NL_REF_POT(mde_init);
         const mdtk::Atom& atom = td.molecules[mi].atoms[ai];
         const mdtk::Atom& atom_init = *(mde_init->atoms_[atom.globalIndex]);
         td.molecules[mi].atoms_init.push_back(atom_init); 
-          td.molecules[mi].atoms_init[td.molecules[mi].atoms_init.size()-1].container = &dummy_ac;
-        REQUIRE(td.molecules[mi].atoms[ai].globalIndex == td.molecules[mi].atoms_init[ai].globalIndex);
+	td.molecules[mi].atoms_init[td.molecules[mi].atoms_init.size()-1].
+	  container = &dummy_ac;
+        REQUIRE(td.molecules[mi].atoms[ai].globalIndex == 
+		td.molecules[mi].atoms_init[ai].globalIndex);
       }
-      REQUIRE(td.molecules[mi].atoms.size() == td.molecules[mi].atoms_init.size());
+      REQUIRE(td.molecules[mi].atoms.size() == 
+	      td.molecules[mi].atoms_init.size());
     }  
 
 // InnnerCluster() ----------------------
-    for(size_t clusterAtomIndex = 0; clusterAtomIndex < td.clusterDynamics.atomTrajectories.size(); clusterAtomIndex++)
+    for(size_t clusterAtomIndex = 0; 
+	clusterAtomIndex < td.clusterDynamics.atomTrajectories.size(); 
+	clusterAtomIndex++)
     {
-      const mdtk::Atom &atom = td.clusterDynamics.atomTrajectories[clusterAtomIndex].endCheckPoint;
-      const mdtk::Atom &atom_init = *(mde_init->atoms_[atom.globalIndex]);
-      td.clusterDynamics.atomTrajectories[clusterAtomIndex].beginCheckPoint = atom_init;
+      const mdtk::Atom &atom = 
+	td.clusterDynamics.atomTrajectories[clusterAtomIndex].endCheckPoint;
+      const mdtk::Atom &atom_init = 
+	*(mde_init->atoms_[atom.globalIndex]);
+      td.clusterDynamics.atomTrajectories[clusterAtomIndex].
+	beginCheckPoint = atom_init;
     }
 // ~InnnerCluster() ----------------------
 
 // Projectile() ----------------------
     TRACE(td.projectileDynamics.atomTrajectories.size());
-//    REQUIRE(td.projectileDynamics.atomTrajectories.size() == 1);
-    for(size_t projectileAtomIndex = 0; projectileAtomIndex < td.projectileDynamics.atomTrajectories.size(); projectileAtomIndex++)
+    for(size_t projectileAtomIndex = 0; 
+	projectileAtomIndex < td.projectileDynamics.atomTrajectories.size(); 
+	projectileAtomIndex++)
     {
-      const mdtk::Atom &atom = td.projectileDynamics.atomTrajectories[projectileAtomIndex].endCheckPoint;
-      const mdtk::Atom &atom_init = *(mde_init->atoms_[atom.globalIndex]);
-      td.projectileDynamics.atomTrajectories[projectileAtomIndex].beginCheckPoint = atom_init;
+      const mdtk::Atom &atom = 
+	td.projectileDynamics.atomTrajectories[projectileAtomIndex].
+	endCheckPoint;
+      const mdtk::Atom &atom_init = 
+	*(mde_init->atoms_[atom.globalIndex]);
+      td.projectileDynamics.atomTrajectories[projectileAtomIndex].
+	beginCheckPoint = atom_init;
     }
 // ~ProjectileCluster() ----------------------
-
 
     delete mde_init;
   }  
@@ -762,57 +724,33 @@ UPD_NL_REF_POT(mde_init);
     std::vector<std::string> interStates;
     findIntermediateStates(td.trajDir,interStates);
 
+    mdtk::SimLoop* mde_inter = new mdtk::SimLoop();    
+    mde_inter->allowToFreePotentials = true;
+    mde_inter->allowToFreeAtoms = true;
+    setupPotentials(*mde_inter);
 
-      mdtk::SimLoop* mde_inter = new mdtk::SimLoop();    
-      mde_inter->allowToFreePotentials = true;
-      mde_inter->allowToFreeAtoms = true;
-      setupPotentials(*mde_inter);
-
-{
-    std::string trajFinalName = td.trajDir+"mde_init"; //was mde_final
+    std::string trajFinalName = td.trajDir+"mde_init";
     cout << "Loading state " << trajFinalName << std::endl;
-
     yaatk::text_ifstream fi(trajFinalName.c_str()); 
-//    YAATK_FSTREAM_CREATE(ifstream,fi,savedStateNames[i].c_str()); 
-
-mde_inter->initNLafterLoading = false;
+    mde_inter->initNLafterLoading = false;
     mde_inter->loadFromStream(fi);
-/*
-UPD_NL_REF_POT(mde_inter);
-    setTags(mde_inter); NOT NEEDED
-*/
-//if (td.molecules.size() > 0)
-//mde_inter->initNLafterLoading = true;
-
-
     fi.close();
-}
-
 
     for(int stateIndex = interStates.size()-1; stateIndex >= 0; stateIndex--)
     {
-//      TRACE(interStates[stateIndex]);
-
       std::string mde_inter_filename = td.trajDir+interStates[stateIndex];
-      //to remove .GZ simply resize
-      mde_inter_filename.resize(mde_inter_filename.size()-3);
+
+      {
+	//to remove .GZ simply resize
+	mde_inter_filename.resize(mde_inter_filename.size()-3);
+      }
+
       TRACE(mde_inter_filename);
-/*
-      YAATK_IFSTREAM_CREATE_ZIPPED_OPT(std::ifstream,fi,mde_inter_filename.c_str(),std::ios::binary); 
-      mde_inter->loadFromStreamXVA_bin(fi);
-*/
       yaatk::text_ifstream fi(mde_inter_filename.c_str()); 
-      mde_inter->loadFromStreamXVA(fi/*,false*/);
-UPD_NL_REF_POT(mde_inter);
+      mde_inter->loadFromStreamXVA(fi);
+      updateNeighborLists(mde_inter);
       setTags(mde_inter);
       fi.close(); 
-
-/*
-      mde_inter->fpot.NL_init(mde_inter->atoms_);
-      NeighbourList_Update(&(mde_inter->fpot),mde_inter->atoms_,SPOTTED_DISTANCE);
-*/
-
-//TRACE("***** loaded OK");
 
       for(size_t mi = 0; mi < td.molecules.size(); mi++)
       {
@@ -821,62 +759,45 @@ UPD_NL_REF_POT(mde_inter);
         Molecule& molecule = td.molecules[mi];
         for(size_t ai = 0; ai < molecule.atoms.size(); ai++)
         {
-          /*const */mdtk::Atom& atom_i = molecule.atoms[ai];
-          /*const */mdtk::Atom& atom_i_inter = *(mde_inter->atoms_[atom_i.globalIndex]);
+          mdtk::Atom& atom_i = molecule.atoms[ai];
+          mdtk::Atom& atom_i_inter = *(mde_inter->atoms_[atom_i.globalIndex]);
           for(size_t aj = 0; aj < molecule.atoms.size(); aj++)
-          if (ai != aj)
-          {
-            /*const */mdtk::Atom& atom_j = molecule.atoms[aj];
-            /*const */mdtk::Atom& atom_j_inter = *(mde_inter->atoms_[atom_j.globalIndex]);
-/*
-            if (!molecule_inter.hasSameAtoms(molecule))
-            {
-              alreadyFormed = false;
-              break;
-            }  
-*/
-/*
-TRACE(atom_i.globalIndex);
-TRACE(atom_j.globalIndex);
-TRACE(atom_i_inter.globalIndex);
-TRACE(atom_j_inter.globalIndex);
-
-TRACE(&dummy_ac);
-TRACE(atom_i.container);
-TRACE(atom_i.container->getPBC());
-TRACE(atom_j.container->getPBC());
-*/
-            Float distance_ij = 
-              REF_POT_OF(mde_inter->fpot)->r_vec_module_no_touch(atom_i,atom_j);
-            Float distance_ij_inter = 
-              REF_POT_OF(mde_inter->fpot)->r_vec_module_no_touch(atom_i_inter,atom_j_inter);
+	    if (ai != aj)
+	    {
+	      mdtk::Atom& atom_j = molecule.atoms[aj];
+	      mdtk::Atom& atom_j_inter = *(mde_inter->atoms_[atom_j.globalIndex]);
+	      Float distance_ij = 
+		REF_POT_OF(mde_inter->fpot)->
+		r_vec_module_no_touch(atom_i,atom_j);
+	      Float distance_ij_inter = 
+		REF_POT_OF(mde_inter->fpot)->
+		r_vec_module_no_touch(atom_i_inter,atom_j_inter);
               
-            if (
+	      if (
                 (
-                molecule.Rc(atom_i      ,atom_j      ) >= distance_ij &&
-                molecule.Rc(atom_i_inter,atom_j_inter) <  distance_ij_inter
-                )||
+		  molecule.Rc(atom_i      ,atom_j      ) >= distance_ij &&
+		  molecule.Rc(atom_i_inter,atom_j_inter) <  distance_ij_inter
+		  )||
                 (
-                molecule.Rc(atom_i      ,atom_j      ) <  distance_ij &&
-                molecule.Rc(atom_i_inter,atom_j_inter) >= distance_ij_inter
-                )
-               )
-             {
-               formedNowOrEarlier = false;
-               break;
-             }  
-          }
+		  molecule.Rc(atom_i      ,atom_j      ) <  distance_ij &&
+		  molecule.Rc(atom_i_inter,atom_j_inter) >= distance_ij_inter
+		  )
+		)
+	      {
+		formedNowOrEarlier = false;
+		break;
+	      }  
+	    }
         }
-
-//TRACE("***** 1st loop OK");
 
 //        if (formedNowOrEarlier)
         for(size_t ai = 0; ai < molecule.atoms.size(); ai++)
         {
           const mdtk::Atom& atom_i = molecule.atoms[ai];
-//          const mdtk::Atom& atom_i_inter = *(mde_inter->atoms_[atom_i.globalIndex]);
           Molecule molecule_inter;
-          molecule_inter.buildFromAtom(*(mde_inter->atoms_[atom_i.globalIndex]),*mde_inter,SPOTTED_DISTANCE);
+          molecule_inter.
+	    buildFromAtom(*(mde_inter->atoms_[atom_i.globalIndex]),
+			  *mde_inter,SPOTTED_DISTANCE);
 
           if (molecule_inter.atoms.size() == 0)
           {
@@ -898,40 +819,45 @@ TRACE(atom_j.container->getPBC());
             }  
           }
         }
-        if (formedNowOrEarlier) molecule.formationTime 
-           = (mde_inter->simTime>0.01*mdtk::ps)?mde_inter->simTime:0.0*mdtk::ps;
-        if (escapedNowOrEarlier) molecule.escapeTime
-           = (mde_inter->simTime>0.01*mdtk::ps)?mde_inter->simTime:0.0*mdtk::ps;
-
+        if (formedNowOrEarlier) 
+	  molecule.formationTime  = 
+	    (mde_inter->simTime>0.01*mdtk::ps)?mde_inter->simTime:0.0*mdtk::ps;
+        if (escapedNowOrEarlier) 
+	  molecule.escapeTime = 
+	    (mde_inter->simTime>0.01*mdtk::ps)?mde_inter->simTime:0.0*mdtk::ps;
       }  
 
-//TRACE("***** 2nd loop OK");
-
 // InnnerCluster() ----------------------
-    for(size_t clusterAtomIndex = 0; clusterAtomIndex < td.clusterDynamics.atomTrajectories.size(); clusterAtomIndex++)
-    {
-      const mdtk::Atom &atom = td.clusterDynamics.atomTrajectories[clusterAtomIndex].endCheckPoint;
-      const mdtk::Atom &atom_inter = *(mde_inter->atoms_[atom.globalIndex]);
-      td.clusterDynamics.atomTrajectories[clusterAtomIndex].checkPoints.push_back(atom_inter);
-    }
+      for(size_t clusterAtomIndex = 0; 
+	  clusterAtomIndex < td.clusterDynamics.atomTrajectories.size(); 
+	  clusterAtomIndex++)
+      {
+	const mdtk::Atom &atom = 
+	  td.clusterDynamics.atomTrajectories[clusterAtomIndex].endCheckPoint;
+	const mdtk::Atom &atom_inter = *(mde_inter->atoms_[atom.globalIndex]);
+	td.clusterDynamics.
+	  atomTrajectories[clusterAtomIndex].checkPoints.push_back(atom_inter);
+      }
 // ~InnnerCluster() ----------------------
 
 // Projectile() ----------------------
-//    REQUIRE(td.projectileDynamics.atomTrajectories.size() == 1);
-    TRACE(td.projectileDynamics.atomTrajectories.size());
-    for(size_t projectileAtomIndex = 0; projectileAtomIndex < td.projectileDynamics.atomTrajectories.size(); projectileAtomIndex++)
-    {
-      const mdtk::Atom &atom = td.projectileDynamics.atomTrajectories[projectileAtomIndex].endCheckPoint;
-      const mdtk::Atom &atom_inter = *(mde_inter->atoms_[atom.globalIndex]);
-      td.projectileDynamics.atomTrajectories[projectileAtomIndex].checkPoints.push_back(atom_inter);
-    }
+      TRACE(td.projectileDynamics.atomTrajectories.size());
+      for(size_t projectileAtomIndex = 0; 
+	  projectileAtomIndex < td.projectileDynamics.atomTrajectories.size(); 
+	  projectileAtomIndex++)
+      {
+	const mdtk::Atom &atom = 
+	  td.projectileDynamics.atomTrajectories[projectileAtomIndex].
+	  endCheckPoint;
+	const mdtk::Atom &atom_inter = 
+	  *(mde_inter->atoms_[atom.globalIndex]);
+	td.projectileDynamics.atomTrajectories[projectileAtomIndex].
+	  checkPoints.push_back(atom_inter);
+      }
 // ~Projectile() ----------------------
 
-
-//TRACE("***** 3rd loop OK");
-
     }  
-      delete mde_inter;
+    delete mde_inter;
   }  
 
   cout << "Building molecules for state done." << std::endl;

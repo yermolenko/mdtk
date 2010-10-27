@@ -82,7 +82,8 @@ try
   for(size_t i = 0; i < pp->trajData.size(); i++)
   {
     TRACE(pp->trajData[i].trajDir);
-    TRACE(pp->trajData[i].aboveSpottedHeight);
+//    TRACE(pp->getAboveSpottedHeight(i,mdepp::StatPostProcess::ProcessAll));
+
     TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessCluster));
     TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessSubstrate));
     TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessClusterAndSubstrate));
@@ -90,7 +91,7 @@ try
     TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessAll));
   }
 
-  TRACE(pp->getAboveSpottedHeightTotal());
+//  TRACE(pp->getAboveSpottedHeightTotal());
   TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessCluster));
   TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessSubstrate));
   TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessClusterAndSubstrate));
