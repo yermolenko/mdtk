@@ -347,7 +347,7 @@ depos(const Atom &a1, const Atom &a2)
 {
   Vector3D r = a1.coords - a2.coords;
 //if (a1.globalIndex == 1806) {TRACE("before getPBC");TRACE(a1.container);}
-  REQUIRE(a1.container != NULL);
+  if (a1.container == NULL) return r;
   Vector3D PBC = a1.container->getPBC();
 //if (a1.globalIndex == 1806) {TRACE("after getPBC");TRACE(a1.container);}
   if (PBC == NO_PBC) return r;
