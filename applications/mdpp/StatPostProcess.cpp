@@ -320,6 +320,9 @@ StatPostProcess::execute()
 
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
+    TrajData& td = trajData[trajIndex];
+    Fullerene f;
+
     mdtk::SimLoop* state = new mdtk::SimLoop();
     state->allowToFreePotentials = true;
     state->allowToFreeAtoms = true;
@@ -357,7 +360,6 @@ StatPostProcess::execute()
     buildClusterDynamics(*state,trajIndex,STATE_FINAL);
     buildProjectileDynamics(*state,trajIndex,STATE_FINAL);
 
-    TrajData& td = trajData[trajIndex];
 //  if (td.molecules.size() > 0)
     {
       mdtk::SimLoop* mde_init = new mdtk::SimLoop();    
@@ -378,6 +380,9 @@ StatPostProcess::execute()
       buildSputteredMolecules(*mde_init,trajIndex,STATE_INIT);
       buildClusterDynamics(*mde_init,trajIndex,STATE_INIT);
       buildProjectileDynamics(*mde_init,trajIndex,STATE_INIT);
+
+      f.build(*mde_init);
+      td.trajFullerene[mde_init->simTime] = f;
 
       delete mde_init;
     }  
@@ -418,6 +423,9 @@ StatPostProcess::execute()
 	buildSputteredMolecules(*mde_inter,trajIndex,STATE_INTER);
 	buildClusterDynamics(*mde_inter,trajIndex,STATE_INTER);
 	buildProjectileDynamics(*mde_inter,trajIndex,STATE_INTER);
+
+	f.update(*mde_inter);
+	td.trajFullerene[mde_inter->simTime] = f;
       }  
       delete mde_inter;
     }  
@@ -544,6 +552,32 @@ StatPostProcess::buildClusterFragmentsFromDyn()
   }  
 
 }
+
+void
+StatPostProcess::printFullereneInfo() const
+{
+  for(size_t traj = 0; traj < trajData.size(); traj++)
+  if (trajData[traj].trajFullerene.size() > 0)
+  {
+    cout << "Fullerene for trajectory " << traj << 
+     " ("  << trajData[traj].trajDir << ") " << " :\n";
+    printFullereneInfo(traj);
+    cout << std::endl;
+  }  
+}  
+
+void
+StatPostProcess::printFullereneInfo(size_t trajIndex) const
+{
+  const TrajData& td = trajData[trajIndex];
+  std::map< Float, Fullerene >::const_iterator i;
+  for( i = td.trajFullerene.begin(); i != td.trajFullerene.end() ; ++i )
+  {
+    std::cout << "Time : " << i->first/mdtk::ps << "\n";
+    std::cout << "\t ";
+    TRACE(getVelocity(i->second.atoms));
+  }
+}  
 
 int
 StatPostProcess::getAboveSpottedHeight(mdtk::SimLoop& state) const

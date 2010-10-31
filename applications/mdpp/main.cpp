@@ -116,6 +116,8 @@ try
 
   pp->printMoleculesTotal();
 
+  pp->printFullereneInfo();
+
   yaatk::chdir("..");
 
   if (fullpp)

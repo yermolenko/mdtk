@@ -34,6 +34,7 @@ using namespace std;
 #include <string>
 #include <vector>
 #include <set>
+#include <map>
 #include <algorithm>
 #include <fstream>
 
@@ -44,6 +45,8 @@ using namespace std;
 
 #include "Molecule.hpp"
 #include "Fragment.hpp"
+
+#include "Fullerene.hpp"
 
 namespace mdepp
 {
@@ -146,10 +149,12 @@ public:
     ClusterDynamics clusterDynamics;
     ProjectileDynamics projectileDynamics;
     Translations trans;
+    std::map <Float,Fullerene> trajFullerene;
     TrajData() : 
       trajDir(),
       molecules(),
-      clusterDynamics(), projectileDynamics(), trans() {;}
+      clusterDynamics(), projectileDynamics(), trans(),
+      trajFullerene() {;}
     void saveToStream(std::ostream& os) const
     {
       os << trajDir << "\n";
@@ -161,6 +166,10 @@ public:
       clusterDynamics.saveToStream(os);
       projectileDynamics.saveToStream(os);
       trans.saveToStream(os);
+
+      std::map< Float, Fullerene >::const_iterator i;
+      for( i = trajFullerene.begin(); i != trajFullerene.end() ; ++i )
+	os << i->first << "\t " << i->second << "\n";
     }  
     void loadFromStream(std::istream& is)
     {
@@ -175,6 +184,11 @@ public:
       clusterDynamics.loadFromStream(is);
       projectileDynamics.loadFromStream(is);
       trans.loadFromStream(is);
+
+      Float t;
+      Fullerene f;
+      is >> t >> f;
+      trajFullerene[t] = f;
     }  
   };
   std::vector<TrajData> trajData;
@@ -234,6 +248,9 @@ public:
 
   void  printMolecules(size_t trajIndex) const;
   void  printMoleculesTotal() const;
+
+  void  printFullereneInfo(size_t trajIndex) const;
+  void  printFullereneInfo() const;
 
   void  printClusterDynamics(size_t trajIndex) const;
   void  printClusterDynamicsTotal() const;
