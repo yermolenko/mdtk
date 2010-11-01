@@ -161,6 +161,7 @@ public:
       projectileDynamics.saveToStream(os);
       trans.saveToStream(os);
 
+      os << trajFullerene.size() << "\n";
       std::map< Float, Fullerene >::const_iterator i;
       for( i = trajFullerene.begin(); i != trajFullerene.end() ; ++i )
 	os << i->first << "\t " << i->second << "\n";
@@ -170,10 +171,10 @@ public:
     void loadFromStream(std::istream& is)
     {
       is >> trajDir;
-      size_t sz;
+      size_t sz, i;
       is >> sz;
       molecules.resize(sz);
-      for(size_t i = 0; i < molecules.size(); i++)
+      for(i = 0; i < molecules.size(); i++)
         molecules[i].loadFromStream(is);
         
 //      is >> SPOTTED_DISTANCE;
@@ -181,10 +182,14 @@ public:
       projectileDynamics.loadFromStream(is);
       trans.loadFromStream(is);
 
-      Float t;
-      Fullerene f;
-      is >> t >> f;
-      trajFullerene[t] = f;
+      is >> sz;
+      for(i = 0; i < sz; ++i)
+      {
+	Float t;
+	Fullerene f;
+	is >> t >> f;
+	trajFullerene[t] = f;
+      }
 
       is >> PBC;
     }  
