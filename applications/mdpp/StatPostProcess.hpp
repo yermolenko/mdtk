@@ -43,6 +43,8 @@ using namespace std;
 
 #include "tools.hpp"
 
+#include "NeighbourList.hpp"
+
 #include "Molecule.hpp"
 #include "Fragment.hpp"
 
@@ -50,15 +52,6 @@ using namespace std;
 
 namespace mdepp
 {
-
-inline
-void
-updateNeighborLists(mdtk::SimLoop* ml)
-{
-  ml->updateGlobalIndexes();
-  REF_POT_OF(ml->fpot)->NL_init(ml->atoms_);
-  REF_POT_OF(ml->fpot)->NL_UpdateIfNeeded(ml->atoms_); /// !!!!!!!!!!!!!
-}
 
 using namespace mdtk;
 
@@ -239,8 +232,8 @@ public:
 
   enum StateType{STATE_FINAL,STATE_INIT,STATE_INTER};
 
-  void  buildSputteredMolecules(mdtk::SimLoop&,size_t trajIndex, StateType s);
-  void  buildClusterDynamics(mdtk::SimLoop&,size_t trajIndex, StateType s);
+  void  buildSputteredMolecules(mdtk::SimLoop&,size_t trajIndex, StateType s, NeighbourList& nl);
+  void  buildClusterDynamics(mdtk::SimLoop&,size_t trajIndex, StateType s, NeighbourList& nl);
   void  buildProjectileDynamics(mdtk::SimLoop&,size_t trajIndex, StateType s);
   void  buildDummyDynamics(mdtk::SimLoop&,size_t trajIndex, StateType s);
 

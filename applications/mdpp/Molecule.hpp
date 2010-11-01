@@ -5,6 +5,8 @@
 #include <mdtk/SimLoop.hpp>
 #include <algorithm>
 
+#include "NeighbourList.hpp"
+
 namespace mdepp
 {
 
@@ -15,7 +17,7 @@ using namespace mdtk;
 #define ATOMTAG_CLUSTER   1<<2
 #define ATOMTAG_NOTAG 0
 
-#define REF_POT_OF(ML_FPOT) ML_FPOT.potentials[0]
+//#define REF_POT_OF(ML_FPOT) ML_FPOT.potentials[0]
 
 
 inline
@@ -176,7 +178,7 @@ operator =(const Molecule &C)
   }
 
   void addAtom(mdtk::Atom& a) {atoms.push_back(a);atoms[atoms.size()-1].container = &dummy_ac;}
-  void buildFromAtom(mdtk::Atom&, mdtk::SimLoop& ml,double SPOTTED_DISTANCE);
+  void buildFromAtom(mdtk::Atom&, NeighbourList& nl,double SPOTTED_DISTANCE);
   bool hasAtom(mdtk::Atom&) const;
   Molecule():handledElements(),formationTime(-1),escapeTime(-1),
     atoms(/*0*/),atoms_init(),trajectory_dummy(-1)

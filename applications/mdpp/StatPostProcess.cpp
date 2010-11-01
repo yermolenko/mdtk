@@ -21,6 +21,7 @@
 */
 
 #include "StatPostProcess.hpp"
+#include "NeighbourList.hpp"
 
 #include <algorithm>
 
@@ -36,7 +37,7 @@ mdtk::AtomsContainer dummy_ac;
 
 void
 StatPostProcess::buildSputteredMolecules(mdtk::SimLoop& state,size_t trajIndex,
-  StatPostProcess::StateType s)
+  StatPostProcess::StateType s, NeighbourList& nl)
 {
   TrajData& td = trajData[trajIndex];
   if (s == STATE_FINAL)
@@ -59,7 +60,7 @@ StatPostProcess::buildSputteredMolecules(mdtk::SimLoop& state,size_t trajIndex,
 	if (account_atom) 
 	{
 	  Molecule molecule;
-	  molecule.buildFromAtom(atom,state,SPOTTED_DISTANCE);
+	  molecule.buildFromAtom(atom,nl,SPOTTED_DISTANCE);
 	  if (molecule.atoms.size() > 0 && molecule.getVelocity().z < 0.0)
 	  {
 	    cout << "Adding molecule." << std::endl;
@@ -106,11 +107,9 @@ StatPostProcess::buildSputteredMolecules(mdtk::SimLoop& state,size_t trajIndex,
 	    mdtk::Atom& atom_j = molecule.atoms[aj];
 	    mdtk::Atom& atom_j_inter = *(mde_inter->atoms_[atom_j.globalIndex]);
 	    Float distance_ij = 
-	      REF_POT_OF(mde_inter->fpot)->
-	      r_vec_module_no_touch(atom_i,atom_j);
+	      depos(atom_i,atom_j).module();
 	    Float distance_ij_inter = 
-	      REF_POT_OF(mde_inter->fpot)->
-	      r_vec_module_no_touch(atom_i_inter,atom_j_inter);
+	      depos(atom_i_inter,atom_j_inter).module();
               
 	    if (
 	      (
@@ -136,7 +135,7 @@ StatPostProcess::buildSputteredMolecules(mdtk::SimLoop& state,size_t trajIndex,
 	Molecule molecule_inter;
 	molecule_inter.
 	  buildFromAtom(*(mde_inter->atoms_[atom_i.globalIndex]),
-			*mde_inter,SPOTTED_DISTANCE);
+			nl,SPOTTED_DISTANCE);
 
 	if (molecule_inter.atoms.size() == 0)
 	{
@@ -170,7 +169,7 @@ StatPostProcess::buildSputteredMolecules(mdtk::SimLoop& state,size_t trajIndex,
 
 void
 StatPostProcess::buildClusterDynamics(mdtk::SimLoop& state,size_t trajIndex,
-  StatPostProcess::StateType s)
+  StatPostProcess::StateType s, NeighbourList& nl)
 {
   TrajData& td = trajData[trajIndex];
   if (s == STATE_FINAL)
@@ -333,7 +332,8 @@ StatPostProcess::execute()
     yaatk::text_ifstream fi(trajFinalName.c_str()); 
     state->initNLafterLoading = false;
     state->loadFromStream(fi);
-    updateNeighborLists(state);
+    state->updateGlobalIndexes();
+    NeighbourList nl(*state);
     setTags(state);
     fi.close();
 
@@ -356,8 +356,8 @@ StatPostProcess::execute()
 
     TRACE(getAboveSpottedHeight(*state));
 
-    buildSputteredMolecules(*state,trajIndex,STATE_FINAL);
-    buildClusterDynamics(*state,trajIndex,STATE_FINAL);
+    buildSputteredMolecules(*state,trajIndex,STATE_FINAL,nl);
+    buildClusterDynamics(*state,trajIndex,STATE_FINAL,nl);
     buildProjectileDynamics(*state,trajIndex,STATE_FINAL);
 
 //  if (td.molecules.size() > 0)
@@ -371,14 +371,15 @@ StatPostProcess::execute()
       yaatk::text_ifstream fi(mde_init_filename.c_str()); 
       mde_init->initNLafterLoading = false;
       mde_init->loadFromStream(fi);
-      updateNeighborLists(mde_init);
+      mde_init->updateGlobalIndexes();
+      NeighbourList nl(*mde_init);
       setTags(mde_init);
       fi.close(); 
 
       cout << "State " << mde_init_filename << " loaded." << std::endl;
 
-      buildSputteredMolecules(*mde_init,trajIndex,STATE_INIT);
-      buildClusterDynamics(*mde_init,trajIndex,STATE_INIT);
+      buildSputteredMolecules(*mde_init,trajIndex,STATE_INIT,nl);
+      buildClusterDynamics(*mde_init,trajIndex,STATE_INIT,nl);
       buildProjectileDynamics(*mde_init,trajIndex,STATE_INIT);
 
       f.build(*mde_init);
@@ -416,12 +417,13 @@ StatPostProcess::execute()
 	TRACE(mde_inter_filename);
 	yaatk::text_ifstream fi(mde_inter_filename.c_str()); 
 	mde_inter->loadFromStreamXVA(fi);
-	updateNeighborLists(mde_inter);
+	mde_inter->updateGlobalIndexes();
+	NeighbourList nl(*mde_inter);
 	setTags(mde_inter);
 	fi.close(); 
 
-	buildSputteredMolecules(*mde_inter,trajIndex,STATE_INTER);
-	buildClusterDynamics(*mde_inter,trajIndex,STATE_INTER);
+	buildSputteredMolecules(*mde_inter,trajIndex,STATE_INTER,nl);
+	buildClusterDynamics(*mde_inter,trajIndex,STATE_INTER,nl);
 	buildProjectileDynamics(*mde_inter,trajIndex,STATE_INTER);
 
 	f.update(*mde_inter);
@@ -448,7 +450,7 @@ StatPostProcess::execute()
       yaatk::text_ifstream fi(trajFinalName.c_str()); 
       currentState->initNLafterLoading = false;
       currentState->loadFromStream(fi);
-      updateNeighborLists(currentState);
+      currentState->updateGlobalIndexes();
       setTags(currentState);
       fi.close();
 
@@ -476,7 +478,7 @@ StatPostProcess::execute()
 
       yaatk::text_ifstream fi_inter(mde_inter_filename.c_str()); 
       currentState->loadFromStreamXVA(fi_inter);
-      updateNeighborLists(currentState);
+      currentState->updateGlobalIndexes();
       setTags(currentState);
       fi_inter.close(); 
 
@@ -2296,7 +2298,7 @@ mde_init->initNLafterLoading = true;
   }  
   SPOTTED_DISTANCE = minInitZ - 0.05*mdtk::Ao;
   SPOTTED_DISTANCE = -4.55*mdtk::Ao;
-  SPOTTED_DISTANCE = -0.0*mdtk::Ao;
+  SPOTTED_DISTANCE = -1.0*mdtk::Ao;
   TRACE(SPOTTED_DISTANCE/mdtk::Ao);
   delete mde_init;
 }  
