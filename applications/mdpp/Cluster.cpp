@@ -47,7 +47,7 @@ Cluster::build(const mdtk::SimLoop& ml)
     if (a.ID == Cu_EL && a.coords.z < -3.615*Ao*1.5)
       addAtom(a);
   }
-  REQUIRE(atoms.size() == 60);
+  REQUIRE(atoms.size() == 13);
 }  
 
 }

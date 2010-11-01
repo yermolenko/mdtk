@@ -45,7 +45,7 @@ using namespace std;
 
 #include "NeighbourList.hpp"
 
-#include "Molecule.hpp"
+#include "ClassicMolecule.hpp"
 #include "Fragment.hpp"
 
 #include "Fullerene.hpp"
@@ -107,30 +107,30 @@ public:
 class StatPostProcess
 {
 public:
-  typedef bool (*FProcessMolecule)(const Molecule&);
-  FProcessMolecule testProcessMolecule;
+  typedef bool (*FProcessClassicMolecule)(const ClassicMolecule&);
+  FProcessClassicMolecule testProcessClassicMolecule;
   static
-  bool ProcessAll(const Molecule&)
+  bool ProcessAll(const ClassicMolecule&)
   {
     return true;
   }
   static
-  bool ProcessProjectile(const Molecule& mol)
+  bool ProcessProjectile(const ClassicMolecule& mol)
   {
     return mol.hasOnlyProjectileAtoms();
   }
   static
-  bool ProcessCluster(const Molecule& mol)
+  bool ProcessCluster(const ClassicMolecule& mol)
   {
     return mol.hasOnlyClusterAtoms();
   }
   static
-  bool ProcessSubstrate(const Molecule& mol)
+  bool ProcessSubstrate(const ClassicMolecule& mol)
   {
     return mol.hasOnlySubstrateAtoms();
   }
   static
-  bool ProcessClusterAndSubstrate(const Molecule& mol)
+  bool ProcessClusterAndSubstrate(const ClassicMolecule& mol)
   {
 //    return mol.hasSubstrateAtoms() || mol.hasClusterAtoms();
     return mol.hasOnlySubstrateOrClusterAtoms();
@@ -138,7 +138,7 @@ public:
   struct TrajData
   {
     std::string trajDir;
-    std::vector<Molecule> molecules;
+    std::vector<ClassicMolecule> molecules;
     ClusterDynamics clusterDynamics;
     ProjectileDynamics projectileDynamics;
     Translations trans;
@@ -197,7 +197,7 @@ public:
   std::vector<TrajData> trajData;
   double SPOTTED_DISTANCE;
   StatPostProcess(std::vector<std::string>& savedStateNames)
-   :testProcessMolecule(&ProcessAll),
+   :testProcessClassicMolecule(&ProcessAll),
     trajData(),
     SPOTTED_DISTANCE(-5.0*mdtk::Ao)
   {
@@ -230,27 +230,27 @@ public:
   
   int   getAboveSpottedHeight(mdtk::SimLoop&) const; 
 
-  int   getYield(size_t trajIndex, FProcessMolecule fpm) const;
-  int   getYieldSum( FProcessMolecule fpm) const;
+  int   getYield(size_t trajIndex, FProcessClassicMolecule fpm) const;
+  int   getYieldSum( FProcessClassicMolecule fpm) const;
 
-  Float   getEnergyOfSputtered(size_t trajIndex, FProcessMolecule fpm) const;
-  Float   getTotalEnergyOfSputtered( FProcessMolecule fpm) const;
-  Float   getAverageEnergyOfSputtered( FProcessMolecule fpm) const;
+  Float   getEnergyOfSputtered(size_t trajIndex, FProcessClassicMolecule fpm) const;
+  Float   getTotalEnergyOfSputtered( FProcessClassicMolecule fpm) const;
+  Float   getAverageEnergyOfSputtered( FProcessClassicMolecule fpm) const;
 
-  Float getAverageYield( FProcessMolecule fpm) const;
-  Float getAverageYieldProgress( FProcessMolecule fpm) const;
+  Float getAverageYield( FProcessClassicMolecule fpm) const;
+  Float getAverageYieldProgress( FProcessClassicMolecule fpm) const;
 
   enum StateType{STATE_FINAL,STATE_INIT,STATE_INTER};
 
-  void  buildSputteredMolecules(mdtk::SimLoop&,size_t trajIndex, StateType s, NeighbourList& nl);
+  void  buildSputteredClassicMolecules(mdtk::SimLoop&,size_t trajIndex, StateType s, NeighbourList& nl);
   void  buildClusterDynamics(mdtk::SimLoop&,size_t trajIndex, StateType s, NeighbourList& nl);
   void  buildProjectileDynamics(mdtk::SimLoop&,size_t trajIndex, StateType s);
   void  buildDummyDynamics(mdtk::SimLoop&,size_t trajIndex, StateType s);
 
 //  void  buildTransitions(mdtk::SimLoop&,size_t trajIndex, StateType s);
 
-  void  printMolecules(size_t trajIndex) const;
-  void  printMoleculesTotal() const;
+  void  printClassicMolecules(size_t trajIndex) const;
+  void  printClassicMoleculesTotal() const;
 
   void  printFullereneInfo(size_t trajIndex) const;
   void  printFullereneInfo() const;
@@ -281,29 +281,29 @@ public:
 
   void  spottedByDepth() const;
   
-  void  buildMassSpectrum(FProcessMolecule fpm = &ProcessAll) const;
+  void  buildMassSpectrum(FProcessClassicMolecule fpm = &ProcessAll) const;
   
-  std::string  buildAtomByEnergy(const Float energyStep, FProcessMolecule fpm) const;
+  std::string  buildAtomByEnergy(const Float energyStep, FProcessClassicMolecule fpm) const;
   
-  std::string  buildEnergyByPolar(const int n, bool byAtom = false, FProcessMolecule fpm = &ProcessAll) const;
-  std::string  buildAtomsCountByPolar(const int n, FProcessMolecule fpm) const;
-  std::string  buildEnergyByAzimuth(const int n, bool byAtom = false, FProcessMolecule fpm = &ProcessAll) const;
-  std::string  buildAtomsCountByAzimuth(const int n, FProcessMolecule fpm) const;
+  std::string  buildEnergyByPolar(const int n, bool byAtom = false, FProcessClassicMolecule fpm = &ProcessAll) const;
+  std::string  buildAtomsCountByPolar(const int n, FProcessClassicMolecule fpm) const;
+  std::string  buildEnergyByAzimuth(const int n, bool byAtom = false, FProcessClassicMolecule fpm = &ProcessAll) const;
+  std::string  buildAtomsCountByAzimuth(const int n, FProcessClassicMolecule fpm) const;
 
-  std::string  buildEnergyByPolarByAtomsInRange(const int n, FProcessMolecule fpm) const;
-  std::string  buildEnergyByAzimuthByAtomsInRange(const int n, FProcessMolecule fpm) const;
+  std::string  buildEnergyByPolarByAtomsInRange(const int n, FProcessClassicMolecule fpm) const;
+  std::string  buildEnergyByAzimuthByAtomsInRange(const int n, FProcessClassicMolecule fpm) const;
 
-  void  histEnergyByPolar(gsl_histogram* h, bool byAtom = false, FProcessMolecule fpm = &ProcessAll) const;
-  void  histAtomsCountByPolar(gsl_histogram* h, FProcessMolecule fpm) const;
-  void  histEnergyByAzimuth(gsl_histogram* h, bool byAtom = false, FProcessMolecule fpm = &ProcessAll) const;
-  void  histAtomsCountByAzimuth(gsl_histogram* h, FProcessMolecule fpm) const;
+  void  histEnergyByPolar(gsl_histogram* h, bool byAtom = false, FProcessClassicMolecule fpm = &ProcessAll) const;
+  void  histAtomsCountByPolar(gsl_histogram* h, FProcessClassicMolecule fpm) const;
+  void  histEnergyByAzimuth(gsl_histogram* h, bool byAtom = false, FProcessClassicMolecule fpm = &ProcessAll) const;
+  void  histAtomsCountByAzimuth(gsl_histogram* h, FProcessClassicMolecule fpm) const;
 
-  void  histEnergyByPolarByAtomsInRange(gsl_histogram* h, FProcessMolecule fpm) const;
-  void  histEnergyByAzimuthByAtomsInRange(gsl_histogram* h, FProcessMolecule fpm) const;
+  void  histEnergyByPolarByAtomsInRange(gsl_histogram* h, FProcessClassicMolecule fpm) const;
+  void  histEnergyByAzimuthByAtomsInRange(gsl_histogram* h, FProcessClassicMolecule fpm) const;
 
-  void  buildAngular2(FProcessMolecule fpm) const;
+  void  buildAngular2(FProcessClassicMolecule fpm) const;
 
-  void  buildByTime( FProcessMolecule fpm) const;
+  void  buildByTime( FProcessClassicMolecule fpm) const;
 
   void  setSpottedDistanceFromInit();// const;
 
@@ -365,10 +365,10 @@ int operator<(MassCount& left, MassCount& right)
 
 struct MassSpotted
 {
-  std::vector<Molecule> species;
+  std::vector<ClassicMolecule> species;
   Float getAMUMass()const{return species[0].getAMUMass();};
-  MassSpotted(Molecule& m):species(){species.push_back(m);}
-  MassSpotted(const Molecule& m):species(){species.push_back(m);}
+  MassSpotted(ClassicMolecule& m):species(){species.push_back(m);}
+  MassSpotted(const ClassicMolecule& m):species(){species.push_back(m);}
   friend int operator<(const MassSpotted& left, const MassSpotted& right);
   friend int operator<(MassSpotted& left, MassSpotted& right);
 };  

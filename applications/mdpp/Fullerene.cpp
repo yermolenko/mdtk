@@ -4,7 +4,7 @@ namespace mdepp
 {
 
 Fullerene::Fullerene()
- :AtomGroup()
+  :AtomGroup(),cluster()
 {
 }
 
@@ -13,7 +13,7 @@ Fullerene::~Fullerene()
 }
 
 Fullerene::Fullerene(const Fullerene &c)
- :AtomGroup(c)
+  :AtomGroup(c),cluster(c.cluster)
 {
 }
 
@@ -22,6 +22,7 @@ Fullerene::operator =(const Fullerene &c)
 {
   if (this == &c) return *this;
   AtomGroup::operator=(c);
+  cluster = c.cluster;
   return *this;
 }
 
@@ -29,12 +30,14 @@ void
 Fullerene::put(std::ostream& os) const
 {
   AtomGroup::put(os);
+  cluster.put(os);
 }
 
 void
 Fullerene::get(std::istream& is)
 {
   AtomGroup::get(is);
+  cluster.get(is);
 }
 
 void
@@ -48,6 +51,7 @@ Fullerene::build(const mdtk::SimLoop& ml)
       addAtom(a);
   }
   REQUIRE(atoms.size() == 60);
+  cluster.build(ml);
 }  
 
 }

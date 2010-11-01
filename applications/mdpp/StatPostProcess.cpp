@@ -34,7 +34,7 @@ namespace mdepp
 {
 
 void
-StatPostProcess::buildSputteredMolecules(mdtk::SimLoop& state,size_t trajIndex,
+StatPostProcess::buildSputteredClassicMolecules(mdtk::SimLoop& state,size_t trajIndex,
   StatPostProcess::StateType s, NeighbourList& nl)
 {
   TrajData& td = trajData[trajIndex];
@@ -57,7 +57,7 @@ StatPostProcess::buildSputteredMolecules(mdtk::SimLoop& state,size_t trajIndex,
 	}  
 	if (account_atom) 
 	{
-	  Molecule molecule;
+	  ClassicMolecule molecule;
 	  molecule.buildFromAtom(atom,nl,SPOTTED_DISTANCE);
 	  if (molecule.atoms.size() > 0 && molecule.getVelocity().z < 0.0)
 	  {
@@ -92,7 +92,7 @@ StatPostProcess::buildSputteredMolecules(mdtk::SimLoop& state,size_t trajIndex,
     {
       bool formedNowOrEarlier = true;
       bool escapedNowOrEarlier = true;
-      Molecule& molecule = td.molecules[mi];
+      ClassicMolecule& molecule = td.molecules[mi];
       for(size_t ai = 0; ai < molecule.atoms.size(); ai++)
       {
 	mdtk::Atom& atom_i = molecule.atoms[ai];
@@ -128,7 +128,7 @@ StatPostProcess::buildSputteredMolecules(mdtk::SimLoop& state,size_t trajIndex,
       for(size_t ai = 0; ai < molecule.atoms.size(); ai++)
       {
 	const mdtk::Atom& atom_i = molecule.atoms[ai];
-	Molecule molecule_inter;
+	ClassicMolecule molecule_inter;
 	molecule_inter.
 	  buildFromAtom(*(mde_inter->atoms_[atom_i.globalIndex]),
 			nl,SPOTTED_DISTANCE);
@@ -330,7 +330,7 @@ StatPostProcess::execute()
     state->initNLafterLoading = false;
     state->loadFromStream(fi);
     state->updateGlobalIndexes();
-    NeighbourList nl(*state);
+    NeighbourList nl(state->atoms);
     setTags(state);
     fi.close();
 
@@ -352,7 +352,7 @@ StatPostProcess::execute()
 
     TRACE(getAboveSpottedHeight(*state));
 
-    buildSputteredMolecules(*state,trajIndex,STATE_FINAL,nl);
+    buildSputteredClassicMolecules(*state,trajIndex,STATE_FINAL,nl);
     buildClusterDynamics(*state,trajIndex,STATE_FINAL,nl);
     buildProjectileDynamics(*state,trajIndex,STATE_FINAL);
 
@@ -368,13 +368,13 @@ StatPostProcess::execute()
       mde_init->initNLafterLoading = false;
       mde_init->loadFromStream(fi);
       mde_init->updateGlobalIndexes();
-      NeighbourList nl(*mde_init);
+      NeighbourList nl(mde_init->atoms);
       setTags(mde_init);
       fi.close(); 
 
       cout << "State " << mde_init_filename << " loaded." << std::endl;
 
-      buildSputteredMolecules(*mde_init,trajIndex,STATE_INIT,nl);
+      buildSputteredClassicMolecules(*mde_init,trajIndex,STATE_INIT,nl);
       buildClusterDynamics(*mde_init,trajIndex,STATE_INIT,nl);
       buildProjectileDynamics(*mde_init,trajIndex,STATE_INIT);
 
@@ -414,11 +414,11 @@ StatPostProcess::execute()
 	yaatk::text_ifstream fi(mde_inter_filename.c_str()); 
 	mde_inter->loadFromStreamXVA(fi);
 	mde_inter->updateGlobalIndexes();
-	NeighbourList nl(*mde_inter);
+	NeighbourList nl(mde_inter->atoms);
 	setTags(mde_inter);
 	fi.close(); 
 
-	buildSputteredMolecules(*mde_inter,trajIndex,STATE_INTER,nl);
+	buildSputteredClassicMolecules(*mde_inter,trajIndex,STATE_INTER,nl);
 	buildClusterDynamics(*mde_inter,trajIndex,STATE_INTER,nl);
 	buildProjectileDynamics(*mde_inter,trajIndex,STATE_INTER);
 
@@ -596,7 +596,7 @@ StatPostProcess::getAboveSpottedHeight(mdtk::SimLoop& state) const
 }  
 
 int
-StatPostProcess::getYieldSum( FProcessMolecule fpm) const
+StatPostProcess::getYieldSum( FProcessClassicMolecule fpm) const
 {
   int totalSpotted = 0;
   for(size_t i = 0; i < trajData.size();i++)
@@ -607,13 +607,13 @@ StatPostProcess::getYieldSum( FProcessMolecule fpm) const
 }  
 
 int
-StatPostProcess::getYield(size_t trajIndex, FProcessMolecule fpm) const
+StatPostProcess::getYield(size_t trajIndex, FProcessClassicMolecule fpm) const
 {
   int spotted = 0;
   const TrajData& td = trajData[trajIndex];
   for(size_t mi = 0; mi < td.molecules.size(); mi++)
   {
-    const Molecule& mol = td.molecules[mi];
+    const ClassicMolecule& mol = td.molecules[mi];
     if (!fpm(mol)) continue;
     spotted += mol.atoms.size();
   }  
@@ -621,13 +621,13 @@ StatPostProcess::getYield(size_t trajIndex, FProcessMolecule fpm) const
 }  
 
 Float
-StatPostProcess::getAverageYield( FProcessMolecule fpm) const
+StatPostProcess::getAverageYield( FProcessClassicMolecule fpm) const
 {
   return Float(getYieldSum(fpm))/trajData.size();
 }  
 
 Float
-StatPostProcess::getAverageYieldProgress( FProcessMolecule fpm) const
+StatPostProcess::getAverageYieldProgress( FProcessClassicMolecule fpm) const
 {
   char ofilename[1024];
   sprintf(ofilename,"average_Yield.dat");
@@ -650,7 +650,7 @@ StatPostProcess::getAverageYieldProgress( FProcessMolecule fpm) const
 }  
 
 Float
-StatPostProcess::getTotalEnergyOfSputtered( FProcessMolecule fpm) const
+StatPostProcess::getTotalEnergyOfSputtered( FProcessClassicMolecule fpm) const
 {
   Float totalSpotted = 0;
   for(size_t i = 0; i < trajData.size();i++)
@@ -661,13 +661,13 @@ StatPostProcess::getTotalEnergyOfSputtered( FProcessMolecule fpm) const
 }  
 
 Float
-StatPostProcess::getEnergyOfSputtered(size_t trajIndex, FProcessMolecule fpm) const
+StatPostProcess::getEnergyOfSputtered(size_t trajIndex, FProcessClassicMolecule fpm) const
 {
   Float spotted = 0;
   const TrajData& td = trajData[trajIndex];
   for(size_t mi = 0; mi < td.molecules.size(); mi++)
   {
-    const Molecule& mol = td.molecules[mi];
+    const ClassicMolecule& mol = td.molecules[mi];
     if (!fpm(mol)) continue;
     for(size_t ai = 0; ai < td.molecules[mi].atoms.size(); ai++)    {
       const mdtk::Atom& atom = td.molecules[mi].atoms[ai];
@@ -678,7 +678,7 @@ StatPostProcess::getEnergyOfSputtered(size_t trajIndex, FProcessMolecule fpm) co
 }  
 
 Float
-StatPostProcess::getAverageEnergyOfSputtered( FProcessMolecule fpm) const
+StatPostProcess::getAverageEnergyOfSputtered( FProcessClassicMolecule fpm) const
 {
   return Float(getTotalEnergyOfSputtered(fpm))/trajData.size();
 }  
@@ -825,25 +825,25 @@ saveHistogram_polar(gsl_histogram *h, const char *datFileName/*, bool halfshift 
 }  
   
 void
-StatPostProcess::printMoleculesTotal() const
+StatPostProcess::printClassicMoleculesTotal() const
 {
   for(size_t traj = 0; traj < trajData.size(); traj++)
   if (trajData[traj].molecules.size() > 0)
   {
-    cout << "Molecules for trajectory " << traj << 
+    cout << "ClassicMolecules for trajectory " << traj << 
      " ("  << trajData[traj].trajDir << ") " << " :\n";
-    printMolecules(traj);
+    printClassicMolecules(traj);
     cout << std::endl;
   }  
 }  
 
 void
-StatPostProcess::printMolecules(size_t trajIndex) const
+StatPostProcess::printClassicMolecules(size_t trajIndex) const
 {
   const TrajData& td = trajData[trajIndex];
   for(size_t mi = 0; mi < td.molecules.size(); mi++)
   {
-    cout << "Molecule #" << mi << " : ";
+    cout << "ClassicMolecule #" << mi << " : ";
     for(size_t ai = 0; ai < td.molecules[mi].atoms.size(); ai++)
     {
       const mdtk::Atom& atom = td.molecules[mi].atoms[ai];
@@ -1953,7 +1953,7 @@ StatPostProcess::printClusterDynamics(size_t /*trajIndex*/) const
   const TrajData& td = trajData[trajIndex];
   for(size_t mi = 0; mi < td.molecules.size(); mi++)
   {
-    cout << "Molecule #" << mi << " : ";
+    cout << "ClassicMolecule #" << mi << " : ";
     for(size_t ai = 0; ai < td.molecules[mi].atoms.size(); ai++)
     {
       const mdtk::Atom& atom = td.molecules[mi].atoms[ai];
@@ -2168,7 +2168,7 @@ StatPostProcess::buildMassSpectrum_() const
 }
 */
 void
-StatPostProcess::buildMassSpectrum(FProcessMolecule fpm) const
+StatPostProcess::buildMassSpectrum(FProcessClassicMolecule fpm) const
 {
   std::vector<MassCount>  massSpectrum;
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
@@ -2236,7 +2236,7 @@ StatPostProcess::spottedTotalByMass() const
   const TrajData& td = trajData[trajIndex];
   for(size_t mi = 0; mi < td.molecules.size(); mi++)
   {
-    const Molecule& mol = td.molecules[mi];
+    const ClassicMolecule& mol = td.molecules[mi];
     Float moleculeMass = mol.getAMUMass();
     bool massAlreadyAccounted = false;
     for(size_t accountIndex = 0; accountIndex < massSpectrum.size(); accountIndex++)
@@ -2300,7 +2300,7 @@ mde_init->initNLafterLoading = true;
 }  
 
 std::string
-StatPostProcess::buildAtomByEnergy(const Float energyStep, FProcessMolecule fpm) const
+StatPostProcess::buildAtomByEnergy(const Float energyStep, FProcessClassicMolecule fpm) const
 {
   char ofilename[1024];
   sprintf(ofilename,"atom_by_energy_%.2f.dat", energyStep);
@@ -2318,7 +2318,7 @@ StatPostProcess::buildAtomByEnergy(const Float energyStep, FProcessMolecule fpm)
       const TrajData& td = trajData[trajIndex];
       for(size_t mi = 0; mi < td.molecules.size(); mi++)
       {
-        const Molecule& mol = td.molecules[mi];
+        const ClassicMolecule& mol = td.molecules[mi];
         if (!fpm(mol)) continue;
         Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
         gsl_histogram_accumulate (h, energy/mol.atoms.size(), mol.atoms.size());
@@ -2334,7 +2334,7 @@ StatPostProcess::buildAtomByEnergy(const Float energyStep, FProcessMolecule fpm)
 }  
 
 void
-StatPostProcess::histEnergyByPolar(gsl_histogram* h, bool byAtom, FProcessMolecule fpm) const
+StatPostProcess::histEnergyByPolar(gsl_histogram* h, bool byAtom, FProcessClassicMolecule fpm) const
 {
   const Float minPolar =   0.0;
   const Float maxPolar =  90.0;
@@ -2347,7 +2347,7 @@ StatPostProcess::histEnergyByPolar(gsl_histogram* h, bool byAtom, FProcessMolecu
       const TrajData& td = trajData[trajIndex];
       for(size_t mi = 0; mi < td.molecules.size(); mi++)
       {
-        const Molecule& mol = td.molecules[mi];
+        const ClassicMolecule& mol = td.molecules[mi];
         if (!fpm(mol)) continue;
         Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
         mdtk::Vector3D v = mol.getVelocity();
@@ -2363,7 +2363,7 @@ StatPostProcess::histEnergyByPolar(gsl_histogram* h, bool byAtom, FProcessMolecu
 }  
 
 void
-StatPostProcess::histAtomsCountByPolar(gsl_histogram* h, FProcessMolecule fpm) const
+StatPostProcess::histAtomsCountByPolar(gsl_histogram* h, FProcessClassicMolecule fpm) const
 {
   const Float minPolar =   0.0;
   const Float maxPolar =  90.0;
@@ -2376,7 +2376,7 @@ StatPostProcess::histAtomsCountByPolar(gsl_histogram* h, FProcessMolecule fpm) c
       const TrajData& td = trajData[trajIndex];
       for(size_t mi = 0; mi < td.molecules.size(); mi++)
       {
-        const Molecule& mol = td.molecules[mi];
+        const ClassicMolecule& mol = td.molecules[mi];
         if (!fpm(mol)) continue;
 /*
         Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
@@ -2391,7 +2391,7 @@ StatPostProcess::histAtomsCountByPolar(gsl_histogram* h, FProcessMolecule fpm) c
 
 
 void
-StatPostProcess::histEnergyByPolarByAtomsInRange(gsl_histogram* h, FProcessMolecule fpm) const
+StatPostProcess::histEnergyByPolarByAtomsInRange(gsl_histogram* h, FProcessClassicMolecule fpm) const
 {
   const Float minPolar =   0.0;
   const Float maxPolar =  90.0;
@@ -2411,7 +2411,7 @@ StatPostProcess::histEnergyByPolarByAtomsInRange(gsl_histogram* h, FProcessMolec
       const TrajData& td = trajData[trajIndex];
       for(size_t mi = 0; mi < td.molecules.size(); mi++)
       {
-        const Molecule& mol = td.molecules[mi];
+        const ClassicMolecule& mol = td.molecules[mi];
         if (!fpm(mol)) continue;
         Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
         mdtk::Vector3D v = mol.getVelocity();
@@ -2439,7 +2439,7 @@ StatPostProcess::histEnergyByPolarByAtomsInRange(gsl_histogram* h, FProcessMolec
 }  
 
 std::string
-StatPostProcess::buildEnergyByPolar(const int n, bool byAtom, FProcessMolecule fpm) const
+StatPostProcess::buildEnergyByPolar(const int n, bool byAtom, FProcessClassicMolecule fpm) const
 {
   char ofilename[1024];
   sprintf(ofilename,"energy_by_polar_%s%05d.dat", byAtom?"by_atom_":"",n);
@@ -2455,7 +2455,7 @@ StatPostProcess::buildEnergyByPolar(const int n, bool byAtom, FProcessMolecule f
 }  
 
 std::string
-StatPostProcess::buildAtomsCountByPolar(const int n, FProcessMolecule fpm) const
+StatPostProcess::buildAtomsCountByPolar(const int n, FProcessClassicMolecule fpm) const
 {
   char ofilename[1024];
   sprintf(ofilename,"atomsCount_by_polar_%05d.dat",
@@ -2472,7 +2472,7 @@ StatPostProcess::buildAtomsCountByPolar(const int n, FProcessMolecule fpm) const
 }  
 
 std::string
-StatPostProcess::buildEnergyByPolarByAtomsInRange(const int n, FProcessMolecule fpm) const
+StatPostProcess::buildEnergyByPolarByAtomsInRange(const int n, FProcessClassicMolecule fpm) const
 {
   char ofilename[1024];
   sprintf(ofilename,"energy_by_polar_by_atomsInRange_%05d.dat",
@@ -2489,7 +2489,7 @@ StatPostProcess::buildEnergyByPolarByAtomsInRange(const int n, FProcessMolecule 
 }  
 
 void
-StatPostProcess::histEnergyByAzimuth(gsl_histogram *h, bool byAtom, FProcessMolecule fpm) const
+StatPostProcess::histEnergyByAzimuth(gsl_histogram *h, bool byAtom, FProcessClassicMolecule fpm) const
 {
   const Float minPolar = -180.0;
   const Float maxPolar = +180.0;
@@ -2502,7 +2502,7 @@ StatPostProcess::histEnergyByAzimuth(gsl_histogram *h, bool byAtom, FProcessMole
       const TrajData& td = trajData[trajIndex];
       for(size_t mi = 0; mi < td.molecules.size(); mi++)
       {
-        const Molecule& mol = td.molecules[mi];
+        const ClassicMolecule& mol = td.molecules[mi];
         if (!fpm(mol)) continue;
         Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
         mdtk::Vector3D v = mol.getVelocity();
@@ -2518,7 +2518,7 @@ StatPostProcess::histEnergyByAzimuth(gsl_histogram *h, bool byAtom, FProcessMole
 }  
 
 void
-StatPostProcess::histAtomsCountByAzimuth(gsl_histogram *h,  FProcessMolecule fpm) const
+StatPostProcess::histAtomsCountByAzimuth(gsl_histogram *h,  FProcessClassicMolecule fpm) const
 {
   const Float minPolar = -180.0;
   const Float maxPolar = +180.0;
@@ -2531,7 +2531,7 @@ StatPostProcess::histAtomsCountByAzimuth(gsl_histogram *h,  FProcessMolecule fpm
       const TrajData& td = trajData[trajIndex];
       for(size_t mi = 0; mi < td.molecules.size(); mi++)
       {
-        const Molecule& mol = td.molecules[mi];
+        const ClassicMolecule& mol = td.molecules[mi];
         if (!fpm(mol)) continue;
 /*
         Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
@@ -2546,7 +2546,7 @@ StatPostProcess::histAtomsCountByAzimuth(gsl_histogram *h,  FProcessMolecule fpm
 
 
 void
-StatPostProcess::histEnergyByAzimuthByAtomsInRange(gsl_histogram *h, FProcessMolecule fpm) const
+StatPostProcess::histEnergyByAzimuthByAtomsInRange(gsl_histogram *h, FProcessClassicMolecule fpm) const
 {
   const Float minPolar = -180.0;
   const Float maxPolar = +180.0;
@@ -2565,7 +2565,7 @@ StatPostProcess::histEnergyByAzimuthByAtomsInRange(gsl_histogram *h, FProcessMol
       const TrajData& td = trajData[trajIndex];
       for(size_t mi = 0; mi < td.molecules.size(); mi++)
       {
-        const Molecule& mol = td.molecules[mi];
+        const ClassicMolecule& mol = td.molecules[mi];
         if (!fpm(mol)) continue;
         Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
         mdtk::Vector3D v = mol.getVelocity();
@@ -2594,7 +2594,7 @@ StatPostProcess::histEnergyByAzimuthByAtomsInRange(gsl_histogram *h, FProcessMol
 }  
 
 std::string
-StatPostProcess::buildEnergyByAzimuth(const int n, bool byAtom, FProcessMolecule fpm) const
+StatPostProcess::buildEnergyByAzimuth(const int n, bool byAtom, FProcessClassicMolecule fpm) const
 {
   char ofilename[1024];
   sprintf(ofilename,"energy_by_azimuth_%s%05d.dat",
@@ -2611,7 +2611,7 @@ StatPostProcess::buildEnergyByAzimuth(const int n, bool byAtom, FProcessMolecule
 }  
 
 std::string
-StatPostProcess::buildAtomsCountByAzimuth(const int n, FProcessMolecule fpm) const
+StatPostProcess::buildAtomsCountByAzimuth(const int n, FProcessClassicMolecule fpm) const
 {
   char ofilename[1024];
   sprintf(ofilename,"atomsCount_by_azimuth_%05d.dat",
@@ -2629,7 +2629,7 @@ StatPostProcess::buildAtomsCountByAzimuth(const int n, FProcessMolecule fpm) con
 
 
 std::string
-StatPostProcess::buildEnergyByAzimuthByAtomsInRange(const int n, FProcessMolecule fpm) const
+StatPostProcess::buildEnergyByAzimuthByAtomsInRange(const int n, FProcessClassicMolecule fpm) const
 {
   char ofilename[1024];
   sprintf(ofilename,"energy_by_azimuth_by_atomsInRange_%05d.dat",
@@ -2767,7 +2767,7 @@ StatPostProcess::buildAngular() const
 #define MDEPP_ANGULAR_DIR2 "_angular2"
 
 void
-StatPostProcess::buildAngular2(FProcessMolecule fpm) const
+StatPostProcess::buildAngular2(FProcessClassicMolecule fpm) const
 {
   system("mkdir "MDEPP_ANGULAR_DIR2);
 
@@ -3011,7 +3011,7 @@ if (n!=36)
 #define MDEPP_BYTIME_DIR "_by_time"
 
 void
-StatPostProcess::buildByTime(FProcessMolecule fpm) const
+StatPostProcess::buildByTime(FProcessClassicMolecule fpm) const
 {
   system("mkdir "MDEPP_BYTIME_DIR);
 
@@ -3086,7 +3086,7 @@ StatPostProcess::buildByTime(FProcessMolecule fpm) const
     const TrajData& td = trajData[trajIndex];
     for(size_t mi = 0; mi < td.molecules.size(); mi++)
     {
-      const Molecule& m = td.molecules[mi];
+      const ClassicMolecule& m = td.molecules[mi];
 //      if (m.hasProjectileAtoms()) continue;
       if (!fpm(m)) continue;
 
@@ -3201,7 +3201,7 @@ StatPostProcess::buildByTime() const
       const TrajData& td = trajData[trajIndex];
       for(size_t mi = 0; mi < td.molecules.size(); mi++)
       {
-        const Molecule& mol = td.molecules[mi];
+        const ClassicMolecule& mol = td.molecules[mi];
         if ( mol.hasProjectileAtoms() && !accountBackScattered) continue;
         if (!mol.hasProjectileAtoms() && !accountSputtered    ) continue;
         Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;

@@ -37,10 +37,10 @@ class NeighbourList
 public:
   mdtk::Float Rc;
   std::vector<mdtk::AtomsContainer> nl;
-  NeighbourList(mdtk::SimLoop& ml, const mdtk::Float Rc_ = 5.0*mdtk::Ao)
-    : Rc(Rc_), nl(ml.atoms.size())
+  NeighbourList(mdtk::AtomsContainer& atoms, const mdtk::Float Rc_ = 5.0*mdtk::Ao)
+    : Rc(Rc_), nl(atoms.size())
   {
-    update(ml.atoms);
+    update(atoms);
   }  
 
   void update(mdtk::AtomsContainer&);

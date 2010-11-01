@@ -1,10 +1,10 @@
-#include "Molecule.hpp"
+#include "ClassicMolecule.hpp"
 
 namespace mdepp
 {
 
 bool
-Molecule::hasAtom(mdtk::Atom& a) const
+ClassicMolecule::hasAtom(mdtk::Atom& a) const
 {
   bool found = false;
   for(size_t i = 0; i < atoms.size(); i++)
@@ -14,7 +14,7 @@ Molecule::hasAtom(mdtk::Atom& a) const
 }  
 
 void
-Molecule::buildFromAtom(mdtk::Atom& a, NeighbourList& nl,double SPOTTED_DISTANCE)
+ClassicMolecule::buildFromAtom(mdtk::Atom& a, NeighbourList& nl,double SPOTTED_DISTANCE)
 {
 //TRACE("adding atom");
   if (hasAtom(a) || !isHandled(a)) return;

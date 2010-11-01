@@ -5,7 +5,7 @@
 #include <mdtk/SimLoop.hpp>
 #include <algorithm>
 
-#include "Molecule.hpp"
+#include "ClassicMolecule.hpp"
 
 namespace mdepp
 {

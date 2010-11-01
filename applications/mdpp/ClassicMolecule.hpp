@@ -1,5 +1,5 @@
-#ifndef mdpp_Molecule_hpp
-#define mdpp_Molecule_hpp
+#ifndef mdpp_ClassicMolecule_hpp
+#define mdpp_ClassicMolecule_hpp
 
 #include <iostream>
 #include <mdtk/SimLoop.hpp>
@@ -60,7 +60,7 @@ bool  isSubstrateAtom(const mdtk::Atom& atom)// const
   return false;
 }  
 
-class Molecule
+class ClassicMolecule
 {
 private:
   enum {ECOUNT = 4};
@@ -78,7 +78,7 @@ private:
       case C_EL : return C; break;
       case Ar_EL : return Ar; break;
       case Cu_EL : return Cu; break;
-      default : throw Exception("Molecule::e2i() : unknown element");
+      default : throw Exception("ClassicMolecule::e2i() : unknown element");
     };  
   }  
 public:
@@ -104,7 +104,7 @@ public:
 //  AtomsContainer atoms_init;
   int  trajectory_dummy;
 /*
-Molecule( const Molecule &C )
+ClassicMolecule( const ClassicMolecule &C )
  :atoms(),atoms_init()
 {
   initParams();    
@@ -126,8 +126,8 @@ Molecule( const Molecule &C )
 }
 
 inline
-Molecule&
-operator =(const Molecule &C) 
+ClassicMolecule&
+operator =(const ClassicMolecule &C) 
 {
   if (this == &C) return *this;
 
@@ -179,12 +179,12 @@ operator =(const Molecule &C)
   void addAtom(mdtk::Atom& a) {atoms.push_back(a);}
   void buildFromAtom(mdtk::Atom&, NeighbourList& nl,double SPOTTED_DISTANCE);
   bool hasAtom(mdtk::Atom&) const;
-  Molecule():handledElements(),formationTime(-1),escapeTime(-1),
+  ClassicMolecule():handledElements(),formationTime(-1),escapeTime(-1),
     atoms(/*0*/),atoms_init(),trajectory_dummy(-1)
   {
     initParams();    
   }
-  ~Molecule(){;}
+  ~ClassicMolecule(){;}
 /*  
   bool  hasBackScatteredAtoms() const
   {
@@ -283,7 +283,7 @@ operator =(const Molecule &C)
   }  
   void loadFromStream(std::istream& is)
   {
-//    ERRTRACE("Loading Molecule....");
+//    ERRTRACE("Loading ClassicMolecule....");
     is >> formationTime;
     is >> escapeTime;
     size_t sz;
@@ -301,19 +301,19 @@ operator =(const Molecule &C)
     is >> trajectory_dummy;
   }  
 
-  friend int operator<(const Molecule& left, const Molecule& right);
-  friend int operator<(Molecule& left, Molecule& right);
+  friend int operator<(const ClassicMolecule& left, const ClassicMolecule& right);
+  friend int operator<(ClassicMolecule& left, ClassicMolecule& right);
 };  
 
 
 inline
-int operator<(const Molecule& left, const Molecule& right)
+int operator<(const ClassicMolecule& left, const ClassicMolecule& right)
 {
   return left.getAMUMass() < right.getAMUMass();
 }
 
 inline
-int operator<(Molecule& left, Molecule& right)
+int operator<(ClassicMolecule& left, ClassicMolecule& right)
 {
   return left.getAMUMass() < right.getAMUMass();
 }

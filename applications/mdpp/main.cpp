@@ -114,7 +114,7 @@ try
   TRACE(pp->getAverageEnergyOfSputtered(mdepp::StatPostProcess::ProcessProjectile)/mdtk::eV);
   TRACE(pp->getAverageEnergyOfSputtered(mdepp::StatPostProcess::ProcessAll)/mdtk::eV);
 
-  pp->printMoleculesTotal();
+  pp->printClassicMoleculesTotal();
 
   pp->printFullereneInfo();
 
