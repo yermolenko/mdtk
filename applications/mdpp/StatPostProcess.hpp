@@ -166,7 +166,7 @@ public:
       for( i = trajFullerene.begin(); i != trajFullerene.end() ; ++i )
 	os << i->first << "\t " << i->second << "\n";
 
-      os << PBC;
+      os << PBC << "\n";
     }  
     void loadFromStream(std::istream& is)
     {
