@@ -18,7 +18,7 @@ Molecule::buildFromAtom(mdtk::Atom& a, NeighbourList& nl,double SPOTTED_DISTANCE
 {
 //TRACE("adding atom");
   if (hasAtom(a) || !isHandled(a)) return;
-  atoms.push_back(a);atoms[atoms.size()-1].container = &dummy_ac;
+  atoms.push_back(a);
 
 //  TRACE(a.fixed);
 //  TRACE(atoms[atoms.size()-1].fixed);

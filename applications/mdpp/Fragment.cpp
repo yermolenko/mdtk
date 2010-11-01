@@ -7,7 +7,7 @@ void
 Fragment::buildFromAtom(const mdtk::Atom& a, const ClusterDynamics& cd)
 {
   if (hasAtom(a) || !isHandled(a)) return;
-  atoms.push_back(a);atoms[atoms.size()-1].container = &dummy_ac;
+  atoms.push_back(a);
 
   for(size_t atomIndex = 0; atomIndex < cd.atomTrajectories.size(); atomIndex++)
   {

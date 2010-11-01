@@ -36,8 +36,6 @@ setTags(mdtk::SimLoop* ml)
   }
 }
 
-extern mdtk::AtomsContainer dummy_ac;
-
 inline
 bool  isProjectileAtom(const mdtk::Atom& atom)// const
 {
@@ -178,7 +176,7 @@ operator =(const Molecule &C)
 //      Rc_[Ar][ H] = Rc_[ H][Ar] = Rc_[ C][Ar] = Rc_[Ar][ C] = Rc_[Ar][Ar];
   }
 
-  void addAtom(mdtk::Atom& a) {atoms.push_back(a);atoms[atoms.size()-1].container = &dummy_ac;}
+  void addAtom(mdtk::Atom& a) {atoms.push_back(a);}
   void buildFromAtom(mdtk::Atom&, NeighbourList& nl,double SPOTTED_DISTANCE);
   bool hasAtom(mdtk::Atom&) const;
   Molecule():handledElements(),formationTime(-1),escapeTime(-1),

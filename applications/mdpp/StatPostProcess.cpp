@@ -33,8 +33,6 @@
 namespace mdepp
 {
 
-mdtk::AtomsContainer dummy_ac;
-
 void
 StatPostProcess::buildSputteredMolecules(mdtk::SimLoop& state,size_t trajIndex,
   StatPostProcess::StateType s, NeighbourList& nl)
@@ -80,8 +78,6 @@ StatPostProcess::buildSputteredMolecules(mdtk::SimLoop& state,size_t trajIndex,
         const mdtk::Atom& atom = td.molecules[mi].atoms[ai];
         const mdtk::Atom& atom_init = *(mde_init->atoms_[atom.globalIndex]);
         td.molecules[mi].atoms_init.push_back(atom_init); 
-	td.molecules[mi].atoms_init[td.molecules[mi].atoms_init.size()-1].
-	  container = &dummy_ac;
         REQUIRE(td.molecules[mi].atoms[ai].globalIndex == 
 		td.molecules[mi].atoms_init[ai].globalIndex);
       }
@@ -176,7 +172,7 @@ StatPostProcess::buildClusterDynamics(mdtk::SimLoop& state,size_t trajIndex,
   {
     cout << "Building cluster dynamics for state ..." << std::endl;
 
-    trajData[trajIndex].clusterDynamics.PBC = dummy_ac.getPBC();//state.getPBC();
+    trajData[trajIndex].clusterDynamics.PBC = td.PBC;//state.getPBC();
     TRACE(trajData[trajIndex].clusterDynamics.PBC);
     for(size_t atomIndex = 0; atomIndex < state.atoms_.size(); atomIndex++)
     {
@@ -226,7 +222,7 @@ StatPostProcess::buildProjectileDynamics(mdtk::SimLoop& state,size_t trajIndex,
   {
     cout << "Building projectile dynamics for state ..." << std::endl;
 
-    trajData[trajIndex].projectileDynamics.PBC = dummy_ac.getPBC();//state.getPBC();
+    trajData[trajIndex].projectileDynamics.PBC = td.PBC;//state.getPBC();
     for(size_t atomIndex = 0; atomIndex < state.atoms_.size(); atomIndex++)
     {
       mdtk::Atom &atom = *(state.atoms_[atomIndex]);
@@ -347,11 +343,10 @@ StatPostProcess::execute()
     }
 */
 
-    dummy_ac.setPBC(state->atoms_.getPBC());
+    td.PBC = state->atoms_.getPBC();
 #warning SimLoop.cxx Legacy compat patch
-    dummy_ac.setPBC(Vector3D(43.32*Ao,43.32*Ao,10000*Ao));
-    TRACE(dummy_ac.getPBC()/mdtk::Ao);
-    TRACE(&dummy_ac);
+    td.PBC = Vector3D(43.32*Ao,43.32*Ao,10000*Ao);
+    TRACE(td.PBC/mdtk::Ao);
 
     cout << "State " << trajFinalName << " loaded." << std::endl;
 

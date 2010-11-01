@@ -38,7 +38,7 @@ public:
     handledElements.insert(Cu_EL);
   }
 
-  void addAtom(mdtk::Atom& a) {atoms.push_back(a);atoms[atoms.size()-1].container = &dummy_ac;}
+  void addAtom(mdtk::Atom& a) {atoms.push_back(a);}
   void buildFromAtom(const mdtk::Atom&, const ClusterDynamics& cd);
   bool hasAtom(const mdtk::Atom&) const;
   Fragment():handledElements(),
