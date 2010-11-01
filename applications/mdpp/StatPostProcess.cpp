@@ -176,7 +176,8 @@ StatPostProcess::buildClusterDynamics(mdtk::SimLoop& state,size_t trajIndex,
   {
     cout << "Building cluster dynamics for state ..." << std::endl;
 
-    trajData[trajIndex].clusterDynamics.PBC = state.getPBC();
+    trajData[trajIndex].clusterDynamics.PBC = dummy_ac.getPBC();//state.getPBC();
+    TRACE(trajData[trajIndex].clusterDynamics.PBC);
     for(size_t atomIndex = 0; atomIndex < state.atoms_.size(); atomIndex++)
     {
       mdtk::Atom &atom = *(state.atoms_[atomIndex]);
@@ -225,7 +226,7 @@ StatPostProcess::buildProjectileDynamics(mdtk::SimLoop& state,size_t trajIndex,
   {
     cout << "Building projectile dynamics for state ..." << std::endl;
 
-    trajData[trajIndex].projectileDynamics.PBC = state.getPBC();
+    trajData[trajIndex].projectileDynamics.PBC = dummy_ac.getPBC();//state.getPBC();
     for(size_t atomIndex = 0; atomIndex < state.atoms_.size(); atomIndex++)
     {
       mdtk::Atom &atom = *(state.atoms_[atomIndex]);

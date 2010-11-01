@@ -118,6 +118,8 @@ try
 
   pp->printFullereneInfo();
 
+  pp->printClusterDynamicsTotal();
+
   yaatk::chdir("..");
 
   if (fullpp)

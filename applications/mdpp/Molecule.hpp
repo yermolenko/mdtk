@@ -29,8 +29,9 @@ setTags(mdtk::SimLoop* ml)
     mdtk::Atom& atom = *(ml->atoms_[i]);
     atom.tag = 0;
     if (atom.M > 1000.0*mdtk::amu) atom.tag |= ATOMTAG_FIXED;
-    if (atom.ID == mdtk::Cu_EL) atom.tag |= ATOMTAG_CLUSTER;
-    if (atom.ID == mdtk::C_EL || atom.ID == mdtk::H_EL) atom.tag |= ATOMTAG_SUBSTRATE;
+    if (atom.ID == mdtk::C_EL) atom.tag |= ATOMTAG_CLUSTER;
+//    if (atom.ID == mdtk::Cu_EL) atom.tag |= ATOMTAG_CLUSTER;
+//    if (atom.ID == mdtk::C_EL || atom.ID == mdtk::H_EL) atom.tag |= ATOMTAG_SUBSTRATE;
 //    if (atom.ID == mdtk::Ar_EL) atom.tag |= ATOMTAG_PROJECTILE;
   }
 }
