@@ -17,6 +17,8 @@ namespace mdepp
 
 //#define REF_POT_OF(ML_FPOT) ML_FPOT.potentials[0]
 
+  class Molecule;
+
 class AtomGroup
 {
 public:
@@ -32,10 +34,17 @@ public:
   virtual void put(std::ostream& os) const;
 
   void addAtom(const mdtk::Atom& a);
-  virtual void build(const mdtk::SimLoop& ml){;};
+  bool hasAtom(const mdtk::Atom&) const;
+
+  size_t size() const {return atoms.size();};
+
+  void build(const mdtk::SimLoop& ml, 
+	     const double SPOTTED_DISTANCE = +1000.0*mdtk::Ao);
   void update(const mdtk::SimLoop& ml);
 
-  bool hasAtom(const mdtk::Atom&) const;
+  Molecule molecule(size_t atomIndex);
+  Molecule molecule(const mdtk::Atom& a);
+  Molecule maxMolecule();
 
   friend std::istream&  operator>> (std::istream& is, AtomGroup& vec);
   friend std::ostream&  operator<< (std::ostream& os, const AtomGroup& vec);

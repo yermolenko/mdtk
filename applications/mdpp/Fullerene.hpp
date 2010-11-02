@@ -7,7 +7,7 @@
 #include <vector>
 #include "AtomGroup.hpp"
 #include "Cluster.hpp"
-//#include "Molecule.hpp"
+#include "Molecule.hpp"
 
 namespace mdepp
 {
@@ -27,9 +27,6 @@ public:
   virtual void put(std::ostream& os) const;
 
   void build(const mdtk::SimLoop& ml);
-
-//  Molecule molecule(size_t atomIndex);
-//  Molecule maxMolecule();
 };
 
 }

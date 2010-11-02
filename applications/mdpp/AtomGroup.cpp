@@ -1,4 +1,5 @@
 #include "AtomGroup.hpp"
+#include "Molecule.hpp"
 
 namespace mdepp
 {
@@ -88,6 +89,48 @@ AtomGroup::update(const mdtk::SimLoop& ml)
     a.coords = aUpd.coords;
   }
 }  
+
+void
+AtomGroup::build(const mdtk::SimLoop& ml, 
+		 const double SPOTTED_DISTANCE)
+{
+  const AtomsContainer &ac = ml.atoms;
+  for(size_t i = 0; i < ac.size(); i++)
+  {
+    const mdtk::Atom a = *ac[i];
+    if (a.coords.z < SPOTTED_DISTANCE)
+      addAtom(a);
+  }
+}  
+
+Molecule
+AtomGroup::molecule(size_t atomIndex)
+{
+  REQUIRE(atomIndex < atoms.size());
+  Molecule m;
+  m.buildFromAtom(atoms[atomIndex],*this);
+  return m;
+}
+
+Molecule
+AtomGroup::molecule(const mdtk::Atom& a)
+{
+  REQUIRE(hasAtom(a));
+  return molecule(a.globalIndex);
+}
+
+Molecule
+AtomGroup::maxMolecule()
+{
+  Molecule mMax;
+  for(size_t i = 0; i < atoms.size(); i++)
+  {
+    Molecule m = molecule(i);
+    if (m.size() > mMax.size())
+      mMax = m;
+  }
+  return mMax;
+}
 
 Float getMassInAMU(const std::vector<mdtk::Atom>& atoms)
 {
