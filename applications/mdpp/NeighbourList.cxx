@@ -33,9 +33,10 @@ namespace mdepp
     N = atoms.size();
     for(i = 0; i < N; ++i)
     {
+      mdtk::Atom& atom_i = *(atoms[i]);
+      if (atom_i.coords.z > 3.615*mdtk::Ao*3) continue;
       mdtk::AtomsContainer& nl_ = nl[i];
     
-      mdtk::Atom& atom_i = *(atoms[i]);
       nl_.clear();
       nl_.reserve(50);
 
