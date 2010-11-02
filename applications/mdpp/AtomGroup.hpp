@@ -10,13 +10,6 @@ namespace mdepp
 {
   using namespace mdtk;
 
-  Float          getMassInAMU(const std::vector<mdtk::Atom>& atoms);
-  mdtk::Vector3D getVelocity(const std::vector<mdtk::Atom>& atoms);
-  void printGlobalIndexes(const std::vector<mdtk::Atom>& atoms,
-			  std::ostream& fo);
-
-//#define REF_POT_OF(ML_FPOT) ML_FPOT.potentials[0]
-
   class Molecule;
 
 class AtomGroup
@@ -45,6 +38,11 @@ public:
   Molecule molecule(size_t atomIndex);
   Molecule molecule(const mdtk::Atom& a);
   Molecule maxMolecule();
+  bool isMolecule();
+  mdtk::Vector3D massCenter();
+
+  Float          mass();
+  mdtk::Vector3D velocity();
 
   friend std::istream&  operator>> (std::istream& is, AtomGroup& vec);
   friend std::ostream&  operator<< (std::ostream& os, const AtomGroup& vec);

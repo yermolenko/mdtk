@@ -52,7 +52,14 @@ inline
 bool 
 trajProcess_Cu13_at_C60_Only(const char* trajDirName)
 {
-  return strstr(trajDirName,"Cu13_in_C60_on_Cu_");
+  return strstr(trajDirName,"Cu13_in_C60_on_Cu_") && !strstr(trajDirName,"1000eV");
+}
+
+inline
+bool 
+trajProcess_Custom(const char* trajDirName)
+{
+  return (strstr(trajDirName,"Cu13_in_C60_on_Cu_") && !strstr(trajDirName,"1000eV")) || strstr(trajDirName,"C60_on_CuThin");
 }
 
 inline
@@ -209,6 +216,50 @@ int operator<(_SavedStateSortStruct& left, _SavedStateSortStruct& right)
   return left.shortTrajDirName < right.shortTrajDirName;
 }
 
+/*
+inline
+mdtk::Float getMassInAMU(const std::vector<mdtk::Atom>& atoms)
+{
+  mdtk::Float moleculeMass = 0;
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    const mdtk::Atom& atom = atoms[ai];
+    moleculeMass += atom.M;
+  } 
+  return mdtk::academic_round(moleculeMass/mdtk::amu);
+}
+
+inline
+mdtk::Vector3D getVelocity(const std::vector<mdtk::Atom>& atoms)
+{
+  using mdtk::Exception;    
+    
+  REQUIRE(atoms.size() > 0);
+  mdtk::Vector3D sumOfP = 0.0;
+  mdtk::Float sumOfM = 0.0;
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    const mdtk::Atom& atom = atoms[ai];
+    sumOfM += atom.M;
+    sumOfP += atom.V*atom.M;
+  };
+  return sumOfP/sumOfM;    
+}  
+*/
+
+/*
+inline
+void printGlobalIndexes(const std::vector<mdtk::Atom>& atoms,
+			std::ostream& fo)
+{
+  fo << atoms.size() << std::endl;
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    const mdtk::Atom& atom = atoms[ai];
+    fo << atom.globalIndex << std::endl;
+  } 
+} 
+*/
   
 };
 

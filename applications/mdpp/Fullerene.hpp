@@ -27,6 +27,8 @@ public:
   virtual void put(std::ostream& os) const;
 
   void build(const mdtk::SimLoop& ml);
+
+  bool isEndoFullerene();
 };
 
 }

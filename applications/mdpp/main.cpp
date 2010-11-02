@@ -54,7 +54,8 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
 try
 {
-  mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Cu13_at_C60_Only;
+  mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Custom;
+//  mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Cu13_at_C60_Only;
 
   std::vector<std::string> trajDirNames;
 

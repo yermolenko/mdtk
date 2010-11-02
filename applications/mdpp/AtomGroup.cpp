@@ -119,6 +119,12 @@ AtomGroup::molecule(const mdtk::Atom& a)
   return molecule(a.globalIndex);
 }
 
+bool
+AtomGroup::isMolecule()
+{
+  return maxMolecule().size() == atoms.size();
+}
+
 Molecule
 AtomGroup::maxMolecule()
 {
@@ -132,7 +138,8 @@ AtomGroup::maxMolecule()
   return mMax;
 }
 
-Float getMassInAMU(const std::vector<mdtk::Atom>& atoms)
+Float
+AtomGroup::mass()
 {
   Float moleculeMass = 0;
   for(size_t ai = 0; ai < atoms.size(); ai++)
@@ -140,13 +147,12 @@ Float getMassInAMU(const std::vector<mdtk::Atom>& atoms)
     const mdtk::Atom& atom = atoms[ai];
     moleculeMass += atom.M;
   } 
-  return mdtk::academic_round(moleculeMass/mdtk::amu);
+  return moleculeMass;
 }
 
-mdtk::Vector3D getVelocity(const std::vector<mdtk::Atom>& atoms)
+mdtk::Vector3D
+AtomGroup::velocity()
 {
-  using mdtk::Exception;    
-    
   REQUIRE(atoms.size() > 0);
   mdtk::Vector3D sumOfP = 0.0;
   Float sumOfM = 0.0;
@@ -159,16 +165,19 @@ mdtk::Vector3D getVelocity(const std::vector<mdtk::Atom>& atoms)
   return sumOfP/sumOfM;    
 }  
 
-void printGlobalIndexes(const std::vector<mdtk::Atom>& atoms,
-			std::ostream& fo)
+mdtk::Vector3D
+AtomGroup::massCenter()
 {
-  fo << atoms.size() << std::endl;
+  REQUIRE(atoms.size() > 0);
+  mdtk::Vector3D sumOfP = 0.0;
+  Float sumOfM = 0.0;
   for(size_t ai = 0; ai < atoms.size(); ai++)
   {
     const mdtk::Atom& atom = atoms[ai];
-    fo << atom.globalIndex << std::endl;
-  } 
-} 
-
+    sumOfM += atom.M;
+    sumOfP += atom.coords*atom.M;
+  };
+  return sumOfP/sumOfM;    
+}  
 
 }

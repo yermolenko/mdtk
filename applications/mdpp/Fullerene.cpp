@@ -54,4 +54,10 @@ Fullerene::build(const mdtk::SimLoop& ml)
   cluster.build(ml);
 }  
 
+bool
+Fullerene::isEndoFullerene()
+{
+  return cluster.atoms.size() != 0;
+}
+
 }

@@ -567,13 +567,18 @@ StatPostProcess::printFullereneInfo() const
 void
 StatPostProcess::printFullereneInfo(size_t trajIndex) const
 {
+  using namespace mdtk;
   const TrajData& td = trajData[trajIndex];
   std::map< Float, Fullerene >::const_iterator i;
+  REQUIRE(fabs(td.trajFullerene.begin()->first-0.0*ps)<0.05*ps);
+  REQUIRE(fabs(td.trajFullerene.rbegin()->first-10.0*ps)<0.05*ps);
   for( i = td.trajFullerene.begin(); i != td.trajFullerene.end() ; ++i )
   {
     std::cout << "Time : " << i->first/mdtk::ps << "\n";
-    std::cout << "\t ";
-    TRACE(getVelocity(i->second.atoms));
+    Fullerene f = i->second;
+//    std::cout << "\t "; TRACE(getVelocity(f.atoms));
+    std::cout << "\t "; TRACE(f.maxMolecule().size());
+    std::cout << "\t "; TRACE(f.cluster.maxMolecule().size());
   }
 }  
 
