@@ -83,43 +83,37 @@ try
   for(size_t i = 0; i < pp->trajData.size(); i++)
   {
     TRACE(pp->trajData[i].trajDir);
-//    TRACE(pp->getAboveSpottedHeight(i,mdepp::StatPostProcess::ProcessAll));
 
+    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessFullerene));
     TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessCluster));
-    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessSubstrate));
-    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessClusterAndSubstrate));
     TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessProjectile));
+    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessSubstrate));
     TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessAll));
   }
 
-//  TRACE(pp->getAboveSpottedHeightTotal());
+  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessFullerene));
   TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessCluster));
-  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessSubstrate));
-  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessClusterAndSubstrate));
   TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessProjectile));
+  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessSubstrate));
   TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessAll));
-  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessCluster));
-  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessSubstrate));
-  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessClusterAndSubstrate));
-  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessProjectile));
-  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessAll));
-  TRACE(pp->getAverageYieldProgress(mdepp::StatPostProcess::ProcessCluster));
-  TRACE(pp->getAverageYieldProgress(mdepp::StatPostProcess::ProcessSubstrate));
-  TRACE(pp->getAverageYieldProgress(mdepp::StatPostProcess::ProcessClusterAndSubstrate));
-  TRACE(pp->getAverageYieldProgress(mdepp::StatPostProcess::ProcessProjectile));
-  TRACE(pp->getAverageYieldProgress(mdepp::StatPostProcess::ProcessAll));
 
-  TRACE(pp->getAverageEnergyOfSputtered(mdepp::StatPostProcess::ProcessCluster)/mdtk::eV);
-  TRACE(pp->getAverageEnergyOfSputtered(mdepp::StatPostProcess::ProcessSubstrate)/mdtk::eV);
-  TRACE(pp->getAverageEnergyOfSputtered(mdepp::StatPostProcess::ProcessClusterAndSubstrate)/mdtk::eV);
-  TRACE(pp->getAverageEnergyOfSputtered(mdepp::StatPostProcess::ProcessProjectile)/mdtk::eV);
-  TRACE(pp->getAverageEnergyOfSputtered(mdepp::StatPostProcess::ProcessAll)/mdtk::eV);
+  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessFullerene));
+  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessCluster));
+  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessProjectile));
+  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessSubstrate));
+  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessAll));
 
   pp->printClassicMoleculesTotal();
 
   pp->printFullereneInfo();
 
-  pp->printClusterDynamicsTotal();
+//  pp->printClusterDynamicsTotal();
+
+//  pp->spottedTotalByMass();
+
+//  pp->spottedByDepth();
+
+  pp->buildMassSpectrum();
 
   yaatk::chdir("..");
 

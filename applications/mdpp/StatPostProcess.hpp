@@ -117,17 +117,22 @@ public:
   static
   bool ProcessProjectile(const ClassicMolecule& mol)
   {
-    return mol.hasOnlyProjectileAtoms();
+    return mol.hasProjectileAtoms();
   }
   static
   bool ProcessCluster(const ClassicMolecule& mol)
   {
-    return mol.hasOnlyClusterAtoms();
+    return mol.hasClusterAtoms();
+  }
+  static
+  bool ProcessFullerene(const ClassicMolecule& mol)
+  {
+    return mol.hasFullereneAtoms();
   }
   static
   bool ProcessSubstrate(const ClassicMolecule& mol)
   {
-    return mol.hasOnlySubstrateAtoms();
+    return mol.hasSubstrateAtoms();
   }
   static
   bool ProcessClusterAndSubstrate(const ClassicMolecule& mol)

@@ -15,6 +15,8 @@ using namespace mdtk;
 #define ATOMTAG_FIXED 1<<0
 #define ATOMTAG_SUBSTRATE 1<<1
 #define ATOMTAG_CLUSTER   1<<2
+#define ATOMTAG_FULLERENE   1<<3
+#define ATOMTAG_PROJECTILE   1<<4
 #define ATOMTAG_NOTAG 0
 
 //#define REF_POT_OF(ML_FPOT) ML_FPOT.potentials[0]
@@ -28,8 +30,38 @@ setTags(mdtk::SimLoop* ml)
   {
     mdtk::Atom& atom = *(ml->atoms_[i]);
     atom.tag = 0;
-    if (atom.M > 1000.0*mdtk::amu) atom.tag |= ATOMTAG_FIXED;
-    if (atom.ID == mdtk::C_EL) atom.tag |= ATOMTAG_CLUSTER;
+//    if (atom.M > 1000.0*mdtk::amu) atom.tag |= ATOMTAG_FIXED;
+    switch (ml->atoms_.size())
+    {
+    case 4105:
+      if (atom.ID == mdtk::C_EL) 
+      {
+	atom.tag |= ATOMTAG_FULLERENE;
+	atom.tag |= ATOMTAG_PROJECTILE;
+      };
+      if (atom.ID == mdtk::Cu_EL && atom.globalIndex >= 4105-13)
+      {
+	atom.tag |= ATOMTAG_CLUSTER;
+	atom.tag |= ATOMTAG_PROJECTILE;
+      };
+      if (atom.ID == mdtk::Cu_EL && atom.globalIndex <  4105-13)
+      {
+	atom.tag |= ATOMTAG_SUBSTRATE;
+      };
+      break;
+    case 4860:
+      if (atom.ID == mdtk::C_EL) 
+      {
+	atom.tag |= ATOMTAG_FULLERENE;
+	atom.tag |= ATOMTAG_PROJECTILE;
+      };
+      if (atom.ID == mdtk::Cu_EL)
+      {
+	atom.tag |= ATOMTAG_SUBSTRATE;
+      };
+      break;
+    default: TRACE("Unknown experiment"); throw;
+    }
 //    if (atom.ID == mdtk::Cu_EL) atom.tag |= ATOMTAG_CLUSTER;
 //    if (atom.ID == mdtk::C_EL || atom.ID == mdtk::H_EL) atom.tag |= ATOMTAG_SUBSTRATE;
 //    if (atom.ID == mdtk::Ar_EL) atom.tag |= ATOMTAG_PROJECTILE;
@@ -39,8 +71,8 @@ setTags(mdtk::SimLoop* ml)
 inline
 bool  isProjectileAtom(const mdtk::Atom& atom)// const
 {
-  if (atom.ID == mdtk::Ar_EL) return true;
-//  if (atom.tag & ATOMTAG_CLUSTER) return true;
+//  if (atom.ID == mdtk::Ar_EL) return true;
+  if (atom.tag & ATOMTAG_PROJECTILE) return true;
   return false;
 }  
 
@@ -57,6 +89,14 @@ bool  isSubstrateAtom(const mdtk::Atom& atom)// const
 {
 //  if (atom.ID == mdtk::C_EL || atom.ID == mdtk::H_EL) return true;
   if (atom.tag & ATOMTAG_SUBSTRATE) return true;
+  return false;
+}  
+
+inline
+bool  isFullereneAtom(const mdtk::Atom& atom)// const
+{
+//  if (atom.ID == mdtk::C_EL || atom.ID == mdtk::H_EL) return true;
+  if (atom.tag & ATOMTAG_FULLERENE) return true;
   return false;
 }  
 
@@ -210,6 +250,12 @@ operator =(const ClassicMolecule &C)
       if (isSubstrateAtom(atoms[ai])) return true;
     return false;
   }
+  bool  hasFullereneAtoms() const
+  {
+    for(size_t ai = 0; ai < atoms.size(); ai++)
+      if (isFullereneAtom(atoms[ai])) return true;
+    return false;
+  }
 
   bool  hasOnlyProjectileAtoms() const
   {
@@ -227,6 +273,12 @@ operator =(const ClassicMolecule &C)
   {
     for(size_t ai = 0; ai < atoms.size(); ai++)
       if (!isSubstrateAtom(atoms[ai])) return false;
+    return true;
+  }
+  bool  hasOnlyFullereneAtoms() const
+  {
+    for(size_t ai = 0; ai < atoms.size(); ai++)
+      if (!isFullereneAtom(atoms[ai])) return false;
     return true;
   }
   bool  hasOnlySubstrateOrClusterAtoms() const
