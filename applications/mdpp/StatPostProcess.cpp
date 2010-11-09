@@ -353,8 +353,8 @@ StatPostProcess::execute()
     TRACE(getAboveSpottedHeight(*state));
 
     buildSputteredClassicMolecules(*state,trajIndex,STATE_FINAL,nl);
-    buildClusterDynamics(*state,trajIndex,STATE_FINAL,nl);
-    buildProjectileDynamics(*state,trajIndex,STATE_FINAL);
+//    buildClusterDynamics(*state,trajIndex,STATE_FINAL,nl);
+//    buildProjectileDynamics(*state,trajIndex,STATE_FINAL);
 
 //  if (td.molecules.size() > 0)
     {
@@ -375,16 +375,24 @@ StatPostProcess::execute()
       cout << "State " << mde_init_filename << " loaded." << std::endl;
 
       buildSputteredClassicMolecules(*mde_init,trajIndex,STATE_INIT,nl);
-      buildClusterDynamics(*mde_init,trajIndex,STATE_INIT,nl);
-      buildProjectileDynamics(*mde_init,trajIndex,STATE_INIT);
+//      buildClusterDynamics(*mde_init,trajIndex,STATE_INIT,nl);
+//      buildProjectileDynamics(*mde_init,trajIndex,STATE_INIT);
 
+      TRACE("Building fullerene:");
       f.build(*mde_init);
       td.trajFullerene[mde_init->simTime] = f;
+      TRACE(mde_init->simTime);
+
+      TRACE("Updating fullerene:");
+      f.update(*state);
+      td.trajFullerene[state->simTime] = f;
+      TRACE(state->simTime);
 
       delete mde_init;
     }  
 
 //  if (td.molecules.size() > 0)
+    if (0)
     {
       std::vector<std::string> interStates;
       findIntermediateStates(td.trajDir,interStates);
@@ -403,6 +411,7 @@ StatPostProcess::execute()
 
       for(int stateIndex = interStates.size()-1; stateIndex >= 0; stateIndex--)
       {
+//	if (stateIndex != interStates.size()-1) continue;
 	std::string mde_inter_filename = td.trajDir+interStates[stateIndex];
 
 	{
@@ -419,8 +428,8 @@ StatPostProcess::execute()
 	fi.close(); 
 
 	buildSputteredClassicMolecules(*mde_inter,trajIndex,STATE_INTER,nl);
-	buildClusterDynamics(*mde_inter,trajIndex,STATE_INTER,nl);
-	buildProjectileDynamics(*mde_inter,trajIndex,STATE_INTER);
+//	buildClusterDynamics(*mde_inter,trajIndex,STATE_INTER,nl);
+//	buildProjectileDynamics(*mde_inter,trajIndex,STATE_INTER);
 
 	f.update(*mde_inter);
 	td.trajFullerene[mde_inter->simTime] = f;
@@ -433,7 +442,7 @@ StatPostProcess::execute()
     delete state;
 
 #warning INTERLAYER_TRANSISTIONS_COLLECTING_MAY_BE_BUGGED
-
+/*
     // Collect interlayer transitions info
     {
       mdtk::SimLoop* currentState = new mdtk::SimLoop();
@@ -507,7 +516,7 @@ StatPostProcess::execute()
       for(size_t i1 = 0; i1 < atoms_end.size(); i1++)
 	delete atoms_end[i1];
     }
-
+*/
   }  
 
   cout << "PostProcess::execute() done." << std::endl;
