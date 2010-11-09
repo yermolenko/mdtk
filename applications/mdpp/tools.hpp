@@ -59,7 +59,9 @@ inline
 bool 
 trajProcess_Custom(const char* trajDirName)
 {
-  return (strstr(trajDirName,"Cu13_in_C60_on_Cu_") && !strstr(trajDirName,"1000eV")) || strstr(trajDirName,"C60_on_CuThin");
+  return 
+    strstr(trajDirName,"C60_on_Cu_")
+    && !strstr(trajDirName,"1000eV");
 }
 
 inline

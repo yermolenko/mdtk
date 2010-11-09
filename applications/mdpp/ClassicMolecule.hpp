@@ -33,6 +33,7 @@ setTags(mdtk::SimLoop* ml)
 //    if (atom.M > 1000.0*mdtk::amu) atom.tag |= ATOMTAG_FIXED;
     switch (ml->atoms_.size())
     {
+    case 4092:
     case 4105:
       if (atom.ID == mdtk::C_EL) 
       {
