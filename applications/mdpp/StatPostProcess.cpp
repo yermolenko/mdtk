@@ -330,8 +330,8 @@ StatPostProcess::execute()
     state->initNLafterLoading = false;
     state->loadFromStream(fi);
     state->updateGlobalIndexes();
-    NeighbourList nl(state->atoms);
     setTags(state);
+    NeighbourList nl(state->atoms);
     fi.close();
 
 /*
@@ -368,8 +368,8 @@ StatPostProcess::execute()
       mde_init->initNLafterLoading = false;
       mde_init->loadFromStream(fi);
       mde_init->updateGlobalIndexes();
-      NeighbourList nl(mde_init->atoms);
       setTags(mde_init);
+      NeighbourList nl(mde_init->atoms);
       fi.close(); 
 
       cout << "State " << mde_init_filename << " loaded." << std::endl;
@@ -414,8 +414,8 @@ StatPostProcess::execute()
 	yaatk::text_ifstream fi(mde_inter_filename.c_str()); 
 	mde_inter->loadFromStreamXVA(fi);
 	mde_inter->updateGlobalIndexes();
-	NeighbourList nl(mde_inter->atoms);
 	setTags(mde_inter);
+	NeighbourList nl(mde_inter->atoms);
 	fi.close(); 
 
 	buildSputteredClassicMolecules(*mde_inter,trajIndex,STATE_INTER,nl);

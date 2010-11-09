@@ -22,6 +22,8 @@
 
 #include "NeighbourList.hpp"
 
+#include "ClassicMolecule.hpp"
+
 namespace mdepp
 {
 
@@ -34,7 +36,11 @@ namespace mdepp
     for(i = 0; i < N; ++i)
     {
       mdtk::Atom& atom_i = *(atoms[i]);
-      if (atom_i.coords.z > 3.615*mdtk::Ao*3) continue;
+      if (
+	atom_i.coords.z > 3.615*mdtk::Ao
+	&& !(atom_i.tag & ATOMTAG_FULLERENE)
+	&& !(atom_i.tag & ATOMTAG_CLUSTER)
+	) continue;
       mdtk::AtomsContainer& nl_ = nl[i];
     
       nl_.clear();
