@@ -719,6 +719,7 @@ StatPostProcess::plotFullereneImplantDepth(bool endo, char rotDir) const
 reset\n\
 #set yrange [-1:4]\n\
 #set xrange [-1:6]\n\
+#set zrange [-8.5:-2]\n\
 \n\
 #set border 1+2+4+8 lw 3\n\
 set border 1+2+4+8 lw 2\n\
@@ -729,12 +730,12 @@ set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
 \n\
 set xlabel \"Энергия поступательного движения, эВ\"\n\
 set ylabel \"Энергия вращательного движения вокруг оси "<< rotDir << ", эВ\"\n \n\
-set xtics mirror (\"50\" 0, \"100\" 1, \"200\" 3,\"300\" 5,\"400\" 7)\n\
-set ytics mirror (\"0\" 0, \"10\" 1, \"50\"  5, \"100\" 10)\n\
+set xtics mirror (\"50\" 0, \"100\" 1, \"200\" 2,\"300\" 3,\"400\" 4)\n\
+set ytics mirror (\"0\" 0, \"10\" 1, \"50\"  2, \"100\" 3)\n\
 \n\
 set border 4095\n\
-#set pm3d map interpolate 10,10\n\
-set pm3d map\n\
+set pm3d map interpolate 10,10\n\
+#set pm3d map\n\
 set palette gray negative\n\
 #set samples 100; set isosamples 100\n\
 \n\
@@ -744,13 +745,19 @@ splot '" << fnb.str() << ".dat' matrix notitle\n\
 
   ofstream fdat((fnb.str()+".dat").c_str());
 
-  const size_t NX = 8;
-  const size_t NY = 11;
-
-  std::vector<int> transEnergies(NX);
-  for(size_t i = 0; i < NX; ++i) transEnergies[i] = 50*(i+1);
-  std::vector<int> rotEnergies(NY);
-  for(size_t i = 0; i < NY; ++i) rotEnergies[i] = 10*i;
+  std::vector<int> transEnergies;
+  transEnergies.push_back(50);
+  transEnergies.push_back(100);
+  transEnergies.push_back(200);
+  transEnergies.push_back(300);
+  transEnergies.push_back(400);
+  std::vector<int> rotEnergies;
+  rotEnergies.push_back(0);
+  rotEnergies.push_back(10);
+  rotEnergies.push_back(50);
+  rotEnergies.push_back(100);
+  const size_t NX = transEnergies.size();
+  const size_t NY = rotEnergies.size();
   Float depth[NX][NY];
   const Float NOT_LANDED_DEPTH = -4.5*Ao-3.615*Ao/* /2*/;
   for(size_t i = 0; i < NX; ++i)
