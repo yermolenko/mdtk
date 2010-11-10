@@ -104,7 +104,7 @@ AtomGroup::build(const mdtk::SimLoop& ml,
 }  
 
 Molecule
-AtomGroup::molecule(size_t atomIndex)
+AtomGroup::molecule(size_t atomIndex) const
 {
   REQUIRE(atomIndex < atoms.size());
   Molecule m;
@@ -113,20 +113,20 @@ AtomGroup::molecule(size_t atomIndex)
 }
 
 Molecule
-AtomGroup::molecule(const mdtk::Atom& a)
+AtomGroup::molecule(const mdtk::Atom& a) const
 {
   REQUIRE(hasAtom(a));
   return molecule(a.globalIndex);
 }
 
 bool
-AtomGroup::isMolecule()
+AtomGroup::isMolecule() const
 {
   return maxMolecule().size() == atoms.size();
 }
 
 Molecule
-AtomGroup::maxMolecule()
+AtomGroup::maxMolecule() const
 {
   Molecule mMax;
   for(size_t i = 0; i < atoms.size(); i++)
@@ -139,7 +139,7 @@ AtomGroup::maxMolecule()
 }
 
 Float
-AtomGroup::mass()
+AtomGroup::mass() const
 {
   Float moleculeMass = 0;
   for(size_t ai = 0; ai < atoms.size(); ai++)
@@ -151,7 +151,7 @@ AtomGroup::mass()
 }
 
 mdtk::Vector3D
-AtomGroup::velocity()
+AtomGroup::velocity() const
 {
   REQUIRE(atoms.size() > 0);
   mdtk::Vector3D sumOfP = 0.0;
@@ -166,7 +166,7 @@ AtomGroup::velocity()
 }  
 
 mdtk::Vector3D
-AtomGroup::massCenter()
+AtomGroup::massCenter() const
 {
   REQUIRE(atoms.size() > 0);
   mdtk::Vector3D sumOfP = 0.0;

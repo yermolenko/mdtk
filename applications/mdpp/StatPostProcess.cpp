@@ -587,9 +587,123 @@ StatPostProcess::printFullereneInfo(size_t trajIndex) const
     Fullerene f = i->second;
 //    std::cout << "\t "; TRACE(getVelocity(f.atoms));
     std::cout << "\t "; TRACE(f.maxMolecule().size());
+    std::cout << "\t "; TRACE(f.minDistanceFromMassCenter()/Ao);
+    std::cout << "\t "; TRACE(f.maxDistanceFromMassCenter()/Ao);
+    std::cout << "\t "; TRACE(f.isUnparted());
+    std::cout << "\t "; TRACE(f.isIntegral());
+    std::cout << "\t "; TRACE(f.massCenter().z/Ao);
+    std::cout << "\t "; TRACE(f.isEndoFullerene());
     std::cout << "\t "; TRACE(f.cluster.maxMolecule().size());
   }
 }  
+
+Float parseTransEnergy(const std::string trajname)
+{
+  using namespace std;
+  size_t istart = trajname.find("_n");
+  REQUIRE(istart != std::string::npos);
+  istart+=2;
+  size_t iend = trajname.find("eV",istart);
+  REQUIRE(iend != std::string::npos);
+
+  istringstream is(trajname.substr(istart,iend-istart));
+  Float val = 0;
+  is >> val;
+
+  return val;
+}
+
+char parseRotDirection(const std::string trajname)
+{
+  using namespace std;
+  size_t istart = trajname.find("_y");
+  if (istart == std::string::npos)
+    istart = trajname.find("_z");
+
+  if (istart == std::string::npos) return 'N';
+
+  return trajname[istart+1];
+}
+
+Float parseRotEnergy(const std::string trajname)
+{
+  using namespace std;
+  size_t istart = trajname.find("_y");
+  if (istart == std::string::npos)
+    istart = trajname.find("_z");
+
+  if (istart == std::string::npos) return 0.0;
+
+  istart+=2;
+  size_t iend = trajname.find("eV",istart);
+  REQUIRE(iend != std::string::npos);
+
+  istringstream is(trajname.substr(istart,iend-istart));
+  Float val = 0;
+  is >> val;
+
+  return val;
+}
+
+void
+StatPostProcess::plotFullereneLandings() const
+{
+  ofstream fplt("landed-intact.plt");
+  fplt << "\
+reset\n\
+set yrange [-10:110]\n\
+set xrange [0:450]\n\
+#set palette gray\n\
+\n\
+#set border 1+2+4+8 lw 3\n\
+set border 1+2+4+8 lw 2\n\
+\n\
+set encoding koi8u\n\
+set output \"landed-intact.eps\"\n\
+set terminal postscript eps size 16cm, 8cm \"Arial,18\" enhanced\n\
+\n\
+set xlabel \"Energy of Translational Movement, eV\"\n\
+set ylabel \"Energy of Rotational Movement, eV\"\n\
+#set label \"Cu\" at 63.5+10,3.3\n\
+#set label \"Cu_{2}\" at 63.5*2-30,0.53\n\
+\n\
+set xtics mirror (0,50,100,200,300,400)\n\
+set ytics mirror (0,10,50,100)\n\
+\n\
+plot 'landed-intact.dat' with points notitle\n\
+";
+  fplt.close();
+
+  ofstream fdat("landed-intact.dat");
+
+  for(size_t traj = 0; traj < trajData.size(); traj++)
+  {
+    REQUIRE (trajData[traj].trajFullerene.size() > 0);
+
+    using namespace mdtk;
+    const TrajData& td = trajData[traj];
+    std::map< Float, Fullerene >::const_iterator i;
+    REQUIRE(fabs(td.trajFullerene.begin()->first-0.0*ps)<0.05*ps);
+    REQUIRE(fabs(td.trajFullerene.rbegin()->first-10.0*ps)<0.05*ps);
+    const Fullerene& fstart = td.trajFullerene.begin()->second;
+    const Fullerene& fend = td.trajFullerene.rbegin()->second;
+
+    std::string trajId = yaatk::extractLastItem(td.trajDir);
+
+    Float transEnergy = parseTransEnergy(trajId);
+    char rotDirection = parseRotDirection(trajId);
+    Float rotEnergy = parseRotEnergy(trajId);
+
+    if (rotDirection == 'y') continue;
+    if (fstart.isEndoFullerene())
+    {
+      if (fend.isIntegral() && fend.massCenter().z > -10.0*Ao)
+	fdat << transEnergy << "\t" << rotEnergy << std::endl;
+    }
+  }
+
+  fdat.close();
+}
 
 int
 StatPostProcess::getAboveSpottedHeight(mdtk::SimLoop& state) const

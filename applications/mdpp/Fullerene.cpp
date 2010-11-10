@@ -55,9 +55,48 @@ Fullerene::build(const mdtk::SimLoop& ml)
 }  
 
 bool
-Fullerene::isEndoFullerene()
+Fullerene::isEndoFullerene() const
 {
   return cluster.atoms.size() != 0;
+}
+
+Float
+Fullerene::maxDistanceFromMassCenter() const
+{
+  REQUIRE(atoms.size() > 0);
+  Vector3D mc = massCenter();
+  Float dm = (atoms[0].coords - mc).module();
+
+  for(size_t i = 0; i < atoms.size(); ++i)
+  {
+    Float d = (atoms[i].coords - mc).module();
+    if (d > dm) dm = d;
+  }
+
+  return dm;
+}
+
+Float
+Fullerene::minDistanceFromMassCenter() const
+{
+  REQUIRE(atoms.size() > 0);
+  Vector3D mc = massCenter();
+  Float dm = (atoms[0].coords - mc).module();
+
+  for(size_t i = 0; i < atoms.size(); ++i)
+  {
+    Float d = (atoms[i].coords - mc).module();
+    if (d < dm) dm = d;
+  }
+
+  return dm;
+}
+
+bool
+Fullerene::isIntegral() const
+{
+  return isUnparted() 
+    && maxDistanceFromMassCenter()-minDistanceFromMassCenter() < 3.0*Ao;
 }
 
 }

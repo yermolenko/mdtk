@@ -35,14 +35,14 @@ public:
 	     const double SPOTTED_DISTANCE = +1000.0*mdtk::Ao);
   void update(const mdtk::SimLoop& ml);
 
-  Molecule molecule(size_t atomIndex);
-  Molecule molecule(const mdtk::Atom& a);
-  Molecule maxMolecule();
-  bool isMolecule();
-  mdtk::Vector3D massCenter();
+  Molecule molecule(size_t atomIndex) const;
+  Molecule molecule(const mdtk::Atom& a) const;
+  Molecule maxMolecule() const;
+  bool isMolecule() const;
+  mdtk::Vector3D massCenter() const;
 
-  Float          mass();
-  mdtk::Vector3D velocity();
+  Float          mass() const;
+  mdtk::Vector3D velocity() const;
 
   friend std::istream&  operator>> (std::istream& is, AtomGroup& vec);
   friend std::ostream&  operator<< (std::ostream& os, const AtomGroup& vec);

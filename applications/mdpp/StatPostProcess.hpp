@@ -260,6 +260,8 @@ public:
   void  printFullereneInfo(size_t trajIndex) const;
   void  printFullereneInfo() const;
 
+  void plotFullereneLandings() const;
+
   void  printClusterDynamics(size_t trajIndex) const;
   void  printClusterDynamicsTotal() const;
 
