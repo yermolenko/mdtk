@@ -111,6 +111,11 @@ try
   pp->plotFullereneLandings(true,'y');
   pp->plotFullereneLandings(true,'z');
 
+  pp->plotFullereneImplantDepth(false,'y');
+  pp->plotFullereneImplantDepth(false,'z');
+  pp->plotFullereneImplantDepth(true,'y');
+  pp->plotFullereneImplantDepth(true,'z');
+
 //  pp->printClusterDynamicsTotal();
 
 //  pp->spottedTotalByMass();

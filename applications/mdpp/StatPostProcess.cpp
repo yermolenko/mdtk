@@ -654,8 +654,8 @@ StatPostProcess::plotFullereneLandings(bool endo, char rotDir) const
   ofstream fplt((fnb.str()+".plt").c_str());
   fplt << "\
 reset\n\
-set yrange [-10:110]\n\
-set xrange [0:450]\n\
+set yrange [-5:110]\n\
+set xrange [25:450]\n\
 #set palette gray\n\
 \n\
 #set border 1+2+4+8 lw 3\n\
@@ -703,6 +703,105 @@ plot '" << fnb.str() << ".dat' with points notitle\n	\
       if (fend.isIntegral() && fend.massCenter().z > -10.0*Ao)
 	fdat << transEnergy << "\t" << rotEnergy << std::endl;
     }
+  }
+
+  fdat.close();
+}
+
+void
+StatPostProcess::plotFullereneImplantDepth(bool endo, char rotDir) const
+{
+  std::stringstream fnb;
+  fnb << "implant-depth" << (endo?"-endo":"") << "-rot" << rotDir;
+  
+  ofstream fplt((fnb.str()+".plt").c_str());
+  fplt << "\
+reset\n\
+#set yrange [-1:4]\n\
+#set xrange [-1:6]\n\
+\n\
+#set border 1+2+4+8 lw 3\n\
+set border 1+2+4+8 lw 2\n\
+\n\
+set encoding koi8u\n\
+set output \"" << fnb.str() << ".eps\"\n\
+set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
+\n\
+set xlabel \"Энергия поступательного движения, эВ\"\n\
+set ylabel \"Энергия вращательного движения вокруг оси "<< rotDir << ", эВ\"\n \n\
+set xtics mirror (\"50\" 0, \"100\" 1, \"200\" 3,\"300\" 5,\"400\" 7)\n\
+set ytics mirror (\"0\" 0, \"10\" 1, \"50\"  5, \"100\" 10)\n\
+\n\
+set border 4095\n\
+#set pm3d map interpolate 10,10\n\
+set pm3d map\n\
+set palette gray negative\n\
+#set samples 100; set isosamples 100\n\
+\n\
+splot '" << fnb.str() << ".dat' matrix notitle\n\
+";
+  fplt.close();
+
+  ofstream fdat((fnb.str()+".dat").c_str());
+
+  const size_t NX = 8;
+  const size_t NY = 11;
+
+  std::vector<int> transEnergies(NX);
+  for(size_t i = 0; i < NX; ++i) transEnergies[i] = 50*(i+1);
+  std::vector<int> rotEnergies(NY);
+  for(size_t i = 0; i < NY; ++i) rotEnergies[i] = 10*i;
+  Float depth[NX][NY];
+  const Float NOT_LANDED_DEPTH = -4.5*Ao-3.615*Ao/* /2*/;
+  for(size_t i = 0; i < NX; ++i)
+    for(size_t j = 0; j < NY; ++j)
+      depth[i][j] = NOT_LANDED_DEPTH;
+
+  for(size_t traj = 0; traj < trajData.size(); traj++)
+  {
+    REQUIRE (trajData[traj].trajFullerene.size() > 0);
+
+    using namespace mdtk;
+    const TrajData& td = trajData[traj];
+    std::map< Float, Fullerene >::const_iterator i;
+    REQUIRE(fabs(td.trajFullerene.begin()->first-0.0*ps)<0.05*ps);
+    REQUIRE(fabs(td.trajFullerene.rbegin()->first-10.0*ps)<0.05*ps);
+    const Fullerene& fstart = td.trajFullerene.begin()->second;
+    const Fullerene& fend = td.trajFullerene.rbegin()->second;
+
+    std::string trajId = yaatk::extractLastItem(td.trajDir);
+
+    Float transEnergy = parseTransEnergy(trajId);
+    char rotDirection = parseRotDirection(trajId);
+    Float rotEnergy = parseRotEnergy(trajId);
+
+    std::vector<int>::iterator tei = 
+      find(transEnergies.begin(),transEnergies.end(),transEnergy);
+    REQUIRE(tei != transEnergies.end());
+    std::vector<int>::iterator rei = 
+      find(rotEnergies.begin(),rotEnergies.end(),rotEnergy);
+    REQUIRE(tei != rotEnergies.end());
+
+    if (rotDirection != 'N' && rotDirection != rotDir) continue;
+    if (fstart.isEndoFullerene() == endo)
+    {
+/*
+      if (fend.isIntegral() && fend.massCenter().z > -10.0*Ao)
+        depth[tei-transEnergies.begin()][rei-rotEnergies.begin()] = 0.0*Ao;
+*/
+      if (fend.isIntegral() && fend.massCenter().z > NOT_LANDED_DEPTH)
+      {
+	depth[tei-transEnergies.begin()][rei-rotEnergies.begin()] = 
+	  fend.massCenter().z;
+      }
+    }
+  }
+
+  for(size_t j = 0; j < NY; ++j)
+  {
+    for(size_t i = 0; i < NX; ++i)
+      fdat << "\t" << depth[i][j]/Ao;
+    fdat << std::endl;
   }
 
   fdat.close();

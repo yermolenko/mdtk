@@ -261,6 +261,7 @@ public:
   void  printFullereneInfo() const;
 
   void  plotFullereneLandings(bool endo, char rotDir) const;
+  void  plotFullereneImplantDepth(bool endo, char rotDir) const;
 
   void  printClusterDynamics(size_t trajIndex) const;
   void  printClusterDynamicsTotal() const;
