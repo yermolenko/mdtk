@@ -663,10 +663,10 @@ set border 1+2+4+8 lw 2\n\
 \n\
 set encoding koi8u\n\
 set output \"" << fnb.str() << ".eps\"\n\
-set terminal postscript eps size 16cm, 8cm \"Arial,18\" enhanced\n\
+set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
 \n\
-set xlabel \"Energy of Translational Movement, eV\"\n\
-set ylabel \"Energy of Rotational Movement around "<< rotDir << ", eV\"\n	\
+set xlabel \"Энергия поступательного движения, эВ\"\n\
+set ylabel \"Энергия вращательного движения вокруг оси "<< rotDir << ", эВ\"\n \
 #set label \"Cu\" at 63.5+10,3.3\n\
 #set label \"Cu_{2}\" at 63.5*2-30,0.53\n\
 \n\
