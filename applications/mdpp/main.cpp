@@ -106,7 +106,10 @@ try
   pp->printClassicMoleculesTotal();
 
   pp->printFullereneInfo();
-  pp->plotFullereneLandings();
+  pp->plotFullereneLandings(false,'y');
+  pp->plotFullereneLandings(false,'z');
+  pp->plotFullereneLandings(true,'y');
+  pp->plotFullereneLandings(true,'z');
 
 //  pp->printClusterDynamicsTotal();
 

@@ -646,9 +646,12 @@ Float parseRotEnergy(const std::string trajname)
 }
 
 void
-StatPostProcess::plotFullereneLandings() const
+StatPostProcess::plotFullereneLandings(bool endo, char rotDir) const
 {
-  ofstream fplt("landed-intact.plt");
+  std::stringstream fnb;
+  fnb << "landed-intact" << (endo?"-endo":"") << "-rot" << rotDir;
+  
+  ofstream fplt((fnb.str()+".plt").c_str());
   fplt << "\
 reset\n\
 set yrange [-10:110]\n\
@@ -659,22 +662,22 @@ set xrange [0:450]\n\
 set border 1+2+4+8 lw 2\n\
 \n\
 set encoding koi8u\n\
-set output \"landed-intact.eps\"\n\
+set output \"" << fnb.str() << ".eps\"\n\
 set terminal postscript eps size 16cm, 8cm \"Arial,18\" enhanced\n\
 \n\
 set xlabel \"Energy of Translational Movement, eV\"\n\
-set ylabel \"Energy of Rotational Movement, eV\"\n\
+set ylabel \"Energy of Rotational Movement around "<< rotDir << ", eV\"\n	\
 #set label \"Cu\" at 63.5+10,3.3\n\
 #set label \"Cu_{2}\" at 63.5*2-30,0.53\n\
 \n\
 set xtics mirror (0,50,100,200,300,400)\n\
 set ytics mirror (0,10,50,100)\n\
 \n\
-plot 'landed-intact.dat' with points notitle\n\
+plot '" << fnb.str() << ".dat' with points notitle\n	\
 ";
   fplt.close();
 
-  ofstream fdat("landed-intact.dat");
+  ofstream fdat((fnb.str()+".dat").c_str());
 
   for(size_t traj = 0; traj < trajData.size(); traj++)
   {
@@ -694,8 +697,8 @@ plot 'landed-intact.dat' with points notitle\n\
     char rotDirection = parseRotDirection(trajId);
     Float rotEnergy = parseRotEnergy(trajId);
 
-    if (rotDirection == 'y') continue;
-    if (fstart.isEndoFullerene())
+    if (rotDirection != 'N' && rotDirection != rotDir) continue;
+    if (fstart.isEndoFullerene() == endo)
     {
       if (fend.isIntegral() && fend.massCenter().z > -10.0*Ao)
 	fdat << transEnergy << "\t" << rotEnergy << std::endl;
