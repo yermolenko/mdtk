@@ -1,8 +1,8 @@
 /*
    The VisBox class for the molecular dynamics trajectory viewer
 
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -352,6 +352,7 @@ namespace xmde
       }
     glEnable(GL_LIGHTING);
     Vertexes_List();
+    CoolEdges_List();
     if (EnableAxes)
       {
 	glDisable(GL_LIGHTING);
@@ -528,6 +529,50 @@ namespace xmde
       }
   }
 
+Vector3D
+_vectorMul(const Vector3D& a, const Vector3D& b)
+{
+  return Vector3D(a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x);
+}
+
+Float
+_scalarMul(const Vector3D& a, const Vector3D& b)
+{
+  return (a.x*b.x+a.y*b.y+a.z*b.z);
+}
+
+Float
+_relAngle(const Vector3D& a, const Vector3D& b)
+{
+  return acos(_scalarMul(a,b)/(a.module()*b.module()));
+}
+
+void VisBox::CoolEdges_List()
+{
+  int i,j;
+  Vector3D TempRotVector;
+  double    TempRotAngle;
+
+  GLUquadricObj *quadObj;
+//  for(j=0;j<R.size()/*s.Rows()*/;j++)
+//    for(i=0;i<j;i++)
+//      if (s[j][i])
+  i = 0;
+  j = 10695;
+      {
+	glPushMatrix();
+	quadObj = gluNewQuadric ();
+	gluQuadricDrawStyle (quadObj, GLU_FILL);
+	myglColor(0xFF0000);
+	glTranslated(R[i]->coords.x,R[i]->coords.y,R[i]->coords.z);
+	TempRotVector=_vectorMul(Vector3D(0,0,1.0L),R[j]->coords-R[i]->coords);
+	TempRotAngle=(_relAngle(Vector3D(0,0,1.0L),R[j]->coords-R[i]->coords)/M_PI)*180.0L;
+	glRotated(TempRotAngle,TempRotVector.x,TempRotVector.y,TempRotVector.z);
+	gluCylinder (quadObj,VertexRadius,VertexRadius,depos(*R[i],*R[j]).module(), 6, 6);
+	gluDeleteQuadric(quadObj);
+	glPopMatrix();
+      }
+}
 
   void VisBox::SetupLighting()
   {
