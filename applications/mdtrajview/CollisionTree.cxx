@@ -72,8 +72,6 @@ void MDTrajectory_read(MDTrajectory& mdt,
   }
 
   std::vector<Atom> atoms;
-  getAtomsFromSimLoop(ml,atoms);
-  mdt[ml.simTime] = atoms;
 
   for(size_t i = 0; i < xvas.size(); ++i)
   {
@@ -86,8 +84,13 @@ void MDTrajectory_read(MDTrajectory& mdt,
       ml_->loadFromStreamXVA_bin(fixva);
       fixva.close(); 
     */
-    updateAtomsFromSimLoop(ml,atoms);
+    if (i == 0)
+      getAtomsFromSimLoop(ml,atoms);
+    else
+      updateAtomsFromSimLoop(ml,atoms);
     mdt[ml.simTime] = atoms;
+    TRACE(ml.simTime);
+    TRACE(atoms.size());
   }  
 }
 
