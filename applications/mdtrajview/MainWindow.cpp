@@ -183,10 +183,10 @@ namespace xmde
 
     animate_delay = new Fl_Counter(620, 422, 65, 26, "Delay");
     animate_delay->labelsize(12);
-    animate_delay->minimum(0.1);
+    animate_delay->minimum(0.01);
     animate_delay->maximum(5.0);
     animate_delay->value(0.1);
-    animate_delay->step(0.1);
+    animate_delay->step(0.01);
     animate_delay->align(FL_ALIGN_LEFT);
     animate_delay->type(FL_SIMPLE_COUNTER);
 
