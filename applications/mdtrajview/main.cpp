@@ -172,7 +172,9 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
       TRACE(fileList[i]);
     }
 
-  xmde::VisBox avb(15,35,500,500,baseFile,fileList[0]);
+  fileList.resize(500);
+
+  xmde::VisBox avb(15,35,500,500,baseFile,fileList);
   avb.set_non_modal();
 
   xmde::MainWindow w(baseFile,fileList,&avb, instantAnimate);

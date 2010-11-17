@@ -37,6 +37,8 @@
 #include "mdtk/consts.hpp"
 #include "mdtk/SimLoop.hpp"
 
+#include "CollisionTree.hpp"
+
 namespace xmde
 {
 
@@ -62,6 +64,8 @@ namespace xmde
 	
     mdtk::AtomsContainer R,Ro;
     mdtk::SimLoop* ml_;
+
+    MDTrajectory mdt;
 
     unsigned long VertexColor,EdgeColor,BGColor;
     bool EnableAxes;
@@ -111,7 +115,8 @@ namespace xmde
     double	MM_orig_data[16];
     bool	MM_orig;
 
-    VisBox(int x,int y,int w,int h,std::string base_state_filename,std::string );
+    VisBox(int x,int y,int w,int h,std::string base_state_filename,
+	   const std::vector<std::string>& xvas);
     virtual ~VisBox(){delete ml_;};
 
     void SetData(mdtk::SimLoop &);

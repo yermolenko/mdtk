@@ -89,11 +89,13 @@ namespace xmde
 
   }  
 
-  VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,std::string /*file*/)
+  VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
+		 const std::vector<std::string>& xvas)
     : Fl_Gl_Window(x,y,w,h,"MDTK Trajectory Viewer - 3D View"),
       alloweRescale(true),
       atoms_quality(14),
       nRange(50),XCenter(0.0),YCenter(0.0),ZCenter(0.0),
+      mdt(),
       FixedLights(false),
       old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0), MM_orig(true),
       selectedIndex(0)
@@ -136,6 +138,9 @@ namespace xmde
       }
     SetData(*ml_);
     size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
+
+    MDTrajectory_read(mdt,base_state_filename,xvas);
+
     callback(window_cb);
   }
 
