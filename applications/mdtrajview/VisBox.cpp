@@ -134,6 +134,7 @@ namespace xmde
       nRange(50),XCenter(0.0),YCenter(0.0),ZCenter(0.0),
       mdt(),
       xvaList(xvas),
+      ctree(NULL),
       FixedLights(false),
       old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0), MM_orig(true),
       selectedIndex(0)
@@ -178,6 +179,7 @@ namespace xmde
     size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
 
     MDTrajectory_read(mdt,base_state_filename,xvas);
+//    ctree = new CollisionTree(*ml_->atoms.back(),mdt.begin(),mdt);
 
     callback(window_cb);
   }
@@ -547,31 +549,40 @@ _relAngle(const Vector3D& a, const Vector3D& b)
   return acos(_scalarMul(a,b)/(a.module()*b.module()));
 }
 
-void VisBox::CoolEdges_List()
+void VisBox::Draw_Edge(const Vector3D& vi, const Vector3D& vj, unsigned int color)
 {
-  int i,j;
   Vector3D TempRotVector;
   double    TempRotAngle;
 
   GLUquadricObj *quadObj;
-//  for(j=0;j<R.size()/*s.Rows()*/;j++)
-//    for(i=0;i<j;i++)
-//      if (s[j][i])
-  i = 0;
-  j = 10695;
-      {
-	glPushMatrix();
-	quadObj = gluNewQuadric ();
-	gluQuadricDrawStyle (quadObj, GLU_FILL);
-	myglColor(0xFF0000);
-	glTranslated(R[i]->coords.x,R[i]->coords.y,R[i]->coords.z);
-	TempRotVector=_vectorMul(Vector3D(0,0,1.0L),R[j]->coords-R[i]->coords);
-	TempRotAngle=(_relAngle(Vector3D(0,0,1.0L),R[j]->coords-R[i]->coords)/M_PI)*180.0L;
-	glRotated(TempRotAngle,TempRotVector.x,TempRotVector.y,TempRotVector.z);
-	gluCylinder (quadObj,VertexRadius,VertexRadius,depos(*R[i],*R[j]).module(), 6, 6);
-	gluDeleteQuadric(quadObj);
-	glPopMatrix();
-      }
+
+  glPushMatrix();
+  quadObj = gluNewQuadric ();
+  gluQuadricDrawStyle (quadObj, GLU_FILL);
+  myglColor(color);
+  glTranslated(vi.x,vi.y,vi.z);
+  TempRotVector=_vectorMul(Vector3D(0,0,1.0L),vj-vi);
+  TempRotAngle=(_relAngle(Vector3D(0,0,1.0L),vj-vi)/M_PI)*180.0L;
+  glRotated(TempRotAngle,TempRotVector.x,TempRotVector.y,TempRotVector.z);
+  gluCylinder (quadObj,VertexRadius,VertexRadius,(vi-vj).module(), 6, 6);
+  gluDeleteQuadric(quadObj);
+  glPopMatrix();
+}
+
+void VisBox::CTree_List(CollisionTree* ct)
+{
+  int i,j;
+  
+//  Atom& a1 = ct->a;
+//  Atom& a2 = ;
+}
+
+void VisBox::CoolEdges_List()
+{
+//  CTree_List(ctree);
+  size_t i = 0;
+  size_t j = 10695;
+  Draw_Edge(R[i]->coords,R[j]->coords,0xFF0000);
 }
 
   void VisBox::SetupLighting()

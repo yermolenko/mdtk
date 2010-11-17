@@ -32,6 +32,7 @@ void getAtomsFromSimLoop(const SimLoop& ml, std::vector<Atom>& atoms)
   for(size_t i = 0; i < ml.atoms.size(); ++i)
   {
     atoms.push_back(*(ml.atoms[i]));
+    atoms.back().container = NULL;
   }
 }
 
@@ -41,6 +42,7 @@ void updateAtomsFromSimLoop(const SimLoop& ml, std::vector<Atom>& atoms)
   for(size_t i = 0; i < ml.atoms.size(); ++i)
   {
     atoms[i] = *(ml.atoms[i]);
+    atoms[i].container = NULL;
   }
 }
 

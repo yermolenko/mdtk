@@ -67,6 +67,7 @@ namespace xmde
 
     MDTrajectory mdt;
     std::vector<std::string> xvaList;
+    CollisionTree *ctree;
 
     unsigned long VertexColor,EdgeColor,BGColor;
     bool EnableAxes;
@@ -96,6 +97,8 @@ namespace xmde
     void Barrier_List();
     void ThermalBath_List();
     void CoolEdges_List();
+    void CTree_List(CollisionTree* ct);
+    void Draw_Edge(const Vector3D& vi, const Vector3D& vj, unsigned int color);
 
     GLfloat	light0_dir[4];
 
