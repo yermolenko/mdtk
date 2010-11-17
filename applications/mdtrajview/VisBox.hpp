@@ -66,6 +66,7 @@ namespace xmde
     mdtk::SimLoop* ml_;
 
     MDTrajectory mdt;
+    std::vector<std::string> xvaList;
 
     unsigned long VertexColor,EdgeColor,BGColor;
     bool EnableAxes;

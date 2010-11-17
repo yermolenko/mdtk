@@ -26,6 +26,8 @@
 #include <fstream>
 #include <string>
 
+#include <algorithm>
+
 #include "../common.h"
 namespace xmde
 {
@@ -45,6 +47,18 @@ namespace xmde
   {
     using mdtk::Exception;
 
+    TRACE(file);
+
+    std::vector<std::string>::iterator xvai = 
+      std::find(xvaList.begin(),xvaList.end(),file);
+
+    REQUIRE(xvai != xvaList.end());
+
+    if (xvai == xvaList.begin())
+    {
+    
+      TRACE("*********LOADING INITIAL STATE *******");
+    
     TRACE(base_state_filename);
 
     if (base_state_filename.find("simloop.conf") != std::string::npos) 
@@ -77,7 +91,30 @@ namespace xmde
 	ml_->loadFromStreamXVA_bin(fixva);
 	fixva.close(); 
       */
-    }  
+    }
+
+    }
+    else
+    {
+      TRACE("********* UPDATING FROM MDT ***********");
+      MDTrajectory::const_iterator t = mdt.begin();
+      size_t xvaCount = 0;
+      TRACE(xvai-xvaList.begin());
+      while (xvaCount < xvai-xvaList.begin())
+      {
+	++t;
+	++xvaCount;
+      }
+      TRACE(xvaCount);
+      const std::vector<Atom>& atoms = t->second;
+      TRACE(atoms.size());
+      TRACE(ml_->atoms.size());
+      REQUIRE(atoms.size() == ml_->atoms.size());
+      for(size_t i = 0; i < ml_->atoms.size(); ++i)
+      {
+	*(ml_->atoms[i]) = atoms[i];
+      }
+    }
 
     Float sc = GetScale();
     Float msc = GetMaxScale();
@@ -96,6 +133,7 @@ namespace xmde
       atoms_quality(14),
       nRange(50),XCenter(0.0),YCenter(0.0),ZCenter(0.0),
       mdt(),
+      xvaList(xvas),
       FixedLights(false),
       old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0), MM_orig(true),
       selectedIndex(0)
