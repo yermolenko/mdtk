@@ -729,12 +729,14 @@ set output \"" << fnb.str() << ".eps\"\n\
 set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
 \n\
 set xlabel \"Энергия поступательного движения, эВ\"\n\
-set ylabel \"Энергия вращательного движения вокруг оси "<< rotDir << ", эВ\"\n \n\
+set ylabel \"Энергия вращательного движения вокруг оси "<< rotDir << ", эВ\"\n\
+set zlabel \"z-координата центра масс, Å\"\n\
+\n\
 set xtics mirror (\"50\" 0, \"100\" 1, \"200\" 2,\"300\" 3,\"400\" 4)\n\
 set ytics mirror (\"0\" 0, \"10\" 1, \"50\"  2, \"100\" 3)\n\
 \n\
 set border 4095\n\
-set pm3d map interpolate 10,10\n\
+set pm3d map interpolate 100,100\n\
 #set pm3d map\n\
 set palette gray negative\n\
 #set samples 100; set isosamples 100\n\
