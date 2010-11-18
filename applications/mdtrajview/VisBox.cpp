@@ -125,6 +125,9 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     edgeColor(combineRGB(255,255,255)),
     bgColor(combineRGB(255,255,255)),
     showAxes(true),
+    showCTree(false),
+    showAllTimes(false),
+    showAtoms(true),
     showBath(false),
     showSelected(false),
     showBarrier(false),
@@ -330,9 +333,10 @@ VisBox::drawObjects()
     glEnable(GL_LIGHTING);
   }
   glEnable(GL_LIGHTING);
-  if (showAxes)
+  if (showAtoms)
     listVertexes();
-  listCTree();
+  if (showCTree)
+    listCTree();
   if (showAxes)
   {
     glDisable(GL_LIGHTING);

@@ -70,7 +70,10 @@ class MainWindow : public Fl_Window
   std::string product_info;
 
   Fl_Light_Button
-  *btn_show_axes,
+  *btn_show_atoms,
+    *btn_show_ctree,
+    *btn_show_alltimes,
+    *btn_show_axes,
     *btn_show_bath,
     *btn_show_selected,
     *btn_rescale,
@@ -126,12 +129,12 @@ class MainWindow : public Fl_Window
   Fl_Roller			*roll_y;
   Fl_Roller			*roll_z;
 
-  Fl_Slider       *val_xmin,
-    *val_xmax,
-    *val_ymin,
-    *val_ymax,
-    *val_zmin,
-    *val_zmax;
+  Fl_Slider  *val_xmin;
+  Fl_Slider  *val_xmax;
+  Fl_Slider  *val_ymin;
+  Fl_Slider  *val_ymax;
+  Fl_Slider  *val_zmin;
+  Fl_Slider  *val_zmax;
 
   Fl_Counter       *animate_delay;
   Fl_Counter       *energy_threshold;
@@ -156,6 +159,9 @@ class MainWindow : public Fl_Window
   static void atom_quality_cb(Fl_Widget *, void *);
   static void energy_threshold_cb(Fl_Widget *, void *);
 
+  static void btn_show_alltimes_cb(Fl_Widget *, void *);
+  static void btn_show_ctree_cb(Fl_Widget *, void *);
+  static void btn_show_atoms_cb(Fl_Widget *, void *);
   static void btn_show_axes_cb(Fl_Widget *, void *);
   static void btn_show_bath_cb(Fl_Widget *, void *);
   static void btn_show_selected_cb(Fl_Widget *, void *);

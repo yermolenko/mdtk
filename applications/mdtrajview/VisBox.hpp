@@ -50,6 +50,9 @@ public:
   bool allowRescale;
   unsigned long vertexColor,edgeColor,bgColor;
   bool showAxes;
+  bool showCTree;
+  bool showAllTimes;
+  bool showAtoms;
   bool showBath;
   bool showSelected;
   bool showBarrier;

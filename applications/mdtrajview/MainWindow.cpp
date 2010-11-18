@@ -192,7 +192,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   Fl_Box* rollBoxCTree = new Fl_Box(FL_EMBOSSED_FRAME,695,35,270,280,"Collision Tree");
   rollBoxCTree->align(FL_ALIGN_TOP | FL_ALIGN_INSIDE);
 
-  energy_threshold = new Fl_Counter(695+15, 60+20+26, 150, 26, "Energy Threshold, eV");
+  energy_threshold = new Fl_Counter(695+15, 40+20+26+26+26, 150, 26, "Energy Threshold, eV");
   energy_threshold->labelsize(12);
   energy_threshold->minimum(1);
   energy_threshold->maximum(900);
@@ -202,12 +202,19 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   energy_threshold->align(FL_ALIGN_TOP);
 //    energy_threshold->type(FL_SIMPLE_COUNTER);
   energy_threshold->callback((Fl_Callback*)energy_threshold_cb);
-/*
-  btn_show_ctree = new Fl_Light_Button(160,420,165,30,"Show Collision Tree");
-  btn_show_ctree->tooltip(btn_show_axes_tooltip);
-  btn_show_ctree->callback((Fl_Callback*)btn_show_axes_cb);
-  btn_show_ctree->value(atoms_view_box->GetCTreeState());
-*/
+
+  btn_show_atoms = new Fl_Light_Button(695+15, 40+20, 150, 26,"Show Atoms");
+  btn_show_atoms->callback((Fl_Callback*)btn_show_atoms_cb);
+  btn_show_atoms->value(atoms_view_box->showAtoms);
+
+  btn_show_ctree = new Fl_Light_Button(695+15, 40+20+26, 150, 26,"Show Tree");
+  btn_show_ctree->callback((Fl_Callback*)btn_show_ctree_cb);
+  btn_show_ctree->value(atoms_view_box->showCTree);
+
+  btn_show_alltimes = new Fl_Light_Button(695+15, 40+20+26+26, 150, 26,"Show All Times");
+  btn_show_alltimes->callback((Fl_Callback*)btn_show_alltimes_cb);
+  btn_show_alltimes->value(atoms_view_box->showAllTimes);
+
   btn_show_axes = new Fl_Light_Button(160,420,165,30,"Show axes");
   btn_show_axes->tooltip(btn_show_axes_tooltip);
   btn_show_axes->callback((Fl_Callback*)btn_show_axes_cb);
@@ -699,6 +706,42 @@ MainWindow::btn_show_axes_cb(Fl_Widget *w, void *)
   bool v = ((Fl_Light_Button *)w)->value();
   MainWindow_Ptr->atoms_view_box->showAxes = v;
   MainWindow_Ptr->atoms_view_box->showBarrier = v;
+  MainWindow_Ptr->atoms_view_box->redraw();
+}
+
+void
+MainWindow::btn_show_atoms_cb(Fl_Widget *w, void *)
+{
+  MainWindow* MainWindow_Ptr;
+  MainWindow_Ptr =
+    (MainWindow*)(w->parent()->parent()->parent());
+
+  bool v = ((Fl_Light_Button *)w)->value();
+  MainWindow_Ptr->atoms_view_box->showAtoms = v;
+  MainWindow_Ptr->atoms_view_box->redraw();
+}
+
+void
+MainWindow::btn_show_ctree_cb(Fl_Widget *w, void *)
+{
+  MainWindow* MainWindow_Ptr;
+  MainWindow_Ptr =
+    (MainWindow*)(w->parent()->parent()->parent());
+
+  bool v = ((Fl_Light_Button *)w)->value();
+  MainWindow_Ptr->atoms_view_box->showCTree = v;
+  MainWindow_Ptr->atoms_view_box->redraw();
+}
+
+void
+MainWindow::btn_show_alltimes_cb(Fl_Widget *w, void *)
+{
+  MainWindow* MainWindow_Ptr;
+  MainWindow_Ptr =
+    (MainWindow*)(w->parent()->parent()->parent());
+
+  bool v = ((Fl_Light_Button *)w)->value();
+  MainWindow_Ptr->atoms_view_box->showAllTimes = v;
   MainWindow_Ptr->atoms_view_box->redraw();
 }
 
