@@ -105,6 +105,7 @@ VisBox::loadNewSnapshot(std::string base_state_filename,std::string file)
     {
       *(ml_->atoms[i]) = atoms[i];
     }
+    ml_->simTime = t->first;
   }
 
   Float sc = scale;
@@ -584,6 +585,9 @@ VisBox::listCTree()
   MDTrajectory::const_iterator t = mdt.begin();
   while (t != mdt.end())
   {
+    if (!showAllTimes && t->first > ml_->simTime)
+      break;
+
     const std::vector<Atom>& atoms = t->second;
     for(size_t i = 0; i < atoms.size(); ++i)
     {
@@ -618,9 +622,9 @@ VisBox::listCTree()
 	glPopMatrix();
       }
     }
+
     ++t;
   }
-  
 }
 
 void
