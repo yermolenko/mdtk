@@ -172,7 +172,15 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
       TRACE(fileList[i]);
     }
 
-  fileList.resize(500);
+  std::vector<std::string> fileList_tmp = fileList;
+  fileList.clear();
+  for(size_t i = 0; i < fileList_tmp.size(); ++i)
+  {
+    if (i % 10 == 0) fileList.push_back(fileList_tmp[i]);
+  }
+
+  const size_t maxsize = 2000;
+  if (fileList.size() > maxsize) fileList.resize(maxsize);
 
   xmde::VisBox avb(15,35,500,500,baseFile,fileList);
   avb.set_non_modal();
