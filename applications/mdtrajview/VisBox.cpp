@@ -179,7 +179,7 @@ namespace xmde
     size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
 
     MDTrajectory_read(mdt,base_state_filename,xvas);
-    ctree = new CollisionTree(*(ml_->atoms.back()),mdt.begin(),mdt);
+//    ctree = new CollisionTree(*(ml_->atoms.back()),mdt.begin(),mdt);
 
     callback(window_cb);
   }
@@ -353,7 +353,8 @@ namespace xmde
 	glEnable(GL_LIGHTING);
       }
     glEnable(GL_LIGHTING);
-    Vertexes_List();
+    if (EnableAxes)
+      Vertexes_List();
     CoolEdges_List();
     if (EnableAxes)
       {
@@ -453,83 +454,67 @@ namespace xmde
     glEnd();
   }
 
-  void VisBox::Vertexes_List()
+void VisBox::Vertexes_List()
+{
+  size_t i;
+  GLUquadricObj *quadObj;
+  Color c;
+  for(i=0;i<R.size();i++)
   {
-    size_t i;
-    GLUquadricObj *quadObj;
-    for(i=0;i<R.size();i++)
+    glPushMatrix();
+    switch (NativeVertexColors)
+    {
+    case false: 
+      c = VertexColor;
+      break;
+    case true:  
+      switch (R[i]->ID)
       {
-	glPushMatrix();
-	switch (NativeVertexColors)
-	  {
-	  case false: 
-	    myglColor(VertexColor);
-	    break;
-	  case true:  
-	    if (i!=selectedIndex)
-	      {
-		if ((R[i]->coords-R[selectedIndex]->coords).module() < 5.5*mdtk::Ao
+      case H_EL:  c = (0x00FF00); break; 
+      case C_EL:  c = (0x0000FF); break; 
+      case Ar_EL: c = (0xFF00FF); break; 
+      case Cu_EL: c = (0x00FFFF); break; 
+      case Ag_EL: c = (0x00FFFF); break; 
+      case Au_EL: c = (0x00FFFF); break; 
+      default: c = R[i]->tag;
+      };
 
-		    && ShowSelected)
-		  {
-		    myglColor(0x777777);
-		    if ((R[i]->coords-R[selectedIndex]->coords).module() < 2.5*mdtk::Ao)
-		      myglColor(0xFFFF00);
-		  }  
-		else
-		  {
-		    switch (R[i]->ID)
-		      {
-		      case H_EL:  myglColor(0x00FF00); break; 
-		      case C_EL:  myglColor(0x00FF0); break; 
-		      case Ar_EL: myglColor(0xFF00FF); break; 
-		      case Cu_EL: if (R[i]->tag!=65535-2) myglColor(0x0FFFF); else myglColor(0x0FFDF); break; 
-		      case Ag_EL: if (R[i]->tag!=65535-2) myglColor(0x0FFFF); else myglColor(0x0FFDF); break; 
-		      case Au_EL: if (R[i]->tag!=65535-2) myglColor(0x0FFFF); else myglColor(0x0FFDF); break; 
-		      default:
-			myglColor(R[i]->tag);
-		      };
-		    if (R[i]->tag & 4) myglColor(0xFF00FF);
-		  }
-	      }  
-	    else  
-	      {
-		if (ShowSelected)
-		  myglColor(0xFFFFFF);
-		else
-		    switch (R[i]->ID)
-		      {
-		      case H_EL:  myglColor(0x00FF00); break; 
-		      case C_EL:  myglColor(0x00FF0); break; 
-		      case Ar_EL: myglColor(0xFF00FF); break; 
-		      case Cu_EL: if (R[i]->tag!=65535-2) myglColor(0x0FFFF); else myglColor(0x0FFDF); break; 
-		      case Ag_EL: if (R[i]->tag!=65535-2) myglColor(0x0FFFF); else myglColor(0x0FFDF); break; 
-		      case Au_EL: if (R[i]->tag!=65535-2) myglColor(0x0FFFF); else myglColor(0x0FFDF); break; 
-		      default:
-			myglColor(R[i]->tag);
-		      };
-	      }  
-	    break;
-	  }
-	if (atoms_quality > 2)
+      if (ShowSelected)
+      {
+	if (i!=selectedIndex)
+	{
+	  if ((R[i]->coords-R[selectedIndex]->coords).module() < 5.5*mdtk::Ao)
 	  {
-	    quadObj = gluNewQuadric ();
-	    gluQuadricDrawStyle (quadObj, GLU_FILL);
-	    glTranslated(R[i]->coords.x,R[i]->coords.y,R[i]->coords.z);
-	    gluSphere (quadObj,VertexRadius*pow(((R[i]->M < 1000.0*amu/*!=INFINITE_MASS*/)?(R[i]->M):(0.5*mdtk::amu))/mdtk::amu,1.0/3.0),
-		       atoms_quality, atoms_quality);
-	    gluDeleteQuadric(quadObj);
-	  }
-	else
-	  {
-	    glPointSize(VertexRadius*Scale);
-	    glBegin(GL_POINTS);
-	    glVertex3d(R[i]->coords.x,R[i]->coords.y,R[i]->coords.z);
-	    glEnd();
-	  }
-	glPopMatrix();
+	    c = (0x777777);
+	    if ((R[i]->coords-R[selectedIndex]->coords).module() < 2.5*mdtk::Ao)
+	      c = (0xFFFF00);
+	  }  
+	}  
+	else  
+	  c = (0xFFFFFF);
       }
+    }
+    myglColor(c);
+
+    if (atoms_quality > 2)
+    {
+      quadObj = gluNewQuadric ();
+      gluQuadricDrawStyle (quadObj, GLU_FILL);
+      glTranslated(R[i]->coords.x,R[i]->coords.y,R[i]->coords.z);
+      gluSphere (quadObj,VertexRadius*pow(((R[i]->M < 1000.0*amu/*!=INFINITE_MASS*/)?(R[i]->M):(0.5*mdtk::amu))/mdtk::amu,1.0/3.0),
+		 atoms_quality, atoms_quality);
+      gluDeleteQuadric(quadObj);
+    }
+    else
+    {
+      glPointSize(VertexRadius*Scale);
+      glBegin(GL_POINTS);
+      glVertex3d(R[i]->coords.x,R[i]->coords.y,R[i]->coords.z);
+      glEnd();
+    }
+    glPopMatrix();
   }
+}
 
 Vector3D
 _vectorMul(const Vector3D& a, const Vector3D& b)
@@ -592,12 +577,49 @@ void VisBox::CTree_List(CollisionTree* ct)
 
 void VisBox::CoolEdges_List()
 {
-  CTree_List(ctree);
+//  CTree_List(ctree);
 /*
   size_t i = 0;
   size_t j = 10695;
   Draw_Edge(R[i]->coords,R[j]->coords,0xFF0000);
 */
+  MDTrajectory::const_iterator t = mdt.begin();
+  while (t != mdt.end())
+  {
+    const std::vector<Atom>& atoms = t->second;
+    for(size_t i = 0; i < atoms.size(); ++i)
+    {
+      const Atom& a = atoms[i];
+      Float Ek = a.M*SQR(a.V.module())/2.0;
+      if (Ek > 10.0*eV)
+      {
+	Color c;
+	switch (R[i]->ID)
+	{
+	case H_EL:  c = (0x00FF00); break; 
+	case C_EL:  c = (0x0000FF); break; 
+	case Ar_EL: c = (0xFF00FF); break; 
+	case Cu_EL: c = (0x00FFFF); break; 
+	case Ag_EL: c = (0x00FFFF); break; 
+	case Au_EL: c = (0x00FFFF); break; 
+	default: c = R[i]->tag;
+	}
+	myglColor(c);
+	glPushMatrix();
+	GLUquadricObj *quadObj;
+	quadObj = gluNewQuadric ();
+	gluQuadricDrawStyle (quadObj, GLU_FILL);
+	glTranslated(a.coords.x,a.coords.y,a.coords.z);
+	gluSphere (quadObj,VertexRadius*pow(((a.M < 1000.0*amu/*!=INFINITE_MASS*/)?(a.M):(0.5*mdtk::amu))/mdtk::amu,1.0/3.0),
+		   4, 4);
+	gluDeleteQuadric(quadObj);
+	glPopMatrix();
+      }
+    }
+    ++t;
+//    REQUIRE(a.container == NULL);
+  }
+  
 }
 
   void VisBox::SetupLighting()
