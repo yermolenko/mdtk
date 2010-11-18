@@ -419,12 +419,17 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
 
   atoms_view_box->allowRescale = false;
   atoms_view_box->reArrange(-1,101,-1,101,-1,101);
-  atoms_view_box->redraw();;
+  atoms_view_box->redraw();
 
-  /*
-    roll_x->value(-90.0);
-    roll_x_cb(roll_x, NULL);
-  */
+/*
+  atoms_view_box->rollAround(90,1,0,0);
+  atoms_view_box->redraw();
+*/
+
+/*
+  roll_x->value(90.0);
+  roll_x_cb(roll_x, NULL);
+*/  
   callback(window_cb);
   if (btn_animate->value()) Fl::add_timeout(1.0, timer_callback);
 }
