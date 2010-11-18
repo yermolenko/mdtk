@@ -312,7 +312,7 @@ Atom::Atom( const Atom &C )
   fixed = C.fixed;
 
   container = NULL;//C.container;
-  container = C.container;
+//  container = C.container;
 }
 
 inline
@@ -336,7 +336,7 @@ Atom::operator =(const Atom &C)
     globalIndex = C.globalIndex;
 
     container = NULL;//C.container;
-    container = C.container;
+//    container = C.container;
 
   return *this;
 }

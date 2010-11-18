@@ -179,7 +179,7 @@ namespace xmde
     size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
 
     MDTrajectory_read(mdt,base_state_filename,xvas);
-//    ctree = new CollisionTree(*ml_->atoms.back(),mdt.begin(),mdt);
+    ctree = new CollisionTree(*(ml_->atoms.back()),mdt.begin(),mdt);
 
     callback(window_cb);
   }
@@ -571,18 +571,33 @@ void VisBox::Draw_Edge(const Vector3D& vi, const Vector3D& vj, unsigned int colo
 
 void VisBox::CTree_List(CollisionTree* ct)
 {
-  int i,j;
-  
-//  Atom& a1 = ct->a;
-//  Atom& a2 = ;
+  Atom& a = ct->a;
+  if (ct->t1)
+  {
+    Atom& a1 = ct->t1->a;
+    Draw_Edge(a.coords,a1.coords,0xFF0000);
+    TRACE(a.globalIndex);
+    TRACE(a1.globalIndex);
+    CTree_List(ct->t1);
+  }
+  if (ct->t2)
+  {
+    Atom& a2 = ct->t2->a;
+    Draw_Edge(a.coords,a2.coords,0xFF0000);
+    TRACE(a.globalIndex);
+    TRACE(a2.globalIndex);
+    CTree_List(ct->t2);
+  }
 }
 
 void VisBox::CoolEdges_List()
 {
-//  CTree_List(ctree);
+  CTree_List(ctree);
+/*
   size_t i = 0;
   size_t j = 10695;
   Draw_Edge(R[i]->coords,R[j]->coords,0xFF0000);
+*/
 }
 
   void VisBox::SetupLighting()

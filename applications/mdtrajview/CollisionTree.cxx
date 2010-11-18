@@ -32,7 +32,7 @@ void getAtomsFromSimLoop(const SimLoop& ml, std::vector<Atom>& atoms)
   for(size_t i = 0; i < ml.atoms.size(); ++i)
   {
     atoms.push_back(*(ml.atoms[i]));
-    atoms.back().container = NULL;
+//    atoms.back().container = NULL;
   }
 }
 
@@ -42,7 +42,7 @@ void updateAtomsFromSimLoop(const SimLoop& ml, std::vector<Atom>& atoms)
   for(size_t i = 0; i < ml.atoms.size(); ++i)
   {
     atoms[i] = *(ml.atoms[i]);
-    atoms[i].container = NULL;
+//    atoms[i].container = NULL;
   }
 }
 
@@ -107,6 +107,7 @@ Atom getNearestAtom(const Atom& a,const std::vector<Atom>& atoms)
   {
     const Atom& ai = atoms[i];
     if (ai.globalIndex == a.globalIndex) atomFound++;
+    if (ai.globalIndex == a.globalIndex) continue;
     Float d = depos(ai,a).module();
     if (d < dmin)
     {
@@ -124,25 +125,43 @@ CollisionTree::CollisionTree(const Atom& atom,
 			     const MDTrajectory& mdt)
   :a(atom),t(time->first),t1(NULL),t2(NULL)
 {
+  if (a.globalIndex != 10695) return;
+  TRACE("*******BEGIN*******");
+  TRACE(time->first/ps);
+  TRACE(a.globalIndex);
   if (time == mdt.end()) return;
   Float distance = 10000.0*Ao;
   Atom an;
   MDTrajectory::const_iterator t = time;
   while (t != mdt.end())
   {
+    a = t->second[a.globalIndex];
     an = getNearestAtom(a,t->second);
+    ++t;
+//    TRACE(an.globalIndex);
+//    TRACE(distance/Ao);
     REQUIRE(a.container == NULL);
     REQUIRE(an.container == NULL);
+//    TRACE(t->first/ps);
+//    TRACE(depos(a,an).module()/Ao);
+//    TRACE(distance/Ao);
+    
+//    TRACE(depos(a,an).module() > distance && distance < 3.0*Ao);
     if (depos(a,an).module() > distance && distance < 3.0*Ao)
       break;
     distance = depos(a,an).module();
-    ++t;
   }
+  TRACE(t != mdt.end());
+  TRACE(t->first/ps);
+  TRACE(an.globalIndex);
+  TRACE(depos(a,an).module()/Ao);
+
   if (t != mdt.end())
   {
     t1 = new CollisionTree(a, t,mdt);
     t2 = new CollisionTree(an,t,mdt);
   }
+  TRACE("*******END*******");
 }
 
 }
