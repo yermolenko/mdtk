@@ -137,7 +137,8 @@ namespace xmde
       ctree(NULL),
       FixedLights(false),
       old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0), MM_orig(true),
-      selectedIndex(0)
+      selectedIndex(0),
+      EnergyThreshold(10.0)
   {
     mode(FL_RGB | FL_DOUBLE | FL_ACCUM | FL_ALPHA | FL_DEPTH | FL_MULTISAMPLE);
     nRange = 50;
@@ -591,7 +592,7 @@ void VisBox::CoolEdges_List()
     {
       const Atom& a = atoms[i];
       Float Ek = a.M*SQR(a.V.module())/2.0;
-      if (Ek > 10.0*eV)
+      if (Ek > EnergyThreshold*eV)
       {
 	Color c;
 	switch (R[i]->ID)
@@ -763,6 +764,12 @@ void VisBox::CoolEdges_List()
   void VisBox::SetAxesState(bool State)
   {
     EnableAxes=State;
+    this->redraw();
+  }
+
+  void VisBox::SetEnergyThreshold(Float et)
+  {
+    EnergyThreshold=et;
     this->redraw();
   }
 

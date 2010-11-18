@@ -138,6 +138,7 @@ namespace xmde
       *val_zmax;
 
     Fl_Counter       *animate_delay;
+    Fl_Counter       *energy_threshold;
                   
     Fl_Slider       *atom_quality;
 
@@ -157,6 +158,7 @@ namespace xmde
     static void val_xmin_cb(Fl_Widget *, void *);
 
     static void atom_quality_cb(Fl_Widget *, void *);
+    static void energy_threshold_cb(Fl_Widget *, void *);
 
     static void btn_show_axes_cb(Fl_Widget *, void *);
     static void btn_show_bath_cb(Fl_Widget *, void *);

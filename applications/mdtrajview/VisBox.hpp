@@ -126,6 +126,9 @@ namespace xmde
 
     void SetData(mdtk::SimLoop &);
 
+    Float EnergyThreshold;
+    void SetEnergyThreshold(Float et);
+
     void SetFixedLightsState(bool);
     bool GetFixedLightsState();
     void SetAxesState(bool State);

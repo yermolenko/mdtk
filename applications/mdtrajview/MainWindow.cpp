@@ -190,6 +190,17 @@ namespace xmde
     animate_delay->align(FL_ALIGN_LEFT);
     animate_delay->type(FL_SIMPLE_COUNTER);
 
+    energy_threshold = new Fl_Counter(415, 422, 150, 26, "ET");
+    energy_threshold->labelsize(12);
+    energy_threshold->minimum(1);
+    energy_threshold->maximum(900);
+    energy_threshold->value(10);
+    energy_threshold->lstep(10);
+    energy_threshold->step(1);
+    energy_threshold->align(FL_ALIGN_LEFT);
+//    energy_threshold->type(FL_SIMPLE_COUNTER);
+    energy_threshold->callback((Fl_Callback*)energy_threshold_cb);
+
     btn_show_axes = new Fl_Light_Button(160,420,165,30,"Show axes");
     btn_show_axes->tooltip(btn_show_axes_tooltip);
     btn_show_axes->callback((Fl_Callback*)btn_show_axes_cb);
@@ -636,6 +647,16 @@ namespace xmde
 
     MainWindow_Ptr->atoms_view_box->SetAtomsQuality(
                      int(MainWindow_Ptr->atom_quality->value()));
+  }
+
+  void MainWindow::energy_threshold_cb(Fl_Widget *w, void *)
+  {
+    MainWindow* MainWindow_Ptr;
+    MainWindow_Ptr =
+      (MainWindow*)(w->parent()->parent()->parent());
+
+    MainWindow_Ptr->atoms_view_box->SetEnergyThreshold(
+                     int(MainWindow_Ptr->energy_threshold->value()));
   }
 
   void MainWindow::btn_fixed_lights_cb(Fl_Widget *w, void *)
