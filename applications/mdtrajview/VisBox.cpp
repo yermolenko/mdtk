@@ -32,56 +32,48 @@
 namespace xmde
 {
 
-  using namespace mdtk;
+using namespace mdtk;
 
+void
+VisBox::loadNewSnapshot(std::string base_state_filename,std::string file)
+{
+  using mdtk::Exception;
 
-  void
-  VisBox::selectAtom(size_t index)
+  TRACE(file);
+
+  std::vector<std::string>::iterator xvai = 
+    std::find(xvaList.begin(),xvaList.end(),file);
+
+  REQUIRE(xvai != xvaList.end());
+
+  if (xvai == xvaList.begin())
   {
-    selectedIndex = index;
-    redraw();
-  }  
-
-  void
-  VisBox::loadNewML(std::string base_state_filename,std::string file)
-  {
-    using mdtk::Exception;
-
-    TRACE(file);
-
-    std::vector<std::string>::iterator xvai = 
-      std::find(xvaList.begin(),xvaList.end(),file);
-
-    REQUIRE(xvai != xvaList.end());
-
-    if (xvai == xvaList.begin())
-    {
     
-      TRACE("*********LOADING INITIAL STATE *******");
+    TRACE("*********LOADING INITIAL STATE *******");
     
     TRACE(base_state_filename);
 
     if (base_state_filename.find("simloop.conf") != std::string::npos) 
-      {
-	ml_->loadstate();
-      }
+    {
+      ml_->loadstate();
+    }
     else
+    {
+      yaatk::text_ifstream fi(base_state_filename.c_str()); 
+
+      ml_->initNLafterLoading = false;
+
+      if (base_state_filename.find("mde_init") != std::string::npos)
+	ml_->loadFromStream(fi);
+      else
       {
-	yaatk::text_ifstream fi(base_state_filename.c_str()); 
-
-	ml_->initNLafterLoading = false;
-
-	if (base_state_filename.find("mde_init") != std::string::npos)
-	  ml_->loadFromStream(fi);
-	else
-        {
-	  ml_->loadFromMDE(fi);
+	ml_->loadFromMDE(fi);
 //	  ml_->loadFromMDE_OLD(fi);
-          ml_->allowPartialLoading = true; // hack, disables essential checks
-          ml_->updateGlobalIndexes();
-        }
-	fi.close(); 
+	ml_->allowPartialLoading = true; // hack, disables essential checks
+	ml_->updateGlobalIndexes();
       }
+      fi.close(); 
+    }
     {
       yaatk::text_ifstream fixva(file.c_str()); 
       ml_->loadFromStreamXVA(fixva);
@@ -92,370 +84,365 @@ namespace xmde
 	fixva.close(); 
       */
     }
-
-    }
-    else
-    {
-      TRACE("********* UPDATING FROM MDT ***********");
-      MDTrajectory::const_iterator t = mdt.begin();
-      size_t xvaCount = 0;
-      TRACE(xvai-xvaList.begin());
-      while (xvaCount < xvai-xvaList.begin())
-      {
-	++t;
-	++xvaCount;
-      }
-      TRACE(xvaCount);
-      const std::vector<Atom>& atoms = t->second;
-      TRACE(atoms.size());
-      TRACE(ml_->atoms.size());
-      REQUIRE(atoms.size() == ml_->atoms.size());
-      for(size_t i = 0; i < ml_->atoms.size(); ++i)
-      {
-	*(ml_->atoms[i]) = atoms[i];
-      }
-    }
-
-    Float sc = GetScale();
-    Float msc = GetMaxScale();
-
-    SetData(*ml_);
-
-    if (GetMaxScale() < msc) SetMaxScale(msc);
-    SetScale(sc);
-
-  }  
-
-  VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
-		 const std::vector<std::string>& xvas)
-    : Fl_Gl_Window(x,y,w,h,"MDTK Trajectory Viewer - 3D View"),
-      alloweRescale(true),
-      atoms_quality(14),
-      nRange(50),XCenter(0.0),YCenter(0.0),ZCenter(0.0),
-      mdt(),
-      xvaList(xvas),
-      ctree(NULL),
-      FixedLights(false),
-      old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0), MM_orig(true),
-      selectedIndex(0),
-      EnergyThreshold(10.0)
+  }
+  else
   {
-    mode(FL_RGB | FL_DOUBLE | FL_ACCUM | FL_ALPHA | FL_DEPTH | FL_MULTISAMPLE);
-    nRange = 50;
-    EnableAxes=true;
-    EnableBath=false;
-    ShowSelected = false;
-    NativeVertexColors = true;
-    VertexColor = CombineRGB(255,255,255);
-    BGColor = CombineRGB(255,255,255);
-    min_ind = 0,max_ind = 0;
-    end();
+    TRACE("********* UPDATING FROM MDT ***********");
+    MDTrajectory::const_iterator t = mdt.begin();
+    size_t xvaCount = 0;
+    TRACE(xvai-xvaList.begin());
+    while (xvaCount < xvai-xvaList.begin())
+    {
+      ++t;
+      ++xvaCount;
+    }
+    TRACE(xvaCount);
+    const std::vector<Atom>& atoms = t->second;
+    TRACE(atoms.size());
+    TRACE(ml_->atoms.size());
+    REQUIRE(atoms.size() == ml_->atoms.size());
+    for(size_t i = 0; i < ml_->atoms.size(); ++i)
+    {
+      *(ml_->atoms[i]) = atoms[i];
+    }
+  }
 
-    light0_dir[0] = 1.0;
-    light0_dir[1] = 1.0;
-    light0_dir[2] = 1.0;
-    light0_dir[3] = 0.0;
+  Float sc = scale;
+  Float msc = maxScale;
 
-    using mdtk::Exception;
+  setData(*ml_);
 
-    ml_ = new mdtk::SimLoop();
+  if (maxScale < msc) maxScale = msc;
+  scale = sc;
+  redraw();
+}  
 
-    setupPotentials(*ml_);
-    if (base_state_filename.find("simloop.conf") != std::string::npos) 
-      {
-	ml_->loadstate();
-      }
+VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
+	       const std::vector<std::string>& xvas)
+  : Fl_Gl_Window(x,y,w,h,"MDTK Trajectory Viewer - 3D View"),
+    allowRescale(true),
+    vertexColor(combineRGB(255,255,255)),
+    edgeColor(combineRGB(255,255,255)),
+    bgColor(combineRGB(255,255,255)),
+    showAxes(true),
+    showBath(false),
+    showSelected(false),
+    showBarrier(false),
+    nativeVertexColors(true),
+    fixedLights(false),
+    energyThreshold(10.0),
+    nRange(50),
+    vertexRadius(1.0), axesRadius(1.0), scale(1.0), maxScale(1.0),
+    atomsQuality(14),
+    selectedAtomIndex(0),
+    R(),Ro(),
+    ml_(NULL),
+    mdt(),
+    xvaList(xvas),
+    ctree(NULL),
+    zbar(0.0),
+    old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0), MM_orig(true)
+{
+  mode(FL_RGB | FL_DOUBLE | FL_ACCUM | FL_ALPHA | FL_DEPTH | FL_MULTISAMPLE);
+  end();
+
+  light0_dir[0] = 1.0;
+  light0_dir[1] = 1.0;
+  light0_dir[2] = 1.0;
+  light0_dir[3] = 0.0;
+
+  using mdtk::Exception;
+
+  ml_ = new mdtk::SimLoop();
+
+  setupPotentials(*ml_);
+  if (base_state_filename.find("simloop.conf") != std::string::npos) 
+  {
+    ml_->loadstate();
+  }
+  else
+  {
+    ml_->initNLafterLoading = false;
+    yaatk::text_ifstream fi(base_state_filename.c_str()); 
+    if (base_state_filename.find("mde_init") != std::string::npos)
+      ml_->loadFromStream(fi);
     else
-      {
-	ml_->initNLafterLoading = false;
-	yaatk::text_ifstream fi(base_state_filename.c_str()); 
-	if (base_state_filename.find("mde_init") != std::string::npos)
-	  ml_->loadFromStream(fi);
-	else
-	  ml_->loadFromMDE(fi);
+      ml_->loadFromMDE(fi);
 //	  ml_->loadFromMDE_OLD(fi);
-	fi.close(); 
-      }
-    SetData(*ml_);
-    size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
+    fi.close(); 
+  }
+  setData(*ml_);
+  size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
 
-    MDTrajectory_read(mdt,base_state_filename,xvas);
+  MDTrajectory_read(mdt,base_state_filename,xvas);
 //    ctree = new CollisionTree(*(ml_->atoms.back()),mdt.begin(),mdt);
 
-    callback(window_cb);
-  }
+  callback(window_cb);
+}
 
+void
+VisBox::reArrange(double xmin, double xmax,
+		  double ymin, double ymax,
+		  double zmin, double zmax)
+{
+  double xmin_ = XMin+(XMax-XMin)*xmin;
+  double xmax_ = XMin+(XMax-XMin)*xmax;
+  double ymin_ = YMin+(YMax-YMin)*ymin;
+  double ymax_ = YMin+(YMax-YMin)*ymax;
+  double zmin_ = ZMin+(ZMax-ZMin)*zmin;
+  double zmax_ = ZMin+(ZMax-ZMin)*zmax;
 
-  void	VisBox::SetScale(double new_scale)
-  {
-    Scale = new_scale;
-    this->redraw();
-  }
-
-  void	VisBox::SetMaxScale(double new_scale)
-  {
-    MaxScale = new_scale;
-    this->redraw();
-  }
-
-  double	VisBox::GetMaxScale()
-  {
-    return MaxScale;
-  }
-  double	VisBox::GetScale()
-  {
-    return Scale;
-  }
-
-  void  VisBox::ReArrange(double xmin, double xmax,
-			  double ymin, double ymax,
-			  double zmin, double zmax)
-  {
-    double xmin_ = XMin+(XMax-XMin)*xmin;
-    double xmax_ = XMin+(XMax-XMin)*xmax;
-    double ymin_ = YMin+(YMax-YMin)*ymin;
-    double ymax_ = YMin+(YMax-YMin)*ymax;
-    double zmin_ = ZMin+(ZMax-ZMin)*zmin;
-    double zmax_ = ZMin+(ZMax-ZMin)*zmax;
-
-    int i;
-    int VC = Ro.size();
+  int i;
+  int VC = Ro.size();
 	
-    R.resize(0);
+  R.resize(0);
 	
-    for(i=0;i<VC;i++)
+  for(i=0;i<VC;i++)
+  {
+    if (Ro[i]->coords.x >= xmin_ && Ro[i]->coords.x <= xmax_ &&
+	Ro[i]->coords.y >= ymin_ && Ro[i]->coords.y <= ymax_ &&
+	Ro[i]->coords.z >= zmin_ && Ro[i]->coords.z <= zmax_)
+    {
+      R.push_back(Ro[i]);
+    }
+  };	
+
+  GLdouble /*DistMin,*/DistMax,XMin,XMax,YMin,YMax,ZMin,ZMax;
+	
+  VC = R.size();
+	
+  XMin=R[0]->coords.x;
+  XMax=R[0]->coords.x;
+  YMin=R[0]->coords.y;
+  YMax=R[0]->coords.y;
+  ZMin=R[0]->coords.z;
+  ZMax=R[0]->coords.z;
+  for(int i=0;i<VC;i++)
+  {
+    if (R[i]->coords.x<XMin)
+    {
+      XMin=R[i]->coords.x;
+    }
+    else
+      if (R[i]->coords.x>XMax)
       {
-	if (Ro[i]->coords.x >= xmin_ && Ro[i]->coords.x <= xmax_ &&
-	    Ro[i]->coords.y >= ymin_ && Ro[i]->coords.y <= ymax_ &&
-	    Ro[i]->coords.z >= zmin_ && Ro[i]->coords.z <= zmax_)
-	  {
-	    R.push_back(Ro[i]);
-	  }
-      };	
-
-    GLdouble /*DistMin,*/DistMax,XMin,XMax,YMin,YMax,ZMin,ZMax;
-	
-    VC = R.size();
-	
-    XMin=R[0]->coords.x;
-    XMax=R[0]->coords.x;
-    YMin=R[0]->coords.y;
-    YMax=R[0]->coords.y;
-    ZMin=R[0]->coords.z;
-    ZMax=R[0]->coords.z;
-    for(int i=0;i<VC;i++)
-      {
-	if (R[i]->coords.x<XMin)
-	  {
-	    XMin=R[i]->coords.x;
-	  }
-	else
-	  if (R[i]->coords.x>XMax)
-	    {
-	      XMax=R[i]->coords.x;
-	    };
-	if (R[i]->coords.y<YMin)
-	  {
-	    YMin=R[i]->coords.y;
-	  }
-	else
-	  if (R[i]->coords.y>YMax)
-	    {
-	      YMax=R[i]->coords.y;
-	    };
-	if (R[i]->coords.z<ZMin)
-	  {
-	    ZMin=R[i]->coords.z;
-	  }
-	else
-	  if (R[i]->coords.z>ZMax)
-	    {
-	      ZMax=R[i]->coords.z;
-	    };
+	XMax=R[i]->coords.x;
       };
+    if (R[i]->coords.y<YMin)
+    {
+      YMin=R[i]->coords.y;
+    }
+    else
+      if (R[i]->coords.y>YMax)
+      {
+	YMax=R[i]->coords.y;
+      };
+    if (R[i]->coords.z<ZMin)
+    {
+      ZMin=R[i]->coords.z;
+    }
+    else
+      if (R[i]->coords.z>ZMax)
+      {
+	ZMax=R[i]->coords.z;
+      };
+  };
 
-    if (alloweRescale)
-      {
-	XCenter=(XMin+XMax)/2;
-  	YCenter=(YMin+YMax)/2;
-  	ZCenter=(ZMin+ZMax)/2;
-      }	
-    /*DistMin=*/DistMax=sqrt(SQR(XMax-XMin)+SQR(YMax-YMin)+SQR(ZMax-ZMin));
-    //	VertexRadius=DistMin/4;
-    VertexRadius = 2.57*mdtk::Ao/2.0/3.0/2.0;
-    AxesRadius = VertexRadius/(3*4);
-    if (alloweRescale)
-      {
-	Scale=(2.0*nRange)/(DistMax+2.0*VertexRadius);
-      }  
-    MaxScale=2.0*(Scale);
-    redraw();
+  if (allowRescale)
+  {
+    XCenter=(XMin+XMax)/2;
+    YCenter=(YMin+YMax)/2;
+    ZCenter=(ZMin+ZMax)/2;
+  }	
+  /*DistMin=*/DistMax=sqrt(SQR(XMax-XMin)+SQR(YMax-YMin)+SQR(ZMax-ZMin));
+  //	VertexRadius=DistMin/4;
+  vertexRadius = 2.57*mdtk::Ao/2.0/3.0/2.0;
+  axesRadius = vertexRadius/(3*4);
+  if (allowRescale)
+  {
+    scale=(2.0*nRange)/(DistMax+2.0*vertexRadius);
   }  
+  maxScale=2.0*(scale);
+  redraw();
+}  
 
-  void VisBox::SetData(mdtk::SimLoop &ml)
-  {
-    zbar = ml.barrier.z;
-    Ro = ml.atoms_;
+void
+VisBox::setData(mdtk::SimLoop &ml)
+{
+  zbar = ml.barrier.z;
+  Ro = ml.atoms_;
 
-    int VC = Ro.size();
+  int VC = Ro.size();
 	
-    XMin=Ro[0]->coords.x;
-    XMax=Ro[0]->coords.x;
-    YMin=Ro[0]->coords.y;
-    YMax=Ro[0]->coords.y;
-    ZMin=Ro[0]->coords.z;
-    ZMax=Ro[0]->coords.z;
-    for(int i=0;i<VC;i++)
+  XMin=Ro[0]->coords.x;
+  XMax=Ro[0]->coords.x;
+  YMin=Ro[0]->coords.y;
+  YMax=Ro[0]->coords.y;
+  ZMin=Ro[0]->coords.z;
+  ZMax=Ro[0]->coords.z;
+  for(int i=0;i<VC;i++)
+  {
+    if (Ro[i]->coords.x<XMin)
+    {
+      XMin=Ro[i]->coords.x;
+    }
+    else
+      if (Ro[i]->coords.x>XMax)
       {
-	if (Ro[i]->coords.x<XMin)
-	  {
-	    XMin=Ro[i]->coords.x;
-	  }
-	else
-	  if (Ro[i]->coords.x>XMax)
-	    {
-	      XMax=Ro[i]->coords.x;
-	    };
-	if (Ro[i]->coords.y<YMin)
-	  {
-	    YMin=Ro[i]->coords.y;
-	  }
-	else
-	  if (Ro[i]->coords.y>YMax)
-	    {
-	      YMax=Ro[i]->coords.y;
-	    };
-	if (Ro[i]->coords.z<ZMin)
-	  {
-	    ZMin=Ro[i]->coords.z;
-	  }
-	else
-	  if (Ro[i]->coords.z>ZMax)
-	    {
-	      ZMax=Ro[i]->coords.z;
-	    };
+	XMax=Ro[i]->coords.x;
       };
-
-    ReArrange(-1,101,-1,101,-1,101);
-  }
-
-  void VisBox::draw_objects()
-  {
-    glPushMatrix();
-
-    glLightfv(GL_LIGHT0, GL_POSITION, light0_dir);
-
-    glScaled(Scale,Scale,Scale);
-    glTranslated(-XCenter, -YCenter, -ZCenter);
-    if (EnableBath)
+    if (Ro[i]->coords.y<YMin)
+    {
+      YMin=Ro[i]->coords.y;
+    }
+    else
+      if (Ro[i]->coords.y>YMax)
       {
-	glDisable(GL_LIGHTING);
-	ThermalBath_List();
-	glEnable(GL_LIGHTING);
-      }
+	YMax=Ro[i]->coords.y;
+      };
+    if (Ro[i]->coords.z<ZMin)
+    {
+      ZMin=Ro[i]->coords.z;
+    }
+    else
+      if (Ro[i]->coords.z>ZMax)
+      {
+	ZMax=Ro[i]->coords.z;
+      };
+  };
+
+  reArrange(-1,101,-1,101,-1,101);
+}
+
+void
+VisBox::drawObjects()
+{
+  glPushMatrix();
+
+  glLightfv(GL_LIGHT0, GL_POSITION, light0_dir);
+
+  glScaled(scale,scale,scale);
+  glTranslated(-XCenter, -YCenter, -ZCenter);
+  if (showBath)
+  {
+    glDisable(GL_LIGHTING);
+    listThermalBath();
     glEnable(GL_LIGHTING);
-    if (EnableAxes)
-      Vertexes_List();
-    CoolEdges_List();
-    if (EnableAxes)
-      {
-	glDisable(GL_LIGHTING);
-	Axes_List();
-	glEnable(GL_LIGHTING);
-      }
-    if (EnableBarrier)
-      {
-	glDisable(GL_LIGHTING);
-	Barrier_List();
-	glEnable(GL_LIGHTING);
-      }
-    glPopMatrix();
   }
-
-  void VisBox::Barrier_List()
+  glEnable(GL_LIGHTING);
+  if (showAxes)
+    listVertexes();
+  listCTree();
+  if (showAxes)
   {
-    glPushMatrix();
-    glColor4ub(127,127,127,127);
-    glBegin(GL_QUADS);
-    glVertex3d(XMax,YMax,zbar);
-    glVertex3d(XMin,YMax,zbar);
-    glVertex3d(XMin,YMin,zbar);
-    glVertex3d(XMax,YMin,zbar);
-    glEnd();
-    glBegin(GL_QUADS);
-    glVertex3d(XMax,YMin,zbar);
-    glVertex3d(XMin,YMin,zbar);
-    glVertex3d(XMin,YMax,zbar);
-    glVertex3d(XMax,YMax,zbar);
-    glEnd();
-    glPopMatrix();  
+    glDisable(GL_LIGHTING);
+    listAxes();
+    glEnable(GL_LIGHTING);
   }
-
-  void VisBox::ThermalBath_List()
+  if (showBarrier)
   {
-    Float tbXMin = ml_->thermalBath.dBoundary;
-    Float tbXMax = -ml_->thermalBath.dBoundary+ml_->getPBC().x;
-    Float tbYMin = ml_->thermalBath.dBoundary;
-    Float tbYMax = -ml_->thermalBath.dBoundary+ml_->getPBC().y;
-    Float tbZMin = ml_->thermalBath.zMinOfFreeZone;//ZMin;
-    Float tbZMax = ml_->thermalBath.zMin;
+    glDisable(GL_LIGHTING);
+    listBarrier();
+    glEnable(GL_LIGHTING);
+  }
+  glPopMatrix();
+}
 
-    glPushMatrix();
-    glColor4ub(0,227,127,127);
+void VisBox::listBarrier()
+{
+  glPushMatrix();
+  glColor4ub(127,127,127,127);
+  glBegin(GL_QUADS);
+  glVertex3d(XMax,YMax,zbar);
+  glVertex3d(XMin,YMax,zbar);
+  glVertex3d(XMin,YMin,zbar);
+  glVertex3d(XMax,YMin,zbar);
+  glEnd();
+  glBegin(GL_QUADS);
+  glVertex3d(XMax,YMin,zbar);
+  glVertex3d(XMin,YMin,zbar);
+  glVertex3d(XMin,YMax,zbar);
+  glVertex3d(XMax,YMax,zbar);
+  glEnd();
+  glPopMatrix();  
+}
+
+void
+VisBox::listThermalBath()
+{
+  Float tbXMin = ml_->thermalBath.dBoundary;
+  Float tbXMax = -ml_->thermalBath.dBoundary+ml_->getPBC().x;
+  Float tbYMin = ml_->thermalBath.dBoundary;
+  Float tbYMax = -ml_->thermalBath.dBoundary+ml_->getPBC().y;
+  Float tbZMin = ml_->thermalBath.zMinOfFreeZone;//ZMin;
+  Float tbZMax = ml_->thermalBath.zMin;
+
+  glPushMatrix();
+  glColor4ub(0,227,127,127);
+  glBegin(GL_QUADS);
+  glVertex3d(tbXMax,tbYMax,tbZMax);
+  glVertex3d(tbXMin,tbYMax,tbZMax);
+  glVertex3d(tbXMin,tbYMin,tbZMax);
+  glVertex3d(tbXMax,tbYMin,tbZMax);
+  glEnd();
+
+  if (ml_->thermalBath.dBoundary != 0.0)
+  {
+    glColor4ub(0,127,127,127);
+    glBegin(GL_QUADS);
+    glVertex3d(tbXMax,tbYMin,tbZMax);
+    glVertex3d(tbXMin,tbYMin,tbZMax);
+    glVertex3d(tbXMin,tbYMin,tbZMin);
+    glVertex3d(tbXMax,tbYMin,tbZMin);
+    glEnd();
+    glColor4ub(0,127,127,127);
     glBegin(GL_QUADS);
     glVertex3d(tbXMax,tbYMax,tbZMax);
     glVertex3d(tbXMin,tbYMax,tbZMax);
+    glVertex3d(tbXMin,tbYMax,tbZMin);
+    glVertex3d(tbXMax,tbYMax,tbZMin);
+    glEnd();
+    glColor4ub(0,127,127,127);
+    glBegin(GL_QUADS);
+    glVertex3d(tbXMin,tbYMax,tbZMax);
     glVertex3d(tbXMin,tbYMin,tbZMax);
+    glVertex3d(tbXMin,tbYMin,tbZMin);
+    glVertex3d(tbXMin,tbYMax,tbZMin);
+    glEnd();
+    glColor4ub(0,127,127,127);
+    glBegin(GL_QUADS);
+    glVertex3d(tbXMax,tbYMax,tbZMax);
     glVertex3d(tbXMax,tbYMin,tbZMax);
-    glEnd();
-
-    if (ml_->thermalBath.dBoundary != 0.0)
-      {
-	glColor4ub(0,127,127,127);
-	glBegin(GL_QUADS);
-	glVertex3d(tbXMax,tbYMin,tbZMax);
-	glVertex3d(tbXMin,tbYMin,tbZMax);
-	glVertex3d(tbXMin,tbYMin,tbZMin);
-	glVertex3d(tbXMax,tbYMin,tbZMin);
-	glEnd();
-	glColor4ub(0,127,127,127);
-	glBegin(GL_QUADS);
-	glVertex3d(tbXMax,tbYMax,tbZMax);
-	glVertex3d(tbXMin,tbYMax,tbZMax);
-	glVertex3d(tbXMin,tbYMax,tbZMin);
-	glVertex3d(tbXMax,tbYMax,tbZMin);
-        glEnd();
-	glColor4ub(0,127,127,127);
-	glBegin(GL_QUADS);
-	glVertex3d(tbXMin,tbYMax,tbZMax);		glVertex3d(tbXMin,tbYMin,tbZMax);		glVertex3d(tbXMin,tbYMin,tbZMin);		glVertex3d(tbXMin,tbYMax,tbZMin);	glEnd();  glColor4ub(0,127,127,127);
-	glBegin(GL_QUADS);
-	glVertex3d(tbXMax,tbYMax,tbZMax);		glVertex3d(tbXMax,tbYMin,tbZMax);		glVertex3d(tbXMax,tbYMin,tbZMin);		glVertex3d(tbXMax,tbYMax,tbZMin);	glEnd();}
-
-    glPopMatrix();  
-  }
-
-
-
-  void VisBox::Axes_List()
-  {
-    glBegin(GL_LINES);
-    glColor3ub(255,0,0);
-    glVertex3d(0,0,0);
-    glVertex3d(100,0,0);
-    glEnd();
-    glBegin(GL_LINES);
-    glColor3ub(0,255,0);
-    glVertex3d(0,0,0);
-    glVertex3d(0,100,0);
-    glEnd();
-    glBegin(GL_LINES);
-    glColor3ub(0,0,255);
-    glVertex3d(0,0,0);
-    glVertex3d(0,0,100);
+    glVertex3d(tbXMax,tbYMin,tbZMin);
+    glVertex3d(tbXMax,tbYMax,tbZMin);
     glEnd();
   }
 
-void VisBox::Vertexes_List()
+  glPopMatrix();  
+}
+
+void
+VisBox::listAxes()
+{
+  glBegin(GL_LINES);
+  glColor3ub(255,0,0);
+  glVertex3d(0,0,0);
+  glVertex3d(100,0,0);
+  glEnd();
+  glBegin(GL_LINES);
+  glColor3ub(0,255,0);
+  glVertex3d(0,0,0);
+  glVertex3d(0,100,0);
+  glEnd();
+  glBegin(GL_LINES);
+  glColor3ub(0,0,255);
+  glVertex3d(0,0,0);
+  glVertex3d(0,0,100);
+  glEnd();
+}
+
+void
+VisBox::listVertexes()
 {
   size_t i;
   GLUquadricObj *quadObj;
@@ -463,10 +450,10 @@ void VisBox::Vertexes_List()
   for(i=0;i<R.size();i++)
   {
     glPushMatrix();
-    switch (NativeVertexColors)
+    switch (nativeVertexColors)
     {
     case false: 
-      c = VertexColor;
+      c = vertexColor;
       break;
     case true:  
       switch (R[i]->ID)
@@ -480,14 +467,14 @@ void VisBox::Vertexes_List()
       default: c = R[i]->tag;
       };
 
-      if (ShowSelected)
+      if (showSelected)
       {
-	if (i!=selectedIndex)
+	if (i!=selectedAtomIndex)
 	{
-	  if ((R[i]->coords-R[selectedIndex]->coords).module() < 5.5*mdtk::Ao)
+	  if ((R[i]->coords-R[selectedAtomIndex]->coords).module() < 5.5*mdtk::Ao)
 	  {
 	    c = (0x777777);
-	    if ((R[i]->coords-R[selectedIndex]->coords).module() < 2.5*mdtk::Ao)
+	    if ((R[i]->coords-R[selectedAtomIndex]->coords).module() < 2.5*mdtk::Ao)
 	      c = (0xFFFF00);
 	  }  
 	}  
@@ -497,18 +484,22 @@ void VisBox::Vertexes_List()
     }
     myglColor(c);
 
-    if (atoms_quality > 2)
+    if (atomsQuality > 2)
     {
       quadObj = gluNewQuadric ();
       gluQuadricDrawStyle (quadObj, GLU_FILL);
       glTranslated(R[i]->coords.x,R[i]->coords.y,R[i]->coords.z);
-      gluSphere (quadObj,VertexRadius*pow(((R[i]->M < 1000.0*amu/*!=INFINITE_MASS*/)?(R[i]->M):(0.5*mdtk::amu))/mdtk::amu,1.0/3.0),
-		 atoms_quality, atoms_quality);
+      gluSphere (quadObj,
+		 vertexRadius*pow(
+		   ((R[i]->M < 1000.0*amu/*!=INFINITE_MASS*/)?
+		    (R[i]->M):
+		    (0.5*mdtk::amu))/mdtk::amu,1.0/3.0),
+		 atomsQuality, atomsQuality);
       gluDeleteQuadric(quadObj);
     }
     else
     {
-      glPointSize(VertexRadius*Scale);
+      glPointSize(vertexRadius*scale);
       glBegin(GL_POINTS);
       glVertex3d(R[i]->coords.x,R[i]->coords.y,R[i]->coords.z);
       glEnd();
@@ -535,7 +526,8 @@ _relAngle(const Vector3D& a, const Vector3D& b)
   return acos(_scalarMul(a,b)/(a.module()*b.module()));
 }
 
-void VisBox::Draw_Edge(const Vector3D& vi, const Vector3D& vj, unsigned int color)
+void
+VisBox::drawEdge(const Vector3D& vi, const Vector3D& vj, unsigned int color)
 {
   Vector3D TempRotVector;
   double    TempRotAngle;
@@ -550,33 +542,34 @@ void VisBox::Draw_Edge(const Vector3D& vi, const Vector3D& vj, unsigned int colo
   TempRotVector=_vectorMul(Vector3D(0,0,1.0L),vj-vi);
   TempRotAngle=(_relAngle(Vector3D(0,0,1.0L),vj-vi)/M_PI)*180.0L;
   glRotated(TempRotAngle,TempRotVector.x,TempRotVector.y,TempRotVector.z);
-  gluCylinder (quadObj,VertexRadius,VertexRadius,(vi-vj).module(), 6, 6);
+  gluCylinder (quadObj,vertexRadius,vertexRadius,(vi-vj).module(), 6, 6);
   gluDeleteQuadric(quadObj);
   glPopMatrix();
 }
 
-void VisBox::CTree_List(CollisionTree* ct)
+void VisBox::drawCTree(CollisionTree* ct)
 {
   Atom& a = ct->a;
   if (ct->t1)
   {
     Atom& a1 = ct->t1->a;
-    Draw_Edge(a.coords,a1.coords,0xFF0000);
+    drawEdge(a.coords,a1.coords,0xFF0000);
     TRACE(a.globalIndex);
     TRACE(a1.globalIndex);
-    CTree_List(ct->t1);
+    drawCTree(ct->t1);
   }
   if (ct->t2)
   {
     Atom& a2 = ct->t2->a;
-    Draw_Edge(a.coords,a2.coords,0xFF0000);
+    drawEdge(a.coords,a2.coords,0xFF0000);
     TRACE(a.globalIndex);
     TRACE(a2.globalIndex);
-    CTree_List(ct->t2);
+    drawCTree(ct->t2);
   }
 }
 
-void VisBox::CoolEdges_List()
+void
+VisBox::listCTree()
 {
 //  CTree_List(ctree);
 /*
@@ -592,7 +585,7 @@ void VisBox::CoolEdges_List()
     {
       const Atom& a = atoms[i];
       Float Ek = a.M*SQR(a.V.module())/2.0;
-      if (Ek > EnergyThreshold*eV)
+      if (Ek > energyThreshold*eV)
       {
 	Color c;
 	switch (R[i]->ID)
@@ -611,346 +604,215 @@ void VisBox::CoolEdges_List()
 	quadObj = gluNewQuadric ();
 	gluQuadricDrawStyle (quadObj, GLU_FILL);
 	glTranslated(a.coords.x,a.coords.y,a.coords.z);
-	gluSphere (quadObj,VertexRadius*pow(((a.M < 1000.0*amu/*!=INFINITE_MASS*/)?(a.M):(0.5*mdtk::amu))/mdtk::amu,1.0/3.0),
+	gluSphere (quadObj,
+		   vertexRadius*pow(
+		     ((a.M < 1000.0*amu)?
+		      (a.M):
+		      (0.5*mdtk::amu))/mdtk::amu,1.0/3.0),
 		   4, 4);
 	gluDeleteQuadric(quadObj);
 	glPopMatrix();
       }
     }
     ++t;
-//    REQUIRE(a.container == NULL);
   }
   
 }
 
-  void VisBox::SetupLighting()
-  {
-    ////////// Material
-    GLfloat MaterialAmbient[] = {0.5, 0.5, 0.5, 1.0};
-    GLfloat MaterialDiffuse[] = {1.0, 1.0, 1.0, 1.0};
-    GLfloat MaterialSpecular[] = {1.0, 1.0, 1.0, 1.0};
-    GLfloat MaterialShininess[] = {100.0};
+void
+VisBox::setupLighting()
+{
+  ////////// Material
+  GLfloat MaterialAmbient[] = {0.5, 0.5, 0.5, 1.0};
+  GLfloat MaterialDiffuse[] = {1.0, 1.0, 1.0, 1.0};
+  GLfloat MaterialSpecular[] = {1.0, 1.0, 1.0, 1.0};
+  GLfloat MaterialShininess[] = {100.0};
 
-    glMaterialfv(GL_FRONT, GL_AMBIENT, MaterialAmbient);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, MaterialDiffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, MaterialSpecular);
-    glMaterialfv(GL_FRONT, GL_SHININESS, MaterialShininess);
+  glMaterialfv(GL_FRONT, GL_AMBIENT, MaterialAmbient);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, MaterialDiffuse);
+  glMaterialfv(GL_FRONT, GL_SPECULAR, MaterialSpecular);
+  glMaterialfv(GL_FRONT, GL_SHININESS, MaterialShininess);
 
-    /////////// Global Lights
+  /////////// Global Lights
 
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_FALSE);
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_FALSE);
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_FALSE);
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_FALSE);
 	
-    GLfloat global_ambient[] = {0.2, 0.2, 0.2, 1.0};
+  GLfloat global_ambient[] = {0.2, 0.2, 0.2, 1.0};
 	
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
+  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
 
-    // Light0
+  // Light0
 
-    //	GLfloat	light0_pos[] = {100.0, 100.0, 100.0, 0.0}:
-    //	GLfloat	light0_dir[] = {1.0, 1.0, 1.0, 0.0};
+  //	GLfloat	light0_pos[] = {100.0, 100.0, 100.0, 0.0}:
+  //	GLfloat	light0_dir[] = {1.0, 1.0, 1.0, 0.0};
 	
-    GLfloat	light0_diffuse[] = {1.0, 1.0, 1.0, 1.0};
-    GLfloat	light0_ambient[] = {0.0, 0.0, 0.0, 1.0};
-    GLfloat	light0_specular[] = {0.0, 0.0, 0.0, 1.0};
+  GLfloat	light0_diffuse[] = {1.0, 1.0, 1.0, 1.0};
+  GLfloat	light0_ambient[] = {0.0, 0.0, 0.0, 1.0};
+  GLfloat	light0_specular[] = {0.0, 0.0, 0.0, 1.0};
 	
-    glLightfv(GL_LIGHT0, GL_POSITION, light0_dir);
-    glLightfv(GL_LIGHT0, GL_AMBIENT,  light0_ambient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE,  light0_diffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular);
+  glLightfv(GL_LIGHT0, GL_POSITION, light0_dir);
+  glLightfv(GL_LIGHT0, GL_AMBIENT,  light0_ambient);
+  glLightfv(GL_LIGHT0, GL_DIFFUSE,  light0_diffuse);
+  glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular);
 
-    // Final ...
+  // Final ...
 
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
 
-    glEnable(GL_COLOR_MATERIAL);
-    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-    //	glShadeModel(GL_SMOOTH);
+  glEnable(GL_COLOR_MATERIAL);
+  glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+  //	glShadeModel(GL_SMOOTH);
 	
-    glEnable(GL_DEPTH_TEST);
-    //	glEnable(GL_CULL_FACE);
-    glEnable(GL_ALPHA_TEST);
-    glEnable(GL_NORMALIZE);
+  glEnable(GL_DEPTH_TEST);
+  //	glEnable(GL_CULL_FACE);
+  glEnable(GL_ALPHA_TEST);
+  glEnable(GL_NORMALIZE);
 
-    glEnable(GL_POINT_SMOOTH);
-    glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-    glHint(GL_POINT_SMOOTH_HINT, GL_DONT_CARE);
-    glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
-  }
+  glEnable(GL_POINT_SMOOTH);
+  glEnable(GL_LINE_SMOOTH);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  glHint(GL_POINT_SMOOTH_HINT, GL_DONT_CARE);
+  glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+}
 
-  void VisBox::OnResizeGL()
-  {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glViewport(0,0,(w()>h())?h():w(),(w()>h())?h():w());
-    glOrtho (-nRange, nRange, -nRange, nRange, -nRange, nRange);
+void
+VisBox::onResizeGL()
+{
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glViewport(0,0,(w()>h())?h():w(),(w()>h())?h():w());
+  glOrtho (-nRange, nRange, -nRange, nRange, -nRange, nRange);
 /*
-    glLoadIdentity();
-    glViewport(0,0,w(),h());
-    if (w() <= h())
-      glOrtho (-nRange, nRange, -nRange*h()/w(), nRange*h()/w(), -nRange, nRange);
-    else
-      glOrtho (-nRange*w()/h(), nRange*w()/h(), -nRange, nRange, -nRange, nRange);
+  glLoadIdentity();
+  glViewport(0,0,w(),h());
+  if (w() <= h())
+  glOrtho (-nRange, nRange, -nRange*h()/w(), nRange*h()/w(), -nRange, nRange);
+  else
+  glOrtho (-nRange*w()/h(), nRange*w()/h(), -nRange, nRange, -nRange, nRange);
 */    
-    SetupLighting();
-  }
+  setupLighting();
+}
 
-  void VisBox::ResetProjection()
-  {
-    glMatrixMode(GL_PROJECTION);
+void
+VisBox::resetProjection()
+{
+  glMatrixMode(GL_PROJECTION);
 		
-    if (MM_orig)
-      {
-	glLoadIdentity();
-      }
-    else
-      {
-	glLoadMatrixd(MM_orig_data);
-      }
+  if (MM_orig)
+  {
+    glLoadIdentity();
+  }
+  else
+  {
+    glLoadMatrixd(MM_orig_data);
+  }
+}
+
+void
+VisBox::draw()
+{
+  if (!valid())
+  {
+    onResizeGL();
+    resetProjection();
   }
 
-  void VisBox::draw()
+  glClearColor((bgColor%0x100)/255.0,
+	       ((bgColor/0x100)%0x100)/255.0,
+	       (bgColor/0x10000)/255.0,1.0f);
+  glClearDepth(1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  drawObjects();
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+}
+
+void
+VisBox::myglColor(Color color)
+{
+  color = color % 0x1000000;
+  glColor4ub(color%0x100,((color/0x100)%0x100),color/0x10000,0xFF);
+}
+
+void
+VisBox::saveToMDE(char* filename)
+{
+  using namespace mdtk;  
+  using namespace std;  
+  yaatk::text_ofstream fo(filename);
   {
-    if (!valid())
-      {
-	OnResizeGL();
-	ResetProjection();
-      }
-
-    glClearColor((BGColor%0x100)/255.0,((BGColor/0x100)%0x100)/255.0,(BGColor/0x10000)/255.0,1.0f);
-    glClearDepth(1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    draw_objects();
-    glPopMatrix();
-    glMatrixMode(GL_PROJECTION);
+    ml_->saveToMDE(fo);
   }
 
-  void VisBox::myglColor(Color color)
-  {
-    color = color % 0x1000000;
-    glColor4ub(color%0x100,((color/0x100)%0x100),color/0x10000,0xFF);
-  }
+  fo.close();
+}  
 
-
-  void VisBox::ChangeAxesState(bool NewState)
-  {
-    SetAxesState(NewState);
-  }
-
-  void VisBox::ChangeNativeVertexColorsState(bool NewState)
-  {
-    SetNativeVertexColorsState(NewState);
-  }
-
-  void VisBox::SetBGColor(Color color)
-  {
-    BGColor = color;
-    glClearColor((color%0x100)/255.0,((color/0x100)%0x100)/255.0,(color/0x10000)/255.0,1.0f);
-    this->redraw();
-  }
-
-  void VisBox::SetVertexColor(Color color)
-  {
-    VertexColor = color;
-    this->redraw();
-  }
-
-  void VisBox::SetAxesState(bool State)
-  {
-    EnableAxes=State;
-    this->redraw();
-  }
-
-  void VisBox::SetEnergyThreshold(Float et)
-  {
-    EnergyThreshold=et;
-    this->redraw();
-  }
-
-  bool VisBox::GetAxesState()
-  {
-    return EnableAxes;
-  }
-
-  void VisBox::SetBathState(bool State)
-  {
-    EnableBath=State;
-    this->redraw();
-  }
-
-  bool VisBox::GetBathState()
-  {
-    return EnableBath;
-  }
-
-  void VisBox::SetShowSelectedState(bool State)
-  {
-    ShowSelected=State;
-    this->redraw();
-  }
-
-  bool VisBox::GetShowSelectedState()
-  {
-    return ShowSelected;
-  }
-
-  void VisBox::SetBarrierState(bool State)
-  {
-    EnableBarrier=State;
-    this->redraw();
-  }
-
-  bool VisBox::GetBarrierState()
-  {
-    return EnableBarrier;
-  }
-
-  void VisBox::SetFixedLightsState(bool State)
-  {
-    FixedLights=State; 
-    /*
-      light0_dir[0] = -light0_dir[0];
-      light0_dir[1] = -light0_dir[1];
-      light0_dir[2] = -light0_dir[2];
-    */
-    this->redraw();
-  }
-
-  bool VisBox::GetFixedLightsState()
-  {
-    return FixedLights;
-  }
-
-  void VisBox::SetAllowRescale(bool State)
-  {
-    alloweRescale=State; 
-
-    ReArrange(-1,101,-1,101,-1,101);
-
-
-    this->redraw();
-  }
-
-  bool VisBox::GetAllowRescale()
-  {
-    return alloweRescale;
-  }
-
-  void VisBox::SetNativeVertexColorsState(bool State)
-  {
-    NativeVertexColors=State;
-    this->redraw();
-  }
-
-  bool VisBox::GetNativeVertexColorsState()
-  {
-    return NativeVertexColors;
-  }
-
-  void VisBox::SaveToMDE(char* filename)
-  {
-    using namespace mdtk;  
-    using namespace std;  
-    yaatk::text_ofstream fo(filename);
-    {
-      ml_->saveToMDE(fo);
-    }
-
-
-    fo.close();
-  }  
-
-  void	VisBox::QSaveImageToFile(char* filename)
-  {
-    unsigned long width = w(); unsigned long height = h();
+void
+VisBox::saveImageToFile(char* filename)
+{
+  unsigned long width = w(); unsigned long height = h();
   
+  unsigned char *d = new unsigned char[width*height*3];
+  REQUIRE(d!=NULL);
+
+  glReadPixels(0,0,width,height,GL_RGB,GL_UNSIGNED_BYTE,d);
+  for(unsigned long i = 0;i < width*height*3; i++)
+  {
+    if (i % 3 == 0)
     {
-      unsigned char *d = new unsigned char[width*height*3];
-      REQUIRE(d!=NULL);
-
-      glReadPixels(0,0,width,height,GL_RGB,GL_UNSIGNED_BYTE,d);
-      for(unsigned long i = 0;i < width*height*3; i++)
-  	{
-	  if (i % 3 == 0)
-	    {
-	      unsigned char t;
-	      t = d[i];
-	      d[i] = d[i+2];
-	      d[i+2] = t;
-	    }	 
-  	}
-      grctk::bmpImage* bmp = new grctk::bmpImage(width,height,d);
-
-      bmp->SaveToFile(filename);
-
-
-      delete [] d;
-      delete bmp;
-    }  
+      unsigned char t;
+      t = d[i];
+      d[i] = d[i+2];
+      d[i+2] = t;
+    }	 
   }
+  grctk::bmpImage* bmp = new grctk::bmpImage(width,height,d);
 
-  void	VisBox::RollAround(double angle,double x, double y,double z)
+  bmp->SaveToFile(filename);
+
+
+  delete [] d;
+  delete bmp;
+}
+
+void
+VisBox::rollAround(double angle,double x, double y,double z)
+{
+  glMatrixMode(GL_PROJECTION);
+
+  if (fixedLights)
+  {
+    glMatrixMode(GL_MODELVIEW);
+  }
+  else
   {
     glMatrixMode(GL_PROJECTION);
-
-    if (FixedLights)
-      {
-	glMatrixMode(GL_MODELVIEW);
-      }
-    else
-      {
-	glMatrixMode(GL_PROJECTION);
-      }
-
-    glRotated(angle,x,y,z);
-
-
-    if (x == 1.0) old_rot_x += angle;
-    if (y == 1.0) old_rot_y += angle;
-    if (z == 1.0) old_rot_z += angle;
-
-
-    redraw();
   }
 
+  glRotated(angle,x,y,z);
 
-  double  VisBox::Get_old_rot_x()
-  {
-    return old_rot_x;
-  }
-  double  VisBox::Get_old_rot_y()
-  {
-    return old_rot_y;
-  }
-  double  VisBox::Get_old_rot_z()
-  {
-    return old_rot_z;
-  }
+  if (x == 1.0) old_rot_x += angle;
+  if (y == 1.0) old_rot_y += angle;
+  if (z == 1.0) old_rot_z += angle;
 
+  redraw();
+}
 
-  void VisBox::SetAtomsQuality(int quality)
-  {
-    atoms_quality = quality;
-    redraw();
-  }
-
-  void  	VisBox::SetLightXDir(double val) {light0_dir[0] = val;redraw();}
-  void  	VisBox::SetLightYDir(double val) {light0_dir[1] = val;redraw();}
-  void  	VisBox::SetLightZDir(double val) {light0_dir[2] = val;redraw();}
-
-  void VisBox::window_cb(Fl_Widget* widget, void*)
-  {
+void
+VisBox::window_cb(Fl_Widget* widget, void*)
+{
 //    if (fl_choice("Do you really want to exit?","No","Yes",NULL)==1)
-    {
-      ((Fl_Window*)widget)->hide();
-      exit(0);
-    }
+  {
+    ((Fl_Window*)widget)->hide();
+    exit(0);
   }
+}
+
 }
 

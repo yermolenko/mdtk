@@ -63,145 +63,139 @@
 namespace xmde
 {
 
-  class MainWindow : public Fl_Window
-  {
-    void quickSaveBitmap();
+class MainWindow : public Fl_Window
+{
+  void quickSaveBitmap();
 
-    std::string product_info;
+  std::string product_info;
 
-    Fl_Light_Button
-      *btn_show_axes,
-      *btn_show_bath,
-      *btn_show_selected,
-      *btn_rescale,
-      *btn_animate,
-      *btn_unified_atoms,
-      *btn_fixed_lights;
+  Fl_Light_Button
+  *btn_show_axes,
+    *btn_show_bath,
+    *btn_show_selected,
+    *btn_rescale,
+    *btn_animate,
+    *btn_unified_atoms,
+    *btn_fixed_lights;
 
-    Fl_Button  *btn_quick_save_image;
-    Fl_Button  *btn_save_image;
-    Fl_Button  *btn_save_mde;
+  Fl_Button  *btn_quick_save_image;
+  Fl_Button  *btn_save_image;
+  Fl_Button  *btn_save_mde;
 
-    Fl_Button  *btn_bg_color;
-    Fl_Button  *btn_atoms_color;
+  Fl_Button  *btn_bg_color;
+  Fl_Button  *btn_atoms_color;
 
-    Fl_Button  *btn_scale_up;
-    Fl_Button  *btn_scale_down;
+  Fl_Button  *btn_scale_up;
+  Fl_Button  *btn_scale_down;
 
-    Fl_Slider* light_x_dir;
-    Fl_Slider* light_y_dir;
-    Fl_Slider* light_z_dir;
+  Fl_Slider* light_x_dir;
+  Fl_Slider* light_y_dir;
+  Fl_Slider* light_z_dir;
 
 
-    Fl_Counter* current_atomindex;
+  Fl_Counter* current_atomindex;
 
-    Fl_Counter* current_stateindex;
+  Fl_Counter* current_stateindex;
 
-    std::vector<double> ev;
+  std::vector<double> ev;
   
-    static	const	char
-      *btn_show_axes_tooltip,
-      *btn_show_bath_tooltip,
-      *btn_unified_atoms_tooltip,
-      *btn_fixed_lights_tooltip,
-      *roll_x_tooltip,
-      *roll_y_tooltip,
-      *roll_z_tooltip,
-      *btn_atoms_color_tooltip,
-      *btn_bg_color_tooltip,
-      *btn_save_image_tooltip,
-      *btn_scale_up_tooltip,
-      *btn_scale_down_tooltip;
+  static	const	char
+  *btn_show_axes_tooltip,
+    *btn_show_bath_tooltip,
+    *btn_unified_atoms_tooltip,
+    *btn_fixed_lights_tooltip,
+    *roll_x_tooltip,
+    *roll_y_tooltip,
+    *roll_z_tooltip,
+    *btn_atoms_color_tooltip,
+    *btn_bg_color_tooltip,
+    *btn_save_image_tooltip,
+    *btn_scale_up_tooltip,
+    *btn_scale_down_tooltip;
 					
-    VisBox  *atoms_view_box;//,*tmp_gb;
+  VisBox  *atoms_view_box;
 
-//    Fl_Gl_Window* glw;
+  Fl_Tabs     *tabs;
+  Fl_Group    *atoms_view_group;
+  Fl_Group    *about_group;
+  Fl_Box      *about_box;
 
-
-    Fl_Tabs     *tabs;
-    Fl_Group    *atoms_view_group;
-    Fl_Group    *about_group;
-//    Fl_Group    *info_group;
-    Fl_Box      *about_box;
-
-    Fl_Multiline_Output* atom_info; 
+  Fl_Multiline_Output* atom_info; 
   
-    Fl_Roller			*roll_x;
-    Fl_Roller			*roll_y;
-    Fl_Roller			*roll_z;
+  Fl_Roller			*roll_x;
+  Fl_Roller			*roll_y;
+  Fl_Roller			*roll_z;
 
-    Fl_Slider       *val_xmin,
-      *val_xmax,
-      *val_ymin,
-      *val_ymax,
-      *val_zmin,
-      *val_zmax;
+  Fl_Slider       *val_xmin,
+    *val_xmax,
+    *val_ymin,
+    *val_ymax,
+    *val_zmin,
+    *val_zmax;
 
-    Fl_Counter       *animate_delay;
-    Fl_Counter       *energy_threshold;
+  Fl_Counter       *animate_delay;
+  Fl_Counter       *energy_threshold;
                   
-    Fl_Slider       *atom_quality;
+  Fl_Slider       *atom_quality;
 
-    static void current_atomindex_cb(Fl_Widget *, void *);
-    static void current_stateindex_cb(Fl_Widget *, void *);
-
-
-    static void light_x_dir_cb(Fl_Widget *, void *);
-    static void light_y_dir_cb(Fl_Widget *, void *);
-    static void light_z_dir_cb(Fl_Widget *, void *);
+  static void current_atomindex_cb(Fl_Widget *, void *);
+  static void current_stateindex_cb(Fl_Widget *, void *);
 
 
-    static void roll_x_cb(Fl_Widget *, void *);
-    static void roll_y_cb(Fl_Widget *, void *);
-    static void roll_z_cb(Fl_Widget *, void *);
+  static void light_x_dir_cb(Fl_Widget *, void *);
+  static void light_y_dir_cb(Fl_Widget *, void *);
+  static void light_z_dir_cb(Fl_Widget *, void *);
 
-    static void val_xmin_cb(Fl_Widget *, void *);
 
-    static void atom_quality_cb(Fl_Widget *, void *);
-    static void energy_threshold_cb(Fl_Widget *, void *);
+  static void roll_x_cb(Fl_Widget *, void *);
+  static void roll_y_cb(Fl_Widget *, void *);
+  static void roll_z_cb(Fl_Widget *, void *);
 
-    static void btn_show_axes_cb(Fl_Widget *, void *);
-    static void btn_show_bath_cb(Fl_Widget *, void *);
-    static void btn_show_selected_cb(Fl_Widget *, void *);
-    static void btn_rescale_cb(Fl_Widget *, void *);
-    static void timer_callback(void *);
-    static void btn_animate_cb(Fl_Widget *, void *);
-    static void btn_unified_atoms_cb(Fl_Widget *, void *);
-    static void btn_fixed_lights_cb(Fl_Widget *, void *);
+  static void val_xmin_cb(Fl_Widget *, void *);
 
-    static void btn_bg_color_cb(Fl_Widget *, void *);
-    static void btn_atoms_color_cb(Fl_Widget *, void *);
+  static void atom_quality_cb(Fl_Widget *, void *);
+  static void energy_threshold_cb(Fl_Widget *, void *);
 
-    static void btn_save_image_cb(Fl_Widget *, void *);
-    static void btn_quick_save_image_cb(Fl_Widget *, void *);
-    static void btn_save_mel_cb(Fl_Widget *, void *);
-    static void btn_save_mde_cb(Fl_Widget *, void *);
+  static void btn_show_axes_cb(Fl_Widget *, void *);
+  static void btn_show_bath_cb(Fl_Widget *, void *);
+  static void btn_show_selected_cb(Fl_Widget *, void *);
+  static void btn_rescale_cb(Fl_Widget *, void *);
+  static void timer_callback(void *);
+  static void btn_animate_cb(Fl_Widget *, void *);
+  static void btn_unified_atoms_cb(Fl_Widget *, void *);
+  static void btn_fixed_lights_cb(Fl_Widget *, void *);
+
+  static void btn_bg_color_cb(Fl_Widget *, void *);
+  static void btn_atoms_color_cb(Fl_Widget *, void *);
+
+  static void btn_save_image_cb(Fl_Widget *, void *);
+  static void btn_quick_save_image_cb(Fl_Widget *, void *);
+  static void btn_save_mel_cb(Fl_Widget *, void *);
+  static void btn_save_mde_cb(Fl_Widget *, void *);
   
-    static void btn_scale_up_cb(Fl_Widget *, void *);
-    static void btn_scale_down_cb(Fl_Widget *, void *);
+  static void btn_scale_up_cb(Fl_Widget *, void *);
+  static void btn_scale_down_cb(Fl_Widget *, void *);
 
-    static void window_cb(Fl_Widget *, void *);
+  static void window_cb(Fl_Widget *, void *);
 
-  public:
-    int  handle(int);
-    std::string base_state_filename;
-    MainWindow(std::string&,std::vector<std::string>&,VisBox* ,bool);
-    ~MainWindow();
-    void redrawGL();
-    void	setAtomViewIndex(int index);
+public:
+  int  handle(int);
+  std::string base_state_filename;
+  MainWindow(std::string&,std::vector<std::string>&,VisBox* ,bool);
+  ~MainWindow();
+  void redrawGL();
+  void setAtomViewIndex(int index);
   
+  std::vector<std::string> stateList;
+  int stateIndex;
+  void loadNewSnapshot(int index);
   
-    std::vector<std::string> stateList;
-    int stateIndex;
-    void loadNewState(int index);
+  char *log_buffer;
+  int   log_pos;
   
-  
-    char *  log_buffer;
-    int log_pos;
-  
-    void out(std::string );
-    void clear_out();
-  };
+  void out(std::string );
+  void clear_out();
+};
 
 }
 
