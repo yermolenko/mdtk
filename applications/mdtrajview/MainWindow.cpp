@@ -279,7 +279,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   roll_x->tooltip(roll_x_tooltip);
   roll_x->type(0);
   roll_x->labelsize(12);
-  roll_x->minimum(-360);
+  roll_x->minimum(0);
   roll_x->maximum(360);
   roll_x->value(0);
   roll_x->step(1);
@@ -309,7 +309,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   roll_y->tooltip(roll_y_tooltip);
   roll_y->type(0);
   roll_y->labelsize(12);
-  roll_y->minimum(-360);
+  roll_y->minimum(0);
   roll_y->maximum(360);
   roll_y->value(0);
   roll_y->step(1);
@@ -339,7 +339,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   roll_z->tooltip(roll_z_tooltip);
   roll_z->type(0);
   roll_z->labelsize(12);
-  roll_z->minimum(-360);
+  roll_z->minimum(0);
   roll_z->maximum(360);
   roll_z->value(0);
   roll_z->step(1);
@@ -364,6 +364,15 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   val_zmax->step(0.1);
   val_zmax->when(FL_WHEN_RELEASE);
   val_zmax->callback((Fl_Callback*)val_xmin_cb);
+
+  btn_x_view = new Fl_Button(430, 45, 25*2+20, 10,"x view");
+  btn_x_view->callback(btn_view_cb,roll_x);
+
+  btn_y_view = new Fl_Button(515, 45, 25*2+20, 10,"y view");
+  btn_y_view->callback(btn_view_cb,roll_y);
+
+  btn_z_view = new Fl_Button(600, 45, 25*2+20, 10,"z view");
+  btn_z_view->callback(btn_view_cb,roll_z);
 
   new Fl_Box(FL_UP_FRAME,15,35,385,235+45,NULL);
 
@@ -421,15 +430,6 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   atoms_view_box->reArrange(-1,101,-1,101,-1,101);
   atoms_view_box->redraw();
 
-/*
-  atoms_view_box->rollAround(90,1,0,0);
-  atoms_view_box->redraw();
-*/
-
-/*
-  roll_x->value(90.0);
-  roll_x_cb(roll_x, NULL);
-*/  
   callback(window_cb);
   if (btn_animate->value()) Fl::add_timeout(1.0, timer_callback);
 }
@@ -531,6 +531,20 @@ MainWindow::btn_save_mde_cb(Fl_Widget *w, void *)
   {
     VisBox_Ptr->saveToMDE(tmp_filename);
   }  
+}
+
+void
+MainWindow::btn_view_cb(Fl_Widget *w, void *p)
+{
+  MainWindow* MainWindow_Ptr;
+  MainWindow_Ptr =
+    (MainWindow*)(w->parent()->parent()->parent());
+
+  Fl_Roller* roll = (Fl_Roller*) p;
+  double v = roll->value();
+  v -= 45; if (v <= 0) v = 360+v;
+  roll->value(v);
+  roll->callback()(roll,NULL);
 }
 
 void

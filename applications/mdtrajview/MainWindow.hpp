@@ -85,6 +85,10 @@ class MainWindow : public Fl_Window
   Fl_Button  *btn_save_image;
   Fl_Button  *btn_save_mde;
 
+  Fl_Button  *btn_x_view;
+  Fl_Button  *btn_y_view;
+  Fl_Button  *btn_z_view;
+
   Fl_Button  *btn_bg_color;
   Fl_Button  *btn_atoms_color;
 
@@ -178,6 +182,8 @@ class MainWindow : public Fl_Window
   static void btn_quick_save_image_cb(Fl_Widget *, void *);
   static void btn_save_mel_cb(Fl_Widget *, void *);
   static void btn_save_mde_cb(Fl_Widget *, void *);
+
+  static void btn_view_cb(Fl_Widget *, void *);
   
   static void btn_scale_up_cb(Fl_Widget *, void *);
   static void btn_scale_down_cb(Fl_Widget *, void *);
