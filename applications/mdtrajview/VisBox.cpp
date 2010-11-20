@@ -352,7 +352,8 @@ VisBox::drawObjects()
   glPopMatrix();
 }
 
-void VisBox::listBarrier()
+void
+VisBox::listBarrier()
 {
   glPushMatrix();
   glColor4ub(127,127,127,127);
@@ -551,7 +552,8 @@ VisBox::drawEdge(const Vector3D& vi, const Vector3D& vj, unsigned int color)
   glPopMatrix();
 }
 
-void VisBox::drawCTree(CollisionTree* ct)
+void
+VisBox::drawCTree(CollisionTree* ct)
 {
   Atom& a = ct->a;
   if (ct->t1)

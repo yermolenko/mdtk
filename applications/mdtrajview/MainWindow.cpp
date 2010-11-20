@@ -33,7 +33,8 @@ namespace xmde
 
 using namespace mdtk;
 
-int MainWindow::handle(int e)
+int
+MainWindow::handle(int e)
 {
   switch(e)
   {
@@ -61,7 +62,8 @@ MainWindow::current_stateindex_cb(Fl_Widget *w, void *)
   MainWindow_Ptr->loadNewSnapshot(new_index);
 } 
 
-void	MainWindow::out(std::string s)
+void
+MainWindow::out(std::string s)
 {
   const char * LogMsg = s.c_str();
 	
@@ -910,7 +912,8 @@ btn_scale_up_tooltip = "Scale = Scale*1.2";
 const char* MainWindow::
 btn_scale_down_tooltip = "Scale = Scale/1.2";
 
-void  MainWindow::loadNewSnapshot(int index)
+void
+MainWindow::loadNewSnapshot(int index)
 {
   //  if (index > 0) atoms_view_box->SetAllowRescale(false);
   stateIndex = index;
