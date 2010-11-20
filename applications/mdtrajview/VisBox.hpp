@@ -57,7 +57,6 @@ public:
   bool showSelected;
   bool showBarrier;
   bool nativeVertexColors;
-  bool fixedLights;
   Float energyThreshold;
   int  atomsQuality;
   size_t selectedAtomIndex;
@@ -93,7 +92,6 @@ private:
   void myglColor(Color);
 
   void onResizeGL();
-  void resetProjection();
 
   void listVertexes();
   void listAxes();

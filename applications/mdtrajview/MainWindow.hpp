@@ -78,8 +78,7 @@ class MainWindow : public Fl_Window
     *btn_show_selected,
     *btn_rescale,
     *btn_animate,
-    *btn_unified_atoms,
-    *btn_fixed_lights;
+    *btn_unified_atoms;
 
   Fl_Button  *btn_quick_save_image;
   Fl_Button  *btn_save_image;
@@ -110,7 +109,6 @@ class MainWindow : public Fl_Window
   *btn_show_axes_tooltip,
     *btn_show_bath_tooltip,
     *btn_unified_atoms_tooltip,
-    *btn_fixed_lights_tooltip,
     *roll_x_tooltip,
     *roll_y_tooltip,
     *roll_z_tooltip,
@@ -173,7 +171,6 @@ class MainWindow : public Fl_Window
   static void timer_callback(void *);
   static void btn_animate_cb(Fl_Widget *, void *);
   static void btn_unified_atoms_cb(Fl_Widget *, void *);
-  static void btn_fixed_lights_cb(Fl_Widget *, void *);
 
   static void btn_bg_color_cb(Fl_Widget *, void *);
   static void btn_atoms_color_cb(Fl_Widget *, void *);

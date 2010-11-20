@@ -133,7 +133,6 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     showSelected(false),
     showBarrier(false),
     nativeVertexColors(true),
-    fixedLights(false),
     energyThreshold(10.0),
     nRange(50),
     vertexRadius(1.0), axesRadius(1.0), scale(1.0), maxScale(1.0),
@@ -689,44 +688,19 @@ VisBox::setupLighting()
 void
 VisBox::onResizeGL()
 {
-  glMatrixMode(GL_MODELVIEW);
+  glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glViewport(0,0,(w()>h())?h():w(),(w()>h())?h():w());
   glOrtho (-nRange, nRange, -nRange, nRange, -nRange, nRange);
-/*
-  glLoadIdentity();
-  glViewport(0,0,w(),h());
-  if (w() <= h())
-  glOrtho (-nRange, nRange, -nRange*h()/w(), nRange*h()/w(), -nRange, nRange);
-  else
-  glOrtho (-nRange*w()/h(), nRange*w()/h(), -nRange, nRange, -nRange, nRange);
-*/    
-  setupLighting();
-}
-
-void
-VisBox::resetProjection()
-{
-  glMatrixMode(GL_PROJECTION);
-		
-  if (MM_orig)
-  {
-    glLoadIdentity();
-  }
-  else
-  {
-    glLoadMatrixd(MM_orig_data);
-  }
 }
 
 void
 VisBox::draw()
 {
   if (!valid())
-  {
     onResizeGL();
-    resetProjection();
-  }
+
+  setupLighting();
 
   glClearColor((bgColor%0x100)/255.0,
 	       ((bgColor/0x100)%0x100)/255.0,
@@ -792,16 +766,7 @@ VisBox::saveImageToFile(char* filename)
 void
 VisBox::rollAround(double angle,double x, double y,double z)
 {
-  glMatrixMode(GL_PROJECTION);
-
-  if (fixedLights)
-  {
-    glMatrixMode(GL_MODELVIEW);
-  }
-  else
-  {
-    glMatrixMode(GL_PROJECTION);
-  }
+  glMatrixMode(GL_MODELVIEW);
 
   glRotated(angle,x,y,z);
 

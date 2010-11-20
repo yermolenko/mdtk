@@ -225,13 +225,6 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   btn_show_bath->callback((Fl_Callback*)btn_show_bath_cb);
   btn_show_bath->value(atoms_view_box->showBath);
 
-/*
-  btn_fixed_lights = new Fl_Light_Button(20,450,125,30,"Fixed Lights");
-  btn_fixed_lights->tooltip(btn_fixed_lights_tooltip);
-  btn_fixed_lights->callback((Fl_Callback*)btn_fixed_lights_cb);
-  btn_fixed_lights->value(1);
-*/
-
   Fl_Box* lightDirBox = new Fl_Box(FL_UP_FRAME,15,320,135,160,"Light Direction");
   lightDirBox->align(FL_ALIGN_TOP | FL_ALIGN_INSIDE);
 
@@ -704,18 +697,6 @@ MainWindow::energy_threshold_cb(Fl_Widget *w, void *)
 }
 
 void
-MainWindow::btn_fixed_lights_cb(Fl_Widget *w, void *)
-{
-  MainWindow* MainWindow_Ptr;
-  MainWindow_Ptr =
-    (MainWindow*)(w->parent()->parent()->parent());
-
-  bool v = ((Fl_Light_Button *)w)->value();
-  MainWindow_Ptr->atoms_view_box->fixedLights = v;
-  MainWindow_Ptr->atoms_view_box->redraw();
-}
-
-void
 MainWindow::btn_show_axes_cb(Fl_Widget *w, void *)
 {
   MainWindow* MainWindow_Ptr;
@@ -902,8 +883,6 @@ MainWindow::window_cb(Fl_Widget* widget, void*)
   }
 }
 
-const char* MainWindow::
-btn_fixed_lights_tooltip = "Toggle Fixed/Free Lights";
 const char* MainWindow::
 btn_show_axes_tooltip = "Show/Hide Axes";
 const char* MainWindow::
