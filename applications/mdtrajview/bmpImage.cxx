@@ -1,7 +1,7 @@
 /*
    The BMP image class.
 
-   Copyright (C) 2004, 2009 Oleksandr Yermolenko
+   Copyright (C) 2004, 2009, 2010 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.

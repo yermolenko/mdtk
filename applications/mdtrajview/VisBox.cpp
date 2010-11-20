@@ -20,6 +20,8 @@
    along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <FL/Fl.H>
+
 #include "VisBox.hpp"
 
 #include <iostream>
@@ -137,6 +139,8 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     nRange(50),
     vertexRadius(1.0), axesRadius(1.0), scale(1.0), maxScale(1.0),
     atomsQuality(14),
+    atomsQualityInHQMode(20),
+    hqMode(false),
     selectedAtomIndex(0),
     R(),Ro(),
     ml_(NULL),
@@ -144,7 +148,8 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     xvaList(xvas),
     ctree(NULL),
     zbar(0.0),
-    old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0), MM_orig(true)
+    old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0), MM_orig(true),
+    tiledMode(false),tileCount(8)
 {
   mode(FL_RGB | FL_DOUBLE | FL_ACCUM | FL_ALPHA | FL_DEPTH | FL_MULTISAMPLE);
   end();
@@ -499,7 +504,8 @@ VisBox::listVertexes()
 		   ((R[i]->M < 1000.0*amu/*!=INFINITE_MASS*/)?
 		    (R[i]->M):
 		    (0.5*mdtk::amu))/mdtk::amu,1.0/3.0),
-		 atomsQuality, atomsQuality);
+		 hqMode?atomsQualityInHQMode:atomsQuality, 
+		 hqMode?atomsQualityInHQMode:atomsQuality);
       gluDeleteQuadric(quadObj);
     }
     else
@@ -547,7 +553,9 @@ VisBox::drawEdge(const Vector3D& vi, const Vector3D& vj, unsigned int color)
   TempRotVector=_vectorMul(Vector3D(0,0,1.0L),vj-vi);
   TempRotAngle=(_relAngle(Vector3D(0,0,1.0L),vj-vi)/M_PI)*180.0L;
   glRotated(TempRotAngle,TempRotVector.x,TempRotVector.y,TempRotVector.z);
-  gluCylinder (quadObj,vertexRadius,vertexRadius,(vi-vj).module(), 6, 6);
+  gluCylinder (quadObj,vertexRadius,vertexRadius,(vi-vj).module(), 
+	       hqMode?atomsQualityInHQMode:atomsQuality, 
+	       hqMode?atomsQualityInHQMode:atomsQuality);
   gluDeleteQuadric(quadObj);
   glPopMatrix();
 }
@@ -613,12 +621,15 @@ VisBox::listCTree()
 	quadObj = gluNewQuadric ();
 	gluQuadricDrawStyle (quadObj, GLU_FILL);
 	glTranslated(a.coords.x,a.coords.y,a.coords.z);
+	int quality = atomsQuality/4;
+	if (quality < 4) quality = 4;
 	gluSphere (quadObj,
 		   vertexRadius*pow(
 		     ((a.M < 1000.0*amu)?
 		      (a.M):
 		      (0.5*mdtk::amu))/mdtk::amu,1.0/3.0),
-		   4, 4);
+		   hqMode?atomsQualityInHQMode:atomsQuality,
+		   hqMode?atomsQualityInHQMode:atomsQuality);
 	gluDeleteQuadric(quadObj);
 	glPopMatrix();
       }
@@ -693,7 +704,28 @@ VisBox::onResizeGL()
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glViewport(0,0,(w()>h())?h():w(),(w()>h())?h():w());
-  glOrtho (-nRange, nRange, -nRange, nRange, -nRange, nRange);
+//  glOrtho (-nRange, nRange, -nRange, nRange, -nRange, nRange);
+  GLfloat xr[3][2];
+
+  if (!tiledMode)
+  {
+    xr[0][0] = -nRange;
+    xr[0][1] = +nRange;
+    xr[1][0] = -nRange;
+    xr[1][1] = +nRange;
+    xr[2][0] = -nRange;
+    xr[2][1] = +nRange;
+  }
+  else
+  {
+    xr[0][0] = -nRange+2.0*nRange/tileCount*(tileIndex[0]);
+    xr[0][1] = -nRange+2.0*nRange/tileCount*(tileIndex[0]+1);
+    xr[1][0] = -nRange+2.0*nRange/tileCount*(tileIndex[1]);
+    xr[1][1] = -nRange+2.0*nRange/tileCount*(tileIndex[1]+1);
+    xr[2][0] = -nRange;
+    xr[2][1] = +nRange;
+  }
+  glOrtho (xr[0][0], xr[0][1], xr[1][0], xr[1][1], xr[2][0], xr[2][1]);
 }
 
 void
@@ -740,6 +772,8 @@ VisBox::saveToMDE(char* filename)
 void
 VisBox::saveImageToFile(char* filename)
 {
+  hqMode = true;
+
   unsigned long width = w(); unsigned long height = h();
   
   unsigned char *d = new unsigned char[width*height*3];
@@ -763,6 +797,69 @@ VisBox::saveImageToFile(char* filename)
 
   delete [] d;
   delete bmp;
+
+  hqMode = false;
+}
+
+void
+VisBox::saveTiledImageToFile(char* filename)
+{
+  REQUIRE(w()==h());
+  tiledMode = true;
+  hqMode = true;
+
+  unsigned long width = w()*tileCount; unsigned long height = h()*tileCount;
+  
+  unsigned char *d = new unsigned char[width*height*3];
+  REQUIRE(d!=NULL);
+  unsigned char *dtile = new unsigned char[w()*h()*3];
+  REQUIRE(dtile!=NULL);
+
+  grctk::bmpImage* bmp = new grctk::bmpImage(width,height,d);
+
+  for(tileIndex[0] = 0; tileIndex[0] < tileCount; tileIndex[0]++)
+  {
+    for(tileIndex[1] = 0; tileIndex[1] < tileCount; tileIndex[1]++)
+    {
+      onResizeGL();
+      redraw();
+      while (!Fl::ready()) {};
+      Fl::flush();
+      while (!Fl::ready()) {};
+
+      glReadPixels(0,0,w(),h(),GL_RGB,GL_UNSIGNED_BYTE,dtile);
+
+      for(unsigned long i = 0;i < w()*h()*3; i++)
+      {
+	if (i % 3 == 0)
+	{
+	  unsigned char t;
+	  t = dtile[i];
+	  dtile[i] = dtile[i+2];
+	  dtile[i+2] = t;
+	}	 
+      }
+
+      grctk::bmpImage* tilebmp = new grctk::bmpImage(w(),h(),dtile);
+//      tilebmp->SaveToFile("xxx.bmp");
+      for(unsigned long i = 0;i < h(); i++)
+	for(unsigned long j = 0;j < w(); j++)
+	  bmp->setPixel(i+tileIndex[1]*w(),j+tileIndex[0]*h(),
+			tilebmp->getPixel(i,j));
+    }
+  }
+
+  bmp->SaveToFile(filename);
+
+  delete [] dtile;
+  delete [] d;
+  delete bmp;
+
+  hqMode = false;
+  tiledMode = false;
+
+  onResizeGL();
+  redraw();
 }
 
 void

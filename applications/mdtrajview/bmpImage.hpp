@@ -1,7 +1,7 @@
 /*
    The BMP image class header file.
 
-   Copyright (C) 2004, 2009 Oleksandr Yermolenko
+   Copyright (C) 2004, 2009, 2010 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -24,6 +24,8 @@
 #define grctk_bmp_image_h
 
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 namespace grctk 
 {
@@ -40,6 +42,27 @@ namespace grctk
     bmpImage(unsigned long w, unsigned long h, unsigned char *data);
     ~bmpImage();
     int SaveToFile(const char* filename);
+    unsigned long getPixel(unsigned long i, unsigned long j)
+      {
+	unsigned long c;
+	std::memcpy(&c,&(data_[(i*w_+j)*3+0]),3);
+/*
+	unsigned long c = 0;
+	c |= data_[(i*w_+j)*3+0] << 8;
+	c |= data_[(i*w_+j)*3+1] << 16;
+	c |= data_[(i*w_+j)*3+2] << 32;
+*/
+	return c;
+      }
+    void setPixel(unsigned long i, unsigned long j, unsigned long c)
+      {
+	std::memcpy(&(data_[(i*w_+j)*3+0]),&c,3);
+/*
+	data_[(i*w_+j)*3+0] = (c & (1<<8-1)) >> 0;
+	data_[(i*w_+j)*3+1] = (c & (1<<16-1)) >> 8;
+	data_[(i*w_+j)*3+2] = (c & (1<<32-1)) >> 16;
+*/
+      }
   };
 
 }

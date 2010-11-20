@@ -59,6 +59,8 @@ public:
   bool nativeVertexColors;
   Float energyThreshold;
   int  atomsQuality;
+  int  atomsQualityInHQMode;
+  bool hqMode;
   size_t selectedAtomIndex;
 
   GLfloat nRange;
@@ -127,9 +129,14 @@ public:
   void setData(mdtk::SimLoop &);
 
   void saveImageToFile(char* filename);
+  void saveTiledImageToFile(char* filename);
   void saveToMDE(char* filename);
 	
   static void window_cb(Fl_Widget *, void *);
+
+  bool tiledMode;
+  int  tileCount;
+  int  tileIndex[2];
 };
 
 

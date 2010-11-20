@@ -260,9 +260,12 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   btn_quick_save_image = new Fl_Button(415,320,125,30,"Save video");
   btn_quick_save_image->callback((Fl_Callback*)btn_quick_save_image_cb);
 
-  btn_save_image = new Fl_Button(415,350,125,30,"Save image");
+  btn_save_image = new Fl_Button(415,350,125,15,"Save image");
   btn_save_image->tooltip(btn_save_image_tooltip);
   btn_save_image->callback((Fl_Callback*)btn_save_image_cb);
+
+  btn_save_tiled_image = new Fl_Button(415,365,125,15,"Save Tiled Image");
+  btn_save_tiled_image->callback((Fl_Callback*)btn_save_tiled_image_cb);
 
   btn_save_mde = new Fl_Button(415,380,125,30,"Save in.mde.gz");
   btn_save_mde->callback((Fl_Callback*)btn_save_mde_cb);
@@ -465,6 +468,31 @@ MainWindow::btn_save_image_cb(Fl_Widget *w, void *)
   }
 }
 
+void
+MainWindow::btn_save_tiled_image_cb(Fl_Widget *w, void *)
+{
+  MainWindow* MainWindow_Ptr;
+  MainWindow_Ptr =
+    (MainWindow*)(w->parent()->parent()->parent());
+
+  VisBox* VisBox_Ptr;
+  VisBox_Ptr = MainWindow_Ptr->atoms_view_box;
+
+  char *tmp_filename = fl_file_chooser
+    (
+      "Choose a file to save image to ...",
+      "Windows Bitmap Files (*.bmp)",
+      0,0
+      );
+  if (tmp_filename && (!fl_filename_isdir(tmp_filename)))
+  {
+    VisBox_Ptr->saveTiledImageToFile(tmp_filename);
+
+    VisBox_Ptr->make_current();
+
+    fl_message("It seems that file was successfully saved !");
+  }
+}
 
 void
 MainWindow::quickSaveBitmap()
