@@ -95,6 +95,7 @@ private:
 
   void onResizeGL();
 
+  GLuint lstVertexes;
   void listVertexes();
   void listAxes();
   void listBarrier();
