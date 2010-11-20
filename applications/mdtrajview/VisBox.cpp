@@ -149,8 +149,7 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     ctree(NULL),
     zbar(0.0),
     old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0), MM_orig(true),
-    tiledMode(false),tileCount(8),
-    lstVertexes(0)
+    tiledMode(false),tileCount(8)
 {
   mode(FL_RGB | FL_DOUBLE | FL_ACCUM | FL_ALPHA | FL_DEPTH | FL_MULTISAMPLE);
   end();
@@ -455,10 +454,6 @@ VisBox::listAxes()
 void
 VisBox::listVertexes()
 {
-  if (!lstVertexes)
-  {
-    lstVertexes = glGenLists(1); //Make room for the display list
-    glNewList(lstVertexes, GL_COMPILE); //Begin the display list
   size_t i;
   GLUquadricObj *quadObj;
   Color c;
@@ -521,13 +516,6 @@ VisBox::listVertexes()
       glEnd();
     }
     glPopMatrix();
-  }
-    glEndList(); //End the display list
-    glCallList(lstVertexes);
-  }
-  else
-  {
-    glCallList(lstVertexes);
   }
 }
 
