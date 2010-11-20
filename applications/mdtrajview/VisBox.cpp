@@ -331,12 +331,6 @@ VisBox::drawObjects()
 
   glScaled(scale,scale,scale);
   glTranslated(-XCenter, -YCenter, -ZCenter);
-  if (showBath)
-  {
-    glDisable(GL_LIGHTING);
-    listThermalBath();
-    glEnable(GL_LIGHTING);
-  }
   glEnable(GL_LIGHTING);
   if (showAtoms)
     listVertexes();
@@ -352,6 +346,12 @@ VisBox::drawObjects()
   {
     glDisable(GL_LIGHTING);
     listBarrier();
+    glEnable(GL_LIGHTING);
+  }
+  if (showBath)
+  {
+    glDisable(GL_LIGHTING);
+    listThermalBath();
     glEnable(GL_LIGHTING);
   }
   glPopMatrix();
