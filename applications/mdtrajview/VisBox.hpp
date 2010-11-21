@@ -70,10 +70,6 @@ public:
 
   GLfloat  light0_dir[4];
 
-  void  lightXDir(double val) {light0_dir[0] = val;}
-  void  lightYDir(double val) {light0_dir[1] = val;}
-  void  lightZDir(double val) {light0_dir[2] = val;}
-
 public:
   mdtk::AtomsContainer* getAtoms(){return &Ro;};
   size_t getAtomsCount(){return ml_->atoms_.size();};
@@ -120,9 +116,6 @@ public:
   double RY(int i) {return R[i]->coords.y;}
   double RZ(int i) {return R[i]->coords.z;}
 	
-  double  MM_orig_data[16];
-  bool	  MM_orig;
-
 public:
   VisBox(int x,int y,int w,int h,std::string base_state_filename,
 	 const std::vector<std::string>& xvas);

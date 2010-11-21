@@ -179,7 +179,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     if (i % 10 == 0) fileList.push_back(fileList_tmp[i]);
   }
 
-  const size_t maxsize = 200;
+  const size_t maxsize = 20;
   if (fileList.size() > maxsize) fileList.resize(maxsize);
 
   xmde::VisBox avb(15,35,500,500,baseFile,fileList);

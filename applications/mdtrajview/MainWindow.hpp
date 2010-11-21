@@ -79,7 +79,7 @@ class MainWindow : public Fl_Window
     *btn_show_selected,
     *btn_rescale,
     *btn_animate,
-    *btn_unified_atoms;
+    *btn_colored_atoms;
 
   Fl_Button  *btn_quick_save_image;
   Fl_Button  *btn_save_image;
@@ -110,7 +110,7 @@ class MainWindow : public Fl_Window
   static	const	char
   *btn_show_axes_tooltip,
     *btn_show_bath_tooltip,
-    *btn_unified_atoms_tooltip,
+    *btn_colored_atoms_tooltip,
     *roll_x_tooltip,
     *roll_y_tooltip,
     *roll_z_tooltip,
@@ -149,10 +149,8 @@ class MainWindow : public Fl_Window
   static void current_stateindex_cb(Fl_Widget *, void *);
 
 
-  static void light_x_dir_cb(Fl_Widget *, void *);
-  static void light_y_dir_cb(Fl_Widget *, void *);
-  static void light_z_dir_cb(Fl_Widget *, void *);
-
+  static void set_double_cb(Fl_Widget *, void *);
+  static void set_float_cb(Fl_Widget *, void *);
 
   static void roll_x_cb(Fl_Widget *, void *);
   static void roll_y_cb(Fl_Widget *, void *);
@@ -163,13 +161,8 @@ class MainWindow : public Fl_Window
   static void atom_quality_cb(Fl_Widget *, void *);
   static void energy_threshold_cb(Fl_Widget *, void *);
 
-  static void btn_show_alltimes_cb(Fl_Widget *, void *);
-  static void btn_show_ctree_cb(Fl_Widget *, void *);
-  static void btn_show_atoms_cb(Fl_Widget *, void *);
-  static void btn_show_axes_cb(Fl_Widget *, void *);
-  static void btn_show_bath_cb(Fl_Widget *, void *);
-  static void btn_show_bath_sketch_cb(Fl_Widget *, void *);
-  static void btn_show_selected_cb(Fl_Widget *, void *);
+  static void btn_bool_toggle_cb(Fl_Widget *, void *);
+
   static void btn_rescale_cb(Fl_Widget *, void *);
   static void timer_callback(void *);
   static void btn_animate_cb(Fl_Widget *, void *);

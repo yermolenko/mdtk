@@ -91,7 +91,7 @@ VisBox::loadNewSnapshot(std::string base_state_filename,std::string file)
   {
     TRACE("********* UPDATING FROM MDT ***********");
     MDTrajectory::const_iterator t = mdt.begin();
-    size_t xvaCount = 0;
+    int xvaCount = 0;
     TRACE(xvai-xvaList.begin());
     while (xvaCount < xvai-xvaList.begin())
     {
@@ -137,19 +137,19 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     showBarrier(false),
     nativeVertexColors(true),
     energyThreshold(10.0),
-    nRange(50),
-    vertexRadius(1.0), axesRadius(1.0), scale(1.0), maxScale(1.0),
     atomsQuality(14),
     atomsQualityInHQMode(20),
     hqMode(false),
     selectedAtomIndex(0),
+    nRange(50),
+    vertexRadius(1.0), axesRadius(1.0), scale(1.0), maxScale(1.0),
     R(),Ro(),
     ml_(NULL),
     mdt(),
     xvaList(xvas),
     ctree(NULL),
     zbar(0.0),
-    old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0), MM_orig(true),
+    old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0),
     tiledMode(false),tileCount(8)
 {
   mode(FL_RGB | FL_DOUBLE | FL_ACCUM | FL_ALPHA | FL_DEPTH | FL_MULTISAMPLE);
@@ -908,7 +908,7 @@ VisBox::saveTiledImageToFile(char* filename)
 
       glReadPixels(0,0,w(),h(),GL_RGB,GL_UNSIGNED_BYTE,dtile);
 
-      for(unsigned long i = 0;i < w()*h()*3; i++)
+      for(unsigned long i = 0;i < ((unsigned long) w())*h()*3; i++)
       {
 	if (i % 3 == 0)
 	{
@@ -921,8 +921,8 @@ VisBox::saveTiledImageToFile(char* filename)
 
       grctk::bmpImage* tilebmp = new grctk::bmpImage(w(),h(),dtile);
 //      tilebmp->SaveToFile("xxx.bmp");
-      for(unsigned long i = 0;i < h(); i++)
-	for(unsigned long j = 0;j < w(); j++)
+      for(unsigned long i = 0;i < (unsigned long) h(); i++)
+	for(unsigned long j = 0;j < (unsigned long) w(); j++)
 	  bmp->setPixel(i+tileIndex[1]*w(),j+tileIndex[0]*h(),
 			tilebmp->getPixel(i,j));
     }
