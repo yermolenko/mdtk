@@ -766,52 +766,8 @@ VisBox::listCustom()
   clusterXMax += halo;
   clusterYMin -= halo;
   clusterYMax += halo;
-  Float a = clusterXMax - clusterXMin;
-  Float b = clusterYMax - clusterYMin;
-
-  {
-    gsl_qrng * coord2d_qrng = gsl_qrng_alloc (gsl_qrng_niederreiter_2, 2);
-    REQUIRE(coord2d_qrng != NULL);
-
-    const int trajNumber = 512;
-
-    for(int trajIndex = 0; trajIndex < trajNumber; trajIndex++)
-    {
-      Float bombX = 0.0;
-      Float bombY = 0.0;
-      bool allowBomb = false;
-      Float cell_part_x;
-      Float cell_part_y; 
-      Float maxdist = 0.0;
-      Float bombX_maxdist = 0.0;
-      Float bombY_maxdist = 0.0;
-      for(size_t du = 0; du < 100; du++)
-      {
-	do
-	{
-	  // 2d GSL rng
-	  double v[2];
-	  gsl_qrng_get (coord2d_qrng, v);
-	  cell_part_x = v[0];
-	  cell_part_y = v[1];
-	  
-	  allowBomb = false;
-	  for(size_t i = 0; i < cluster.size(); i++)
-	  {
-	    bombX = clusterXMin + cell_part_x*(a+b);
-	    bombY = clusterYMin + cell_part_y*(a+b);
-	    if (distance(cluster[i].coords,
-			 Vector3D(bombX,bombY,cluster[i].coords.z)) < halo)
-	    {
-	      allowBomb = true; break;
-	    }
-	  }
-	  
-	}while ( (cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) 
-		 || !allowBomb);
-      }
-    }
-  }
+//  Float a = clusterXMax - clusterXMin;
+//  Float b = clusterYMax - clusterYMin;
 
   Vector3D pbc = ml_->getPBC();
 
@@ -819,16 +775,33 @@ VisBox::listCustom()
 
   glColor4ubv(tbc);
 
-  glPushMatrix();
-
+  for(size_t i = 0; i < cluster.size(); i++)
+  {
+    glPushMatrix();
+    GLUquadricObj *quadObj;
+    quadObj = gluNewQuadric ();
+    gluQuadricDrawStyle (quadObj, GLU_FILL);
+    glTranslated(cluster[i].coords.x,cluster[i].coords.y,-20.0*Ao);
+/*
+    gluCylinder (quadObj,halo,halo,1.0*Ao, 
+		 hqMode?atomsQualityInHQMode:atomsQuality, 
+		 hqMode?atomsQualityInHQMode:atomsQuality);
+*/
+    gluSphere (quadObj,halo, 
+	       hqMode?atomsQualityInHQMode:atomsQuality, 
+	       hqMode?atomsQualityInHQMode:atomsQuality);
+    gluDeleteQuadric(quadObj);
+    glPopMatrix();  
+  }
+/*
   glBegin(GL_POLYGON);
   for(size_t i = 0; i < hull.size(); i++)
   {
     glVertex3d(hull[i].x,hull[i].y,-20.0*Ao);
   }
   glEnd();
+*/
 
-  glPopMatrix();  
 }
 
 void
