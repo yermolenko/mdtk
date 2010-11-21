@@ -380,52 +380,93 @@ VisBox::listBarrier()
 void
 VisBox::listThermalBath()
 {
-  Float tbXMin = ml_->thermalBath.dBoundary;
-  Float tbXMax = -ml_->thermalBath.dBoundary+ml_->getPBC().x;
-  Float tbYMin = ml_->thermalBath.dBoundary;
-  Float tbYMax = -ml_->thermalBath.dBoundary+ml_->getPBC().y;
-  Float tbZMin = ml_->thermalBath.zMinOfFreeZone;//ZMin;
-  Float tbZMax = ml_->thermalBath.zMin;
+  Float tb[3][2];
+
+  tb[0][0] = ml_->thermalBath.dBoundary;
+  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->getPBC().x;
+  tb[1][0] = ml_->thermalBath.dBoundary;
+  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->getPBC().y;
+  tb[2][0] = ml_->thermalBath.zMinOfFreeZone;
+  tb[2][1] = ml_->thermalBath.zMin;
+
+  Float cb[3][2] = {{0,0},{0,0},{0,0}};
+  cb[0][1] = ml_->getPBC().x;
+  cb[1][1] = ml_->getPBC().y;
+  cb[2][0] = tb[2][0];
+  cb[2][1] = tb[2][1]+10*Ao;
+
+  GLubyte tbc[4]={0,227,127,127};
+
+  glColor4ubv(tbc);
 
   glPushMatrix();
-  glColor4ub(0,227,127,127);
   glBegin(GL_QUADS);
-  glVertex3d(tbXMax,tbYMax,tbZMax);
-  glVertex3d(tbXMin,tbYMax,tbZMax);
-  glVertex3d(tbXMin,tbYMin,tbZMax);
-  glVertex3d(tbXMax,tbYMin,tbZMax);
+  glVertex3d(tb[0][0],tb[1][0],tb[2][1]);
+  glVertex3d(tb[0][0],tb[1][1],tb[2][1]);
+  glVertex3d(tb[0][1],tb[1][1],tb[2][1]);
+  glVertex3d(tb[0][1],tb[1][0],tb[2][1]);
+  glEnd();
+
+  glBegin(GL_QUADS);
+  glVertex3d(cb[0][0],cb[1][0],cb[2][1]);
+  glVertex3d(cb[0][0],cb[1][1],cb[2][1]);
+  glVertex3d(cb[0][1],cb[1][1],cb[2][1]);
+  glVertex3d(cb[0][1],cb[1][0],cb[2][1]);
   glEnd();
 
   if (ml_->thermalBath.dBoundary != 0.0)
   {
-    glColor4ub(0,127,127,127);
-    glBegin(GL_QUADS);
+    int vi = 0, vj;
+    do
+    {
+      int i[2],j[2];
+      if (vi == 0) vj = 1; else
+	if (vi == 1) vj = 3; else
+	  if (vi == 3) vj = 2; else
+	    if (vi == 2) vj = 0;
+      i[0] = vi/2; i[1] = vi%2;
+      j[0] = vj/2; j[1] = vj%2;
+
+      glBegin(GL_QUADS);
+      glVertex3d(tb[0][i[0]],tb[1][i[1]],tb[2][1]);
+      glVertex3d(tb[0][i[0]],tb[1][i[1]],tb[2][0]);
+      glVertex3d(tb[0][j[0]],tb[1][j[1]],tb[2][0]);
+      glVertex3d(tb[0][j[0]],tb[1][j[1]],tb[2][1]);
+      glEnd();
+
+      glBegin(GL_QUADS);
+      glVertex3d(cb[0][i[0]],cb[1][i[1]],cb[2][1]);
+      glVertex3d(cb[0][i[0]],cb[1][i[1]],cb[2][0]);
+      glVertex3d(cb[0][j[0]],cb[1][j[1]],cb[2][0]);
+      glVertex3d(cb[0][j[0]],cb[1][j[1]],cb[2][1]);
+      glEnd();
+
+      ++vi;
+    }while(vi != 4);
+/*
     glVertex3d(tbXMax,tbYMin,tbZMax);
     glVertex3d(tbXMin,tbYMin,tbZMax);
     glVertex3d(tbXMin,tbYMin,tbZMin);
     glVertex3d(tbXMax,tbYMin,tbZMin);
-    glEnd();
-    glColor4ub(0,127,127,127);
     glBegin(GL_QUADS);
     glVertex3d(tbXMax,tbYMax,tbZMax);
     glVertex3d(tbXMin,tbYMax,tbZMax);
     glVertex3d(tbXMin,tbYMax,tbZMin);
     glVertex3d(tbXMax,tbYMax,tbZMin);
     glEnd();
-    glColor4ub(0,127,127,127);
     glBegin(GL_QUADS);
     glVertex3d(tbXMin,tbYMax,tbZMax);
     glVertex3d(tbXMin,tbYMin,tbZMax);
     glVertex3d(tbXMin,tbYMin,tbZMin);
     glVertex3d(tbXMin,tbYMax,tbZMin);
     glEnd();
-    glColor4ub(0,127,127,127);
     glBegin(GL_QUADS);
     glVertex3d(tbXMax,tbYMax,tbZMax);
     glVertex3d(tbXMax,tbYMin,tbZMax);
     glVertex3d(tbXMax,tbYMin,tbZMin);
     glVertex3d(tbXMax,tbYMax,tbZMin);
     glEnd();
+*/
   }
 
   glPopMatrix();  
