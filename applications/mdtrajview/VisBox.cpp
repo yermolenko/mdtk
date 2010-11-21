@@ -361,6 +361,11 @@ VisBox::drawObjects()
     listThermalBathSketch();
     glEnable(GL_LIGHTING);
   }
+  {
+    glDisable(GL_LIGHTING);
+    listCustom();
+    glEnable(GL_LIGHTING);
+  }
   glPopMatrix();
 }
 
@@ -716,6 +721,114 @@ VisBox::listCTree()
 
     ++t;
   }
+}
+
+#include <gsl/gsl_qrng.h>
+
+void
+VisBox::listCustom()
+{
+  std::vector<Atom> cluster;
+  for(size_t i = 0; i < ml_->atoms.size(); i++)
+  {
+    Atom& a = *(ml_->atoms[i]);
+    if (a.ID == Cu_EL) cluster.push_back(a);
+  }
+
+  std::vector<Vector3D> hull;
+/*
+  hull.push_back(Vector3D( 0.0*Ao, 0.0*Ao,0));
+  hull.push_back(Vector3D(10.0*Ao,10.0*Ao,0));
+  hull.push_back(Vector3D(20.0*Ao,10.0*Ao,0));
+  hull.push_back(Vector3D(30.0*Ao, 5.0*Ao,0));
+  hull.push_back(Vector3D(40.0*Ao, 0.0*Ao,0));
+  hull.push_back(Vector3D( 0.0*Ao, 0.0*Ao,0));
+*/
+
+  Float halo = 1.3*Ao;
+  Float clusterXMax = cluster[0].coords.x;
+  Float clusterXMin = cluster[0].coords.x;
+  Float clusterYMax = cluster[0].coords.y;
+  Float clusterYMin = cluster[0].coords.y;
+  Float clusterZMax = cluster[0].coords.z;
+  Float clusterZMin = cluster[0].coords.z;
+  for(size_t i = 0; i < cluster.size(); i++)
+  {
+    if (cluster[i].coords.x > clusterXMax) clusterXMax = cluster[i].coords.x;
+    if (cluster[i].coords.x < clusterXMin) clusterXMin = cluster[i].coords.x;
+    if (cluster[i].coords.y > clusterYMax) clusterYMax = cluster[i].coords.y;
+    if (cluster[i].coords.y < clusterYMin) clusterYMin = cluster[i].coords.y;
+    if (cluster[i].coords.z > clusterZMax) clusterZMax = cluster[i].coords.z;
+    if (cluster[i].coords.z < clusterZMin) clusterZMin = cluster[i].coords.z;
+  }
+
+  clusterXMin -= halo;
+  clusterXMax += halo;
+  clusterYMin -= halo;
+  clusterYMax += halo;
+  Float a = clusterXMax - clusterXMin;
+  Float b = clusterYMax - clusterYMin;
+
+  {
+    gsl_qrng * coord2d_qrng = gsl_qrng_alloc (gsl_qrng_niederreiter_2, 2);
+    REQUIRE(coord2d_qrng != NULL);
+
+    const int trajNumber = 512;
+
+    for(int trajIndex = 0; trajIndex < trajNumber; trajIndex++)
+    {
+      Float bombX = 0.0;
+      Float bombY = 0.0;
+      bool allowBomb = false;
+      Float cell_part_x;
+      Float cell_part_y; 
+      Float maxdist = 0.0;
+      Float bombX_maxdist = 0.0;
+      Float bombY_maxdist = 0.0;
+      for(size_t du = 0; du < 100; du++)
+      {
+	do
+	{
+	  // 2d GSL rng
+	  double v[2];
+	  gsl_qrng_get (coord2d_qrng, v);
+	  cell_part_x = v[0];
+	  cell_part_y = v[1];
+	  
+	  allowBomb = false;
+	  for(size_t i = 0; i < cluster.size(); i++)
+	  {
+	    bombX = clusterXMin + cell_part_x*(a+b);
+	    bombY = clusterYMin + cell_part_y*(a+b);
+	    if (distance(cluster[i].coords,
+			 Vector3D(bombX,bombY,cluster[i].coords.z)) < halo)
+	    {
+	      allowBomb = true; break;
+	    }
+	  }
+	  
+	}while ( (cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) 
+		 || !allowBomb);
+      }
+    }
+  }
+
+  Vector3D pbc = ml_->getPBC();
+
+  GLubyte tbc[4]={0,127,127,127};
+
+  glColor4ubv(tbc);
+
+  glPushMatrix();
+
+  glBegin(GL_POLYGON);
+  for(size_t i = 0; i < hull.size(); i++)
+  {
+    glVertex3d(hull[i].x,hull[i].y,-20.0*Ao);
+  }
+  glEnd();
+
+  glPopMatrix();  
 }
 
 void

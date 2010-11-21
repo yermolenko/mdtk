@@ -98,6 +98,7 @@ private:
   void listThermalBath();
   void listThermalBathSketch();
   void listCTree();
+  void listCustom();
   void drawCTree(CollisionTree* ct);
   void drawEdge(const Vector3D& vi, const Vector3D& vj, unsigned int color);
 
