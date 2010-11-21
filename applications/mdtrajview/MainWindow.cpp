@@ -227,6 +227,10 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   btn_show_bath->callback((Fl_Callback*)btn_show_bath_cb);
   btn_show_bath->value(atoms_view_box->showBath);
 
+  btn_show_bath_sketch = new Fl_Light_Button(160,480,165,30,"Show tb sketch");
+  btn_show_bath_sketch->callback((Fl_Callback*)btn_show_bath_sketch_cb);
+  btn_show_bath_sketch->value(atoms_view_box->showBathSketch);
+
   Fl_Box* lightDirBox = new Fl_Box(FL_UP_FRAME,15,320,135,160,"Light Direction");
   lightDirBox->align(FL_ALIGN_TOP | FL_ALIGN_INSIDE);
 
@@ -784,6 +788,18 @@ MainWindow::btn_show_bath_cb(Fl_Widget *w, void *)
 
   bool v = ((Fl_Light_Button *)w)->value();
   MainWindow_Ptr->atoms_view_box->showBath = v;
+  MainWindow_Ptr->atoms_view_box->redraw();
+}
+
+void
+MainWindow::btn_show_bath_sketch_cb(Fl_Widget *w, void *)
+{
+  MainWindow* MainWindow_Ptr;
+  MainWindow_Ptr =
+    (MainWindow*)(w->parent()->parent()->parent());
+
+  bool v = ((Fl_Light_Button *)w)->value();
+  MainWindow_Ptr->atoms_view_box->showBathSketch = v;
   MainWindow_Ptr->atoms_view_box->redraw();
 }
 

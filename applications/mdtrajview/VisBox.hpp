@@ -54,6 +54,7 @@ public:
   bool showAllTimes;
   bool showAtoms;
   bool showBath;
+  bool showBathSketch;
   bool showSelected;
   bool showBarrier;
   bool nativeVertexColors;
@@ -99,6 +100,7 @@ private:
   void listAxes();
   void listBarrier();
   void listThermalBath();
+  void listThermalBathSketch();
   void listCTree();
   void drawCTree(CollisionTree* ct);
   void drawEdge(const Vector3D& vi, const Vector3D& vj, unsigned int color);

@@ -132,6 +132,7 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     showAllTimes(false),
     showAtoms(true),
     showBath(false),
+    showBathSketch(false),
     showSelected(false),
     showBarrier(false),
     nativeVertexColors(true),
@@ -354,6 +355,12 @@ VisBox::drawObjects()
     listThermalBath();
     glEnable(GL_LIGHTING);
   }
+  if (showBathSketch)
+  {
+    glDisable(GL_LIGHTING);
+    listThermalBathSketch();
+    glEnable(GL_LIGHTING);
+  }
   glPopMatrix();
 }
 
@@ -407,13 +414,6 @@ VisBox::listThermalBath()
   glVertex3d(tb[0][1],tb[1][0],tb[2][1]);
   glEnd();
 
-  glBegin(GL_QUADS);
-  glVertex3d(cb[0][0],cb[1][0],cb[2][1]);
-  glVertex3d(cb[0][0],cb[1][1],cb[2][1]);
-  glVertex3d(cb[0][1],cb[1][1],cb[2][1]);
-  glVertex3d(cb[0][1],cb[1][0],cb[2][1]);
-  glEnd();
-
   if (ml_->thermalBath.dBoundary != 0.0)
   {
     int vi = 0, vj;
@@ -434,39 +434,77 @@ VisBox::listThermalBath()
       glVertex3d(tb[0][j[0]],tb[1][j[1]],tb[2][1]);
       glEnd();
 
-      glBegin(GL_QUADS);
-      glVertex3d(cb[0][i[0]],cb[1][i[1]],cb[2][1]);
-      glVertex3d(cb[0][i[0]],cb[1][i[1]],cb[2][0]);
-      glVertex3d(cb[0][j[0]],cb[1][j[1]],cb[2][0]);
-      glVertex3d(cb[0][j[0]],cb[1][j[1]],cb[2][1]);
-      glEnd();
-
       ++vi;
     }while(vi != 4);
-/*
-    glVertex3d(tbXMax,tbYMin,tbZMax);
-    glVertex3d(tbXMin,tbYMin,tbZMax);
-    glVertex3d(tbXMin,tbYMin,tbZMin);
-    glVertex3d(tbXMax,tbYMin,tbZMin);
+  }
+
+  glPopMatrix();  
+}
+
+void
+VisBox::listThermalBathSketch()
+{
+  Float tb[3][2];
+
+  tb[0][0] = ml_->thermalBath.dBoundary;
+  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->getPBC().x;
+  tb[1][0] = ml_->thermalBath.dBoundary;
+  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->getPBC().y;
+  tb[2][0] = ml_->thermalBath.zMinOfFreeZone;
+  tb[2][1] = ml_->thermalBath.zMin;
+
+  Float cb[3][2] = {{0,0},{0,0},{0,0}};
+  cb[0][1] = ml_->getPBC().x;
+  cb[1][1] = ml_->getPBC().y;
+  cb[2][0] = tb[2][0];
+  cb[2][1] = tb[2][1]+10*Ao;
+
+  GLubyte tbc[4]={0,227,127,127};
+
+  glColor4ubv(tbc);
+
+  glPushMatrix();
+  glBegin(GL_QUADS);
+  glVertex3d(cb[0][0],cb[1][1]/2.0+cb[1][0],cb[2][1]);
+  glVertex3d(cb[0][0],cb[1][1]/2.0+cb[1][0],tb[2][1]);
+  glVertex3d(cb[0][1],cb[1][1]/2.0+cb[1][0],tb[2][1]);
+  glVertex3d(cb[0][1],cb[1][1]/2.0+cb[1][0],cb[2][1]);
+  glEnd();
+
+  glBegin(GL_QUADS);
+  glVertex3d(cb[0][1]/2.0+cb[0][0],cb[1][0],cb[2][1]);
+  glVertex3d(cb[0][1]/2.0+cb[0][0],cb[1][0],tb[2][1]);
+  glVertex3d(cb[0][1]/2.0+cb[0][0],cb[1][1],tb[2][1]);
+  glVertex3d(cb[0][1]/2.0+cb[0][0],cb[1][1],cb[2][1]);
+  glEnd();
+
+  if (ml_->thermalBath.dBoundary != 0.0)
+  {
     glBegin(GL_QUADS);
-    glVertex3d(tbXMax,tbYMax,tbZMax);
-    glVertex3d(tbXMin,tbYMax,tbZMax);
-    glVertex3d(tbXMin,tbYMax,tbZMin);
-    glVertex3d(tbXMax,tbYMax,tbZMin);
+    glVertex3d(cb[0][0],cb[1][1]/2.0+cb[1][0],cb[2][0]);
+    glVertex3d(cb[0][0],cb[1][1]/2.0+cb[1][0],tb[2][1]);
+    glVertex3d(tb[0][0],cb[1][1]/2.0+cb[1][0],tb[2][1]);
+    glVertex3d(tb[0][0],cb[1][1]/2.0+cb[1][0],cb[2][0]);
     glEnd();
     glBegin(GL_QUADS);
-    glVertex3d(tbXMin,tbYMax,tbZMax);
-    glVertex3d(tbXMin,tbYMin,tbZMax);
-    glVertex3d(tbXMin,tbYMin,tbZMin);
-    glVertex3d(tbXMin,tbYMax,tbZMin);
+    glVertex3d(cb[0][1],cb[1][1]/2.0+cb[1][0],cb[2][0]);
+    glVertex3d(cb[0][1],cb[1][1]/2.0+cb[1][0],tb[2][1]);
+    glVertex3d(tb[0][1],cb[1][1]/2.0+cb[1][0],tb[2][1]);
+    glVertex3d(tb[0][1],cb[1][1]/2.0+cb[1][0],cb[2][0]);
+    glEnd();
+
+    glBegin(GL_QUADS);
+    glVertex3d(cb[0][1]/2.0+cb[0][0],cb[1][0],cb[2][0]);
+    glVertex3d(cb[0][1]/2.0+cb[0][0],cb[1][0],tb[2][1]);
+    glVertex3d(cb[0][1]/2.0+cb[0][0],tb[1][0],tb[2][1]);
+    glVertex3d(cb[0][1]/2.0+cb[0][0],tb[1][0],cb[2][0]);
     glEnd();
     glBegin(GL_QUADS);
-    glVertex3d(tbXMax,tbYMax,tbZMax);
-    glVertex3d(tbXMax,tbYMin,tbZMax);
-    glVertex3d(tbXMax,tbYMin,tbZMin);
-    glVertex3d(tbXMax,tbYMax,tbZMin);
+    glVertex3d(cb[0][1]/2.0+cb[0][0],cb[1][1],cb[2][0]);
+    glVertex3d(cb[0][1]/2.0+cb[0][0],cb[1][1],tb[2][1]);
+    glVertex3d(cb[0][1]/2.0+cb[0][0],tb[1][1],tb[2][1]);
+    glVertex3d(cb[0][1]/2.0+cb[0][0],tb[1][1],cb[2][0]);
     glEnd();
-*/
   }
 
   glPopMatrix();  

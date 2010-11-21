@@ -75,6 +75,7 @@ class MainWindow : public Fl_Window
     *btn_show_alltimes,
     *btn_show_axes,
     *btn_show_bath,
+    *btn_show_bath_sketch,
     *btn_show_selected,
     *btn_rescale,
     *btn_animate,
@@ -167,6 +168,7 @@ class MainWindow : public Fl_Window
   static void btn_show_atoms_cb(Fl_Widget *, void *);
   static void btn_show_axes_cb(Fl_Widget *, void *);
   static void btn_show_bath_cb(Fl_Widget *, void *);
+  static void btn_show_bath_sketch_cb(Fl_Widget *, void *);
   static void btn_show_selected_cb(Fl_Widget *, void *);
   static void btn_rescale_cb(Fl_Widget *, void *);
   static void timer_callback(void *);
