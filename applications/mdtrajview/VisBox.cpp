@@ -735,73 +735,63 @@ VisBox::listCustom()
     if (a.ID == Cu_EL) cluster.push_back(a);
   }
 
-  std::vector<Vector3D> hull;
-/*
-  hull.push_back(Vector3D( 0.0*Ao, 0.0*Ao,0));
-  hull.push_back(Vector3D(10.0*Ao,10.0*Ao,0));
-  hull.push_back(Vector3D(20.0*Ao,10.0*Ao,0));
-  hull.push_back(Vector3D(30.0*Ao, 5.0*Ao,0));
-  hull.push_back(Vector3D(40.0*Ao, 0.0*Ao,0));
-  hull.push_back(Vector3D( 0.0*Ao, 0.0*Ao,0));
-*/
-
   Float halo = 1.3*Ao;
-  Float clusterXMax = cluster[0].coords.x;
-  Float clusterXMin = cluster[0].coords.x;
-  Float clusterYMax = cluster[0].coords.y;
-  Float clusterYMin = cluster[0].coords.y;
-  Float clusterZMax = cluster[0].coords.z;
-  Float clusterZMin = cluster[0].coords.z;
-  for(size_t i = 0; i < cluster.size(); i++)
+  Float depth = 0.0;
   {
-    if (cluster[i].coords.x > clusterXMax) clusterXMax = cluster[i].coords.x;
-    if (cluster[i].coords.x < clusterXMin) clusterXMin = cluster[i].coords.x;
-    if (cluster[i].coords.y > clusterYMax) clusterYMax = cluster[i].coords.y;
-    if (cluster[i].coords.y < clusterYMin) clusterYMin = cluster[i].coords.y;
-    if (cluster[i].coords.z > clusterZMax) clusterZMax = cluster[i].coords.z;
-    if (cluster[i].coords.z < clusterZMin) clusterZMin = cluster[i].coords.z;
-  }
+    halo = 5.0*Ao;
+    glColor4ub(0,0,255,255);
+    depth = -15.0*Ao;
 
-  clusterXMin -= halo;
-  clusterXMax += halo;
-  clusterYMin -= halo;
-  clusterYMax += halo;
-//  Float a = clusterXMax - clusterXMin;
-//  Float b = clusterYMax - clusterYMin;
-
-  Vector3D pbc = ml_->getPBC();
-
-  GLubyte tbc[4]={0,127,127,127};
-
-  glColor4ubv(tbc);
-
-  for(size_t i = 0; i < cluster.size(); i++)
-  {
-    glPushMatrix();
-    GLUquadricObj *quadObj;
-    quadObj = gluNewQuadric ();
-    gluQuadricDrawStyle (quadObj, GLU_FILL);
-    glTranslated(cluster[i].coords.x,cluster[i].coords.y,-20.0*Ao);
-/*
-    gluCylinder (quadObj,halo,halo,1.0*Ao, 
+    for(size_t i = 0; i < cluster.size(); i++)
+    {
+      glPushMatrix();
+      GLUquadricObj *quadObj;
+      quadObj = gluNewQuadric ();
+      gluQuadricDrawStyle (quadObj, GLU_FILL);
+      glTranslated(cluster[i].coords.x,cluster[i].coords.y,depth);
+      gluSphere (quadObj,halo, 
 		 hqMode?atomsQualityInHQMode:atomsQuality, 
 		 hqMode?atomsQualityInHQMode:atomsQuality);
-*/
-    gluSphere (quadObj,halo, 
-	       hqMode?atomsQualityInHQMode:atomsQuality, 
-	       hqMode?atomsQualityInHQMode:atomsQuality);
-    gluDeleteQuadric(quadObj);
-    glPopMatrix();  
-  }
-/*
-  glBegin(GL_POLYGON);
-  for(size_t i = 0; i < hull.size(); i++)
-  {
-    glVertex3d(hull[i].x,hull[i].y,-20.0*Ao);
-  }
-  glEnd();
-*/
+      gluDeleteQuadric(quadObj);
+      glPopMatrix();  
+    }
 
+    glColor4ub(0,255,0,255);
+    halo = 1.3*Ao;
+    depth = -22.0*Ao;
+
+    for(size_t i = 0; i < cluster.size(); i++)
+    {
+      glPushMatrix();
+      GLUquadricObj *quadObj;
+      quadObj = gluNewQuadric ();
+      gluQuadricDrawStyle (quadObj, GLU_FILL);
+      glTranslated(cluster[i].coords.x,cluster[i].coords.y,depth);
+      gluSphere (quadObj,halo, 
+		 hqMode?atomsQualityInHQMode:atomsQuality, 
+		 hqMode?atomsQualityInHQMode:atomsQuality);
+      gluDeleteQuadric(quadObj);
+      glPopMatrix();  
+    }
+
+    glColor4ub(255,0,0,255);
+    halo = 0.3*Ao;
+    depth = -24.0*Ao;
+
+    for(size_t i = 0; i < cluster.size(); i++)
+    {
+      glPushMatrix();
+      GLUquadricObj *quadObj;
+      quadObj = gluNewQuadric ();
+      gluQuadricDrawStyle (quadObj, GLU_FILL);
+      glTranslated(cluster[i].coords.x,cluster[i].coords.y,depth);
+      gluSphere (quadObj,halo, 
+		 hqMode?atomsQualityInHQMode:atomsQuality, 
+		 hqMode?atomsQualityInHQMode:atomsQuality);
+      gluDeleteQuadric(quadObj);
+      glPopMatrix();  
+    }
+  }
 }
 
 void
