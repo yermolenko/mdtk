@@ -55,6 +55,7 @@ public:
   bool showAtoms;
   bool showBath;
   bool showBathSketch;
+  bool showCustom;
   bool showSelected;
   bool showBarrier;
   bool nativeVertexColors;
@@ -88,7 +89,7 @@ private:
   void drawcube(int wire);
   void drawObjects();
   void setupLighting();
-  void myglColor(Color);
+  void myglColor(Color, GLubyte alpha = 0xFF);
 
   void onResizeGL();
 

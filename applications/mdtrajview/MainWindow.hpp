@@ -76,6 +76,7 @@ class MainWindow : public Fl_Window
     *btn_show_axes,
     *btn_show_bath,
     *btn_show_bath_sketch,
+    *btn_show_custom,
     *btn_show_selected,
     *btn_rescale,
     *btn_animate,

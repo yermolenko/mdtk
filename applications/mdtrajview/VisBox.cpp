@@ -133,6 +133,7 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     showAtoms(true),
     showBath(false),
     showBathSketch(false),
+    showCustom(false),
     showSelected(false),
     showBarrier(false),
     nativeVertexColors(true),
@@ -361,6 +362,7 @@ VisBox::drawObjects()
     listThermalBathSketch();
     glEnable(GL_LIGHTING);
   }
+  if (showCustom)
   {
     glDisable(GL_LIGHTING);
     listCustom();
@@ -577,17 +579,16 @@ VisBox::listVertexes()
       }
     }
     myglColor(c);
+    if (R[i]->M > 1000.0*amu) myglColor(0x0);
 
     if (atomsQuality > 2)
     {
       quadObj = gluNewQuadric ();
       gluQuadricDrawStyle (quadObj, GLU_FILL);
       glTranslated(R[i]->coords.x,R[i]->coords.y,R[i]->coords.z);
+      Atom a = *(R[i]); a.setAttributesByElementID();
       gluSphere (quadObj,
-		 vertexRadius*pow(
-		   ((R[i]->M < 1000.0*amu/*!=INFINITE_MASS*/)?
-		    (R[i]->M):
-		    (0.5*mdtk::amu))/mdtk::amu,1.0/3.0),
+		 vertexRadius*pow(a.M/mdtk::amu,1.0/3.0),
 		 hqMode?atomsQualityInHQMode:atomsQuality, 
 		 hqMode?atomsQualityInHQMode:atomsQuality);
       gluDeleteQuadric(quadObj);
@@ -774,7 +775,7 @@ VisBox::listCustom()
       glPopMatrix();  
     }
 
-    glColor4ub(255,0,0,255);
+    glColor4ub(255,255,0,255);
     halo = 0.3*Ao;
     depth = -24.0*Ao;
 
@@ -905,10 +906,13 @@ VisBox::draw()
 }
 
 void
-VisBox::myglColor(Color color)
+VisBox::myglColor(Color color, GLubyte alpha)
 {
   color = color % 0x1000000;
-  glColor4ub(color%0x100,((color/0x100)%0x100),color/0x10000,0xFF);
+  glColor4ub(color%0x100,((color/0x100)%0x100),((color/0x10000)%0x100),
+	     alpha);
+  REQUIRE(((color/0x10000)%0x100) == color/0x10000);
+//  glColor4ub(color%0x100,((color/0x100)%0x100),color/0x10000,0xFF);
 }
 
 void

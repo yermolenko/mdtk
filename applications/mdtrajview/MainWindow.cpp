@@ -247,6 +247,12 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
 				 &atoms_view_box->showBathSketch);
   btn_show_bath_sketch->value(atoms_view_box->showBathSketch);
 
+  btn_show_custom = new Fl_Light_Button(160,510,165,30,
+					     "Show Custom");
+  btn_show_custom->callback(btn_bool_toggle_cb,
+				 &atoms_view_box->showCustom);
+  btn_show_custom->value(atoms_view_box->showCustom);
+
   Fl_Box* lightDirBox = new Fl_Box(FL_UP_FRAME,15,320,135,160,
 				   "Light Direction");
   lightDirBox->align(FL_ALIGN_TOP | FL_ALIGN_INSIDE);
