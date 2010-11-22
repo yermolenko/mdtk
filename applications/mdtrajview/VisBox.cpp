@@ -129,7 +129,11 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     bgColor(combineRGB(255,255,255)),
     showAxes(true),
     showCTree(false),
-    showAllTimes(false),
+    showCTreeConnected(true),
+    showCTreeAtoms(true),
+    showCTreeAllTimes(false),
+    downscaleCTree(3.0),
+    energyThresholdCTree(10.0),
     showAtoms(true),
     showBath(false),
     showBathSketch(false),
@@ -137,7 +141,6 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     showSelected(false),
     showBarrier(false),
     nativeVertexColors(true),
-    energyThreshold(10.0),
     atomsQuality(14),
     atomsQualityInHQMode(20),
     hqMode(false),
@@ -623,7 +626,8 @@ _relAngle(const Vector3D& a, const Vector3D& b)
 }
 
 void
-VisBox::drawEdge(const Vector3D& vi, const Vector3D& vj, unsigned int color)
+VisBox::drawEdge(const Vector3D& vi, const Vector3D& vj, 
+		 unsigned int color, double radius)
 {
   Vector3D TempRotVector;
   double    TempRotAngle;
@@ -638,7 +642,10 @@ VisBox::drawEdge(const Vector3D& vi, const Vector3D& vj, unsigned int color)
   TempRotVector=_vectorMul(Vector3D(0,0,1.0L),vj-vi);
   TempRotAngle=(_relAngle(Vector3D(0,0,1.0L),vj-vi)/M_PI)*180.0L;
   glRotated(TempRotAngle,TempRotVector.x,TempRotVector.y,TempRotVector.z);
-  gluCylinder (quadObj,vertexRadius,vertexRadius,(vi-vj).module(), 
+  gluCylinder (quadObj,
+	       radius,
+	       radius,
+	       (vi-vj).module(), 
 	       hqMode?atomsQualityInHQMode:atomsQuality, 
 	       hqMode?atomsQualityInHQMode:atomsQuality);
   gluDeleteQuadric(quadObj);
@@ -652,7 +659,8 @@ VisBox::drawCTree(CollisionTree* ct)
   if (ct->t1)
   {
     Atom& a1 = ct->t1->a;
-    drawEdge(a.coords,a1.coords,0xFF0000);
+    drawEdge(a.coords,a1.coords,
+	     0xFF0000,vertexRadius*pow(a.M/mdtk::amu,1.0/3.0));
     TRACE(a.globalIndex);
     TRACE(a1.globalIndex);
     drawCTree(ct->t1);
@@ -660,7 +668,8 @@ VisBox::drawCTree(CollisionTree* ct)
   if (ct->t2)
   {
     Atom& a2 = ct->t2->a;
-    drawEdge(a.coords,a2.coords,0xFF0000);
+    drawEdge(a.coords,a2.coords,
+	     0xFF0000,vertexRadius*pow(a.M/mdtk::amu,1.0/3.0));
     TRACE(a.globalIndex);
     TRACE(a2.globalIndex);
     drawCTree(ct->t2);
@@ -679,15 +688,20 @@ VisBox::listCTree()
   MDTrajectory::const_iterator t = mdt.begin();
   while (t != mdt.end())
   {
-    if (!showAllTimes && t->first > ml_->simTime)
+    if (!showCTreeAllTimes && t->first > ml_->simTime)
       break;
 
     const std::vector<Atom>& atoms = t->second;
+
+    MDTrajectory::const_iterator t_prev = t;
+    if (t != mdt.begin()) --t_prev;
+    const std::vector<Atom>& atoms_prev = t_prev->second;
+
     for(size_t i = 0; i < atoms.size(); ++i)
     {
       const Atom& a = atoms[i];
       Float Ek = a.M*SQR(a.V.module())/2.0;
-      if (Ek > energyThreshold*eV)
+      if (Ek > energyThresholdCTree*eV)
       {
 	Color c;
 	switch (R[i]->ID)
@@ -700,23 +714,32 @@ VisBox::listCTree()
 	case Au_EL: c = (0x00FFFF); break; 
 	default: c = R[i]->tag;
 	}
-	myglColor(c);
-	glPushMatrix();
-	GLUquadricObj *quadObj;
-	quadObj = gluNewQuadric ();
-	gluQuadricDrawStyle (quadObj, GLU_FILL);
-	glTranslated(a.coords.x,a.coords.y,a.coords.z);
-	int quality = atomsQuality/4;
-	if (quality < 4) quality = 4;
-	gluSphere (quadObj,
-		   vertexRadius*pow(
-		     ((a.M < 1000.0*amu)?
-		      (a.M):
-		      (0.5*mdtk::amu))/mdtk::amu,1.0/3.0),
-		   hqMode?atomsQualityInHQMode:atomsQuality,
-		   hqMode?atomsQualityInHQMode:atomsQuality);
-	gluDeleteQuadric(quadObj);
-	glPopMatrix();
+
+	if (showCTreeAtoms)
+	{
+	  myglColor(c);
+	  glPushMatrix();
+	  GLUquadricObj *quadObj;
+	  quadObj = gluNewQuadric ();
+	  gluQuadricDrawStyle (quadObj, GLU_FILL);
+	  glTranslated(a.coords.x,a.coords.y,a.coords.z);
+	  int quality = atomsQuality/4;
+	  if (quality < 4) quality = 4;
+	  gluSphere (quadObj,
+		     vertexRadius*pow(a.M/mdtk::amu,1.0/3.0)/downscaleCTree,
+		     hqMode?atomsQualityInHQMode:atomsQuality,
+		     hqMode?atomsQualityInHQMode:atomsQuality);
+	  gluDeleteQuadric(quadObj);
+	  glPopMatrix();
+	}
+
+	if (showCTreeConnected)
+	{
+	  const Atom& a_prev = atoms_prev[i];
+	  if (t != mdt.begin())
+	    drawEdge(a.coords,a_prev.coords,c,
+		     vertexRadius*pow(a.M/mdtk::amu,1.0/3.0)/downscaleCTree);
+	}
       }
     }
 

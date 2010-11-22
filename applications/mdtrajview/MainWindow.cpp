@@ -197,18 +197,6 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
 				    695,35,270,280,"Collision Tree");
   rollBoxCTree->align(FL_ALIGN_TOP | FL_ALIGN_INSIDE);
 
-  energy_threshold = new Fl_Counter(695+15, 40+20+26+26+26, 150, 26,
-				    "Energy Threshold, eV");
-  energy_threshold->labelsize(12);
-  energy_threshold->minimum(1);
-  energy_threshold->maximum(900);
-  energy_threshold->value(10);
-  energy_threshold->lstep(10);
-  energy_threshold->step(1);
-  energy_threshold->align(FL_ALIGN_TOP);
-//    energy_threshold->type(FL_SIMPLE_COUNTER);
-  energy_threshold->callback((Fl_Callback*)energy_threshold_cb);
-
   btn_show_atoms = new Fl_Light_Button(695+15, 40+20, 150, 26,
 				       "Show Atoms");
   btn_show_atoms->callback(btn_bool_toggle_cb,
@@ -221,11 +209,49 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
 			   &atoms_view_box->showCTree);
   btn_show_ctree->value(atoms_view_box->showCTree);
 
-  btn_show_alltimes = new Fl_Light_Button(695+15, 40+20+26+26, 150, 26,
+  btn_show_ctree_alltimes = new Fl_Light_Button(695+15, 40+20+26+26, 150, 26,
 					  "Show All Times");
-  btn_show_alltimes->callback(btn_bool_toggle_cb,
-			      &atoms_view_box->showAllTimes);
-  btn_show_alltimes->value(atoms_view_box->showAllTimes);
+  btn_show_ctree_alltimes->callback(btn_bool_toggle_cb,
+				    &atoms_view_box->showCTreeAllTimes);
+  btn_show_ctree_alltimes->value(atoms_view_box->showCTreeAllTimes);
+
+  energy_threshold = new Fl_Counter(695+15, 40+20+26+26+26+12, 150, 26,
+				    "Energy Threshold, eV");
+  energy_threshold->labelsize(12);
+  energy_threshold->minimum(1);
+  energy_threshold->maximum(900);
+  energy_threshold->value(atoms_view_box->energyThresholdCTree);
+  energy_threshold->lstep(10);
+  energy_threshold->step(1);
+  energy_threshold->align(FL_ALIGN_TOP);
+//    energy_threshold->type(FL_SIMPLE_COUNTER);
+  energy_threshold->callback(set_double_cb,
+			     &atoms_view_box->energyThresholdCTree);
+
+  btn_show_ctree_connected = new Fl_Light_Button(695+15, 40+20+26+26+26+12+26, 150, 26,
+					  "Connected Tree");
+  btn_show_ctree_connected->callback(btn_bool_toggle_cb,
+				     &atoms_view_box->showCTreeConnected);
+  btn_show_ctree_connected->value(atoms_view_box->showCTreeConnected);
+
+  btn_show_ctree_atoms = new Fl_Light_Button(695+15, 40+20+26+26+26+12+26+26, 150, 26,
+					  "Show Atoms on Tree");
+  btn_show_ctree_atoms->callback(btn_bool_toggle_cb,
+				 &atoms_view_box->showCTreeAtoms);
+  btn_show_ctree_atoms->value(atoms_view_box->showCTreeAtoms);
+
+  ctree_scaledown = new Fl_Counter(695+15, 40+20+26+26+26+12+26+26+12+26, 150, 26,
+				    "CTree Scaledown");
+  ctree_scaledown->labelsize(12);
+  ctree_scaledown->minimum(1);
+  ctree_scaledown->maximum(900);
+  ctree_scaledown->value(atoms_view_box->downscaleCTree);
+  ctree_scaledown->lstep(10);
+  ctree_scaledown->step(1);
+  ctree_scaledown->align(FL_ALIGN_TOP);
+//    energy_threshold->type(FL_SIMPLE_COUNTER);
+  ctree_scaledown->callback(set_double_cb,
+			    &atoms_view_box->downscaleCTree);
 
   btn_show_axes = new Fl_Light_Button(160,420,165,30,"Show axes");
   btn_show_axes->tooltip(btn_show_axes_tooltip);
@@ -747,18 +773,6 @@ MainWindow::atom_quality_cb(Fl_Widget *w, void *)
 
   MainWindow_Ptr->atoms_view_box->atomsQuality = 
     int(MainWindow_Ptr->atom_quality->value());
-  MainWindow_Ptr->atoms_view_box->redraw();
-}
-
-void
-MainWindow::energy_threshold_cb(Fl_Widget *w, void *)
-{
-  MainWindow* MainWindow_Ptr;
-  MainWindow_Ptr =
-    (MainWindow*)(w->parent()->parent()->parent());
-
-  MainWindow_Ptr->atoms_view_box->energyThreshold = 
-    int(MainWindow_Ptr->energy_threshold->value());
   MainWindow_Ptr->atoms_view_box->redraw();
 }
 

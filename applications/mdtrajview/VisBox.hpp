@@ -51,7 +51,11 @@ public:
   unsigned long vertexColor,edgeColor,bgColor;
   bool showAxes;
   bool showCTree;
-  bool showAllTimes;
+  bool showCTreeConnected;
+  bool showCTreeAtoms;
+  bool showCTreeAllTimes;
+  Float downscaleCTree;
+  Float energyThresholdCTree;
   bool showAtoms;
   bool showBath;
   bool showBathSketch;
@@ -59,7 +63,6 @@ public:
   bool showSelected;
   bool showBarrier;
   bool nativeVertexColors;
-  Float energyThreshold;
   int  atomsQuality;
   int  atomsQualityInHQMode;
   bool hqMode;
@@ -101,7 +104,8 @@ private:
   void listCTree();
   void listCustom();
   void drawCTree(CollisionTree* ct);
-  void drawEdge(const Vector3D& vi, const Vector3D& vj, unsigned int color);
+  void drawEdge(const Vector3D& vi, const Vector3D& vj, 
+		unsigned int color, double radius);
 
 public:
   double old_rot_x;

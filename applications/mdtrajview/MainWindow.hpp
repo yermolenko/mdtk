@@ -72,7 +72,9 @@ class MainWindow : public Fl_Window
   Fl_Light_Button
   *btn_show_atoms,
     *btn_show_ctree,
-    *btn_show_alltimes,
+    *btn_show_ctree_alltimes,
+    *btn_show_ctree_connected,
+    *btn_show_ctree_atoms,
     *btn_show_axes,
     *btn_show_bath,
     *btn_show_bath_sketch,
@@ -143,6 +145,7 @@ class MainWindow : public Fl_Window
 
   Fl_Counter       *animate_delay;
   Fl_Counter       *energy_threshold;
+  Fl_Counter       *ctree_scaledown;
                   
   Fl_Slider       *atom_quality;
 

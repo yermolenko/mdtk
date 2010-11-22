@@ -182,7 +182,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     }
   }
 
-  const size_t maxsize = 2000;
+  const size_t maxsize = 20;
   if (fileList.size() > maxsize) fileList.resize(maxsize);
 
   xmde::VisBox avb(15,35,500,500,baseFile,fileList);
