@@ -65,76 +65,19 @@ namespace xmde
 
 class MainWindow : public Fl_Window
 {
-  void quickSaveBitmap();
-
-  std::string product_info;
-
-  Fl_Light_Button
-  *btn_show_atoms,
-    *btn_show_ctree,
-    *btn_show_ctree_alltimes,
-    *btn_show_ctree_connected,
-    *btn_show_ctree_atoms,
-    *btn_show_axes,
-    *btn_show_bath,
-    *btn_show_bath_sketch,
-    *btn_show_custom,
-    *btn_show_selected,
-    *btn_rescale,
-    *btn_animate,
-    *btn_colored_atoms;
-
-  Fl_Button  *btn_quick_save_image;
-  Fl_Button  *btn_save_image;
-  Fl_Button  *btn_save_tiled_image;
-  Fl_Button  *btn_save_mde;
-
-  Fl_Button  *btn_x_view;
-  Fl_Button  *btn_y_view;
-  Fl_Button  *btn_z_view;
-
-  Fl_Button  *btn_bg_color;
-  Fl_Button  *btn_atoms_color;
-
-  Fl_Button  *btn_scale_up;
-  Fl_Button  *btn_scale_down;
-
-  Fl_Slider* light_x_dir;
-  Fl_Slider* light_y_dir;
-  Fl_Slider* light_z_dir;
-
+  Fl_Light_Button* btn_animate;
+  Fl_Counter *animate_delay;
 
   Fl_Counter* current_atomindex;
-
   Fl_Counter* current_stateindex;
 
-  std::vector<double> ev;
-  
-  static	const	char
-  *btn_show_axes_tooltip,
-    *btn_show_bath_tooltip,
-    *btn_colored_atoms_tooltip,
-    *roll_x_tooltip,
-    *roll_y_tooltip,
-    *roll_z_tooltip,
-    *btn_atoms_color_tooltip,
-    *btn_bg_color_tooltip,
-    *btn_save_image_tooltip,
-    *btn_scale_up_tooltip,
-    *btn_scale_down_tooltip;
-					
-  VisBox  *atoms_view_box;
-
-  Fl_Tabs     *tabs;
-  Fl_Group    *atoms_view_group;
-  Fl_Group    *about_group;
-  Fl_Box      *about_box;
+  VisBox     *atoms_view_box;
 
   Fl_Multiline_Output* atom_info; 
   
-  Fl_Roller			*roll_x;
-  Fl_Roller			*roll_y;
-  Fl_Roller			*roll_z;
+  Fl_Roller  *roll_x;
+  Fl_Roller  *roll_y;
+  Fl_Roller  *roll_z;
 
   Fl_Slider  *val_xmin;
   Fl_Slider  *val_xmax;
@@ -142,35 +85,26 @@ class MainWindow : public Fl_Window
   Fl_Slider  *val_ymax;
   Fl_Slider  *val_zmin;
   Fl_Slider  *val_zmax;
-
-  Fl_Counter       *animate_delay;
-  Fl_Counter       *energy_threshold;
-  Fl_Counter       *ctree_scaledown;
                   
-  Fl_Slider       *atom_quality;
+  static void btn_bool_toggle_cb(Fl_Widget *, void *);
+  static void set_double_cb(Fl_Widget *, void *);
+  static void set_float_cb(Fl_Widget *, void *);
+  static void set_int_cb(Fl_Widget *, void *);
 
   static void current_atomindex_cb(Fl_Widget *, void *);
   static void current_stateindex_cb(Fl_Widget *, void *);
-
-
-  static void set_double_cb(Fl_Widget *, void *);
-  static void set_float_cb(Fl_Widget *, void *);
 
   static void roll_x_cb(Fl_Widget *, void *);
   static void roll_y_cb(Fl_Widget *, void *);
   static void roll_z_cb(Fl_Widget *, void *);
 
-  static void val_xmin_cb(Fl_Widget *, void *);
+  static void btn_view_cb(Fl_Widget *, void *);
 
-  static void atom_quality_cb(Fl_Widget *, void *);
-  static void energy_threshold_cb(Fl_Widget *, void *);
-
-  static void btn_bool_toggle_cb(Fl_Widget *, void *);
+  static void val_xminmax_cb(Fl_Widget *, void *);
 
   static void btn_rescale_cb(Fl_Widget *, void *);
   static void timer_callback(void *);
   static void btn_animate_cb(Fl_Widget *, void *);
-  static void btn_unified_atoms_cb(Fl_Widget *, void *);
 
   static void btn_bg_color_cb(Fl_Widget *, void *);
   static void btn_atoms_color_cb(Fl_Widget *, void *);
@@ -180,14 +114,13 @@ class MainWindow : public Fl_Window
   static void btn_quick_save_image_cb(Fl_Widget *, void *);
   static void btn_save_mel_cb(Fl_Widget *, void *);
   static void btn_save_mde_cb(Fl_Widget *, void *);
-
-  static void btn_view_cb(Fl_Widget *, void *);
   
   static void btn_scale_up_cb(Fl_Widget *, void *);
   static void btn_scale_down_cb(Fl_Widget *, void *);
 
   static void window_cb(Fl_Widget *, void *);
 
+  void quickSaveBitmap();
 public:
   int  handle(int);
   std::string base_state_filename;
@@ -205,6 +138,21 @@ public:
   
   void out(std::string );
   void clear_out();
+
+  static const char
+  *btn_show_axes_tooltip,
+    *btn_show_bath_tooltip,
+    *btn_colored_atoms_tooltip,
+    *roll_x_tooltip,
+    *roll_y_tooltip,
+    *roll_z_tooltip,
+    *btn_atoms_color_tooltip,
+    *btn_bg_color_tooltip,
+    *btn_save_image_tooltip,
+    *btn_scale_up_tooltip,
+    *btn_scale_down_tooltip;
+
+  std::string product_info;
 };
 
 }

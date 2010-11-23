@@ -130,8 +130,9 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   log_buffer[0]='\0';
   log_pos = 0;
 
-
+  Fl_Tabs*
   tabs = new Fl_Tabs(5,5,990,540);
+  Fl_Group*
   atoms_view_group = new Fl_Group(5,25,990,540,"Controls and Info");
   atoms_view_group->begin();
 
@@ -144,6 +145,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   current_stateindex->value(0);
   current_stateindex->callback((Fl_Callback*)current_stateindex_cb);
  
+  Fl_Light_Button*
   btn_rescale = new Fl_Light_Button(580,380,105,30,"Auto rescale");
   btn_rescale->callback((Fl_Callback*)btn_rescale_cb);
   btn_rescale->value(false);
@@ -152,14 +154,17 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   btn_animate->callback((Fl_Callback*)btn_animate_cb);
   btn_animate->value(instantAnimate);
 
+  Fl_Button*
   btn_scale_up = new Fl_Button(580,320,105,30,"Scale Up");
   btn_scale_up->tooltip(btn_scale_up_tooltip);
   btn_scale_up->callback((Fl_Callback*)btn_scale_up_cb);
 
+  Fl_Button*
   btn_scale_down = new Fl_Button(580,350,105,30,"Scale Down");
   btn_scale_down->tooltip(btn_scale_down_tooltip);
   btn_scale_down->callback((Fl_Callback*)btn_scale_down_cb);
 
+  Fl_Light_Button*
   btn_colored_atoms = new Fl_Light_Button(160,320,165,30,
 					  "Colored atoms");
   btn_colored_atoms->tooltip(btn_colored_atoms_tooltip);
@@ -167,14 +172,17 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
 			      &atoms_view_box->nativeVertexColors);
   btn_colored_atoms->value(atoms_view_box->nativeVertexColors);
 
+  Fl_Button*
   btn_atoms_color = new Fl_Button(160,350,165,30,"Atoms color");
   btn_atoms_color->tooltip(btn_atoms_color_tooltip);
   btn_atoms_color->callback((Fl_Callback*)btn_atoms_color_cb);
 
+  Fl_Button*
   btn_bg_color = new Fl_Button(160,380,165,30,"Background color");
   btn_bg_color->tooltip(btn_bg_color_tooltip);
   btn_bg_color->callback((Fl_Callback*)btn_bg_color_cb);
 
+  Fl_Slider*
   atom_quality = new Fl_Slider(350, 320, 25, 125, "Render\nquality");
   atom_quality->labelsize(12);
   atom_quality->minimum(16);
@@ -182,7 +190,8 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   atom_quality->value(14);
   atom_quality->step(1);
   atom_quality->type(FL_VERT_NICE_SLIDER);
-  atom_quality->callback((Fl_Callback*)atom_quality_cb);
+  atom_quality->callback(set_int_cb,
+			 &atoms_view_box->atomsQuality);
 
   animate_delay = new Fl_Counter(620, 422, 65, 26, "Delay");
   animate_delay->labelsize(12);
@@ -197,24 +206,28 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
 				    695,35,270,280,"Collision Tree");
   rollBoxCTree->align(FL_ALIGN_TOP | FL_ALIGN_INSIDE);
 
+  Fl_Light_Button*
   btn_show_atoms = new Fl_Light_Button(695+15, 40+20, 150, 26,
 				       "Show Atoms");
   btn_show_atoms->callback(btn_bool_toggle_cb,
 			   &atoms_view_box->showAtoms);
   btn_show_atoms->value(atoms_view_box->showAtoms);
 
+  Fl_Light_Button*
   btn_show_ctree = new Fl_Light_Button(695+15, 40+20+26, 150, 26,
 				       "Show Tree");
   btn_show_ctree->callback(btn_bool_toggle_cb,
 			   &atoms_view_box->showCTree);
   btn_show_ctree->value(atoms_view_box->showCTree);
 
+  Fl_Light_Button*
   btn_show_ctree_alltimes = new Fl_Light_Button(695+15, 40+20+26+26, 150, 26,
 					  "Show All Times");
   btn_show_ctree_alltimes->callback(btn_bool_toggle_cb,
 				    &atoms_view_box->showCTreeAllTimes);
   btn_show_ctree_alltimes->value(atoms_view_box->showCTreeAllTimes);
 
+  Fl_Counter*
   energy_threshold = new Fl_Counter(695+15, 40+20+26+26+26+12, 150, 26,
 				    "Energy Threshold, eV");
   energy_threshold->labelsize(12);
@@ -228,18 +241,21 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   energy_threshold->callback(set_double_cb,
 			     &atoms_view_box->energyThresholdCTree);
 
+  Fl_Light_Button*
   btn_show_ctree_connected = new Fl_Light_Button(695+15, 40+20+26+26+26+12+26, 150, 26,
 					  "Connected Tree");
   btn_show_ctree_connected->callback(btn_bool_toggle_cb,
 				     &atoms_view_box->showCTreeConnected);
   btn_show_ctree_connected->value(atoms_view_box->showCTreeConnected);
 
+  Fl_Light_Button*
   btn_show_ctree_atoms = new Fl_Light_Button(695+15, 40+20+26+26+26+12+26+26, 150, 26,
 					  "Show Atoms on Tree");
   btn_show_ctree_atoms->callback(btn_bool_toggle_cb,
 				 &atoms_view_box->showCTreeAtoms);
   btn_show_ctree_atoms->value(atoms_view_box->showCTreeAtoms);
 
+  Fl_Counter*
   ctree_scaledown = new Fl_Counter(695+15, 40+20+26+26+26+12+26+26+12+26, 150, 26,
 				    "CTree Scaledown");
   ctree_scaledown->labelsize(12);
@@ -253,12 +269,14 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   ctree_scaledown->callback(set_double_cb,
 			    &atoms_view_box->downscaleCTree);
 
+  Fl_Light_Button*
   btn_show_axes = new Fl_Light_Button(160,420,165,30,"Show axes");
   btn_show_axes->tooltip(btn_show_axes_tooltip);
   btn_show_axes->callback(btn_bool_toggle_cb,
 			  &atoms_view_box->showAxes);
   btn_show_axes->value(atoms_view_box->showAxes);
 
+  Fl_Light_Button*
   btn_show_bath = new Fl_Light_Button(160,450,165,30,
 				      "Show thermal bath");
   btn_show_bath->tooltip(btn_show_bath_tooltip);
@@ -267,12 +285,14 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
 			  &atoms_view_box->showBath);
   btn_show_bath->value(atoms_view_box->showBath);
 
+  Fl_Light_Button*
   btn_show_bath_sketch = new Fl_Light_Button(160,480,165,30,
 					     "Show tb sketch");
   btn_show_bath_sketch->callback(btn_bool_toggle_cb,
 				 &atoms_view_box->showBathSketch);
   btn_show_bath_sketch->value(atoms_view_box->showBathSketch);
 
+  Fl_Light_Button*
   btn_show_custom = new Fl_Light_Button(160,510,165,30,
 					     "Show Custom");
   btn_show_custom->callback(btn_bool_toggle_cb,
@@ -283,6 +303,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
 				   "Light Direction");
   lightDirBox->align(FL_ALIGN_TOP | FL_ALIGN_INSIDE);
 
+  Fl_Slider*
   light_x_dir	= new Fl_Slider(30, 345, 25, 115,"X");
   light_x_dir->labelsize(12);
   light_x_dir->minimum(-1.0);
@@ -293,6 +314,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   light_x_dir->callback(set_float_cb,
 			atoms_view_box->light0_dir+0);
 
+  Fl_Slider*
   light_y_dir	= new Fl_Slider(70, 345, 25, 115,"Y");
   light_y_dir->labelsize(12);
   light_y_dir->minimum(-1.0);
@@ -303,6 +325,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   light_y_dir->callback(set_float_cb,
 			atoms_view_box->light0_dir+1);
 
+  Fl_Slider*
   light_z_dir	= new Fl_Slider(110, 345, 25, 115,"Z");
   light_z_dir->labelsize(12);
   light_z_dir->minimum(-1.0);
@@ -313,16 +336,20 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   light_z_dir->callback(set_float_cb,
 			atoms_view_box->light0_dir+2);
 
+  Fl_Button*
   btn_quick_save_image = new Fl_Button(415,320,125,30,"Save video");
   btn_quick_save_image->callback((Fl_Callback*)btn_quick_save_image_cb);
 
+  Fl_Button*
   btn_save_image = new Fl_Button(415,350,125,15,"Save image");
   btn_save_image->tooltip(btn_save_image_tooltip);
   btn_save_image->callback((Fl_Callback*)btn_save_image_cb);
 
+  Fl_Button*
   btn_save_tiled_image = new Fl_Button(415,365,125,15,"Save Tiled Image");
   btn_save_tiled_image->callback((Fl_Callback*)btn_save_tiled_image_cb);
 
+  Fl_Button*
   btn_save_mde = new Fl_Button(415,380,125,30,"Save in.mde.gz");
   btn_save_mde->callback((Fl_Callback*)btn_save_mde_cb);
 
@@ -347,7 +374,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   val_xmin->value(0);
   val_xmin->step(0.1);
   val_xmin->when(FL_WHEN_RELEASE);
-  val_xmin->callback((Fl_Callback*)val_xmin_cb);
+  val_xmin->callback((Fl_Callback*)val_xminmax_cb);
 
   val_xmax = new Fl_Slider(475, 60, 25, 235, "max");
   val_xmax->type(FL_VERT_NICE_SLIDER);
@@ -357,7 +384,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   val_xmax->value(100);
   val_xmax->step(0.1);
   val_xmax->when(FL_WHEN_RELEASE);
-  val_xmax->callback((Fl_Callback*)val_xmin_cb);
+  val_xmax->callback((Fl_Callback*)val_xminmax_cb);
 
   roll_y = new Fl_Roller(540, 60, 20, 235, "Y");
   roll_y->tooltip(roll_y_tooltip);
@@ -377,7 +404,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   val_ymin->value(0);
   val_ymin->step(0.1);
   val_ymin->when(FL_WHEN_RELEASE);
-  val_ymin->callback((Fl_Callback*)val_xmin_cb);
+  val_ymin->callback((Fl_Callback*)val_xminmax_cb);
 
   val_ymax = new Fl_Slider(560, 60, 25, 235, "max");
   val_ymax->type(FL_VERT_NICE_SLIDER);
@@ -387,7 +414,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   val_ymax->value(100);
   val_ymax->step(0.1);
   val_ymax->when(FL_WHEN_RELEASE);
-  val_ymax->callback((Fl_Callback*)val_xmin_cb);
+  val_ymax->callback((Fl_Callback*)val_xminmax_cb);
 
   roll_z = new Fl_Roller(625, 60, 20, 235, "Z");
   roll_z->tooltip(roll_z_tooltip);
@@ -407,7 +434,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   val_zmin->value(0);
   val_zmin->step(0.1);
   val_zmin->when(FL_WHEN_RELEASE);
-  val_zmin->callback((Fl_Callback*)val_xmin_cb);
+  val_zmin->callback((Fl_Callback*)val_xminmax_cb);
 
   val_zmax = new Fl_Slider(645, 60, 25, 235, "max");
   val_zmax->type(FL_VERT_NICE_SLIDER);
@@ -417,14 +444,17 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   val_zmax->value(100);
   val_zmax->step(0.1);
   val_zmax->when(FL_WHEN_RELEASE);
-  val_zmax->callback((Fl_Callback*)val_xmin_cb);
+  val_zmax->callback((Fl_Callback*)val_xminmax_cb);
 
+  Fl_Button*
   btn_x_view = new Fl_Button(430, 45, 25*2+20, 10,"x view");
   btn_x_view->callback(btn_view_cb,roll_x);
 
+  Fl_Button*
   btn_y_view = new Fl_Button(515, 45, 25*2+20, 10,"y view");
   btn_y_view->callback(btn_view_cb,roll_y);
 
+  Fl_Button*
   btn_z_view = new Fl_Button(600, 45, 25*2+20, 10,"z view");
   btn_z_view->callback(btn_view_cb,roll_z);
 
@@ -444,6 +474,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   current_atomindex->value(0);
   current_atomindex->callback((Fl_Callback*)current_atomindex_cb);
 
+  Fl_Light_Button*
   btn_show_selected = new Fl_Light_Button(255,275,130,30,"Show selected");
   btn_show_selected->callback(btn_bool_toggle_cb,
 			      &atoms_view_box->showSelected);
@@ -451,7 +482,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
 
   atoms_view_group->end();
 
-
+  Fl_Group*
   about_group = new Fl_Group(5,25,990,540,"About");
   about_group->begin();
   product_info = 
@@ -462,6 +493,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
     "Copyright (C) 2003-2010 Oleksandr Yermolenko\n <oleksandr.yermolenko@@gmail.com>\n\n" +
     "Run the program with --version or --help options for details."
     ;
+  Fl_Box*
   about_box = new Fl_Box(5,25,990,540,product_info.c_str());
 //    about_box->box(FL_EMBOSSED_BOX);
   about_box->labelfont(FL_HELVETICA_BOLD);
@@ -676,6 +708,18 @@ MainWindow::btn_scale_down_cb(Fl_Widget *w, void *)
 }
 
 void
+MainWindow::btn_bool_toggle_cb(Fl_Widget *w, void *pbool)
+{
+  MainWindow* MainWindow_Ptr;
+  MainWindow_Ptr =
+    (MainWindow*)(w->parent()->parent()->parent());
+
+  bool v = ((Fl_Light_Button *)w)->value();
+  *((bool*)pbool) = v;
+  MainWindow_Ptr->atoms_view_box->redraw();
+}
+
+void
 MainWindow::set_double_cb(Fl_Widget *w, void *pdouble)
 {
   MainWindow* MainWindow_Ptr;
@@ -697,6 +741,19 @@ MainWindow::set_float_cb(Fl_Widget *w, void *pfloat)
 
   float v = ((Fl_Slider *)w)->value();
   *((float*)pfloat) = v;
+
+  MainWindow_Ptr->atoms_view_box->redraw();
+}
+
+void
+MainWindow::set_int_cb(Fl_Widget *w, void *pint)
+{
+  MainWindow* MainWindow_Ptr;
+  MainWindow_Ptr =
+    (MainWindow*)(w->parent()->parent()->parent());
+
+  int v = ((Fl_Slider *)w)->value();
+  *((int*)pint) = v;
 
   MainWindow_Ptr->atoms_view_box->redraw();
 }
@@ -747,7 +804,7 @@ MainWindow::roll_z_cb(Fl_Widget *w, void *)
 }
 
 void
-MainWindow::val_xmin_cb(Fl_Widget *w, void *)
+MainWindow::val_xminmax_cb(Fl_Widget *w, void *)
 {
   MainWindow* MainWindow_Ptr;
   MainWindow_Ptr =
@@ -762,30 +819,6 @@ MainWindow::val_xmin_cb(Fl_Widget *w, void *)
       MainWindow_Ptr->val_zmin->value()/100.0,
       MainWindow_Ptr->val_zmax->value()/100.0
       );
-}
-
-void
-MainWindow::atom_quality_cb(Fl_Widget *w, void *)
-{
-  MainWindow* MainWindow_Ptr;
-  MainWindow_Ptr =
-    (MainWindow*)(w->parent()->parent()->parent());
-
-  MainWindow_Ptr->atoms_view_box->atomsQuality = 
-    int(MainWindow_Ptr->atom_quality->value());
-  MainWindow_Ptr->atoms_view_box->redraw();
-}
-
-void
-MainWindow::btn_bool_toggle_cb(Fl_Widget *w, void *pbool)
-{
-  MainWindow* MainWindow_Ptr;
-  MainWindow_Ptr =
-    (MainWindow*)(w->parent()->parent()->parent());
-
-  bool v = ((Fl_Light_Button *)w)->value();
-  *((bool*)pbool) = v;
-  MainWindow_Ptr->atoms_view_box->redraw();
 }
 
 void
