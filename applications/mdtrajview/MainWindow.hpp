@@ -71,7 +71,7 @@ class MainWindow : public Fl_Window
   Fl_Counter* current_atomindex;
   Fl_Counter* current_stateindex;
 
-  VisBox     *atoms_view_box;
+  VisBox     *renderBox;
 
   Fl_Multiline_Output* atom_info; 
   
