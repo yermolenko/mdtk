@@ -127,7 +127,7 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     vertexColor(combineRGB(255,255,255)),
     edgeColor(combineRGB(255,255,255)),
     bgColor(combineRGB(255,255,255)),
-    showAxes(true),
+    showAxes(false),
     showCTree(false),
     showCTreeConnected(true),
     showCTreeAtoms(true),
@@ -142,7 +142,7 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     showBarrier(false),
     nativeVertexColors(true),
     atomsQuality(14),
-    atomsQualityInHQMode(20),
+    atomsQualityInHQMode(50),
     hqMode(false),
     selectedAtomIndex(0),
     nRange(50),
@@ -161,7 +161,7 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
 
   light0_dir[0] = 1.0;
   light0_dir[1] = 1.0;
-  light0_dir[2] = 1.0;
+  light0_dir[2] = -1.0;
   light0_dir[3] = 0.0;
 
   using mdtk::Exception;

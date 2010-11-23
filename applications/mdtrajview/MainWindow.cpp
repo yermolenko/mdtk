@@ -361,7 +361,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
     t->labelsize(12);
     t->minimum(-1.0);
     t->maximum(+1.0);
-    t->value(1.0);
+    t->value(renderBox->light0_dir[0]);
     t->step(0.1);
     t->type(FL_VERT_NICE_SLIDER);
     t->callback(set_float_cb,
@@ -374,7 +374,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
     t->labelsize(12);
     t->minimum(-1.0);
     t->maximum(+1.0);
-    t->value(1.0);
+    t->value(renderBox->light0_dir[1]);
     t->step(0.1);
     t->type(FL_VERT_NICE_SLIDER);
     t->callback(set_float_cb,
@@ -387,7 +387,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
     t->labelsize(12);
     t->minimum(-1.0);
     t->maximum(+1.0);
-    t->value(1.0);
+    t->value(renderBox->light0_dir[2]);
     t->step(0.1);
     t->type(FL_VERT_NICE_SLIDER);
     t->callback(set_float_cb,
