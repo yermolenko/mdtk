@@ -739,6 +739,9 @@ VisBox::listCTree()
   size_t j = 10695;
   Draw_Edge(R[i]->coords,R[j]->coords,0xFF0000);
 */
+  std::vector<bool> ignore(mdt.begin()->second.size());
+  std::vector<bool> hadEnteredCollision(mdt.begin()->second.size());
+
   MDTrajectory::const_iterator t = mdt.begin();
   while (t != mdt.end())
   {
@@ -755,8 +758,9 @@ VisBox::listCTree()
     {
       const Atom& a = atoms[i];
       Float Ek = a.M*SQR(a.V.module())/2.0;
-      if (Ek > energyThresholdCTree*eV)
+      if (Ek > energyThresholdCTree*eV && !ignore[i])
       {
+	hadEnteredCollision[i] = true;
 	Color c;
 	switch (R[i]->ID)
 	{
@@ -794,6 +798,11 @@ VisBox::listCTree()
 	    drawEdge(a.coords,a_prev.coords,c,
 		     vertexRadius*pow(a.M/mdtk::amu,1.0/3.0)/downscaleCTree);
 	}
+      }
+      else
+      {
+	if (hadEnteredCollision[i])
+	  ignore[i] = true;
       }
     }
 

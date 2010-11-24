@@ -266,11 +266,11 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
       = new Fl_Counter(695+15, 40+20+26+26+26+12, 150, 26,
 		       "Energy Threshold, eV");
     t->labelsize(12);
-    t->minimum(1);
+    t->minimum(0.1);
     t->maximum(900);
     t->value(renderBox->energyThresholdCTree);
     t->lstep(10);
-    t->step(1);
+    t->step(0.1);
     t->align(FL_ALIGN_TOP);
 //   t->type(FL_SIMPLE_COUNTER);
     t->callback(set_double_cb,
