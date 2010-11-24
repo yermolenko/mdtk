@@ -59,7 +59,8 @@ public:
   bool showAtoms;
   bool showBath;
   bool showBathSketch;
-  bool showCustom;
+  bool showCustom1;
+  bool showCustom2;
   bool showSelected;
   bool showBarrier;
   bool nativeVertexColors;
@@ -102,10 +103,13 @@ private:
   void listThermalBath();
   void listThermalBathSketch();
   void listCTree();
-  void listCustom();
+  void listCustom1();
+  void listCustom2();
   void drawCTree(CollisionTree* ct);
   void drawEdge(const Vector3D& vi, const Vector3D& vj, 
 		unsigned int color, double radius);
+  void drawArrow(const Vector3D& vi, const Vector3D& vj, 
+		 unsigned int color, double radius);
 
 public:
   double old_rot_x;

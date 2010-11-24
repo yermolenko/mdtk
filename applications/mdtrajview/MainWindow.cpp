@@ -341,11 +341,20 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(160,510,165,30,
-			    "Show Custom");
+      = new Fl_Light_Button(160,510,165,15,
+			    "Show Custom1");
     t->callback(btn_bool_toggle_cb,
-		&renderBox->showCustom);
-    t->value(renderBox->showCustom);
+		&renderBox->showCustom1);
+    t->value(renderBox->showCustom1);
+  }
+
+  {
+    Fl_Light_Button* t
+      = new Fl_Light_Button(160,525,165,15,
+			    "Show Custom2");
+    t->callback(btn_bool_toggle_cb,
+		&renderBox->showCustom2);
+    t->value(renderBox->showCustom2);
   }
 
   {

@@ -137,7 +137,8 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     showAtoms(true),
     showBath(false),
     showBathSketch(false),
-    showCustom(false),
+    showCustom1(false),
+    showCustom2(false),
     showSelected(false),
     showBarrier(false),
     nativeVertexColors(true),
@@ -365,10 +366,16 @@ VisBox::drawObjects()
     listThermalBathSketch();
     glEnable(GL_LIGHTING);
   }
-  if (showCustom)
+  if (showCustom1)
   {
     glDisable(GL_LIGHTING);
-    listCustom();
+    listCustom1();
+    glEnable(GL_LIGHTING);
+  }
+  if (showCustom2)
+  {
+    glDisable(GL_LIGHTING);
+    listCustom2();
     glEnable(GL_LIGHTING);
   }
   glPopMatrix();
@@ -653,6 +660,53 @@ VisBox::drawEdge(const Vector3D& vi, const Vector3D& vj,
 }
 
 void
+VisBox::drawArrow(const Vector3D& vi, const Vector3D& vj, 
+		  unsigned int color, double radius)
+{
+  Vector3D TempRotVector;
+  double    TempRotAngle;
+
+  GLUquadricObj *quadObj;
+
+  Float arrowPart = 0.2;
+
+  glPushMatrix();
+  quadObj = gluNewQuadric ();
+  gluQuadricDrawStyle (quadObj, GLU_FILL);
+  myglColor(color);
+  Vector3D vish = vi+(vj-vi)*arrowPart;
+  glTranslated(vish.x,vish.y,vish.z);
+  TempRotVector=_vectorMul(Vector3D(0,0,1.0L),vj-vi);
+  TempRotAngle=(_relAngle(Vector3D(0,0,1.0L),vj-vi)/M_PI)*180.0L;
+  glRotated(TempRotAngle,TempRotVector.x,TempRotVector.y,TempRotVector.z);
+  gluCylinder (quadObj,
+	       radius/3.0,
+	       radius/3.0,
+	       (vi-vj).module()*(1.0-arrowPart), 
+	       hqMode?atomsQualityInHQMode:atomsQuality, 
+	       hqMode?atomsQualityInHQMode:atomsQuality);
+  gluDeleteQuadric(quadObj);
+  glPopMatrix();
+
+  glPushMatrix();
+  quadObj = gluNewQuadric ();
+  gluQuadricDrawStyle (quadObj, GLU_FILL);
+  myglColor(color);
+  glTranslated(vi.x,vi.y,vi.z);
+  TempRotVector=_vectorMul(Vector3D(0,0,1.0L),vj-vi);
+  TempRotAngle=(_relAngle(Vector3D(0,0,1.0L),vj-vi)/M_PI)*180.0L;
+  glRotated(TempRotAngle,TempRotVector.x,TempRotVector.y,TempRotVector.z);
+  gluCylinder (quadObj,
+	       0,
+	       radius,
+	       (vi-vj).module()*arrowPart, 
+	       hqMode?atomsQualityInHQMode:atomsQuality, 
+	       hqMode?atomsQualityInHQMode:atomsQuality);
+  gluDeleteQuadric(quadObj);
+  glPopMatrix();
+}
+
+void
 VisBox::drawCTree(CollisionTree* ct)
 {
   Atom& a = ct->a;
@@ -750,7 +804,7 @@ VisBox::listCTree()
 #include <gsl/gsl_qrng.h>
 
 void
-VisBox::listCustom()
+VisBox::listCustom1()
 {
   std::vector<Atom> cluster;
   for(size_t i = 0; i < ml_->atoms.size(); i++)
@@ -815,6 +869,18 @@ VisBox::listCustom()
       gluDeleteQuadric(quadObj);
       glPopMatrix();  
     }
+  }
+}
+
+void
+VisBox::listCustom2()
+{
+  {
+    const Atom& a = *R.back();
+    Vector3D c1 = a.coords;
+    Vector3D c2 = c1; c1.z += 5.0*Ao;
+    drawArrow(c1,c2,0xFF0000,
+	      vertexRadius*pow(a.M/mdtk::amu,1.0/3.0));
   }
 }
 
