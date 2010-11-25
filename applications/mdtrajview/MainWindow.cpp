@@ -269,7 +269,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
     t->minimum(0.1);
     t->maximum(900);
     t->value(renderBox->energyThresholdCTree);
-    t->lstep(10);
+    t->lstep(5);
     t->step(0.1);
     t->align(FL_ALIGN_TOP);
 //   t->type(FL_SIMPLE_COUNTER);
@@ -355,6 +355,24 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showCustom2);
     t->value(renderBox->showCustom2);
+  }
+
+  {
+    Fl_Light_Button* t
+      = new Fl_Light_Button(160+165,510,165,15,
+			    "Show Custom3");
+    t->callback(btn_bool_toggle_cb,
+		&renderBox->showCustom3);
+    t->value(renderBox->showCustom3);
+  }
+
+  {
+    Fl_Light_Button* t
+      = new Fl_Light_Button(160+165,525,165,15,
+			    "Tiny Atoms");
+    t->callback(btn_bool_toggle_cb,
+		&renderBox->tinyAtoms);
+    t->value(renderBox->tinyAtoms);
   }
 
   {

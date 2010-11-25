@@ -132,13 +132,15 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     showCTreeConnected(true),
     showCTreeAtoms(true),
     showCTreeAllTimes(false),
+    tinyAtoms(false),
     downscaleCTree(3.0),
-    energyThresholdCTree(10.0),
+    energyThresholdCTree(5.0),
     showAtoms(true),
     showBath(false),
     showBathSketch(false),
     showCustom1(false),
     showCustom2(false),
+    showCustom3(false),
     showSelected(false),
     showBarrier(false),
     nativeVertexColors(true),
@@ -338,8 +340,10 @@ VisBox::drawObjects()
   glScaled(scale,scale,scale);
   glTranslated(-XCenter, -YCenter, -ZCenter);
   glEnable(GL_LIGHTING);
+
   if (showAtoms)
     listVertexes();
+
   if (showCTree)
     listCTree();
   if (showAxes)
@@ -377,6 +381,12 @@ VisBox::drawObjects()
     glDisable(GL_LIGHTING);
     listCustom2();
     glEnable(GL_LIGHTING);
+  }
+  if (showCustom3)
+  {
+//    glDisable(GL_LIGHTING);
+    listCustom3();
+//    glEnable(GL_LIGHTING);
   }
   glPopMatrix();
 }
@@ -597,8 +607,10 @@ VisBox::listVertexes()
       gluQuadricDrawStyle (quadObj, GLU_FILL);
       glTranslated(R[i]->coords.x,R[i]->coords.y,R[i]->coords.z);
       Atom a = *(R[i]); a.setAttributesByElementID();
+      Float scale = 1.0;
+      if (tinyAtoms) scale /= 5;
       gluSphere (quadObj,
-		 vertexRadius*pow(a.M/mdtk::amu,1.0/3.0),
+		 vertexRadius*pow(a.M/mdtk::amu,1.0/3.0)*scale,
 		 hqMode?atomsQualityInHQMode:atomsQuality, 
 		 hqMode?atomsQualityInHQMode:atomsQuality);
       gluDeleteQuadric(quadObj);
@@ -757,6 +769,7 @@ VisBox::listCTree()
     for(size_t i = 0; i < atoms.size(); ++i)
     {
       const Atom& a = atoms[i];
+      if (a.ID == Cu_EL && showCustom3) continue;
       Float Ek = a.M*SQR(a.V.module())/2.0;
       if (Ek > energyThresholdCTree*eV && !ignore[i])
       {
@@ -890,6 +903,83 @@ VisBox::listCustom2()
     Vector3D c2 = c1; c1.z += 5.0*Ao;
     drawArrow(c1,c2,0xFF0000,
 	      vertexRadius*pow(a.M/mdtk::amu,1.0/3.0));
+  }
+}
+
+void
+VisBox::listCustom3()
+{
+  MDTrajectory::const_iterator t = mdt.begin();
+  while (t != mdt.end())
+  {
+    if (!showCTreeAllTimes && t->first > ml_->simTime)
+      break;
+
+    const std::vector<Atom>& atoms = t->second;
+
+    MDTrajectory::const_iterator t_prev = t;
+    if (t != mdt.begin()) --t_prev;
+    const std::vector<Atom>& atoms_prev = t_prev->second;
+    
+    Vector3D clusterMassCenter;
+    {
+      mdtk::Vector3D sumOfC = 0.0;
+      Float sumOfM = 0.0;
+      for(size_t ai = 0; ai < atoms.size(); ai++)
+      {
+	const mdtk::Atom& atom = atoms[ai];
+	if (atom.ID != Cu_EL) continue;
+	sumOfM += atom.M;
+	sumOfC += atom.coords*atom.M;
+      };
+      REQUIRE(sumOfM > 0.0);
+      clusterMassCenter = sumOfC/sumOfM;
+    }
+/*
+    Vector3D clusterMassCenterPrev;
+    {
+      mdtk::Vector3D sumOfC = 0.0;
+      Float sumOfM = 0.0;
+      for(size_t ai = 0; ai < atoms_prev.size(); ai++)
+      {
+	const mdtk::Atom& atom = atoms_prev[ai];
+	if (atom.ID != Cu_EL) continue;
+	sumOfM += atom.M;
+	sumOfC += atom.coords*atom.M;
+      };
+      REQUIRE(sumOfM > 0.0);
+      clusterMassCenterPrev = sumOfC/sumOfM;
+    }
+    
+    Color c;
+    c = (0x00FFFF);
+
+    myglColor(c);
+    
+    if (t != mdt.begin())
+      drawEdge(clusterMassCenter,clusterMassCenterPrev,c,
+	       vertexRadius*pow(64,1.0/3.0));
+*/
+    Color c;
+    c = (0x00FFFF);
+
+    myglColor(c);
+
+    glPushMatrix();
+    GLUquadricObj *quadObj;
+    quadObj = gluNewQuadric ();
+    gluQuadricDrawStyle (quadObj, GLU_FILL);
+    glTranslated(clusterMassCenter.x,
+		 clusterMassCenter.y,
+		 clusterMassCenter.z);
+    gluSphere (quadObj,
+	       vertexRadius*pow(64,1.0/3.0)/2,
+	       hqMode?atomsQualityInHQMode:atomsQuality,
+	       hqMode?atomsQualityInHQMode:atomsQuality);
+    gluDeleteQuadric(quadObj);
+    glPopMatrix();
+    
+    ++t;
   }
 }
 
