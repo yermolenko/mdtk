@@ -99,6 +99,8 @@ private:
 
   void onResizeGL();
 
+  bool   invalidateVertexes;
+  GLuint lstVertexes;
   void listVertexes();
   void listAxes();
   void listBarrier();
