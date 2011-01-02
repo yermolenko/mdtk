@@ -156,8 +156,6 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     xvaList(xvas),
     ctree(NULL),
     zbar(0.0),
-    invalidateVertexes(true),
-    lstVertexes(0),
     old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0),
     tiledMode(false),tileCount(8)
 {
@@ -281,9 +279,6 @@ VisBox::reArrange(double xmin, double xmax,
     scale=(2.0*nRange)/(DistMax+2.0*vertexRadius);
   }  
   maxScale=2.0*(scale);
-
-  invalidateVertexes = true;
-
   redraw();
 }  
 
@@ -347,22 +342,7 @@ VisBox::drawObjects()
   glEnable(GL_LIGHTING);
 
   if (showAtoms)
-  {
-    TRACE("***Drawing Vertexes");
-    if (!invalidateVertexes)
-    {
-      glCallList(lstVertexes);
-      TRACE("***Called Vertexes");
-    }
-    else
-    {
-      glNewList(lstVertexes,GL_COMPILE_AND_EXECUTE);
-      listVertexes();
-      glEndList();
-      invalidateVertexes = false;
-      TRACE("***Rebuilt Vertexes");
-    }
-  }
+    listVertexes();
 
   if (showCTree)
     listCTree();
@@ -1096,17 +1076,9 @@ void
 VisBox::draw()
 {
   if (!valid())
-  {
     onResizeGL();
 
-    setupLighting();
-  
-    if (lstVertexes) glDeleteLists(lstVertexes,1);
-    lstVertexes = glGenLists(1);
-    REQUIRE(lstVertexes);
-
-    invalidateVertexes = true;
-  }
+  setupLighting();
 
   glClearColor((bgColor%0x100)/255.0,
 	       ((bgColor/0x100)%0x100)/255.0,
@@ -1182,7 +1154,6 @@ VisBox::saveTiledImageToFile(char* filename)
   REQUIRE(w()==h());
   tiledMode = true;
   hqMode = true;
-  invalidateVertexes = true;
 
   unsigned long width = w()*tileCount; unsigned long height = h()*tileCount;
   
@@ -1233,7 +1204,6 @@ VisBox::saveTiledImageToFile(char* filename)
 
   hqMode = false;
   tiledMode = false;
-  invalidateVertexes = true;
 
   onResizeGL();
   redraw();
