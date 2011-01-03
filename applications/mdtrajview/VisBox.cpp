@@ -1,7 +1,7 @@
 /*
    The VisBox class for the molecular dynamics trajectory viewer
 
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -156,6 +156,10 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     xvaList(xvas),
     ctree(NULL),
     zbar(0.0),
+    lstBall(0),
+    lstBallHQ(0),
+    lstStick(0),
+    lstStickHQ(0),
     old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0),
     tiledMode(false),tileCount(8)
 {
@@ -561,7 +565,6 @@ void
 VisBox::listVertexes()
 {
   size_t i;
-  GLUquadricObj *quadObj;
   Color c;
   for(i=0;i<R.size();i++)
   {
@@ -603,17 +606,12 @@ VisBox::listVertexes()
 
     if (atomsQuality > 2)
     {
-      quadObj = gluNewQuadric ();
-      gluQuadricDrawStyle (quadObj, GLU_FILL);
       glTranslated(R[i]->coords.x,R[i]->coords.y,R[i]->coords.z);
       Atom a = *(R[i]); a.setAttributesByElementID();
-      Float scale = 1.0;
+      Float scale = 1.0*vertexRadius*pow(a.M/mdtk::amu,1.0/3.0);
       if (tinyAtoms) scale /= 5;
-      gluSphere (quadObj,
-		 vertexRadius*pow(a.M/mdtk::amu,1.0/3.0)*scale,
-		 hqMode?atomsQualityInHQMode:atomsQuality, 
-		 hqMode?atomsQualityInHQMode:atomsQuality);
-      gluDeleteQuadric(quadObj);
+      glScaled(scale,scale,scale);
+      glCallList(hqMode?lstBallHQ:lstBall);
     }
     else
     {
@@ -651,23 +649,14 @@ VisBox::drawEdge(const Vector3D& vi, const Vector3D& vj,
   Vector3D TempRotVector;
   double    TempRotAngle;
 
-  GLUquadricObj *quadObj;
-
   glPushMatrix();
-  quadObj = gluNewQuadric ();
-  gluQuadricDrawStyle (quadObj, GLU_FILL);
   myglColor(color);
   glTranslated(vi.x,vi.y,vi.z);
   TempRotVector=_vectorMul(Vector3D(0,0,1.0L),vj-vi);
   TempRotAngle=(_relAngle(Vector3D(0,0,1.0L),vj-vi)/M_PI)*180.0L;
   glRotated(TempRotAngle,TempRotVector.x,TempRotVector.y,TempRotVector.z);
-  gluCylinder (quadObj,
-	       radius,
-	       radius,
-	       (vi-vj).module(), 
-	       hqMode?atomsQualityInHQMode:atomsQuality, 
-	       hqMode?atomsQualityInHQMode:atomsQuality);
-  gluDeleteQuadric(quadObj);
+  glScaled(radius,radius,(vi-vj).module());
+  glCallList(hqMode?lstStickHQ:lstStick);
   glPopMatrix();
 }
 
@@ -790,17 +779,10 @@ VisBox::listCTree()
 	{
 	  myglColor(c);
 	  glPushMatrix();
-	  GLUquadricObj *quadObj;
-	  quadObj = gluNewQuadric ();
-	  gluQuadricDrawStyle (quadObj, GLU_FILL);
 	  glTranslated(a.coords.x,a.coords.y,a.coords.z);
-	  int quality = atomsQuality/4;
-	  if (quality < 4) quality = 4;
-	  gluSphere (quadObj,
-		     vertexRadius*pow(a.M/mdtk::amu,1.0/3.0)/downscaleCTree,
-		     hqMode?atomsQualityInHQMode:atomsQuality,
-		     hqMode?atomsQualityInHQMode:atomsQuality);
-	  gluDeleteQuadric(quadObj);
+          Float scale = vertexRadius*pow(a.M/mdtk::amu,1.0/3.0)/downscaleCTree;
+          glScaled(scale,scale,scale);
+          glCallList(hqMode?lstBallHQ:lstBall);
 	  glPopMatrix();
 	}
 
@@ -845,14 +827,9 @@ VisBox::listCustom1()
     for(size_t i = 0; i < cluster.size(); i++)
     {
       glPushMatrix();
-      GLUquadricObj *quadObj;
-      quadObj = gluNewQuadric ();
-      gluQuadricDrawStyle (quadObj, GLU_FILL);
       glTranslated(cluster[i].coords.x,cluster[i].coords.y,depth);
-      gluSphere (quadObj,halo, 
-		 hqMode?atomsQualityInHQMode:atomsQuality, 
-		 hqMode?atomsQualityInHQMode:atomsQuality);
-      gluDeleteQuadric(quadObj);
+      glScaled(halo,halo,halo);
+      glCallList(hqMode?lstBallHQ:lstBall);
       glPopMatrix();  
     }
 
@@ -863,14 +840,9 @@ VisBox::listCustom1()
     for(size_t i = 0; i < cluster.size(); i++)
     {
       glPushMatrix();
-      GLUquadricObj *quadObj;
-      quadObj = gluNewQuadric ();
-      gluQuadricDrawStyle (quadObj, GLU_FILL);
       glTranslated(cluster[i].coords.x,cluster[i].coords.y,depth);
-      gluSphere (quadObj,halo, 
-		 hqMode?atomsQualityInHQMode:atomsQuality, 
-		 hqMode?atomsQualityInHQMode:atomsQuality);
-      gluDeleteQuadric(quadObj);
+      glScaled(halo,halo,halo);
+      glCallList(hqMode?lstBallHQ:lstBall);
       glPopMatrix();  
     }
 
@@ -881,14 +853,9 @@ VisBox::listCustom1()
     for(size_t i = 0; i < cluster.size(); i++)
     {
       glPushMatrix();
-      GLUquadricObj *quadObj;
-      quadObj = gluNewQuadric ();
-      gluQuadricDrawStyle (quadObj, GLU_FILL);
       glTranslated(cluster[i].coords.x,cluster[i].coords.y,depth);
-      gluSphere (quadObj,halo, 
-		 hqMode?atomsQualityInHQMode:atomsQuality, 
-		 hqMode?atomsQualityInHQMode:atomsQuality);
-      gluDeleteQuadric(quadObj);
+      glScaled(halo,halo,halo);
+      glCallList(hqMode?lstBallHQ:lstBall);
       glPopMatrix();  
     }
   }
@@ -966,17 +933,12 @@ VisBox::listCustom3()
     myglColor(c);
 
     glPushMatrix();
-    GLUquadricObj *quadObj;
-    quadObj = gluNewQuadric ();
-    gluQuadricDrawStyle (quadObj, GLU_FILL);
     glTranslated(clusterMassCenter.x,
 		 clusterMassCenter.y,
 		 clusterMassCenter.z);
-    gluSphere (quadObj,
-	       vertexRadius*pow(64,1.0/3.0)/2,
-	       hqMode?atomsQualityInHQMode:atomsQuality,
-	       hqMode?atomsQualityInHQMode:atomsQuality);
-    gluDeleteQuadric(quadObj);
+    Float scale = vertexRadius*pow(64,1.0/3.0)/2;
+    glScaled(scale,scale,scale);
+    glCallList(hqMode?lstBallHQ:lstBall);
     glPopMatrix();
     
     ++t;
@@ -1043,6 +1005,66 @@ VisBox::setupLighting()
 }
 
 void
+VisBox::prepareBasicLists()
+{
+  glNewList(lstBall,GL_COMPILE);
+  {
+    GLUquadricObj *quadObj;
+    quadObj = gluNewQuadric ();
+    gluQuadricDrawStyle (quadObj, GLU_FILL);
+    gluSphere (quadObj,
+	       1.0,
+	       atomsQuality,
+	       atomsQuality);
+    gluDeleteQuadric(quadObj);
+  }
+  glEndList();
+
+  glNewList(lstBallHQ,GL_COMPILE);
+  {
+    GLUquadricObj *quadObj;
+    quadObj = gluNewQuadric ();
+    gluQuadricDrawStyle (quadObj, GLU_FILL);
+    gluSphere (quadObj,
+	       1.0,
+	       atomsQualityInHQMode,
+	       atomsQualityInHQMode);
+    gluDeleteQuadric(quadObj);
+  }
+  glEndList();
+
+  glNewList(lstStick,GL_COMPILE);
+  {
+    GLUquadricObj *quadObj;
+    quadObj = gluNewQuadric ();
+    gluQuadricDrawStyle (quadObj, GLU_FILL);
+    gluCylinder (quadObj,
+                 1.0,
+                 1.0,
+                 1.0, 
+                 atomsQuality, 
+                 atomsQuality);
+    gluDeleteQuadric(quadObj);
+  }
+  glEndList();
+
+  glNewList(lstStickHQ,GL_COMPILE);
+  {
+    GLUquadricObj *quadObj;
+    quadObj = gluNewQuadric ();
+    gluQuadricDrawStyle (quadObj, GLU_FILL);
+    gluCylinder (quadObj,
+                 1.0,
+                 1.0,
+                 1.0, 
+                 atomsQualityInHQMode, 
+                 atomsQualityInHQMode);
+    gluDeleteQuadric(quadObj);
+  }
+  glEndList();
+}
+
+void
 VisBox::onResizeGL()
 {
   glMatrixMode(GL_PROJECTION);
@@ -1076,7 +1098,25 @@ void
 VisBox::draw()
 {
   if (!valid())
+  {
     onResizeGL();
+ 
+    setupLighting();
+  
+    if (!lstBall) lstBall = glGenLists(1);
+    REQUIRE(lstBall);
+
+    if (!lstBallHQ) lstBallHQ = glGenLists(1);
+    REQUIRE(lstBallHQ);
+
+    if (!lstStick) lstStick = glGenLists(1);
+    REQUIRE(lstStick);
+
+    if (!lstStickHQ) lstStickHQ = glGenLists(1);
+    REQUIRE(lstStickHQ);
+
+    prepareBasicLists();
+  }
 
   setupLighting();
 
