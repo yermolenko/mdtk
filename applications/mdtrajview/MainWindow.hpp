@@ -2,7 +2,7 @@
    The MainWindow class for the molecular dynamics trajectory viewer
    (header file)
 
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -90,6 +90,7 @@ class MainWindow : public Fl_Window
   static void set_double_cb(Fl_Widget *, void *);
   static void set_float_cb(Fl_Widget *, void *);
   static void set_int_cb(Fl_Widget *, void *);
+  static void set_int_and_invalidate_cb(Fl_Widget *, void *);
 
   static void current_atomindex_cb(Fl_Widget *, void *);
   static void current_stateindex_cb(Fl_Widget *, void *);

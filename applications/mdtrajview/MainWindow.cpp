@@ -1,7 +1,7 @@
 /*
    The MainWindow class for the molecular dynamics trajectory viewer.
 
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -212,7 +212,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
     t->value(14);
     t->step(1);
     t->type(FL_VERT_NICE_SLIDER);
-    t->callback(set_int_cb,
+    t->callback(set_int_and_invalidate_cb,
 		&renderBox->atomsQuality);
   }
 
@@ -875,6 +875,20 @@ MainWindow::set_int_cb(Fl_Widget *w, void *pint)
   int v = ((Fl_Slider *)w)->value();
   *((int*)pint) = v;
 
+  MainWindow_Ptr->renderBox->redraw();
+}
+
+void
+MainWindow::set_int_and_invalidate_cb(Fl_Widget *w, void *pint)
+{
+  MainWindow* MainWindow_Ptr;
+  MainWindow_Ptr =
+    (MainWindow*)(w->parent()->parent()->parent());
+
+  int v = ((Fl_Slider *)w)->value();
+  *((int*)pint) = v;
+
+  MainWindow_Ptr->renderBox->invalidate();
   MainWindow_Ptr->renderBox->redraw();
 }
 
