@@ -277,7 +277,7 @@ VisBox::reArrange(double xmin, double xmax,
   /*DistMin=*/DistMax=sqrt(SQR(XMax-XMin)+SQR(YMax-YMin)+SQR(ZMax-ZMin));
   //	VertexRadius=DistMin/4;
   vertexRadius = 2.57*mdtk::Ao/2.0/3.0/2.0;
-  axesRadius = vertexRadius/(3*4);
+  axesRadius = vertexRadius*3;
   if (allowRescale)
   {
     scale=(2.0*nRange)/(DistMax+2.0*vertexRadius);
@@ -352,9 +352,9 @@ VisBox::drawObjects()
     listCTree();
   if (showAxes)
   {
-    glDisable(GL_LIGHTING);
+//    glDisable(GL_LIGHTING);
     listAxes();
-    glEnable(GL_LIGHTING);
+//    glEnable(GL_LIGHTING);
   }
   if (showBarrier)
   {
@@ -544,21 +544,17 @@ VisBox::listThermalBathSketch()
 void
 VisBox::listAxes()
 {
-  glBegin(GL_LINES);
-  glColor3ub(255,0,0);
-  glVertex3d(0,0,0);
-  glVertex3d(100,0,0);
-  glEnd();
-  glBegin(GL_LINES);
-  glColor3ub(0,255,0);
-  glVertex3d(0,0,0);
-  glVertex3d(0,100,0);
-  glEnd();
-  glBegin(GL_LINES);
-  glColor3ub(0,0,255);
-  glVertex3d(0,0,0);
-  glVertex3d(0,0,100);
-  glEnd();
+  Vector3D xyz000(0,0,0);
+  Vector3D x(XMax,0,0);
+  Vector3D y(0,YMax,0);
+  Vector3D z(0,0,ZMax);
+
+  drawArrow(x,xyz000,0x0000FF,
+            axesRadius,1.0/20);
+  drawArrow(y,xyz000,0x00FF00,
+            axesRadius,1.0/20);
+  drawArrow(z,xyz000,0xFF0000,
+            axesRadius,1.0/20);
 }
 
 void
@@ -662,14 +658,12 @@ VisBox::drawEdge(const Vector3D& vi, const Vector3D& vj,
 
 void
 VisBox::drawArrow(const Vector3D& vi, const Vector3D& vj, 
-		  unsigned int color, double radius)
+		  unsigned int color, double radius, Float arrowPart)
 {
   Vector3D TempRotVector;
   double    TempRotAngle;
 
   GLUquadricObj *quadObj;
-
-  Float arrowPart = 0.2;
 
   glPushMatrix();
   quadObj = gluNewQuadric ();

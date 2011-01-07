@@ -118,7 +118,8 @@ private:
   void drawEdge(const Vector3D& vi, const Vector3D& vj, 
 		unsigned int color, double radius);
   void drawArrow(const Vector3D& vi, const Vector3D& vj, 
-		 unsigned int color, double radius);
+		 unsigned int color, double radius, 
+                 Float arrowPart = 0.2);
 
 public:
   double old_rot_x;
