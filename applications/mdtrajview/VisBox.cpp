@@ -548,15 +548,13 @@ VisBox::listAxes()
   Vector3D x(XMax,0,0);
   Vector3D y(0,YMax,0);
   Vector3D z(0,0,ZMax);
-  
-  Float arrowPart = 1.0/20;
 
-  drawArrow(x*(1+arrowPart),xyz000,0x0000FF,
-            axesRadius,arrowPart/(1+arrowPart));
-  drawArrow(y*(1+arrowPart),xyz000,0x00FF00,
-            axesRadius,arrowPart/(1+arrowPart));
-  drawArrow(z*(1+arrowPart),xyz000,0xFF0000,
-            axesRadius,arrowPart/(1+arrowPart));
+  drawArrow(x,xyz000,0x0000FF,
+            axesRadius,1.0/20);
+  drawArrow(y,xyz000,0x00FF00,
+            axesRadius,1.0/20);
+  drawArrow(z,xyz000,0xFF0000,
+            axesRadius,1.0/20);
 }
 
 void
