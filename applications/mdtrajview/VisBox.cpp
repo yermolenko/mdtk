@@ -337,6 +337,8 @@ VisBox::setData(mdtk::SimLoop &ml)
 void
 VisBox::drawObjects()
 {
+  glInitNames();
+
   glPushMatrix();
 
   glLightfv(GL_LIGHT0, GL_POSITION, light0_dir);
@@ -564,6 +566,7 @@ VisBox::listVertexes()
   Color c;
   for(i=0;i<R.size();i++)
   {
+    glPushName(i);
     glPushMatrix();
     switch (nativeVertexColors)
     {
@@ -617,6 +620,7 @@ VisBox::listVertexes()
       glEnd();
     }
     glPopMatrix();
+    glPopName();
   }
 }
 
@@ -1265,6 +1269,100 @@ VisBox::window_cb(Fl_Widget* widget, void*)
     ((Fl_Window*)widget)->hide();
     exit(0);
   }
+}
+
+int
+VisBox::handle(int event)
+{
+  int x,y;
+  int atom2select;
+  switch(event)
+  {
+    case FL_PUSH:
+      x = Fl::event_x();
+      y = Fl::event_y();
+      atom2select = pickAtom(x,y);
+      if (atom2select >=0)
+        MainWindow_GlobalPtr->setAtomViewIndex(atom2select);
+      return 1;
+    default:
+      return Fl_Widget::handle(event);
+  }
+}
+
+int
+VisBox::pickAtom(int x, int y)
+{
+  int pickedAtom = -1;
+
+  const int BUFSIZE = 4*R.size();
+  GLuint* selectBuf = new GLuint[BUFSIZE];
+
+  {
+    glSelectBuffer(BUFSIZE,selectBuf);
+    glRenderMode(GL_SELECT);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,viewport);
+    gluPickMatrix(x,viewport[3]-y,
+                  5,5,viewport);
+    GLfloat xr[3][2];
+    {
+      xr[0][0] = -nRange;
+      xr[0][1] = +nRange;
+      xr[1][0] = -nRange;
+      xr[1][1] = +nRange;
+      xr[2][0] = -nRange;
+      xr[2][1] = +nRange;
+    }
+    glOrtho (xr[0][0], xr[0][1], xr[1][0], xr[1][1], xr[2][0], xr[2][1]);
+  }
+  
+  draw();
+
+  {
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glFlush();
+  }
+
+  GLint hits;
+  hits = glRenderMode(GL_RENDER);
+
+  {
+    GLint i, j, numberOfNames = 0;
+    GLuint names, *ptr, minZ,*ptrNames;
+
+    ptr = (GLuint *) selectBuf;
+    minZ = 0xffffffff;
+    for (i = 0; i < hits; i++)
+    {
+      names = *ptr;
+      ptr++;
+      if (*ptr < minZ)
+      {
+        numberOfNames = names;                                 
+        minZ = *ptr;                                           
+        ptrNames = ptr+2;                                      
+      }                                                        
+      
+      ptr += names+2;                                          
+    }
+    if (numberOfNames > 0)
+    {
+      ptr = ptrNames;
+      for (j = 0; j < numberOfNames; j++,ptr++)
+        pickedAtom = *ptr;
+    }
+  }
+
+  delete [] selectBuf;
+
+  return pickedAtom;
 }
 
 }

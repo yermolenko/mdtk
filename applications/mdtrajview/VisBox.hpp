@@ -38,11 +38,14 @@
 #include "mdtk/SimLoop.hpp"
 
 #include "CollisionTree.hpp"
+#include "MainWindow.hpp"
 
 namespace xmde
 {
 
 typedef unsigned int Color;
+
+class MainWindow;
 
 class VisBox : public Fl_Gl_Window
 {
@@ -152,6 +155,9 @@ public:
   bool tiledMode;
   int  tileCount;
   int  tileIndex[2];
+
+  int handle(int event);
+  int pickAtom(int x, int y);
 };
 
 
@@ -179,7 +185,6 @@ inline void analyseRGBA(Color c,unsigned char &r,unsigned char &g,unsigned char 
   b = (c/0x10000)%0x100;
   a = (c/0x1000000)%0x100;
 }
-
 
 }
 

@@ -63,6 +63,8 @@
 namespace xmde
 {
 
+class VisBox;
+
 class MainWindow : public Fl_Window
 {
   Fl_Light_Button* btn_animate;
