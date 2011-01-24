@@ -27,55 +27,232 @@
 #include <cstring>
 
 #include <sstream>
+#include <fstream>
 
 namespace yaatk
 {
-
-/*extern*/ int yaatk_extraID = 0;
-
 #define MDTK_GZ_BUFFER_SIZE 10000
 
+Stream::ZipInvokeInfo Stream::zipInvokeInfoGlobal=ZipInvokeInfo("xz",".xz");
+
+std::vector<Stream::ZipInvokeInfo> Stream::zipInvokeInfoList = Stream::initZipInvokeInfoList();
+
+std::vector<Stream::ZipInvokeInfo> 
+Stream::initZipInvokeInfoList()
+{
+  std::vector<ZipInvokeInfo> v;
+  v.push_back(ZipInvokeInfo("gzip_internal",".gz"));
+  v.push_back(ZipInvokeInfo("gzip",".gz"));
+  v.push_back(ZipInvokeInfo("bzip2",".bz2"));
+  v.push_back(ZipInvokeInfo("xz",".xz"));
+  return v;
+}
+
+std::string
+Stream::getZippedExt()
+{
+  return zipInvokeInfo.extension;
+}
+
+void
+Stream::guessZipTypeByExtension()
+{
+  for(size_t i = 0; i < zipInvokeInfoList.size(); i++)
+  {
+    const ZipInvokeInfo& z = zipInvokeInfoList[i];
+    if (z.command != "nozip" && 
+	filename.find(z.extension) == filename.size()-z.extension.size())
+      {
+	zipInvokeInfo = z;
+	filename = filename.substr(0,filename.size()-z.extension.size());
+	return;
+      }
+  }
+  zipInvokeInfo = ZipInvokeInfo("nozip","");
+}
+
+void
+Stream::guessZipTypeByPresence()
+{
+  {
+    std::ifstream test(getZippedFileName().c_str());
+    if (test) return;
+  }
+
+  for(size_t i = 0; i < zipInvokeInfoList.size(); i++)
+  {
+    const ZipInvokeInfo& z = zipInvokeInfoList[i];
+    std::ifstream test((filename+z.extension).c_str());
+    if (test)
+    {
+	zipInvokeInfo = z;
+	return;
+    }
+  }
+}
+
+Stream::Stream(std::string fname,bool isOutput,bool isBinary)
+      :std::stringstream(
+isBinary?
+(std::stringstream::in | std::stringstream::out | std::stringstream::binary)
+:
+(std::stringstream::in | std::stringstream::out)
+)
+      ,filename(fname),output(isOutput),opened(false),zipInvokeInfo(zipInvokeInfoGlobal)
+{
+  if (!output) guessZipTypeByExtension();
+  if (!output) guessZipTypeByPresence();
+  open();
+}
+
+void Stream::open()
+{
+  if (!opened)
+  {
+    if (!output) 
+      opened = !unZipMe();
+    else
+      opened = true;
+  }
+}
+
+void
+Stream::close()
+{
+  if (opened)
+  {
+    if (output) 
+      opened = zipMe(); 
+    else
+      opened = false;
+  }
+}
+
+int 
+Stream::zipMe()
+{
+  if (zipInvokeInfo.command=="gzip_internal") return zipMe_internal();
+  using mdtk::Exception;
+  char buf[MDTK_GZ_BUFFER_SIZE];
+  FILE* zipped;
+  if (zipInvokeInfo.command!="nozip")
+  {
+    char cmd[2000];sprintf(cmd,"%s -c >%s",zipInvokeInfo.command.c_str(),getZippedFileName().c_str());
+#ifndef __WIN32__
+    zipped   = popen(cmd,"w");
+#else
+    zipped   = _popen(cmd,"wb");
+#endif
+  }
+  else
+    zipped   = fopen(getZippedFileName().c_str(),"wb");
+    
+  REQUIRE(zipped != 0);
+  int unzippedFileSize;
+  while((read(buf,MDTK_GZ_BUFFER_SIZE),unzippedFileSize = gcount()) > 0)
+  {
+    REQUIRE(unzippedFileSize != -1);
+    int bytesWritten    = fwrite(buf,1,unzippedFileSize,zipped);
+    REQUIRE(unzippedFileSize == bytesWritten);
+  }
+  REQUIRE(unzippedFileSize == 0);
+  if (zipInvokeInfo.command!="nozip")
+  {
+#ifndef __WIN32__
+    int pclose_status = pclose(zipped);
+#else
+    int pclose_status = _pclose(zipped);
+#endif
+    REQUIRE(!pclose_status);
+  }
+  else
+  {
+    int fclose_status = fclose(zipped);
+    REQUIRE(!fclose_status);
+  }
+  return 0;
+}
+
 int
-zip_file(const char *zipName, const char* unzipName)
+Stream::unZipMe()
+{
+  if (zipInvokeInfo.command=="gzip_internal") return unZipMe_internal();
+  using mdtk::Exception;
+  char buf[MDTK_GZ_BUFFER_SIZE];
+  FILE* zipped;
+  if (zipInvokeInfo.command!="nozip")
+  {
+    char cmd[2000];sprintf(cmd,"%s -dc %s",zipInvokeInfo.command.c_str(),getZippedFileName().c_str());
+#ifndef __WIN32__
+    zipped   = popen(cmd,"r");
+#else
+    zipped   = _popen(cmd,"rb");
+#endif
+  }
+  else
+    zipped   = fopen(getZippedFileName().c_str(),"rb");
+
+  REQUIRE(zipped != 0);
+  int unzippedFileSize;
+  while ((unzippedFileSize = fread(buf,1,MDTK_GZ_BUFFER_SIZE,zipped)) > 0)
+  {
+    write(buf,unzippedFileSize);
+  }
+  
+  REQUIRE(unzippedFileSize == 0);
+  if (zipInvokeInfo.command!="nozip")
+  {
+#ifndef __WIN32__
+    int pclose_status = pclose(zipped);
+#else
+    int pclose_status = _pclose(zipped);
+#endif
+  REQUIRE(!pclose_status);
+  }
+  else
+  {
+    int fclose_status = fclose(zipped);
+    REQUIRE(!fclose_status);
+  }
+
+  return 0;
+}
+
+int
+Stream::zipMe_internal()
 {
   using mdtk::Exception;
   char buf[MDTK_GZ_BUFFER_SIZE];
-  gzFile   unzipped = gzopen(unzipName,"rb");
-//  if (unzipped == 0) TRACE(unzipName);
-  REQUIRE(unzipped != 0);
-  gzFile   zipped   = gzopen(zipName,"wb");
+  gzFile   zipped   = gzopen(getZippedFileName().c_str(),"wb");
   REQUIRE(zipped != 0);
   int unzippedFileSize;
-  while((unzippedFileSize = gzread(unzipped,buf,MDTK_GZ_BUFFER_SIZE)) > 0)
+  while((read(buf,MDTK_GZ_BUFFER_SIZE),unzippedFileSize = gcount()) > 0)
   {
     REQUIRE(unzippedFileSize != -1);
     int bytesWritten    = gzwrite(zipped,buf,unzippedFileSize);
     REQUIRE(unzippedFileSize == bytesWritten);
   }
   REQUIRE(unzippedFileSize == 0);
-  gzclose(unzipped);  
   gzclose(zipped);
   return 0;
 }
 
 int
-zip_stringstream(const char *zipName, std::stringstream &uzs)
+Stream::unZipMe_internal()
 {
   using mdtk::Exception;
   char buf[MDTK_GZ_BUFFER_SIZE];
-  gzFile   zipped   = gzopen(zipName,"wb");
+  gzFile zipped   = gzopen(getZippedFileName().c_str(),"rb");
   REQUIRE(zipped != 0);
   int unzippedFileSize;
-  while((uzs.read(buf,MDTK_GZ_BUFFER_SIZE),unzippedFileSize = uzs.gcount()) > 0)
+  while ((unzippedFileSize = gzread(zipped,buf,MDTK_GZ_BUFFER_SIZE)) > 0)
   {
-    REQUIRE(unzippedFileSize != -1);
-    int bytesWritten    = gzwrite(zipped,buf,unzippedFileSize);
-    REQUIRE(unzippedFileSize == bytesWritten);
+    write(buf,unzippedFileSize);
   }
   REQUIRE(unzippedFileSize == 0);
   gzclose(zipped);
-  return 0;
 }
+
 
 std::string extractDir(std::string trajNameFinal)
 {
@@ -106,47 +283,6 @@ std::string extractLastItem(std::string trajNameFinal)
     }  
     return res;
 }  
-
-  // ZippedStreams zippedStreams; //deprecated
-
-
-#define  MDTK_GZ_BUFFER_SIZE 10000
-
-void unzip_file(const char *zipName, const char* unzipName)
-{
-  using mdtk::Exception;
-  char buf[MDTK_GZ_BUFFER_SIZE];
-//  TRACE(zipName);
-  gzFile zipped   = gzopen(zipName,"rb");
-  REQUIRE(zipped != 0);
-  FILE*  unzipped = fopen(unzipName,"wb");
-//  if (unzipped == 0) TRACE(unzipName);
-  REQUIRE(unzipped != 0);
-  int unzippedFileSize;
-  while ((unzippedFileSize = gzread(zipped,buf,MDTK_GZ_BUFFER_SIZE)) > 0)
-  {
-    int bytesWritten = fwrite(buf,unzippedFileSize,1,unzipped);
-    REQUIRE(1 == bytesWritten);
-  }
-  REQUIRE(unzippedFileSize == 0);
-  gzclose(zipped);
-  fclose(unzipped);  
-}
-
-void unzip_stringstream(const char *zipName, std::stringstream& os)
-{
-  using mdtk::Exception;
-  char buf[MDTK_GZ_BUFFER_SIZE];
-  gzFile zipped   = gzopen(zipName,"rb");
-  REQUIRE(zipped != 0);
-  int unzippedFileSize;
-  while ((unzippedFileSize = gzread(zipped,buf,MDTK_GZ_BUFFER_SIZE)) > 0)
-  {
-    os.write(buf,unzippedFileSize);
-  }
-  REQUIRE(unzippedFileSize == 0);
-  gzclose(zipped);
-}
 
 
 #define  MDTK_FILECMP_BUFFER_SIZE 10000

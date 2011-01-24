@@ -559,6 +559,11 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_READ(is,iteration,smode); //iteration++;
   YAATK_FSTREAM_READ(is,iterationFlushStateInterval,smode);
 
+#warning SimLoop.cxx Legacy compat patch
+  {
+    goto SL_parisng_done;
+  }
+
   barrier.LoadFromStream(is,smode);
   
   thermalBath.LoadFromStream(is,smode);
@@ -571,6 +576,8 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   atoms_.LoadFromStream(is,smode);
 
 //TRACE(atoms_.getPBC());
+
+SL_parisng_done:
 
   cout << "Parsing of state file done. " << endl;
 
@@ -616,7 +623,7 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
   atoms_.SaveToStream(os,smode);
 }
 
-//#define DONT_USE_XVASCALE
+#define DONT_USE_XVASCALE
 
 void
 SimLoop::loadFromStreamXVA(istream& is)
@@ -799,11 +806,9 @@ SimLoop::writetraj()
 {
   static char s[1024];
   sprintf(s,"mde""%010ld",iteration);
-  YAATK_FSTREAM_CREATE(ofstream,fo1,s);
+  yaatk::text_ofstream fo1(s);
   saveToStream(fo1);
-  YAATK_FSTREAM_CLOSE(fo1);
-  
-  YAATK_ZIP_FILE(s);
+  fo1.close();
 }
 
 void
@@ -811,11 +816,9 @@ SimLoop::writetrajXVA()
 {
   static char s[1024];
   sprintf(s,"mde""%010ld.xva",iteration);
-  YAATK_FSTREAM_CREATE(ofstream,fo1,s);
+  yaatk::text_ofstream fo1(s);
   saveToStreamXVA(fo1);
-  YAATK_FSTREAM_CLOSE(fo1);
-  
-  YAATK_ZIP_FILE(s);
+  fo1.close();
 }
 
 
@@ -824,11 +827,9 @@ SimLoop::writetrajXVA_bin()
 {
   static char s[1024];
   sprintf(s,"mde""%010ld.xva.bin",iteration); //#
-  YAATK_FSTREAM_CREATE_OPT(ofstream,fo1,s,std::ios::out | std::ios::binary);
+  yaatk::binary_ofstream fo1(s);
   saveToStreamXVA_bin(fo1);
-  YAATK_FSTREAM_CLOSE(fo1);
-  
-  YAATK_ZIP_FILE(s);
+  fo1.close();
 }
 
 void
@@ -836,7 +837,7 @@ SimLoop::writetrajXYZ()
 {
   static char s[1024];
   sprintf(s,"mde""%010ld.xyz",iteration);
-  YAATK_FSTREAM_CREATE(ofstream,os,s);
+  yaatk::text_ofstream os(s);
 
   os << atoms_.size() << "\n";
   os << "Sample\n";
@@ -850,24 +851,22 @@ SimLoop::writetrajXYZ()
     os << setw(10) << atoms_[i]->coords.z/Ao  << "\n";
   }
 
-  YAATK_FSTREAM_CLOSE(os);
+  os.close();
 }
 
 void
 SimLoop::writestate()
 {
   {
-  YAATK_FSTREAM_CREATE_OPT(ofstream,fo1,"simloop.conf.bak",std::ios::out | std::ios::binary);
+  yaatk::binary_ofstream fo1("simloop.conf.bak");
   saveToStream(fo1,YAATK_FSTREAM_BIN);
-  YAATK_FSTREAM_CLOSE(fo1);
-  YAATK_ZIP_FILE("simloop.conf.bak");
+  fo1.close();
   }
 
   {
-  YAATK_FSTREAM_CREATE_OPT(ofstream,fo1,"simloop.conf",std::ios::out | std::ios::binary);
+  yaatk::binary_ofstream fo1("simloop.conf");
   saveToStream(fo1,YAATK_FSTREAM_BIN);
-  YAATK_FSTREAM_CLOSE(fo1);
-  YAATK_ZIP_FILE("simloop.conf");
+  fo1.close();
   }
 }
 
@@ -877,23 +876,23 @@ SimLoop::loadstate()
 try
 {
   std::cout << "Reading simloop.conf." << std::endl;
-  YAATK_IFSTREAM_CREATE_ZIPPED_OPT(ifstream,fo1,"simloop.conf",std::ios::in | std::ios::binary);
+  yaatk::binary_ifstream fo1("simloop.conf");
   loadFromStream(fo1,YAATK_FSTREAM_BIN);
   
   REQUIRE(fo1!=0);
-  YAATK_IFSTREAM_CLOSE_ZIPPED(fo1,"simloop.conf");
+  fo1.close();
 }  
 catch(mdtk::Exception& e)
 { 
     std::cerr << "simloop.conf is corrupted. Trying simloop.conf.bak" << std::endl;
-    YAATK_IFSTREAM_CREATE_ZIPPED_OPT(ifstream,fo1bak,"simloop.conf.bak",std::ios::in | std::ios::binary);
+    yaatk::binary_ifstream fo1bak("simloop.conf.bak");
     loadFromStream(fo1bak,YAATK_FSTREAM_BIN);
     if (fo1bak == 0)
     {
       std::cerr << "simloop.conf.bak is ALSO corrupted. Exiting..." << std::endl;
       exit(1);
     }  
-    YAATK_IFSTREAM_CLOSE_ZIPPED(fo1bak,"simloop.conf.bak");
+    fo1bak.close();
 }
 }
 

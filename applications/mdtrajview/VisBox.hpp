@@ -2,8 +2,8 @@
    The VisBox class for the molecular dynamics trajectory viewer
    (header file)
 
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -37,158 +37,156 @@
 #include "mdtk/consts.hpp"
 #include "mdtk/SimLoop.hpp"
 
+#include "CollisionTree.hpp"
+#include "MainWindow.hpp"
+
 namespace xmde
 {
 
-  typedef unsigned int Color;
+typedef unsigned int Color;
 
-  class VisBox : public Fl_Gl_Window
-  {
-  public:
-    bool alloweRescale;
-    void SetAllowRescale(bool);
-    bool GetAllowRescale();
-  public:
-    size_t getAtomsCount(){return ml_->atoms_.size();};
-    void loadNewML(std::string base_state_filename,std::string);
-  private:
-    int atoms_quality;
-    GLdouble DistMin,DistMax,XMin,XMax,YMin,YMax,ZMin,ZMax;
+class MainWindow;
 
-    GLfloat nRange;
-    GLdouble		XCenter,YCenter,ZCenter,
-      VertexRadius,AxesRadius,
-      Scale,MaxScale;
+class VisBox : public Fl_Gl_Window
+{
+public:
+  bool allowRescale;
+  unsigned long vertexColor,edgeColor,bgColor;
+  bool showAxes;
+  bool showCTree;
+  bool showCTreeConnected;
+  bool showCTreeAtoms;
+  bool showCTreeAllTimes;
+  bool tinyAtoms;
+  Float downscaleCTree;
+  Float energyThresholdCTree;
+  bool showAtoms;
+  bool showBath;
+  bool showBathSketch;
+  bool showCustom1;
+  bool showCustom2;
+  bool showCustom3;
+  bool showSelected;
+  bool showBarrier;
+  bool nativeVertexColors;
+  int  atomsQuality;
+  int  atomsQualityInHQMode;
+  bool hqMode;
+  size_t selectedAtomIndex;
+
+  GLfloat nRange;
+  Float vertexRadius, axesRadius, scale, maxScale,
+    XMin,XMax,YMin,YMax,ZMin,ZMax, XCenter, YCenter, ZCenter;
+
+  GLfloat  light0_dir[4];
+
+public:
+  mdtk::AtomsContainer* getAtoms(){return &Ro;};
+  size_t getAtomsCount(){return ml_->atoms_.size();};
+  void loadNewSnapshot(std::string base_state_filename,std::string);
+private:
+  mdtk::AtomsContainer R,Ro;
+public:
+  mdtk::SimLoop* ml_;
+private:
+  MDTrajectory mdt;
+  std::vector<std::string> xvaList;
+  CollisionTree *ctree;
+private:
+  mdtk::Float zbar;
+
+  void draw();
+  void drawcube(int wire);
+  void drawObjects();
+  void setupLighting();
+  void myglColor(Color, GLubyte alpha = 0xFF);
+
+  void onResizeGL();
+
+  GLuint lstBall;
+  GLuint lstBallHQ;
+  GLuint lstStick;
+  GLuint lstStickHQ;
+  void prepareBasicLists();
+
+  void listVertexes();
+  void listAxes();
+  void listBarrier();
+  void listThermalBath();
+  void listThermalBathSketch();
+  void listCTree();
+  void listCustom1();
+  void listCustom2();
+  void listCustom3();
+  void drawCTree(CollisionTree* ct);
+  void drawEdge(const Vector3D& vi, const Vector3D& vj, 
+		unsigned int color, double radius);
+  void drawArrow(const Vector3D& vi, const Vector3D& vj, 
+		 unsigned int color, double radius, 
+                 Float arrowPart = 0.2);
+
+public:
+  double old_rot_x;
+  double old_rot_y;  
+  double old_rot_z;  
+
+  void  reArrange(double xmin, double xmax,
+		  double ymin, double ymax,
+		  double zmin, double zmax);  
+
+  void  rollAround(double,double,double,double);
+
+  double RX(int i) {return R[i]->coords.x;}
+  double RY(int i) {return R[i]->coords.y;}
+  double RZ(int i) {return R[i]->coords.z;}
 	
-    mdtk::AtomsContainer R,Ro;
-  public:
-    mdtk::SimLoop* ml_;
-  private:
+public:
+  VisBox(int x,int y,int w,int h,std::string base_state_filename,
+	 const std::vector<std::string>& xvas);
+  virtual ~VisBox(){delete ml_;};
 
-    unsigned long VertexColor,EdgeColor,BGColor;
-    bool EnableAxes;
-    bool EnableBath;
-    bool ShowSelected;
-    bool EnableBarrier;
-    mdtk::Float zbar;
-    bool NativeVertexColors;
-    bool FixedLights;
+  void setData(mdtk::SimLoop &);
+  void updateData(){setData(*ml_);}
 
-    bool Fronted;
-    int min_ind,max_ind;
-
-    void draw();
-    void drawcube(int wire);
-    void draw_objects();
-    void SetupLighting();
-    void myglColor(Color);
-    void ChangeAxesState(bool);
-    void ChangeNativeVertexColorsState(bool);
-
-    void OnResizeGL();
-    void ResetProjection();
-
-    void Vertexes_List();
-    void Axes_List();
-    void Barrier_List();
-    void ThermalBath_List();
-
-    GLfloat	light0_dir[4];
-
-    double old_rot_x;
-    double old_rot_y;  
-    double old_rot_z;  
-
-  public:
-    void  ReArrange(double xmin, double xmax,
-		    double ymin, double ymax,
-		    double zmin, double zmax);  
-
-    int GetVertexCount() {return R.size();}
+  void saveImageToFile(char* filename);
+  void saveTiledImageToFile(char* filename);
+  void saveToMDE(char* filename);
 	
-    double GetRX(int i) {return R[i]->coords.x;}
-    double GetRY(int i) {return R[i]->coords.y;}
-    double GetRZ(int i) {return R[i]->coords.z;}
-	
-    double	MM_orig_data[16];
-    bool	MM_orig;
+  static void window_cb(Fl_Widget *, void *);
 
-    VisBox(int x,int y,int w,int h,std::string base_state_filename,std::string );
-    virtual ~VisBox(){delete ml_;};
+  bool tiledMode;
+  int  tileCount;
+  int  tileIndex[2];
 
-    void SetData(mdtk::SimLoop &);
-    void updateData(){SetData(*ml_);}
+  int handle(int event);
+  int pickAtom(int x, int y);
+};
 
-    void SetFixedLightsState(bool);
-    bool GetFixedLightsState();
-    void SetAxesState(bool State);
-    bool GetAxesState();
-    void SetBathState(bool State);
-    bool GetBathState();
-    void SetShowSelectedState(bool State);
-    bool GetShowSelectedState();
-    void SetBarrierState(bool State);
-    bool GetBarrierState();
-    void SetNativeVertexColorsState(bool State);
-    bool GetNativeVertexColorsState();
-    void SetBGColor(Color);
-    void SetVertexColor(Color);
-    Color GetBGColor() {return BGColor;};
-    Color GetVertexColor() {return VertexColor;};
-    void	SetScale(double);
-    double	GetMaxScale();
-    void  	SetMaxScale(double);
-    double	GetScale();
 
-    void  	SetLightXDir(double val);
-    void  	SetLightYDir(double val);
-    void  	SetLightZDir(double val);
+inline Color combineRGB(unsigned char r,unsigned char g,unsigned char b,unsigned char a = 0)
+{
+  return (a*0x1000000+b*0x10000+g*0x100+r);
+}
 
-    double  Get_old_rot_x();
-    double  Get_old_rot_y();
-    double  Get_old_rot_z();
+inline Color combineRGBA(unsigned char r,unsigned char g,unsigned char b,unsigned char a = 0)
+{
+  return (a*0x1000000+b*0x10000+g*0x100+r);
+}
 
-    void SetAtomsQuality(int);
+inline void analyseRGB(Color c,unsigned char &r,unsigned char &g,unsigned char &b)
+{
+  r = c%0x100;
+  g = (c/0x100)%0x100;
+  b = (c/0x10000)%0x100;
+}
 
-    void	RollAround(double,double,double,double);
-
-    void QSaveImageToFile(char* filename);
-    void SaveToMDE(char* filename);
-	
-    size_t selectedIndex;
-	
-    void selectAtom(size_t);
-	
-    mdtk::AtomsContainer* getAtoms(){return &Ro;};
-
-    static void window_cb(Fl_Widget *, void *);
-  };
-
-  inline Color CombineRGB(unsigned char r,unsigned char g,unsigned char b,unsigned char a = 0)
-  {
-    return (a*0x1000000+b*0x10000+g*0x100+r);
-  }
-
-  inline Color CombineRGBA(unsigned char r,unsigned char g,unsigned char b,unsigned char a = 0)
-  {
-    return (a*0x1000000+b*0x10000+g*0x100+r);
-  }
-
-  inline void AnalyseRGB(Color c,unsigned char &r,unsigned char &g,unsigned char &b)
-  {
-    r = c%0x100;
-    g = (c/0x100)%0x100;
-    b = (c/0x10000)%0x100;
-  }
-
-  inline void AnalyseRGBA(Color c,unsigned char &r,unsigned char &g,unsigned char &b,unsigned char &a)
-  {
-    r = c%0x100;
-    g = (c/0x100)%0x100;
-    b = (c/0x10000)%0x100;
-    a = (c/0x1000000)%0x100;
-  }
-
+inline void analyseRGBA(Color c,unsigned char &r,unsigned char &g,unsigned char &b,unsigned char &a)
+{
+  r = c%0x100;
+  g = (c/0x100)%0x100;
+  b = (c/0x10000)%0x100;
+  a = (c/0x1000000)%0x100;
+}
 
 }
 

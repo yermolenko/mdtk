@@ -67,9 +67,7 @@ try
   mdtk::SimLoop mdloop;
 
   setupPotentials(mdloop);
-  std::ifstream simloop_conf("simloop.conf.gz");
-  std::ifstream simloop_conf_bak("simloop.conf.bak.gz");
-  if (simloop_conf || simloop_conf_bak) // have to continue interrupted simulation ?
+  if (yaatk::exists("simloop.conf") || yaatk::exists("simloop.conf.bak")) // have to continue interrupted simulation ?
   {
 #ifdef MDE_PARALLEL
     MPI_Barrier(MPI_COMM_WORLD);
@@ -80,23 +78,18 @@ try
   {
     std::string inputFile = "in.mde";
     if (argc > 1) inputFile = argv[1];
-    if (inputFile.find(".gz")==std::string::npos) 
-      {YAATK_ZIP_FILE(inputFile.c_str());}
-    else 
-      inputFile.resize(inputFile.size()-3);
 
-    YAATK_IFSTREAM_CREATE_ZIPPED(std::ifstream,fi,inputFile.c_str());
+    yaatk::text_ifstream fi(inputFile.c_str());
     mdloop.loadFromMDE(fi);
 //    mdloop.loadFromMDE_OLD(fi);
-    YAATK_IFSTREAM_CLOSE_ZIPPED(fi,inputFile.c_str());
+    fi.close();
 #ifdef MDE_PARALLEL
     MPI_Barrier(MPI_COMM_WORLD);
     if (mdtk::comm_rank == 0) {
 #endif
-  std::ofstream fo1("mde""_init");
+  yaatk::text_ofstream fo1("mde""_init");
     mdloop.saveToStream(fo1);
   fo1.close();
-  YAATK_ZIP_FILE("mde""_init");
 #ifdef MDE_PARALLEL
     } // if (rank == 0)
 #endif
@@ -110,10 +103,9 @@ try
 
   if (mdloop.simTime >= mdloop.simTimeFinal) // is simulation really finished ?
   {
-    std::ofstream fo2("mde""_final");
+    yaatk::text_ofstream fo2("mde""_final");
     mdloop.saveToStream(fo2);
     fo2.close();
-    YAATK_ZIP_FILE("mde""_final");
     mdloop.writetrajXVA();
   }
 
@@ -145,18 +137,7 @@ bool
 isAlreadyFinished()
 {
   {
-    std::ifstream ifinal("mde_final.gz");
-    if (ifinal)
-      return true;
-    else
-      ifinal.close();
-  }
-  {
-    std::ifstream ifinal("mde_final");
-    if (ifinal)
-      return true;
-    else
-      ifinal.close();
+    if (yaatk::exists("mde_final")) return true;
   }
   {
     std::ifstream ifinal("in.mde.after_crash");
