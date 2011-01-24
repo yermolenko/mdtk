@@ -116,6 +116,8 @@ MainWindow::setAtomViewIndex(int index)
   os TRACESS(atom.globalIndex);
   
   out(os.str());  
+
+  renderBox->redraw();
 }
 
 MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
