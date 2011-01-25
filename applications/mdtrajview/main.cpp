@@ -143,6 +143,8 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     {
       if (argc > 1 && !strcmp(argv[1],"-a")) instantAnimate = true;
       std::vector<std::string> basefiles;
+      if (argc > 1 && strcmp(argv[1],"-a"))
+        basefiles.push_back(argv[1]);
       basefiles.push_back("in.mde");
       findBaseFiles("./",basefiles);
       basefiles.push_back("mde_init");
