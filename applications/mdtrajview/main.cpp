@@ -1,7 +1,7 @@
 /*
    mdtrajview (the molecular dynamics trajectory viewer)
 
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -158,7 +158,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
       findIntermediateStates("./",fileList);
     }
 
-  if (baseFile.size() <= 3 || fileList.size()==0)
+  if (baseFile.size() <= 3/* || fileList.size()==0*/)
   {
     std::cerr << "Can't find output of successful mdtrajsim run in the current directory.\n";
     return 1;

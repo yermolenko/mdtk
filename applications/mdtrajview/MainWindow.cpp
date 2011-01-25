@@ -632,8 +632,9 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   renderBox->invalidate();
   renderBox->hide();
   renderBox->show();
-	
-  loadNewSnapshot(0);
+
+  if (fileList.size() > 0)
+    loadNewSnapshot(0);
 
   renderBox->allowRescale = false;
   renderBox->reArrange(-1,101,-1,101,-1,101);
