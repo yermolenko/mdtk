@@ -1,7 +1,7 @@
 /*
    Common configuration for mdtrajsim and mdtrajview.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -30,6 +30,7 @@
 #include <mdtk/potentials/manybody/AIREBO/AIREBO_ETors.hpp>
 #include <mdtk/potentials/manybody/TightBinding/TightBinding.hpp>
 #include <mdtk/potentials/manybody/Ackland/Ackland.hpp>
+#include <mdtk/SimLoop.hpp>
 
 inline
 void

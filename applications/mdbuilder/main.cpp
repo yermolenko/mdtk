@@ -31,8 +31,10 @@
 #include <iostream>
 #include <fstream>
 
+#include "applications/common.h"
 #include "experiments/H2.hpp"
 #include "experiments/FCC.hpp"
+#include "experiments/Clusters.hpp"
 
 class MDBuilderWindow : public Fl_Gl_Window
 {
@@ -54,6 +56,7 @@ public:
 void
 MDBuilderWindow::draw()
 {
+  using namespace mdtk;
   if (!valid())
   {
     valid(1);
@@ -74,6 +77,7 @@ MDBuilderWindow::draw()
 
   glLoadIdentity();
   {
+    if (0)
     {
       glLoadIdentity();
       mdtk::SimLoop sl;
@@ -83,6 +87,7 @@ MDBuilderWindow::draw()
       sl.saveToMDE(fomde);
       fomde.close();
     }
+    if (0)
     {
       glLoadIdentity();
       mdtk::SimLoop sl;
@@ -92,6 +97,7 @@ MDBuilderWindow::draw()
       sl.saveToMDE(fomde);
       fomde.close();
     }
+    if (0)
     {
       glLoadIdentity();
       mdtk::SimLoop sl;
@@ -101,7 +107,28 @@ MDBuilderWindow::draw()
       sl.saveToMDE(fomde);
       fomde.close();
     }
+    if (0)
+    {
+      glLoadIdentity();
+      mdtk::SimLoop sl;
+      mdbuilder::place_C60(sl);
+
+      std::ofstream fomde("C60.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
+    }
+//    if (0)
+    {
+      mdtk::SimLoop sl;
+
+      mdbuilder::build_C60_optimized(sl);
+
+      std::ofstream fomde("C60-optimized.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
+    }
   }
+  exit(0);
 }
 
 int main(int argc, char *argv[])
