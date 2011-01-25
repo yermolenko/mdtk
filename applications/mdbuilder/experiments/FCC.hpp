@@ -1,0 +1,111 @@
+#ifndef MDBUILDER_Cu_HPP
+#define MDBUILDER_Cu_HPP
+
+#include "../common.hpp"
+
+namespace mdbuilder
+{
+
+using namespace mdtk;
+
+inline
+void
+place_FCC_cell(mdtk::SimLoop& sl, 
+               ElementID el = Cu_EL,
+               double a = 3.615*Ao,
+               double b = 3.615*Ao,
+               double c = 3.615*Ao
+               )
+{
+  glPushMatrix();
+
+  glPushMatrix();
+  glTranslated(0,0,0);
+  place(el,sl);
+  glPopMatrix();
+
+  glPushMatrix();
+  glTranslated(a/2.0,a/2.0,0);
+  place(el,sl);
+  glPopMatrix();
+
+  glPushMatrix();
+  glTranslated(0,a/2.0,a/2.0);
+  place(el,sl);
+  glPopMatrix();
+
+  glPushMatrix();
+  glTranslated(a/2.0,0,a/2.0);
+  place(el,sl);
+  glPopMatrix();
+
+  glPopMatrix();
+}
+
+inline
+void
+place_FCC_lattice(mdtk::SimLoop& sl, 
+                  int a_num = 14,
+                  int b_num = 14,
+                  int c_num = 7,
+                  ElementID el = Cu_EL,
+                  bool fixBottomLayer = true,
+                  double a = 3.615*Ao,
+                  double b = 3.615*Ao,
+                  double c = 3.615*Ao
+                  )
+{
+  glPushMatrix();
+
+  Vector3D va = Vector3D(a, 0, 0);
+  Vector3D vb = Vector3D(0, b, 0);
+  Vector3D vc = Vector3D(0, 0, c);
+
+  for(int ia = 0; ia < a_num; ia++)
+    for(int ib = 0; ib < b_num; ib++)
+      for(int ic = 0; ic < c_num; ic++)
+      {
+        glPushMatrix();
+        
+        glTranslated(
+          (va*ia+vb*ib+vc*ic).x,
+          (va*ia+vb*ib+vc*ic).y,
+          (va*ia+vb*ib+vc*ic).z
+          );
+
+        glPushMatrix();
+        place_FCC_cell(sl,el,a,b,c);
+        glPopMatrix();
+
+        if (fixBottomLayer)
+        {     
+          if (ic == c_num-1)
+          {
+            {
+              Atom& a = *(sl.atoms[sl.atoms.size()-1]);
+              a.tag |= ATOMTAG_FIXED;
+              if (a.tag & ATOMTAG_FIXED)
+              {
+                a.M = INFINITE_MASS;a.V=0.0;a.an=0.0;a.an_no_tb=0.0;
+              }
+            }
+            {
+              Atom& a = *(sl.atoms[sl.atoms.size()-2]);
+              a.tag |= ATOMTAG_FIXED;
+              if (a.tag & ATOMTAG_FIXED)
+              {
+                a.M = INFINITE_MASS;a.V=0.0;a.an=0.0;a.an_no_tb=0.0;
+              }
+            }
+          }
+        }
+
+        glPopMatrix();
+      }
+
+  glPopMatrix();
+}
+
+}
+
+#endif

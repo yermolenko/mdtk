@@ -32,6 +32,7 @@
 #include <fstream>
 
 #include "experiments/H2.hpp"
+#include "experiments/FCC.hpp"
 
 class MDBuilderWindow : public Fl_Gl_Window
 {
@@ -73,11 +74,30 @@ MDBuilderWindow::draw()
 
   glLoadIdentity();
   {
-    mdtk::SimLoop sl;
-    mdbuilder::place_H2(sl);
-
     {
-      std::ofstream fomde("two_atoms.mde");
+      glLoadIdentity();
+      mdtk::SimLoop sl;
+      mdbuilder::place_H2(sl);
+
+      std::ofstream fomde("H2.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
+    }
+    {
+      glLoadIdentity();
+      mdtk::SimLoop sl;
+      mdbuilder::place_FCC_cell(sl);
+
+      std::ofstream fomde("CuCell.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
+    }
+    {
+      glLoadIdentity();
+      mdtk::SimLoop sl;
+      mdbuilder::place_FCC_lattice(sl);
+
+      std::ofstream fomde("Cu.mde");
       sl.saveToMDE(fomde);
       fomde.close();
     }
