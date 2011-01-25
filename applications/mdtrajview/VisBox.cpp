@@ -121,7 +121,8 @@ VisBox::loadNewSnapshot(std::string base_state_filename,std::string file)
 }  
 
 VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
-	       const std::vector<std::string>& xvas)
+	       const std::vector<std::string>& xvas,
+               void (*fill)(mdtk::SimLoop&))
   : Fl_Gl_Window(x,y,w,h,"MDTK Trajectory Viewer - 3D View"),
     allowRescale(true),
     vertexColor(combineRGB(255,255,255)),
@@ -161,7 +162,8 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     lstStick(0),
     lstStickHQ(0),
     old_rot_x(0.0), old_rot_y(0.0), old_rot_z(0.0),
-    tiledMode(false),tileCount(8)
+    tiledMode(false),tileCount(8),
+    fillFunc(fill)
 {
   mode(FL_RGB | FL_DOUBLE | FL_ACCUM | FL_ALPHA | FL_DEPTH | FL_MULTISAMPLE);
   end();
@@ -340,6 +342,13 @@ VisBox::setData(mdtk::SimLoop &ml)
 void
 VisBox::drawObjects()
 {
+  if (fillFunc)
+  {
+    fillFunc(*ml_);
+    setData(*ml_);
+    return;
+  }
+
   glInitNames();
 
   glPushMatrix();
