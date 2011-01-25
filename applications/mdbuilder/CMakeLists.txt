@@ -1,6 +1,6 @@
 #  CMakeLists.txt file for the Molecular Dynamics Experiments Builder
 #
-#  Copyright (C) 2007, 2008, 2009, 2010 Oleksandr Yermolenko
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
 #  <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.

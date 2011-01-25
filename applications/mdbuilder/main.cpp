@@ -1,7 +1,7 @@
 /*
    mdbuilder (molecular dynamics experiments preparation tool)
 
-   Copyright (C) 2010 Oleksandr Yermolenko
+   Copyright (C) 2010, 2011 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
