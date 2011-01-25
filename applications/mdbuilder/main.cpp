@@ -20,8 +20,10 @@
    along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../mdtrajview/VisBox.hpp"
 #include <FL/Fl.H>
+#include <FL/Fl_Gl_Window.H>
+#include <FL/gl.h>
+
 #include <cstring>
 
 //#include "pentacene.hpp"
@@ -30,6 +32,57 @@
 #include <fstream>
 
 #include "experiments/H2.hpp"
+
+class MDBuilderWindow : public Fl_Gl_Window
+{
+  void draw();
+  void resize(int X,int Y,int W,int H)
+    {
+      Fl_Gl_Window::resize(X,Y,W,H);
+      glLoadIdentity();
+      glViewport(0,0,W,H);
+      glOrtho(-W,W,-H,H,-1,1);
+      redraw();
+    }
+public:
+  MDBuilderWindow(int X,int Y,int W,int H,const char*L=0) : Fl_Gl_Window(X,Y,W,H,L)
+    {
+    }
+};
+
+void
+MDBuilderWindow::draw()
+{
+  if (!valid())
+  {
+    valid(1);
+    glLoadIdentity();
+    glViewport(0,0,w(),h());
+    glOrtho(-w(),w(),-h(),h(),-1,1);
+  }
+  glClear(GL_COLOR_BUFFER_BIT);
+  glColor3f(1.0, 1.0, 1.0);
+  glBegin(GL_LINE_STRIP); 
+  glVertex2f(w(), h()); 
+  glVertex2f(-w(),-h()); 
+  glEnd();
+  glBegin(GL_LINE_STRIP); 
+  glVertex2f(w(),-h()); 
+  glVertex2f(-w(), h());
+  glEnd();
+
+  glLoadIdentity();
+  {
+    mdtk::SimLoop sl;
+    mdbuilder::place_H2(sl);
+
+    {
+      std::ofstream fomde("two_atoms.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
+    }
+  }
+}
 
 int main(int argc, char *argv[])
 {
@@ -54,22 +107,10 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     return 0;
   }
 
-  xmde::VisBox visualizer(15,35,500,500,"",std::vector<std::string>());
-
-  mdbuilder::place_H2_simple(*visualizer.ml_);
-
-  {
-    std::ofstream fomde("two_atoms.mde");
-    visualizer.ml_->saveToMDE(fomde);
-    fomde.close();
-//    YAATK_ZIP_FILE("two_atoms.mde");
-  }
-
-  visualizer.updateData();
-
-  visualizer.show();
-
-  Fl::run();
-
-  return 0;
+  Fl_Window win(500, 300, "MDBuilder");
+  MDBuilderWindow mygl(10, 10, win.w()-20, win.h()-20);
+  win.end();
+  win.resizable(mygl);
+  win.show();
+  return(Fl::run());
 }

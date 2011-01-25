@@ -20,7 +20,6 @@ inline
 void
 place_H2(mdtk::SimLoop& sl)
 {
-  TRACE("Ok");
   glPushMatrix();
   place(H_EL,sl);
   glTranslated(1.0*mdtk::Ao,0,0);

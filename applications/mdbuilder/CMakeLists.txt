@@ -25,7 +25,7 @@ include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
 
 link_directories (${MDTK_BINARY_DIR})
 
-add_executable (${MDTK_CurrentTarget} main.cpp common.cxx ../mdtrajview/VisBox.cpp ../mdtrajview/MainWindow.cpp ../mdtrajview/CollisionTree.cxx ../mdtrajview/bmpImage.cxx)
+add_executable (${MDTK_CurrentTarget} main.cpp common.cxx)
 
 IF(WIN32)
   target_link_libraries (${MDTK_CurrentTarget} mdtk ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES} ${ZLIB_LIBRARIES} ${GSL_LIBRARIES} ole32 uuid comctl32 wsock32 gdi32)
