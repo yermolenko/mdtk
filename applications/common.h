@@ -77,10 +77,10 @@ setupPotentials(mdtk::SimLoop& simloop)
   pot = new mdtk::ETors();
   simloop.fpot.addPotential(pot);
 */
-/*
+
   pot = new mdtk::Ackland();
   simloop.fpot.addPotential(pot);
-*/
+
 /*
   pot = new mdtk::FBM(Rcutoff(1.029*Ao,1.029*Ao));
   pot->handledElements.clear();

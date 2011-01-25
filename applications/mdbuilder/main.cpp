@@ -117,13 +117,23 @@ MDBuilderWindow::draw()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-//    if (0)
+    if (0)
     {
       mdtk::SimLoop sl;
 
       mdbuilder::build_C60_optimized(sl);
 
       std::ofstream fomde("C60-optimized.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
+    }
+//    if (0)
+    {
+      mdtk::SimLoop sl;
+
+      mdbuilder::build_cluster(sl,Cu_EL,13);
+
+      std::ofstream fomde("Cu13.mde");
       sl.saveToMDE(fomde);
       fomde.close();
     }
