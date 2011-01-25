@@ -142,8 +142,7 @@ public:
 	
 public:
   VisBox(int x,int y,int w,int h,std::string base_state_filename,
-	 const std::vector<std::string>& xvas,
-         void (*fill)(mdtk::SimLoop&) = NULL);
+	 const std::vector<std::string>& xvas);
   virtual ~VisBox(){delete ml_;};
 
   void setData(mdtk::SimLoop &);
@@ -161,8 +160,6 @@ public:
 
   int handle(int event);
   int pickAtom(int x, int y);
-
-  void (*fillFunc)(mdtk::SimLoop&);
 };
 
 

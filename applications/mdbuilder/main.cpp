@@ -54,8 +54,9 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     return 0;
   }
 
-  xmde::VisBox visualizer(15,35,500,500,"",std::vector<std::string>(),
-    mdbuilder::place_H2);
+  xmde::VisBox visualizer(15,35,500,500,"",std::vector<std::string>());
+
+  mdbuilder::place_H2_simple(*visualizer.ml_);
 
   {
     std::ofstream fomde("two_atoms.mde");
@@ -64,7 +65,6 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 //    YAATK_ZIP_FILE("two_atoms.mde");
   }
 
-  visualizer.fillFunc = NULL;
   visualizer.updateData();
 
   visualizer.show();
