@@ -51,21 +51,30 @@ place_C60(mdtk::SimLoop& sl)
 
 inline
 void
+quench(mdtk::SimLoop& sl, 
+       Float forTime = 0.2*ps,
+       std::string tmpDir = "_tmp-X")
+{
+  yaatk::mkdir(tmpDir.c_str());
+  yaatk::chdir(tmpDir.c_str());
+  setupPotentials(sl);
+  sl.initialize();
+  sl.simTime = 0.0*ps;
+  sl.simTimeFinal = forTime;
+  sl.simTimeSaveTrajInterval = 0.05*ps;
+  sl.thermalBath.zMin = -100000.0*Ao;
+  sl.execute();
+  yaatk::chdir("..");
+}
+
+inline
+void
 build_C60_optimized(mdtk::SimLoop& sl)
 {
   glLoadIdentity();
   mdbuilder::place_C60(sl);
   
-  yaatk::mkdir("_tmp-C60-optimized");
-  yaatk::chdir("_tmp-C60-optimized");
-  setupPotentials(sl);
-  sl.initialize();
-  sl.simTime = 0.0*ps;
-  sl.simTimeFinal = 0.2*ps;
-  sl.simTimeSaveTrajInterval = 0.05*ps;
-  sl.thermalBath.zMin = -100000.0*Ao;
-  sl.execute();
-  yaatk::chdir("..");
+  quench(sl,0.2*ps,"_tmp-C60-optimized");
 }
 
 inline
@@ -267,8 +276,6 @@ inline
 void
 build_cluster(mdtk::SimLoop& sl, ElementID id, int clusterSize)
 {
-  glLoadIdentity();
-  
   yaatk::mkdir("_tmp-Cu-clusters");
   yaatk::chdir("_tmp-Cu-clusters");
 
@@ -309,6 +316,68 @@ build_cluster(mdtk::SimLoop& sl, ElementID id, int clusterSize)
   foGlobal.close(); 
 
   yaatk::chdir("..");
+}
+
+inline
+Float
+shiftToOrigin(AtomsContainer& atoms)
+{
+  Float clusterRadius = 0.0;
+  Vector3D clusterCenter(0,0,0);
+
+  for(size_t i = 0; i < atoms.size(); i++)
+    clusterCenter += atoms[i]->coords;
+  clusterCenter /= atoms.size();
+  for(size_t i = 0; i < atoms.size(); i++)
+    atoms[i]->coords -= clusterCenter;
+  for(size_t i = 0; i < atoms.size(); i++)
+  {
+    Float currentDist = atoms[i]->coords.module();
+    clusterRadius = (currentDist>clusterRadius)?currentDist:clusterRadius;
+  }
+
+  return clusterRadius;
+}
+
+inline
+void
+build_embed(mdtk::SimLoop& sl_cluster, 
+            mdtk::SimLoop& sl_shell,
+            mdtk::SimLoop& sl)
+{
+  shiftToOrigin(sl_cluster.atoms);
+  shiftToOrigin(sl_shell.atoms);
+
+//shrinking
+  for(size_t i = 0; i < sl_cluster.atoms.size(); i++)
+  {
+    Atom& a = *(sl_cluster.atoms[i]);
+    a.coords *= 0.8;
+  }
+//~shrinking
+
+  setupPotentials(sl);
+  sl.thermalBath.zMin = -100000.0*Ao;
+
+  for(size_t i = 0; i < sl_shell.atoms.size(); i++)
+  {
+    Atom& a = *(sl_shell.atoms[i]);
+    sl.atoms.push_back(&a);
+  }
+
+  for(size_t i = 0; i < sl_cluster.atoms.size(); i++)
+  {
+    Atom& a = *(sl_cluster.atoms[i]);
+    sl.atoms.push_back(&a);
+  }
+
+  for(size_t i = 0; i < sl.atoms.size(); i++)
+  {
+    Atom& a = *(sl.atoms[i]);
+    a.V = 0.0;
+  }
+
+  quench(sl,0.5*ps,"_tmp-embed");
 }
 
 }

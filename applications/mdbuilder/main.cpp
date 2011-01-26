@@ -107,7 +107,7 @@ MDBuilderWindow::draw()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-//    if (0)
+    if (0)
     {
       glLoadIdentity();
       mdtk::SimLoop sl;
@@ -117,7 +117,7 @@ MDBuilderWindow::draw()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-//    if (0)
+    if (0)
     {
       mdtk::SimLoop sl;
 
@@ -127,7 +127,7 @@ MDBuilderWindow::draw()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-//    if (0)
+    if (0)
     {
       mdtk::SimLoop sl;
 
@@ -136,6 +136,45 @@ MDBuilderWindow::draw()
       yaatk::text_ofstream fomde("Cu13.mde");
       sl.saveToMDE(fomde);
       fomde.close();
+    }
+//    if (0)
+    {
+      mdtk::SimLoop sl_C60;
+      mdbuilder::build_C60_optimized(sl_C60);
+
+      {
+        mdtk::SimLoop sl_cluster;
+        mdbuilder::build_cluster(sl_cluster,Cu_EL,1);
+
+        mdtk::SimLoop sl;
+        mdbuilder::build_embed(sl_cluster,sl_C60,sl);
+
+        yaatk::text_ofstream fomde("Cu001_in_C60.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+      {
+        mdtk::SimLoop sl_cluster;
+        mdbuilder::build_cluster(sl_cluster,Cu_EL,5);
+
+        mdtk::SimLoop sl;
+        mdbuilder::build_embed(sl_cluster,sl_C60,sl);
+
+        yaatk::text_ofstream fomde("Cu005_in_C60.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+      {
+        mdtk::SimLoop sl_cluster;
+        mdbuilder::build_cluster(sl_cluster,Cu_EL,13);
+
+        mdtk::SimLoop sl;
+        mdbuilder::build_embed(sl_cluster,sl_C60,sl);
+
+        yaatk::text_ofstream fomde("Cu013_in_C60.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
     }
   }
   exit(0);
