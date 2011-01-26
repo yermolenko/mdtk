@@ -83,7 +83,7 @@ MDBuilderWindow::draw()
       mdtk::SimLoop sl;
       mdbuilder::place_H2(sl);
 
-      std::ofstream fomde("H2.mde");
+      yaatk::text_ofstream fomde("H2.mde");
       sl.saveToMDE(fomde);
       fomde.close();
     }
@@ -93,7 +93,7 @@ MDBuilderWindow::draw()
       mdtk::SimLoop sl;
       mdbuilder::place_FCC_cell(sl);
 
-      std::ofstream fomde("CuCell.mde");
+      yaatk::text_ofstream fomde("CuCell.mde");
       sl.saveToMDE(fomde);
       fomde.close();
     }
@@ -103,27 +103,27 @@ MDBuilderWindow::draw()
       mdtk::SimLoop sl;
       mdbuilder::place_FCC_lattice(sl);
 
-      std::ofstream fomde("Cu.mde");
+      yaatk::text_ofstream fomde("Cu.mde");
       sl.saveToMDE(fomde);
       fomde.close();
     }
-    if (0)
+//    if (0)
     {
       glLoadIdentity();
       mdtk::SimLoop sl;
       mdbuilder::place_C60(sl);
 
-      std::ofstream fomde("C60.mde");
+      yaatk::text_ofstream fomde("C60.mde");
       sl.saveToMDE(fomde);
       fomde.close();
     }
-    if (0)
+//    if (0)
     {
       mdtk::SimLoop sl;
 
       mdbuilder::build_C60_optimized(sl);
 
-      std::ofstream fomde("C60-optimized.mde");
+      yaatk::text_ofstream fomde("C60-optimized.mde");
       sl.saveToMDE(fomde);
       fomde.close();
     }
@@ -133,7 +133,7 @@ MDBuilderWindow::draw()
 
       mdbuilder::build_cluster(sl,Cu_EL,13);
 
-      std::ofstream fomde("Cu13.mde");
+      yaatk::text_ofstream fomde("Cu13.mde");
       sl.saveToMDE(fomde);
       fomde.close();
     }

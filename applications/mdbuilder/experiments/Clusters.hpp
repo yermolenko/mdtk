@@ -34,8 +34,7 @@ inline
 void
 place_C60(mdtk::SimLoop& sl)
 {
-  std::ifstream fcoords("C60.coords");
-  REQUIRE(fcoords != 0);
+  yaatk::text_ifstream fcoords("C60.coords");
   size_t atomsCount;
   fcoords >> atomsCount;
   
@@ -152,8 +151,7 @@ optimize_single(SimLoop *modloop)
   TRACE(minPotEnergy/mdtk::eV/modloop->atoms_.size());
 
   { 
-    std::ifstream fi("in.mde.min");
-    REQUIRE(fi != NULL);
+    yaatk::text_ifstream fi("in.mde.min");
     modloop->loadFromMDE(fi); 
     fi.close(); 
   }
