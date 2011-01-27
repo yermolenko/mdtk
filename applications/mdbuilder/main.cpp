@@ -176,7 +176,7 @@ MDBuilderWindow::draw()
         fomde.close();
       }
     }
-//    if (0)
+    if (0)
     {
       mdtk::SimLoop sl_C60;
       mdbuilder::build_C60_optimized(sl_C60);
@@ -229,6 +229,35 @@ MDBuilderWindow::draw()
         sl.saveToMDE(fomde);
         fomde.close();
       }
+    }
+//    if (0)
+    {
+      mdtk::SimLoop sl_Cu;
+      mdbuilder::place_FCC_lattice(sl_Cu,14,14,7,Cu_EL);
+
+      mdtk::SimLoop sl_C60;
+      mdbuilder::build_C60_optimized(sl_C60);
+
+      mdtk::SimLoop sl_cluster;
+      mdbuilder::build_cluster(sl_cluster,Cu_EL,6);
+
+      mdtk::SimLoop sl_endo;
+      mdbuilder::build_embed(sl_cluster,sl_C60,sl_endo);
+      mdbuilder::add_rotational_motion(sl_endo,50*eV,Vector3D(0,0,1));
+
+      mdtk::SimLoop sl;
+      mdbuilder::build_target_by_cluster_bombardment(sl_Cu,sl_endo,sl,200*eV);
+
+      TRACE(sl.energyKin()/eV);
+
+      sl.iteration = 0;
+      sl.simTime = 0.0*ps;
+      sl.simTimeFinal = 6.0*ps;
+      sl.simTimeSaveTrajInterval = 0.05*ps;
+
+      yaatk::text_ofstream fomde("Cu100_by_Cu06@C60_n200eV_z050eV.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
     }
   }
   exit(0);

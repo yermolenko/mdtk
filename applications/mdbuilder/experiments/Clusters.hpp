@@ -417,6 +417,35 @@ removeMomentum(AtomsContainer& atoms)
 }
 
 inline
+Vector3D
+geomCenter(AtomsContainer& atoms)
+{
+  Float clusterRadius = 0.0;
+  Vector3D clusterCenter(0,0,0);
+  
+  for(size_t i = 0; i < atoms.size(); i++)
+    clusterCenter += atoms[i]->coords;
+  clusterCenter /= atoms.size();
+
+  return clusterCenter;
+}
+
+inline
+Float
+maxDistanceFrom(AtomsContainer& atoms, Vector3D point)
+{
+  Float clusterRadius = 0.0;
+  
+  for(size_t i = 0; i < atoms.size(); i++)
+  {
+    Float currentDist = (atoms[i]->coords-point).module();
+    clusterRadius = (currentDist>clusterRadius)?currentDist:clusterRadius;
+  }
+
+  return clusterRadius;
+}
+
+inline
 Float
 shiftToOrigin(AtomsContainer& atoms)
 {
@@ -510,6 +539,103 @@ add_rotational_motion(mdtk::SimLoop& sl,
   TRACE(sl.energyKin()/eV);
   removeMomentum(sl.atoms);
   TRACE(sl.energyKin()/eV);
+}
+
+inline
+void
+copy_simloop(
+  mdtk::SimLoop& sl_dest, 
+  mdtk::SimLoop& sl_src)
+{
+  setupPotentials(sl_dest);
+  sl_dest.setPBC(sl_src.getPBC());
+  sl_dest.thermalBath = sl_src.thermalBath;
+  for(size_t i = 0; i < sl_src.atoms_.size(); i++)
+  {
+    Atom& a = *(sl_src.atoms_[i]);
+    sl_dest.atoms_.push_back(&a);
+  }
+}
+
+inline
+void
+add_simloop(
+  mdtk::SimLoop& sl, 
+  mdtk::SimLoop& sl_addon)
+{
+  setupPotentials(sl);
+  for(size_t i = 0; i < sl_addon.atoms_.size(); i++)
+  {
+    Atom& a = *(sl_addon.atoms_[i]);
+    sl.atoms_.push_back(&a);
+  }
+}
+
+inline
+void
+build_target_by_cluster_bombardment(
+  mdtk::SimLoop& sl_target, 
+  mdtk::SimLoop& sl_cluster,
+  mdtk::SimLoop& sl,
+  Float clusterEnergy = 100*eV)
+{
+  copy_simloop(sl,sl_target);
+  add_simloop(sl,sl_cluster);
+
+  shiftToOrigin(sl_cluster.atoms);
+
+  Float clusterRadius 
+    = maxDistanceFrom(sl_cluster.atoms,geomCenter(sl_cluster.atoms));
+  TRACE(clusterRadius/mdtk::Ao);
+
+  Vector3D dCluster = sl.getPBC()/2.0;
+  dCluster.z = -(10.0*Ao+clusterRadius);
+  TRACE(dCluster/mdtk::Ao);
+
+  for(size_t i = 0; i < sl_cluster.atoms.size(); i++)
+  {
+    Atom& a = *(sl_cluster.atoms_[i]);
+    a.coords += dCluster;
+  }
+
+  for(int it = 0;;it = 1)
+  {
+    TRACE("Landing fullerene ...");
+    bool areInteracting = false;
+    for(size_t cli = 0; !areInteracting && cli < sl_cluster.atoms.size(); cli++)
+      for(size_t surfi = 0; !areInteracting && surfi < sl_target.atoms.size(); surfi++)
+      {
+        Atom& clusterAtom = *(sl_cluster.atoms[cli]);
+        Atom& surfaceAtom = *(sl_target.atoms[surfi]);
+        if (depos(clusterAtom,surfaceAtom).module() < ((clusterEnergy==0.0)?3.0*Ao:6.0*Ao))
+        {
+          areInteracting = true;
+        }
+      }
+    if (areInteracting)
+    {
+      if (it == 0)
+      {
+        TRACE("*****ERROR:Fullerene is already interacting");throw;
+      }
+      break;
+    }
+    for(size_t i = 0; i < sl_cluster.atoms.size(); i++)
+    {
+      Atom& a = *(sl_cluster.atoms[i]);
+      a.coords.z += 0.05*Ao;
+    }
+    TRACE(sl_cluster.atoms[0]->coords.z/mdtk::Ao);
+  };
+  TRACE("Fullerene landed ok.");
+
+  for(size_t i = 0; i < sl_cluster.atoms.size(); i++)
+  {
+    Atom& a = *(sl_cluster.atoms[i]);
+    a.V += Vector3D(0,0,sqrt(2.0*clusterEnergy/(a.M)/sl_cluster.atoms.size()));
+  }
+
+  removeMomentum(sl.atoms);
 }
 
 }

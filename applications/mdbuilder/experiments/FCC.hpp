@@ -125,6 +125,10 @@ place_FCC_lattice(mdtk::SimLoop& sl,
         glPopMatrix();
       }
 
+  sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
+  sl.thermalBath.zMin = c*c_num-c-c/4.0;
+  sl.thermalBath.dBoundary = 3.0*Ao;
+
   glPopMatrix();
 }
 
