@@ -623,7 +623,7 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
   atoms_.SaveToStream(os,smode);
 }
 
-#define DONT_USE_XVASCALE
+//#define DONT_USE_XVASCALE
 
 void
 SimLoop::loadFromStreamXVA(istream& is)
