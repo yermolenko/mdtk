@@ -318,13 +318,66 @@ build_cluster(mdtk::SimLoop& sl, ElementID id, int clusterSize)
   yaatk::chdir("..");
 }
 
+Float
+mass(const AtomsContainer& atoms)
+{
+  Float moleculeMass = 0;
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    const mdtk::Atom& atom = *atoms[ai];
+    moleculeMass += atom.M;
+  }
+  return moleculeMass;
+}
+
+Vector3D
+velocity(const AtomsContainer& atoms)
+{
+  REQUIRE(atoms.size() > 0);
+  mdtk::Vector3D sumOfP = 0.0;
+  Float sumOfM = 0.0;
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    const mdtk::Atom& atom = *atoms[ai];
+    sumOfM += atom.M;
+    sumOfP += atom.V*atom.M;
+  };
+  return sumOfP/sumOfM;
+}
+
+Vector3D
+massCenter(const AtomsContainer& atoms)
+{
+  REQUIRE(atoms.size() > 0);
+  mdtk::Vector3D sumOfP = 0.0;
+  Float sumOfM = 0.0;
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    const mdtk::Atom& atom = *atoms[ai];
+    sumOfM += atom.M;
+    sumOfP += atom.coords*atom.M;
+  };
+  return sumOfP/sumOfM;
+}
+
+void
+removeMomentum(AtomsContainer& atoms)
+{
+  Vector3D v = velocity(atoms);
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    mdtk::Atom& atom = *atoms[ai];
+    atom.V -= v;
+  };
+}
+
 inline
 Float
 shiftToOrigin(AtomsContainer& atoms)
 {
   Float clusterRadius = 0.0;
   Vector3D clusterCenter(0,0,0);
-
+  
   for(size_t i = 0; i < atoms.size(); i++)
     clusterCenter += atoms[i]->coords;
   clusterCenter /= atoms.size();
@@ -347,7 +400,7 @@ build_embed(mdtk::SimLoop& sl_cluster,
 {
   shiftToOrigin(sl_cluster.atoms);
   shiftToOrigin(sl_shell.atoms);
-
+  
 //shrinking
   for(size_t i = 0; i < sl_cluster.atoms.size(); i++)
   {
@@ -378,6 +431,8 @@ build_embed(mdtk::SimLoop& sl_cluster,
   }
 
   quench(sl,0.5*ps,"_tmp-embed");
+
+  removeMomentum(sl.atoms);
 }
 
 }
