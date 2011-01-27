@@ -559,11 +559,6 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_READ(is,iteration,smode); //iteration++;
   YAATK_FSTREAM_READ(is,iterationFlushStateInterval,smode);
 
-#warning SimLoop.cxx Legacy compat patch
-  {
-    goto SL_parisng_done;
-  }
-
   barrier.LoadFromStream(is,smode);
   
   thermalBath.LoadFromStream(is,smode);
@@ -576,8 +571,6 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   atoms_.LoadFromStream(is,smode);
 
 //TRACE(atoms_.getPBC());
-
-SL_parisng_done:
 
   cout << "Parsing of state file done. " << endl;
 
