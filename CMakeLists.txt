@@ -41,7 +41,7 @@ IF(MDTK_HEAVY_OPTIMZE)
   ENDIF(BUILD_INTELCC)
 
   IF(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS_DISTRIBUTION "-pedantic -W -Wall -Wno-long-long -fexpensive-optimizations -O3 -march=nocona -mfpmath=sse -funroll-loops")
+    SET(CMAKE_CXX_FLAGS_DISTRIBUTION "-pedantic -W -Wall -Wno-long-long -fexpensive-optimizations -O3 -march=nocona -mfpmath=sse -funroll-loops -static")
     SET(CMAKE_C_FLAGS_DISTRIBUTION "${CMAKE_CXX_FLAGS_DISTRIBUTION}")
     MESSAGE("Using GNU C++ Compiler with optimizations!")
   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
