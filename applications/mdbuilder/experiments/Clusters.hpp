@@ -55,15 +55,24 @@ quench(mdtk::SimLoop& sl,
        Float forTime = 0.2*ps,
        std::string tmpDir = "_tmp-X")
 {
+  Float freezingEnergy = 0.0001*2.5*mdtk::eV*sl.atoms_.size();
+  TRACE(freezingEnergy/mdtk::eV);
+  ERRTRACE(freezingEnergy/mdtk::eV);
+
   yaatk::mkdir(tmpDir.c_str());
   yaatk::chdir(tmpDir.c_str());
   setupPotentials(sl);
   sl.initialize();
   sl.simTime = 0.0*ps;
-  sl.simTimeFinal = forTime;
+  sl.simTimeFinal = 0.0;
   sl.simTimeSaveTrajInterval = 0.05*ps;
   sl.thermalBath.zMin = -100000.0*Ao;
-  sl.execute();
+  while (sl.simTimeFinal < forTime)
+  {
+    sl.simTimeFinal += 0.05*ps;
+    sl.execute();
+    if (sl.energyKin() < freezingEnergy) break;
+  }
   yaatk::chdir("..");
 }
 
@@ -159,7 +168,7 @@ optimize_single(SimLoop *modloop)
     
     modloop->thermalBath.zMin = +100000.0*Ao;
     modloop->simTime = 0.0*ps;
-    modloop->simTimeFinal = 4.0*ps;
+    modloop->simTimeFinal = 1.0*ps;
     modloop->dt_ = 1e-20;
     modloop->iteration = 0;
     cerr << "Heating up every atom to " << maxHeatUpEnergy/mdtk::eV << " eV" << std::endl;
