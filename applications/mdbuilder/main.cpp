@@ -137,7 +137,7 @@ MDBuilderWindow::draw()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-//    if (0)
+    if (0)
     {
       mdtk::SimLoop sl_C60;
       mdbuilder::build_C60_optimized(sl_C60);
@@ -172,6 +172,60 @@ MDBuilderWindow::draw()
         mdbuilder::build_embed(sl_cluster,sl_C60,sl);
 
         yaatk::text_ofstream fomde("Cu013_in_C60.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+    }
+//    if (0)
+    {
+      mdtk::SimLoop sl_C60;
+      mdbuilder::build_C60_optimized(sl_C60);
+
+      {
+        mdtk::SimLoop sl_cluster;
+        mdbuilder::build_cluster(sl_cluster,Cu_EL,0);
+
+        mdtk::SimLoop sl;
+        mdbuilder::build_embed(sl_cluster,sl_C60,sl);
+        mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
+
+        yaatk::text_ofstream fomde("Cu000_in_C60-rot.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+      {
+        mdtk::SimLoop sl_cluster;
+        mdbuilder::build_cluster(sl_cluster,Cu_EL,1);
+
+        mdtk::SimLoop sl;
+        mdbuilder::build_embed(sl_cluster,sl_C60,sl);
+        mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
+
+        yaatk::text_ofstream fomde("Cu001_in_C60-rot.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+      {
+        mdtk::SimLoop sl_cluster;
+        mdbuilder::build_cluster(sl_cluster,Cu_EL,6);
+
+        mdtk::SimLoop sl;
+        mdbuilder::build_embed(sl_cluster,sl_C60,sl);
+        mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
+
+        yaatk::text_ofstream fomde("Cu006_in_C60-rot.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+      {
+        mdtk::SimLoop sl_cluster;
+        mdbuilder::build_cluster(sl_cluster,Cu_EL,13);
+
+        mdtk::SimLoop sl;
+        mdbuilder::build_embed(sl_cluster,sl_C60,sl);
+        mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
+
+        yaatk::text_ofstream fomde("Cu013_in_C60-rot.mde");
         sl.saveToMDE(fomde);
         fomde.close();
       }

@@ -69,6 +69,40 @@ quench(mdtk::SimLoop& sl,
 
 inline
 void
+relax(mdtk::SimLoop& sl, 
+      Float forTime = 0.2*ps,
+      std::string tmpDir = "_tmp-X")
+{
+  yaatk::mkdir(tmpDir.c_str());
+  yaatk::chdir(tmpDir.c_str());
+  setupPotentials(sl);
+  sl.initialize();
+  sl.simTime = 0.0*ps;
+  sl.simTimeFinal = forTime;
+  sl.simTimeSaveTrajInterval = 0.05*ps;
+  sl.execute();
+  yaatk::chdir("..");
+}
+
+inline
+void
+relax_flush(mdtk::SimLoop& sl, 
+      Float forTime = 0.2*ps,
+      std::string tmpDir = "_tmp-X")
+{
+  yaatk::mkdir(tmpDir.c_str());
+  yaatk::chdir(tmpDir.c_str());
+  setupPotentials(sl);
+  sl.initialize();
+  sl.simTime = 0.0*ps;
+  sl.simTimeFinal = forTime;
+  sl.simTimeSaveTrajInterval = 0.001*ps;
+  sl.execute();
+  yaatk::chdir("..");
+}
+
+inline
+void
 build_C60_optimized(mdtk::SimLoop& sl)
 {
   glLoadIdentity();
@@ -276,6 +310,8 @@ inline
 void
 build_cluster(mdtk::SimLoop& sl, ElementID id, int clusterSize)
 {
+  if (clusterSize == 0) return;
+
   yaatk::mkdir("_tmp-Cu-clusters");
   yaatk::chdir("_tmp-Cu-clusters");
 
@@ -433,6 +469,38 @@ build_embed(mdtk::SimLoop& sl_cluster,
   quench(sl,0.5*ps,"_tmp-embed");
 
   removeMomentum(sl.atoms);
+}
+
+inline
+void
+add_rotational_motion(mdtk::SimLoop& sl,
+                      Float totalRotEnergy = 100.0*eV,
+                      Vector3D rotAxis = Vector3D(0.0,1.0,0.0))
+{
+  Vector3D clusterCenterOfM = massCenter(sl.atoms);
+
+  Float sumMVSQR = 0.0;
+  for(size_t i = 0; i < sl.atoms.size(); i++)
+  {
+    Atom& a = *(sl.atoms[i]);
+    Vector3D r = a.coords - clusterCenterOfM;
+    sumMVSQR += a.M*SQR(vectormul(r,rotAxis).module());
+  }
+
+  Float maxVrot = sqrt(2.0*totalRotEnergy/sumMVSQR);
+  for(size_t i = 0; i < sl.atoms.size(); i++)
+  {
+    Atom& a = *(sl.atoms[i]);
+    Vector3D r = a.coords - clusterCenterOfM;
+    a.V = vectormul(r,rotAxis)*maxVrot;
+  }
+
+  TRACE(sl.energyKin()/eV);
+  sl.thermalBath.zMin = +100000.0*Ao;
+  relax_flush(sl,0.2*ps);
+  TRACE(sl.energyKin()/eV);
+  removeMomentum(sl.atoms);
+  TRACE(sl.energyKin()/eV);
 }
 
 }
