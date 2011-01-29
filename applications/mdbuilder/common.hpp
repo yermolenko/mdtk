@@ -64,6 +64,7 @@ inline
 void
 quench(mdtk::SimLoop& sl, 
        Float forTime = 0.2*ps,
+       Float checkTime = 0.05*ps,
        std::string tmpDir = "_tmp-X")
 {
   Float freezingEnergy = 0.0001*2.5*mdtk::eV*sl.atoms_.size();
@@ -72,18 +73,19 @@ quench(mdtk::SimLoop& sl,
 
   yaatk::mkdir(tmpDir.c_str());
   yaatk::chdir(tmpDir.c_str());
-  setupPotentials(sl);
   sl.initialize();
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = 0.0;
   sl.simTimeSaveTrajInterval = 0.05*ps;
+  Float tb_zMin_bak = sl.thermalBath.zMin;
   sl.thermalBath.zMin = -100000.0*Ao;
   while (sl.simTimeFinal < forTime)
   {
-    sl.simTimeFinal += 0.05*ps;
+    sl.simTimeFinal += checkTime;
     sl.execute();
     if (sl.energyKin() < freezingEnergy) break;
   }
+  sl.thermalBath.zMin = tb_zMin_bak;
   yaatk::chdir("..");
 }
 
@@ -95,7 +97,6 @@ relax(mdtk::SimLoop& sl,
 {
   yaatk::mkdir(tmpDir.c_str());
   yaatk::chdir(tmpDir.c_str());
-  setupPotentials(sl);
   sl.initialize();
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = forTime;
@@ -112,7 +113,6 @@ relax_flush(mdtk::SimLoop& sl,
 {
   yaatk::mkdir(tmpDir.c_str());
   yaatk::chdir(tmpDir.c_str());
-  setupPotentials(sl);
   sl.initialize();
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = forTime;
@@ -230,11 +230,18 @@ shiftToOrigin(AtomsContainer& atoms)
 
 inline
 void
+initialize_simloop(mdtk::SimLoop& sl) 
+{
+  setupPotentials(sl);
+  sl.initialize();
+}
+
+inline
+void
 copy_simloop(
   mdtk::SimLoop& sl_dest, 
   mdtk::SimLoop& sl_src)
 {
-  setupPotentials(sl_dest);
   sl_dest.setPBC(sl_src.getPBC());
   sl_dest.thermalBath = sl_src.thermalBath;
   for(size_t i = 0; i < sl_src.atoms_.size(); i++)
@@ -250,7 +257,6 @@ add_simloop(
   mdtk::SimLoop& sl, 
   mdtk::SimLoop& sl_addon)
 {
-  setupPotentials(sl);
   for(size_t i = 0; i < sl_addon.atoms_.size(); i++)
   {
     Atom& a = *(sl_addon.atoms_[i]);

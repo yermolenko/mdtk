@@ -129,9 +129,8 @@ place_FCC_lattice(mdtk::SimLoop& sl,
 }
 
 inline
-void
-build_FCC_lattice(mdtk::SimLoop& sl, 
-                  int a_num = 14,
+mdtk::SimLoop*
+build_FCC_lattice(int a_num = 14,
                   int b_num = 14,
                   int c_num = 7,
                   ElementID el = Cu_EL,
@@ -141,15 +140,20 @@ build_FCC_lattice(mdtk::SimLoop& sl,
                   double c = 3.615*Ao
                   )
 {
+  mdtk::SimLoop& sl = *(new mdtk::SimLoop);
+  initialize_simloop(sl);
+
   place_FCC_lattice(sl,a_num,b_num,c_num,el,fixBottomLayer,a,b,c);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
   sl.thermalBath.zMin = c*c_num-c-c/4.0;
   sl.thermalBath.dBoundary = 3.0*Ao;
 
-  quench(sl,0.06*ps,"_tmp-FCC");
+  quench(sl,0.01*ps,0.01*ps,"_tmp-FCC");
 
   removeMomentum(sl.atoms);
+
+  return &sl;
 }
 
 }

@@ -50,13 +50,18 @@ place_C60(mdtk::SimLoop& sl)
 }
 
 inline
-void
-build_C60_optimized(mdtk::SimLoop& sl)
+mdtk::SimLoop*
+build_C60_optimized()
 {
+  mdtk::SimLoop& sl = *(new mdtk::SimLoop);
+  initialize_simloop(sl);
+
   glLoadIdentity();
   mdbuilder::place_C60(sl);
   
-  quench(sl,0.2*ps,"_tmp-C60-optimized");
+  quench(sl,0.2*ps);
+
+  return &sl;
 }
 
 inline
@@ -255,17 +260,18 @@ add1atom(mdtk::AtomsContainer& atoms, ElementID id)
 }
 
 inline
-void
-build_cluster(mdtk::SimLoop& sl, ElementID id, int clusterSize)
+SimLoop*
+build_cluster(ElementID id, int clusterSize)
 {
-  if (clusterSize == 0) return;
+  mdtk::SimLoop& sl = *(new mdtk::SimLoop);
+  initialize_simloop(sl);
+
+  if (clusterSize == 0) return &sl;
 
   yaatk::mkdir("_tmp-Cu-clusters");
   yaatk::chdir("_tmp-Cu-clusters");
 
   std::ofstream foGlobal("energy.min.all",std::ios::app); 
-
-  setupPotentials(sl);
 
   if (sl.atoms.size() > 0)
     add1atom(sl.atoms_,id);
@@ -300,14 +306,18 @@ build_cluster(mdtk::SimLoop& sl, ElementID id, int clusterSize)
   foGlobal.close(); 
 
   yaatk::chdir("..");
+
+  return &sl;
 }
 
 inline
-void
+SimLoop*
 build_embed(mdtk::SimLoop& sl_cluster, 
-            mdtk::SimLoop& sl_shell,
-            mdtk::SimLoop& sl)
+            mdtk::SimLoop& sl_shell)
 {
+  mdtk::SimLoop& sl = *(new mdtk::SimLoop);
+  initialize_simloop(sl);
+
   shiftToOrigin(sl_cluster.atoms);
   shiftToOrigin(sl_shell.atoms);
   
@@ -319,7 +329,6 @@ build_embed(mdtk::SimLoop& sl_cluster,
   }
 //~shrinking
 
-  setupPotentials(sl);
   sl.thermalBath.zMin = -100000.0*Ao;
 
   for(size_t i = 0; i < sl_shell.atoms.size(); i++)
@@ -340,9 +349,11 @@ build_embed(mdtk::SimLoop& sl_cluster,
     a.V = 0.0;
   }
 
-  quench(sl,0.5*ps,"_tmp-embed");
+  quench(sl,0.5*ps);
 
   removeMomentum(sl.atoms);
+
+  return &sl;
 }
 
 inline
@@ -378,13 +389,15 @@ add_rotational_motion(mdtk::SimLoop& sl,
 }
 
 inline
-void
+SimLoop*
 build_target_by_cluster_bombardment(
   mdtk::SimLoop& sl_target, 
   mdtk::SimLoop& sl_cluster,
-  mdtk::SimLoop& sl,
   Float clusterEnergy = 100*eV)
 {
+  mdtk::SimLoop& sl = *(new mdtk::SimLoop);
+  initialize_simloop(sl);
+
   copy_simloop(sl,sl_target);
   add_simloop(sl,sl_cluster);
 
@@ -442,6 +455,8 @@ build_target_by_cluster_bombardment(
   }
 
   removeMomentum(sl.atoms);
+
+  return &sl;
 }
 
 }
