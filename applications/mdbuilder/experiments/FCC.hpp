@@ -125,11 +125,31 @@ place_FCC_lattice(mdtk::SimLoop& sl,
         glPopMatrix();
       }
 
+  glPopMatrix();
+}
+
+inline
+void
+build_FCC_lattice(mdtk::SimLoop& sl, 
+                  int a_num = 14,
+                  int b_num = 14,
+                  int c_num = 7,
+                  ElementID el = Cu_EL,
+                  bool fixBottomLayer = true,
+                  double a = 3.615*Ao,
+                  double b = 3.615*Ao,
+                  double c = 3.615*Ao
+                  )
+{
+  place_FCC_lattice(sl,a_num,b_num,c_num,el,fixBottomLayer,a,b,c);
+
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
   sl.thermalBath.zMin = c*c_num-c-c/4.0;
   sl.thermalBath.dBoundary = 3.0*Ao;
 
-  glPopMatrix();
+  quench(sl,0.06*ps,"_tmp-FCC");
+
+  removeMomentum(sl.atoms);
 }
 
 }

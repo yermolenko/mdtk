@@ -233,7 +233,7 @@ MDBuilderWindow::draw()
 //    if (0)
     {
       mdtk::SimLoop sl_Cu;
-      mdbuilder::place_FCC_lattice(sl_Cu,14,14,7,Cu_EL);
+      mdbuilder::build_FCC_lattice(sl_Cu,14,14,7,Cu_EL);
 
       mdtk::SimLoop sl_C60;
       mdbuilder::build_C60_optimized(sl_C60);

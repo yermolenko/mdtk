@@ -28,6 +28,8 @@
 #include <mdtk/tools.hpp>
 #include <mdtk/SimLoop.hpp>
 
+#include "../common.h"
+
 namespace mdbuilder
 {
 
@@ -56,6 +58,204 @@ place(ElementID id, mdtk::SimLoop& sl, Vector3D pos = getPosition())
   a->coords = pos;
   sl.atoms.push_back(a);
   return a;
+}
+
+inline
+void
+quench(mdtk::SimLoop& sl, 
+       Float forTime = 0.2*ps,
+       std::string tmpDir = "_tmp-X")
+{
+  Float freezingEnergy = 0.0001*2.5*mdtk::eV*sl.atoms_.size();
+  TRACE(freezingEnergy/mdtk::eV);
+  ERRTRACE(freezingEnergy/mdtk::eV);
+
+  yaatk::mkdir(tmpDir.c_str());
+  yaatk::chdir(tmpDir.c_str());
+  setupPotentials(sl);
+  sl.initialize();
+  sl.simTime = 0.0*ps;
+  sl.simTimeFinal = 0.0;
+  sl.simTimeSaveTrajInterval = 0.05*ps;
+  sl.thermalBath.zMin = -100000.0*Ao;
+  while (sl.simTimeFinal < forTime)
+  {
+    sl.simTimeFinal += 0.05*ps;
+    sl.execute();
+    if (sl.energyKin() < freezingEnergy) break;
+  }
+  yaatk::chdir("..");
+}
+
+inline
+void
+relax(mdtk::SimLoop& sl, 
+      Float forTime = 0.2*ps,
+      std::string tmpDir = "_tmp-X")
+{
+  yaatk::mkdir(tmpDir.c_str());
+  yaatk::chdir(tmpDir.c_str());
+  setupPotentials(sl);
+  sl.initialize();
+  sl.simTime = 0.0*ps;
+  sl.simTimeFinal = forTime;
+  sl.simTimeSaveTrajInterval = 0.05*ps;
+  sl.execute();
+  yaatk::chdir("..");
+}
+
+inline
+void
+relax_flush(mdtk::SimLoop& sl, 
+      Float forTime = 0.2*ps,
+      std::string tmpDir = "_tmp-X")
+{
+  yaatk::mkdir(tmpDir.c_str());
+  yaatk::chdir(tmpDir.c_str());
+  setupPotentials(sl);
+  sl.initialize();
+  sl.simTime = 0.0*ps;
+  sl.simTimeFinal = forTime;
+  sl.simTimeSaveTrajInterval = 0.001*ps;
+  sl.execute();
+  yaatk::chdir("..");
+}
+
+inline
+Float
+mass(const AtomsContainer& atoms)
+{
+  Float moleculeMass = 0;
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    const mdtk::Atom& atom = *atoms[ai];
+    moleculeMass += atom.M;
+  }
+  return moleculeMass;
+}
+
+inline
+Vector3D
+velocity(const AtomsContainer& atoms)
+{
+  REQUIRE(atoms.size() > 0);
+  mdtk::Vector3D sumOfP = 0.0;
+  Float sumOfM = 0.0;
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    const mdtk::Atom& atom = *atoms[ai];
+    sumOfM += atom.M;
+    sumOfP += atom.V*atom.M;
+  };
+  return sumOfP/sumOfM;
+}
+
+inline
+Vector3D
+massCenter(const AtomsContainer& atoms)
+{
+  REQUIRE(atoms.size() > 0);
+  mdtk::Vector3D sumOfP = 0.0;
+  Float sumOfM = 0.0;
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    const mdtk::Atom& atom = *atoms[ai];
+    sumOfM += atom.M;
+    sumOfP += atom.coords*atom.M;
+  };
+  return sumOfP/sumOfM;
+}
+
+inline
+void
+removeMomentum(AtomsContainer& atoms)
+{
+  Vector3D v = velocity(atoms);
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    mdtk::Atom& atom = *atoms[ai];
+    atom.V -= v;
+  };
+}
+
+inline
+Vector3D
+geomCenter(AtomsContainer& atoms)
+{
+  Float clusterRadius = 0.0;
+  Vector3D clusterCenter(0,0,0);
+  
+  for(size_t i = 0; i < atoms.size(); i++)
+    clusterCenter += atoms[i]->coords;
+  clusterCenter /= atoms.size();
+
+  return clusterCenter;
+}
+
+inline
+Float
+maxDistanceFrom(AtomsContainer& atoms, Vector3D point)
+{
+  Float clusterRadius = 0.0;
+  
+  for(size_t i = 0; i < atoms.size(); i++)
+  {
+    Float currentDist = (atoms[i]->coords-point).module();
+    clusterRadius = (currentDist>clusterRadius)?currentDist:clusterRadius;
+  }
+
+  return clusterRadius;
+}
+
+inline
+Float
+shiftToOrigin(AtomsContainer& atoms)
+{
+  Float clusterRadius = 0.0;
+  Vector3D clusterCenter(0,0,0);
+  
+  for(size_t i = 0; i < atoms.size(); i++)
+    clusterCenter += atoms[i]->coords;
+  clusterCenter /= atoms.size();
+  for(size_t i = 0; i < atoms.size(); i++)
+    atoms[i]->coords -= clusterCenter;
+  for(size_t i = 0; i < atoms.size(); i++)
+  {
+    Float currentDist = atoms[i]->coords.module();
+    clusterRadius = (currentDist>clusterRadius)?currentDist:clusterRadius;
+  }
+
+  return clusterRadius;
+}
+
+inline
+void
+copy_simloop(
+  mdtk::SimLoop& sl_dest, 
+  mdtk::SimLoop& sl_src)
+{
+  setupPotentials(sl_dest);
+  sl_dest.setPBC(sl_src.getPBC());
+  sl_dest.thermalBath = sl_src.thermalBath;
+  for(size_t i = 0; i < sl_src.atoms_.size(); i++)
+  {
+    Atom& a = *(sl_src.atoms_[i]);
+    sl_dest.atoms_.push_back(&a);
+  }
+}
+
+inline
+void
+add_simloop(
+  mdtk::SimLoop& sl, 
+  mdtk::SimLoop& sl_addon)
+{
+  setupPotentials(sl);
+  for(size_t i = 0; i < sl_addon.atoms_.size(); i++)
+  {
+    Atom& a = *(sl_addon.atoms_[i]);
+    sl.atoms_.push_back(&a);
+  }
 }
 
 }
