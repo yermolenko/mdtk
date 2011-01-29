@@ -632,7 +632,7 @@ build_target_by_cluster_bombardment(
   for(size_t i = 0; i < sl_cluster.atoms.size(); i++)
   {
     Atom& a = *(sl_cluster.atoms[i]);
-    a.V += Vector3D(0,0,sqrt(2.0*clusterEnergy/(a.M)/sl_cluster.atoms.size()));
+    a.V += Vector3D(0,0,sqrt(2.0*clusterEnergy/(mass(sl_cluster.atoms))));
   }
 
   removeMomentum(sl.atoms);
