@@ -321,27 +321,17 @@ build_embed(mdtk::SimLoop& sl_cluster,
   shiftToOrigin(sl_cluster.atoms);
   shiftToOrigin(sl_shell.atoms);
   
+  copy_simloop(sl,sl_cluster);
+
 //shrinking
-  for(size_t i = 0; i < sl_cluster.atoms.size(); i++)
+  for(size_t i = 0; i < sl.atoms.size(); i++)
   {
-    Atom& a = *(sl_cluster.atoms[i]);
+    Atom& a = *(sl.atoms[i]);
     a.coords *= 0.8;
   }
 //~shrinking
 
-  sl.thermalBath.zMin = -100000.0*Ao;
-
-  for(size_t i = 0; i < sl_shell.atoms.size(); i++)
-  {
-    Atom& a = *(sl_shell.atoms[i]);
-    sl.atoms.push_back(&a);
-  }
-
-  for(size_t i = 0; i < sl_cluster.atoms.size(); i++)
-  {
-    Atom& a = *(sl_cluster.atoms[i]);
-    sl.atoms.push_back(&a);
-  }
+  add_simloop(sl,sl_shell);
 
   for(size_t i = 0; i < sl.atoms.size(); i++)
   {
@@ -457,6 +447,80 @@ build_target_by_cluster_bombardment(
   removeMomentum(sl.atoms);
 
   return &sl;
+}
+
+inline
+void
+prepare_Cu_by_Cu_at_C60_bobardment()
+{
+  std::vector<int> cluster_sizes;
+  cluster_sizes.push_back(0);
+  cluster_sizes.push_back(1);
+  cluster_sizes.push_back(6);
+  cluster_sizes.push_back(13);
+
+  std::vector<Float> trans_energies;
+  for(Float e = 50; e <= 400; e += 50)
+    trans_energies.push_back(e*eV);
+
+  std::vector<Float> rot_energies;
+  for(Float e = 0; e <= 100; e += 10)
+    rot_energies.push_back(e*eV);
+
+  std::vector<Vector3D> rot_axes;
+  rot_axes.push_back(Vector3D(0,0,1));
+  rot_axes.push_back(Vector3D(0,1,0));
+
+  mdtk::SimLoop& sl_Cu = *mdbuilder::build_FCC_lattice(14,14,7,Cu_EL);
+  mdtk::SimLoop& sl_C60 = *mdbuilder::build_C60_optimized();
+
+  for(size_t i_cluster_size = 0; i_cluster_size < cluster_sizes.size(); i_cluster_size++)
+  {
+    int& cluster_size = cluster_sizes[i_cluster_size];
+    mdtk::SimLoop& sl_cluster = *mdbuilder::build_cluster(Cu_EL,cluster_size);
+
+    for(size_t i_rot_axis = 0; i_rot_axis < rot_axes.size(); i_rot_axis++)
+    {
+      for(size_t i_rot_energy = 0; i_rot_energy < rot_energies.size(); i_rot_energy++)
+      {
+        mdtk::SimLoop& sl_endo = *mdbuilder::build_embed(sl_cluster,sl_C60);
+        Vector3D& rot_axis = rot_axes[i_rot_axis];
+        Float& rot_energy = rot_energies[i_rot_energy];
+        mdbuilder::add_rotational_motion(sl_endo,rot_energy,rot_axis);
+
+        for(size_t i_trans_energy = 0; i_trans_energy < trans_energies.size(); i_trans_energy++)
+        {
+          Float& trans_energy = trans_energies[i_trans_energy];
+          mdtk::SimLoop& sl = *mdbuilder::build_target_by_cluster_bombardment(sl_Cu,sl_endo,trans_energy);
+          
+          TRACE(sl.energyKin()/eV);
+
+          sl.iteration = 0;
+          sl.simTime = 0.0*ps;
+          sl.simTimeFinal = 10.0*ps;
+          sl.simTimeSaveTrajInterval = 0.05*ps;
+
+          char id_string[1000];
+          sprintf(id_string,
+                  "%s_by_Cu%02d@%s_%s%03deV_%s%03deV",
+                  "Cu",
+                  cluster_size,
+                  "C60",
+                  "n",
+                  int(trans_energy/eV),
+                  rot_axis==Vector3D(0,0,1)?"z":"y",
+                  int(rot_energy/eV));
+          
+          yaatk::mkdir(id_string);
+          yaatk::chdir(id_string);
+          yaatk::text_ofstream fomde("in.mde");
+          sl.saveToMDE(fomde);
+          fomde.close();
+          yaatk::chdir("..");
+        }
+      }
+    }
+  }
 }
 
 }

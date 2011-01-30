@@ -210,7 +210,7 @@ MDBuilderWindow::draw()
         fomde.close();
       }
     }
-//    if (0)
+    if (0)
     {
       mdtk::SimLoop& sl_Cu = *mdbuilder::build_FCC_lattice(14,14,7,Cu_EL);
 
@@ -233,6 +233,10 @@ MDBuilderWindow::draw()
       yaatk::text_ofstream fomde("Cu100_by_Cu06@C60_n200eV_z050eV.mde");
       sl.saveToMDE(fomde);
       fomde.close();
+    }
+//    if (0)
+    {
+      mdbuilder::prepare_Cu_by_Cu_at_C60_bobardment();
     }
   }
   exit(0);

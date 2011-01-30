@@ -247,7 +247,7 @@ copy_simloop(
   for(size_t i = 0; i < sl_src.atoms_.size(); i++)
   {
     Atom& a = *(sl_src.atoms_[i]);
-    sl_dest.atoms_.push_back(&a);
+    sl_dest.atoms_.push_back(&(*(new Atom()) = a));
   }
 }
 
@@ -260,7 +260,7 @@ add_simloop(
   for(size_t i = 0; i < sl_addon.atoms_.size(); i++)
   {
     Atom& a = *(sl_addon.atoms_[i]);
-    sl.atoms_.push_back(&a);
+    sl.atoms_.push_back(&(*(new Atom()) = a));
   }
 }
 
