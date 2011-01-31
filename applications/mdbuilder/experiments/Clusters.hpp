@@ -444,7 +444,7 @@ build_target_by_cluster_bombardment(
     a.V += Vector3D(0,0,sqrt(2.0*clusterEnergy/(mass(sl_cluster.atoms))));
   }
 
-  removeMomentum(sl.atoms);
+//  removeMomentum(sl.atoms);
 
   return &sl;
 }
