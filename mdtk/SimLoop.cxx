@@ -1,8 +1,8 @@
 /*
    The molecular dynamics simulation loop class.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -38,8 +38,8 @@ namespace mdtk
 using namespace std;
 
 SimLoop::SimLoop()
-  : allowToFreePotentials(false),
-    allowToFreeAtoms(false),
+  : allowToFreePotentials(true),
+    allowToFreeAtoms(true),
     atoms_(),
     atoms(atoms_),
     check(),

@@ -517,10 +517,19 @@ prepare_Cu_by_Cu_at_C60_bobardment()
           sl.saveToMDE(fomde);
           fomde.close();
           yaatk::chdir("..");
+
+          delete &sl;
         }
+
+        delete &sl_endo;
       }
     }
+    
+    delete &sl_cluster;
   }
+
+  delete &sl_Cu;
+  delete &sl_C60;
 }
 
 }
