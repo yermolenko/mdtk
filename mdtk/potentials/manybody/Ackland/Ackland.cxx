@@ -151,8 +151,6 @@ Ackland::Phi(Atom &atom1,Atom &atom2) // V
   else
     r  = r_vec_module(atom1,atom2);
 
-  if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
-
 #ifndef  Ackland_HANDLE_SHORTRANGE
   Spline& spline = *(splines[e2i(atom1)][e2i(atom2)]);
   if (r < spline.x1())
@@ -178,6 +176,8 @@ Ackland::Phi(Atom &atom1,Atom &atom2) // V
 #ifdef Ackland_OPTIMIZED  
   if (r >= rk(1,atom1,atom2))  return 0.0;
 #endif
+
+  if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
 
   Float V = 0.0;
 
@@ -308,17 +308,26 @@ Ackland::g(Atom &atom1,Atom &atom2)  //PhiBig
   else
     r  = r_vec_module(atom1,atom2);
 
-  if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
-
   Float PhiCapVal = 0.0;
 
   size_t a1_id = e2i(atom1);
   size_t a2_id = e2i(atom2);
 
   if (a1_id != a2_id)
+  {
+    bool touch = true;
+    if (r >= Rk_[a1_id][a1_id][1]) touch = false;
+    if (r >= Rk_[a2_id][a2_id][1]) touch = false;
+    if (ontouch_enabled && touch) r_vec_touch_only(atom1,atom2);
     PhiCapVal = sqrt(PhiCap(a1_id, a1_id, r)*PhiCap(a2_id, a2_id, r));
+  }
   else
+  {
+    bool touch = true;
+    if (r >= Rk_[a1_id][a2_id][1]) touch = false;
+    if (ontouch_enabled && touch) r_vec_touch_only(atom1,atom2);
     PhiCapVal = PhiCap(a1_id, a2_id, r);
+  }
 
   return PhiCapVal;
 }
