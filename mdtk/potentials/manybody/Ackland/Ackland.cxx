@@ -99,9 +99,6 @@ Ackland::grad(Atom &atom,AtomsContainer&gl)
 
     std::vector<std::pair<int,int> >& acnt = pairs[atom.globalIndex];
 
-    TRACE(atom.globalIndex);
-    TRACE(acnt.size());
-
     for(i = 0; i < acnt.size(); i++)
     {
       Atom &atom_i = *(gl[acnt[i].first]);
