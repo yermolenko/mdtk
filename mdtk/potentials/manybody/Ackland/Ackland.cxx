@@ -3,7 +3,7 @@
    gold, silver and their alloys.
    See [G.J. Ackland and V. Vitek, Phys. Rev. B 41, 10324 (1990)]
 
-   Copyright (C) 2007, 2008, 2009, 2011 Oleksandr Yermolenko
+   Copyright (C) 2007, 2008, 2009 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -64,16 +64,22 @@ TRACE(F(atom_i)/eV);
       {
         Atom &atom_j = *(NL(atom_i)[jj]);
         if (atom_i.globalIndex > atom_j.globalIndex) continue;
+        std::pair<int,int> sample_pair(atom_i.globalIndex,atom_j.globalIndex);
         if (isHandled(atom_j))
         if (&atom_i != &atom_j)
 //        if (r_vec_module(atom_i,atom_j) < R(1,atom_i,atom_j))
         {
+
+    currentPairPtr = &sample_pair;
+    ontouch_enabled = true;
         Ei += Phi(atom_i,atom_j);
 /*
 TRACE(atom_j.globalIndex);
 TRACE(r_vec_module_no_touch(atom_i,atom_j));
 TRACE(Phi(atom_i,atom_j)/eV);
 */
+    currentPairPtr = NULL;
+    ontouch_enabled = false;
         }  
       }  
     }  
@@ -113,26 +119,23 @@ TRACE(dF(atom_i,atom));
         continue;
       }  
       };
-    }
-    {
-      for(size_t jj = 0; jj < NL(atom).size(); jj++)
+      
+      if (isHandled(atom_i))
       {
-        Atom &atom_j = *(NL(atom)[jj]);
+        Atom &atom_j = *(gl[acnt[i].second]);
+
+        REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
+        if (isHandled(atom_j))
         {
-          REQUIREM(&atom_j != &atom,"must be (&atom_j != &atom_i)");
-          if (isHandled(atom_j))
-            if (&atom != &atom_j)
-            {
-              dEi += dPhi(atom,atom_j,atom);
+          dEi += dPhi(atom_i,atom_j,atom);
 /*
-  TRACE(atom_j.globalIndex);
-  TRACE(dPhi(atom_i,atom_j,atom));
+TRACE(atom_j.globalIndex);
+TRACE(dPhi(atom_i,atom_j,atom));
 */
-            }  
-        }
-      }    
-    }  
-  }
+        }  
+      }
+    }    
+  }  
 
   return  dEi;
 }  
