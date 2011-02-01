@@ -160,13 +160,20 @@ Ackland::Phi(Atom &atom1,Atom &atom2) // V
 
   Float Y=r/AS;
 
+  if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
+
   return  ZA*ZB/r*(0.18175*exp(-3.1998*Y)+
           0.50986*exp(-0.94229*Y)+
           0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y));
   }
   else
   {
-    if (r < spline.x2()) return spline(r);
+    if (r < spline.x2())
+    {
+      if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
+
+      return spline(r);
+    }
   }
 #endif
 
