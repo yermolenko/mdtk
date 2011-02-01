@@ -352,7 +352,7 @@ SimLoop::execute_wo_checks()
       atoms_[j]->coords = new_coords[j];
  
       Vector3D c = atoms_[j]->coords;
-      if (c.z < thermalBath.zMinOfFreeZone-3.0*Ao && usePBC() &&
+      if (c.z < thermalBath.zMinOfFreeZone && usePBC() &&
              (
                (c.x < 0.0 + thermalBath.dBoundary) ||
                (c.x > getPBC().x - thermalBath.dBoundary) ||
