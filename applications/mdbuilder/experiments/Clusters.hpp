@@ -471,7 +471,7 @@ prepare_Cu_by_Cu_at_C60_bobardment()
   rot_axes.push_back(Vector3D(0,0,1));
   rot_axes.push_back(Vector3D(0,1,0));
 
-  mdtk::SimLoop& sl_Cu = *mdbuilder::build_FCC_lattice(14,14,7,Cu_EL);
+  mdtk::SimLoop& sl_Cu = *mdbuilder::build_FCC_lattice(20,20,10,Cu_EL);
   mdtk::SimLoop& sl_C60 = *mdbuilder::build_C60_optimized();
 
   for(size_t i_cluster_size = 0; i_cluster_size < cluster_sizes.size(); i_cluster_size++)

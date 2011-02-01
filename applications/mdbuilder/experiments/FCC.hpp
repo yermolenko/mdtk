@@ -103,16 +103,9 @@ place_FCC_lattice(mdtk::SimLoop& sl,
         {     
           if (ic == c_num-1)
           {
+            for(size_t i = 1; i <= 4; i++)
             {
-              Atom& a = *(sl.atoms[sl.atoms.size()-1]);
-              a.tag |= ATOMTAG_FIXED;
-              if (a.tag & ATOMTAG_FIXED)
-              {
-                a.M = INFINITE_MASS;a.V=0.0;a.an=0.0;a.an_no_tb=0.0;
-              }
-            }
-            {
-              Atom& a = *(sl.atoms[sl.atoms.size()-2]);
+              Atom& a = *(sl.atoms[sl.atoms.size()-i]);
               a.tag |= ATOMTAG_FIXED;
               if (a.tag & ATOMTAG_FIXED)
               {
@@ -146,7 +139,7 @@ build_FCC_lattice(int a_num = 14,
   place_FCC_lattice(sl,a_num,b_num,c_num,el,fixBottomLayer,a,b,c);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
-  sl.thermalBath.zMin = c*c_num-c-c/4.0;
+  sl.thermalBath.zMin = c*c_num-c*3-c/4.0;
   sl.thermalBath.dBoundary = 3.0*Ao;
 
   quench(sl,0.01*ps,0.01*ps,"_tmp-FCC");
