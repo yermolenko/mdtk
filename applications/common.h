@@ -87,10 +87,10 @@ setupPotentials(mdtk::SimLoop& simloop)
   simloop.fpot.addPotential(pot);
   pot = new mdtk::TightBinding();
 */
-
+/*
   pot = new mdtk::Brenner(Brenner::POTENTIAL2);
   simloop.fpot.addPotential(pot);
-
+*/
 }
 
 #endif
