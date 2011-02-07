@@ -19,18 +19,19 @@
 #  along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-SET(MDTK_CurrentTarget "mdtrajsim${MDTK_BINARY_SUFFIX}")
+MACRO(mdtrajsim MPIBATCH)
+
+SET(MPIBATCH "${MPIBATCH}")
 
 FIND_PACKAGE(MPI)
 IF(MPI_FOUND)
   MESSAGE("MPI FOUND!!!!")
 ENDIF(MPI_FOUND)
 
-SET(MPIBATCH "1")
-
 IF(MPIBATCH)
-add_definitions(-DMPIBATCH)
 SET(MDTK_CurrentTarget "mdtrajsim${MDTK_BINARY_SUFFIX}_mpibatch")
+ELSE(MPIBATCH)
+SET(MDTK_CurrentTarget "mdtrajsim${MDTK_BINARY_SUFFIX}")
 ENDIF(MPIBATCH)
 
 IF(MPIBATCH)
@@ -49,6 +50,10 @@ ELSE(MPIBATCH)
 target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
 ENDIF(MPIBATCH)
 
+IF(MPIBATCH)
+SET_TARGET_PROPERTIES(${MDTK_CurrentTarget} PROPERTIES COMPILE_FLAGS "-DMPIBATCH")
+ENDIF(MPIBATCH)
+
 IF(CMAKE_COMPILER_IS_GNUCXX)
   IF(WIN32)
     SET_TARGET_PROPERTIES(${MDTK_CurrentTarget} PROPERTIES LINK_FLAGS "-s -static")
@@ -62,3 +67,7 @@ install(TARGETS ${MDTK_CurrentTarget}
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib)
 
+ENDMACRO(mdtrajsim) 
+
+mdtrajsim(FALSE)
+mdtrajsim(TRUE)
