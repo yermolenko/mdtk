@@ -58,6 +58,8 @@ CustomSimLoop::doAfterIteration()
 bool
 isAlreadyFinished();
 
+int runTraj(std::string inputFile);
+
 int
 main(int argc , char *argv[])
 {
@@ -83,6 +85,14 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     return 0;
   }
 
+  std::string inputFile = "in.mde";
+  if (argc > 1) inputFile = argv[1];
+
+  return runTraj(inputFile);
+}
+
+int runTraj(std::string inputFile)
+{
   if (isAlreadyFinished()) return 0;
 
 try
@@ -96,9 +106,6 @@ try
   }
   else
   {
-    std::string inputFile = "in.mde";
-    if (argc > 1) inputFile = argv[1];
-
     yaatk::text_ifstream fi(inputFile.c_str());
     mdloop.loadFromMDE(fi);
 //    mdloop.loadFromMDE_OLD(fi);
