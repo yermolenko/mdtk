@@ -1,7 +1,7 @@
 /*
    The ReleaseInfo class.
 
-   Copyright (C) 2004, 2009, 2010 Oleksandr Yermolenko
+   Copyright (C) 2004, 2009, 2010, 2011 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -28,9 +28,9 @@ namespace mdtk
 ReleaseInfo release_info
   (
     "(MDTK)",
-    "0.5.4",
+    "0.6.0",
     "",
-    "2010 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>",
+    "2011 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>",
     "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\
 This is free software: you are free to change and redistribute it.\n\
 There is NO WARRANTY, to the extent permitted by law.\n"
