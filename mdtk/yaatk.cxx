@@ -1,7 +1,7 @@
 /*
    Yet another auxiliary toolkit.
 
-   Copyright (C) 2003, 2005, 2006, 2009, 2010 Oleksandr Yermolenko
+   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -251,6 +251,7 @@ Stream::unZipMe_internal()
   }
   REQUIRE(unzippedFileSize == 0);
   gzclose(zipped);
+  return 0;
 }
 
 
