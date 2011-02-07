@@ -58,8 +58,128 @@ CustomSimLoop::doAfterIteration()
 bool
 isAlreadyFinished();
 
+int runTraj(std::string inputFile);
+
+#ifdef MPIBATCH
+
+#define main_mpibatch main
+
+#include <dirent.h>
+
+void
+addTrajDirNames(std::vector<std::string> &stateFileNames,const char *trajsetDir_)
+{
+  std::cout << "Adding states from " << trajsetDir_ << std::endl;
+
+  char trajsetDir[10000];
+  strcpy(trajsetDir,trajsetDir_);
+
+  if (trajsetDir[strlen(trajsetDir)-1] != DIR_DELIMIT_CHAR)
+    strcat(trajsetDir,DIR_DELIMIT_STR);
+  
+  {
+    {
+      char trajdir_src[10000];
+      char stateFileName[10000];
+
+      DIR* trajsetDirHandle = opendir(trajsetDir);
+      REQUIRE(trajsetDirHandle != NULL);
+
+
+      struct dirent* entry = readdir(trajsetDirHandle);
+      while (entry != NULL)
+      {
+        if (entry->d_type == DT_DIR && strcmp(entry->d_name,".") && strcmp(entry->d_name,".."))
+//        if (entry->d_name[0] == '0')
+        {
+          std::sprintf(trajdir_src,"%s%s",trajsetDir,entry->d_name);
+          std::sprintf(stateFileName,"%s"DIR_DELIMIT_STR,trajdir_src);
+//          if (passedTheFilter(stateFileName))
+          stateFileNames.push_back(stateFileName);
+//          TRACE(stateFileName);
+        }
+        entry = readdir(trajsetDirHandle);
+      };
+
+      int res_closedir = closedir(trajsetDirHandle);
+      REQUIRE(res_closedir == 0);
+    }
+  }  
+}
+
+#include <mpi.h>
+#include <algorithm>
+
 int
-main(int argc , char *argv[])
+main_mpibatch(int argc , char *argv[])
+{
+  MPI_TEST_SUCCESS(MPI_Init(&argc,&argv));
+
+  int comm_rank;
+  int comm_size;
+  char comm_name[MPI_MAX_PROCESSOR_NAME+1]; int len;
+  MPI_TEST_SUCCESS(MPI_Comm_size(MPI_COMM_WORLD,&comm_size));
+  MPI_TEST_SUCCESS(MPI_Comm_rank(MPI_COMM_WORLD,&comm_rank));
+  MPI_TEST_SUCCESS(MPI_Get_processor_name(comm_name,&len));
+    if (comm_rank == 0) {
+    std::cout << "mdtrajsim (Molecular dynamics trajectory simulator), mpibatch version ";
+    mdtk::release_info.print();
+    }
+//  std::cerr << "I'm " << rank << " of " << size << ". My name is " << name << std::endl;
+  fflush(stderr);
+  fprintf(stderr,"I'm %d of %d. My name is %s.\n",comm_rank,comm_size,comm_name);
+//  std::cout << "I'm "%d" of "%d". My name is "%s".\n";
+//  std::cerr << "RRRRRRRRRRRRRRRRRRRRRRRRR\n";
+  fflush(stderr);
+
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
+std::vector<std::string> trajDirNames;
+addTrajDirNames(trajDirNames,"./");
+sort(trajDirNames.begin(),trajDirNames.end());
+
+
+    if (comm_rank == 0) {
+/*
+for(size_t i = 0; i < trajDirNames.size(); i++)
+  TRACE(trajDirNames[i]);
+*/
+    } // if (rank == 0)
+size_t firstTraj = ceil(double(trajDirNames.size())/comm_size)*comm_rank;
+size_t lastTraj  = ceil(double(trajDirNames.size())/comm_size)*(comm_rank+1);
+
+for(size_t ti = firstTraj; ti < lastTraj; ti++)
+{
+  if (ti >= trajDirNames.size()) break;
+  TRACE(comm_rank);
+  TRACE(trajDirNames[ti]);
+yaatk::chdir(trajDirNames[ti].c_str());
+yaatk::mkdir("_zipped_tmp");
+    std::streambuf* cout_sbuf = std::cout.rdbuf(); // save original sbuf
+    std::ofstream   fcout("stdout.txt",std::ios::app);
+    std::cout.rdbuf(fcout.rdbuf()); // redirect 'cout' to a 'fout'
+    std::streambuf* cerr_sbuf = std::cerr.rdbuf();
+    std::ofstream   fcerr("stderr.txt",std::ios::app);
+    std::cerr.rdbuf(fcerr.rdbuf());
+runTraj("in.mde");
+    std::cout.rdbuf(cout_sbuf); // restore the original stream buffer
+    std::cerr.rdbuf(cerr_sbuf); // restore the original stream buffer
+yaatk::chdir("..");
+}
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_TEST_SUCCESS(MPI_Finalize());
+
+  return 0;
+}
+
+#else
+#define main_seq main
+#endif
+
+int
+main_seq(int argc , char *argv[])
 {
   if (argc > 1 && !strcmp(argv[1],"--version"))
   {
@@ -83,6 +203,14 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     return 0;
   }
 
+  std::string inputFile = "in.mde";
+  if (argc > 1) inputFile = argv[1];
+
+  return runTraj(inputFile);
+}
+
+int runTraj(std::string inputFile)
+{
   if (isAlreadyFinished()) return 0;
 
 try
@@ -96,9 +224,6 @@ try
   }
   else
   {
-    std::string inputFile = "in.mde";
-    if (argc > 1) inputFile = argv[1];
-
     yaatk::text_ifstream fi(inputFile.c_str());
     mdloop.loadFromMDE(fi);
 //    mdloop.loadFromMDE_OLD(fi);
