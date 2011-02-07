@@ -39,6 +39,7 @@ setupPotentials(mdtk::SimLoop& simloop)
   using namespace mdtk;
 
   mdtk::FGeneral* pot = NULL;
+
 /*
   pot = new mdtk::FBZL(Rcutoff(5.0*Ao,5.5*Ao));
   pot->handledElements.clear();
@@ -76,6 +77,7 @@ setupPotentials(mdtk::SimLoop& simloop)
   pot = new mdtk::ETors();
   simloop.fpot.addPotential(pot);
 
+
   pot = new mdtk::Ackland();
   simloop.fpot.addPotential(pot);
 
@@ -88,7 +90,6 @@ setupPotentials(mdtk::SimLoop& simloop)
   pot = new mdtk::TightBinding();
   simloop.fpot.addPotential(pot);
 */
-
 /*
   pot = new mdtk::Brenner(Brenner::POTENTIAL2);
   simloop.fpot.addPotential(pot);
