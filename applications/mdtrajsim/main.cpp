@@ -1,8 +1,8 @@
 /* 
    mdtrajsim (molecular dynamics trajectory simulator)
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -27,6 +27,33 @@
 #include <mdtk/SimLoop.hpp>
 
 #include "../common.h"
+
+using namespace mdtk;
+
+class CustomSimLoop : public SimLoop
+{
+public:
+  CustomSimLoop();
+  void doBeforeIteration();
+  void doAfterIteration();
+};
+
+CustomSimLoop::CustomSimLoop()
+  :SimLoop()
+{
+}
+
+void
+CustomSimLoop::doBeforeIteration()
+{
+  if (simTime < 4.0*ps) simTimeSaveTrajInterval = 0.05*ps;
+  else simTimeSaveTrajInterval = 0.2*ps;
+}
+
+void
+CustomSimLoop::doAfterIteration()
+{
+}
 
 bool
 isAlreadyFinished();
@@ -64,7 +91,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
 try
 {
-  mdtk::SimLoop mdloop;
+  CustomSimLoop mdloop;
 
   setupPotentials(mdloop);
   if (yaatk::exists("simloop.conf") || yaatk::exists("simloop.conf.bak")) // have to continue interrupted simulation ?
