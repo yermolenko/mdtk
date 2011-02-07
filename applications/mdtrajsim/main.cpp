@@ -85,10 +85,6 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
   if (isAlreadyFinished()) return 0;
 
-#ifdef MDE_PARALLEL
-  MPI_TEST_SUCCESS(MPI_Init(&argc,&argv));
-#endif
-
 try
 {
   CustomSimLoop mdloop;
@@ -96,9 +92,6 @@ try
   setupPotentials(mdloop);
   if (yaatk::exists("simloop.conf") || yaatk::exists("simloop.conf.bak")) // have to continue interrupted simulation ?
   {
-#ifdef MDE_PARALLEL
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
     mdloop.loadstate();
   }
   else
@@ -110,23 +103,12 @@ try
     mdloop.loadFromMDE(fi);
 //    mdloop.loadFromMDE_OLD(fi);
     fi.close();
-#ifdef MDE_PARALLEL
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (mdtk::comm_rank == 0) {
-#endif
   yaatk::text_ofstream fo1("mde""_init");
     mdloop.saveToStream(fo1);
   fo1.close();
-#ifdef MDE_PARALLEL
-    } // if (rank == 0)
-#endif
   }
 
   mdloop.execute();
-
-#ifdef MDE_PARALLEL
-    if (mdtk::comm_rank == 0) {
-#endif
 
   if (mdloop.simTime >= mdloop.simTimeFinal) // is simulation really finished ?
   {
@@ -135,14 +117,6 @@ try
     fo2.close();
     mdloop.writetrajXVA();
   }
-
-#ifdef MDE_PARALLEL
-    } // if (rank == 0)
-#endif
-
-#ifdef MDE_PARALLEL
-  MPI_TEST_SUCCESS(MPI_Finalize());
-#endif
 }  
 catch(mdtk::Exception& e)
 { 
