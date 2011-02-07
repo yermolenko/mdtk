@@ -1,6 +1,6 @@
 #  CMakeLists.txt file for Molecular Dynamics Trajectory Simulator
 #
-#  Copyright (C) 2007, 2008, 2009, 2010 Oleksandr Yermolenko
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
 #  <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -21,13 +21,33 @@
 
 SET(MDTK_CurrentTarget "mdtrajsim${MDTK_BINARY_SUFFIX}")
 
+FIND_PACKAGE(MPI)
+IF(MPI_FOUND)
+  MESSAGE("MPI FOUND!!!!")
+ENDIF(MPI_FOUND)
+
+SET(MPIBATCH "1")
+
+IF(MPIBATCH)
+add_definitions(-DMPIBATCH)
+SET(MDTK_CurrentTarget "mdtrajsim${MDTK_BINARY_SUFFIX}_mpibatch")
+ENDIF(MPIBATCH)
+
+IF(MPIBATCH)
+include_directories (${MDTK_SOURCE_DIR} ${MPI_INCLUDE_PATH} ${ZLIB_INCLUDE_DIR})
+ELSE(MPIBATCH)
 include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
+ENDIF(MPIBATCH)
 
 link_directories (${MDTK_BINARY_DIR})
 
 add_executable (${MDTK_CurrentTarget} main.cpp)
 
+IF(MPIBATCH)
+target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES} ${MPI_LIBRARIES})
+ELSE(MPIBATCH)
 target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
+ENDIF(MPIBATCH)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
   IF(WIN32)
