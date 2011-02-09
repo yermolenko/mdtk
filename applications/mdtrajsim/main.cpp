@@ -181,25 +181,6 @@ yaatk::chdir("..");
 int
 main_seq(int argc , char *argv[])
 {
-  procmon::ProcmonTimer pmtTotal;
-
-  TRACE(pmtTotal.getDeltaTimeInSeconds());
-  double val;
-  for(double x = 0; x < 100000000; x+=1)
-  {
-    val += sqrt(x);
-  }
-  TRACE(pmtTotal.getDeltaTimeInSeconds());
-  for(double x = 0; x < 100000000; x+=1)
-  {
-    val += (x*x);
-  }
-  TRACE(pmtTotal.getDeltaTimeInSeconds());
-
-  TRACE(val);
-
-  return 0;
-
   if (argc > 1 && !strcmp(argv[1],"--version"))
   {
     std::cout << "mdtrajsim (Molecular dynamics trajectory simulator) ";
