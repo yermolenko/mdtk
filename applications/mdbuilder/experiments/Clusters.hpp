@@ -321,7 +321,7 @@ build_embed(mdtk::SimLoop& sl_cluster,
   shiftToOrigin(sl_cluster.atoms);
   shiftToOrigin(sl_shell.atoms);
   
-  copy_simloop(sl,sl_cluster);
+  sl = sl_cluster;
 
 //shrinking
   for(size_t i = 0; i < sl.atoms.size(); i++)
@@ -331,7 +331,7 @@ build_embed(mdtk::SimLoop& sl_cluster,
   }
 //~shrinking
 
-  add_simloop(sl,sl_shell);
+  sl.add_simloop(sl_shell);
 
   for(size_t i = 0; i < sl.atoms.size(); i++)
   {
@@ -382,22 +382,16 @@ inline
 SimLoop*
 build_target_by_cluster_bombardment(
   mdtk::SimLoop& sl_target, 
-  mdtk::SimLoop& sl_cluster,
+  mdtk::SimLoop sl_cluster,
   Float clusterEnergy = 100*eV)
 {
-  mdtk::SimLoop& sl = *(new mdtk::SimLoop);
-  initialize_simloop(sl);
-
-  copy_simloop(sl,sl_target);
-  add_simloop(sl,sl_cluster);
-
   shiftToOrigin(sl_cluster.atoms);
 
   Float clusterRadius 
     = maxDistanceFrom(sl_cluster.atoms,geomCenter(sl_cluster.atoms));
   TRACE(clusterRadius/mdtk::Ao);
 
-  Vector3D dCluster = sl.getPBC()/2.0;
+  Vector3D dCluster = sl_target.getPBC()/2.0;
   dCluster.z = -(10.0*Ao+clusterRadius);
   TRACE(dCluster/mdtk::Ao);
 
@@ -443,6 +437,12 @@ build_target_by_cluster_bombardment(
     Atom& a = *(sl_cluster.atoms[i]);
     a.V += Vector3D(0,0,sqrt(2.0*clusterEnergy/(mass(sl_cluster.atoms))));
   }
+
+  mdtk::SimLoop& sl = *(new mdtk::SimLoop);
+  initialize_simloop(sl);
+
+  sl = sl_target;
+  sl.add_simloop(sl_cluster);
 
 //  removeMomentum(sl.atoms);
 

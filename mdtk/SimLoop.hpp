@@ -1,8 +1,8 @@
 /*
    The molecular dynamics simulation loop class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -213,6 +213,10 @@ public:
   virtual void init(Float /*px*/,Float /*py*/) {};//= 0;
   virtual ~SimLoop();
 
+  SimLoop(const SimLoop &c);
+  SimLoop& operator=(const SimLoop &c);
+  void add_simloop(const SimLoop &sl_addon);
+
   int execute_wo_checks();
   int execute();
 
@@ -243,7 +247,7 @@ private:
   double CPUTimeUsed_total;
 public:
   void setPBC(Vector3D PBC_){atoms_.setPBC(PBC_);}
-  Vector3D getPBC(){return atoms_.getPBC();}
+  Vector3D getPBC() const {return atoms_.getPBC();}
   bool usePBC()const{return atoms_.usePBC();};
 };
 

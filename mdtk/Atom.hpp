@@ -173,7 +173,7 @@ class AtomsContainer:public std::vector<Atom*>
   Vector3D PBC;
 public:
   void setPBC(Vector3D PBC_){  PBC = PBC_;}
-  Vector3D getPBC(){return PBC;}
+  Vector3D getPBC()const {return PBC;}
   bool usePBC()const{return PBC != NO_PBC;};
   AtomsContainer():std::vector<Atom*>(),PBC(NO_PBC){}
     void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)

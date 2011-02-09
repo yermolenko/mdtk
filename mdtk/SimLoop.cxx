@@ -71,6 +71,60 @@ SimLoop::SimLoop()
   check.checkEnergyAfter = 1; // dummy, will be removed soon
 }
 
+SimLoop::SimLoop(const SimLoop &c)
+  : allowToFreePotentials(true),
+    allowToFreeAtoms(true),
+    atoms_(),
+    atoms(atoms_),
+    check(),
+    simTime(0.0), 
+    breakSimLoop(false),
+    iteration(0) ,
+    barrier(100,0.0),
+    thermalBath(),
+    initNLafterLoading(true),
+    allowPartialLoading(false),
+    fpot()
+    ,CPUTimeUsed_prev(0)
+    ,CPUTimeUsed_total(0)
+{
+  setPBC(c.getPBC());
+  thermalBath = c.thermalBath;
+  for(size_t i = 0; i < c.atoms_.size(); i++)
+  {
+    Atom& a = *(c.atoms_[i]);
+    atoms_.push_back(&(*(new Atom()) = a));
+  }
+}
+
+SimLoop&
+SimLoop::operator =(const SimLoop &c) 
+{
+  if (this == &c) return *this;
+
+  atoms_.clear();
+
+  setPBC(c.getPBC());
+  thermalBath = c.thermalBath;
+  for(size_t i = 0; i < c.atoms_.size(); i++)
+  {
+    Atom& a = *(c.atoms_[i]);
+    atoms_.push_back(&(*(new Atom()) = a));
+  }
+
+  return *this;
+}
+
+void
+SimLoop::add_simloop(const SimLoop &sl_addon)
+{
+  for(size_t i = 0; i < sl_addon.atoms_.size(); i++)
+  {
+    Atom& a = *(sl_addon.atoms_[i]);
+    atoms_.push_back(&(*(new Atom()) = a));
+  }
+}
+
 SimLoop::~SimLoop()
 {
   freePotentials();

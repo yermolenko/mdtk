@@ -236,34 +236,6 @@ initialize_simloop(mdtk::SimLoop& sl)
   sl.initialize();
 }
 
-inline
-void
-copy_simloop(
-  mdtk::SimLoop& sl_dest, 
-  mdtk::SimLoop& sl_src)
-{
-  sl_dest.setPBC(sl_src.getPBC());
-  sl_dest.thermalBath = sl_src.thermalBath;
-  for(size_t i = 0; i < sl_src.atoms_.size(); i++)
-  {
-    Atom& a = *(sl_src.atoms_[i]);
-    sl_dest.atoms_.push_back(&(*(new Atom()) = a));
-  }
-}
-
-inline
-void
-add_simloop(
-  mdtk::SimLoop& sl, 
-  mdtk::SimLoop& sl_addon)
-{
-  for(size_t i = 0; i < sl_addon.atoms_.size(); i++)
-  {
-    Atom& a = *(sl_addon.atoms_[i]);
-    sl.atoms_.push_back(&(*(new Atom()) = a));
-  }
-}
-
 }
 
 #endif
