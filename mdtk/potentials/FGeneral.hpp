@@ -101,6 +101,7 @@ public:
   Float r_vec_module(Atom &atom1,Atom &atom2) ; 
   Float r_vec_module_squared(Atom &atom1,Atom &atom2) ; 
   Float r_vec_module_no_touch(Atom &atom1,Atom &atom2) ; 
+  Float r_vec_module_squared_no_touch(Atom &atom1,Atom &atom2) ; 
     Vector3D dr_vec_module(Atom &atom1,Atom &atom2, Atom &datom) ; 
   Float rsqr_vec_module(Atom &atom1,Atom &atom2) ; 
     Vector3D drsqr_vec_module(Atom &atom1,Atom &atom2, Atom &datom) ; 
@@ -213,6 +214,16 @@ FGeneral::r_vec_module_no_touch(Atom &atom1,Atom &atom2)
   REQUIREM(&atom1 != &atom2,"r_vec_module_no_touch: &atom1 == &atom2");
 #endif  
   return r_vec_no_touch(atom1,atom2).module();
+}   
+
+inline
+Float
+FGeneral::r_vec_module_squared_no_touch(Atom &atom1,Atom &atom2) 
+{
+#ifdef FGENERAL_CHECKS  
+  REQUIREM(&atom1 != &atom2,"r_vec_module_no_touch: &atom1 == &atom2");
+#endif  
+  return r_vec_no_touch(atom1,atom2).module_squared();
 }   
 
 inline
