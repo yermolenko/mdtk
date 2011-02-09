@@ -1,7 +1,7 @@
 /*
    The generalized interatomic potential class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -218,15 +218,19 @@ inline
 Vector3D
 FGeneral::r_vec_no_touch(Atom &atom1, Atom &atom2) 
 {
+  Vector3D val;
+
+  val = depos(atom1,atom2);
+
   if ( (r_vec_ex.atom1 != NULL) &&
        (
        (r_vec_ex.atom1 == &atom1 && r_vec_ex.atom2 == &atom2) ||
        (r_vec_ex.atom1 == &atom2 && r_vec_ex.atom2 == &atom1)
        )
      )
-    return depos(atom1,atom2).normalized()*r_vec_ex.new_r_vec;
+    return val.normalized()*r_vec_ex.new_r_vec;
 
-  return depos(atom1,atom2);
+  return val;
 }  
 
 inline
