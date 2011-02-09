@@ -462,6 +462,7 @@ prepare_Cu_by_Cu_at_C60_bobardment()
   std::vector<Float> trans_energies;
   for(Float e = 0; e <= 400; e += 50)
     trans_energies.push_back(e*eV);
+  trans_energies.push_back(10.0*eV);
 
   std::vector<Float> rot_energies;
   for(Float e = 0; e <= 100; e += 10)
