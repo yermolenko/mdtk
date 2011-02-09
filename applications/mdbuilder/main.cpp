@@ -119,7 +119,7 @@ MDBuilderWindow::draw()
     }
     if (0)
     {
-      mdtk::SimLoop& sl = *mdbuilder::build_C60_optimized();
+      mdtk::SimLoop sl = mdbuilder::build_C60_optimized();
 
       yaatk::text_ofstream fomde("C60-optimized.mde");
       sl.saveToMDE(fomde);
@@ -127,7 +127,7 @@ MDBuilderWindow::draw()
     }
     if (0)
     {
-      mdtk::SimLoop& sl = *mdbuilder::build_cluster(Cu_EL,13);
+      mdtk::SimLoop sl = mdbuilder::build_cluster(Cu_EL,13);
 
       yaatk::text_ofstream fomde("Cu13.mde");
       sl.saveToMDE(fomde);
@@ -135,30 +135,30 @@ MDBuilderWindow::draw()
     }
     if (0)
     {
-      mdtk::SimLoop& sl_C60 = *mdbuilder::build_C60_optimized();
+      mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
 
       {
-        mdtk::SimLoop& sl_cluster = *mdbuilder::build_cluster(Cu_EL,1);
+        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,1);
 
-        mdtk::SimLoop& sl = *mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
 
         yaatk::text_ofstream fomde("Cu001_in_C60.mde");
         sl.saveToMDE(fomde);
         fomde.close();
       }
       {
-        mdtk::SimLoop& sl_cluster = *mdbuilder::build_cluster(Cu_EL,5);
+        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,5);
 
-        mdtk::SimLoop& sl = *mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
 
         yaatk::text_ofstream fomde("Cu005_in_C60.mde");
         sl.saveToMDE(fomde);
         fomde.close();
       }
       {
-        mdtk::SimLoop& sl_cluster = *mdbuilder::build_cluster(Cu_EL,13);
+        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,13);
 
-        mdtk::SimLoop& sl = *mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
 
         yaatk::text_ofstream fomde("Cu013_in_C60.mde");
         sl.saveToMDE(fomde);
@@ -167,12 +167,12 @@ MDBuilderWindow::draw()
     }
     if (0)
     {
-      mdtk::SimLoop& sl_C60 = *mdbuilder::build_C60_optimized();
+      mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
 
       {
-        mdtk::SimLoop& sl_cluster = *mdbuilder::build_cluster(Cu_EL,0);
+        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,0);
 
-        mdtk::SimLoop& sl = *mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
         mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
 
         yaatk::text_ofstream fomde("Cu000_in_C60-rot.mde");
@@ -180,9 +180,9 @@ MDBuilderWindow::draw()
         fomde.close();
       }
       {
-        mdtk::SimLoop& sl_cluster = *mdbuilder::build_cluster(Cu_EL,1);
+        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,1);
 
-        mdtk::SimLoop& sl = *mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
         mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
 
         yaatk::text_ofstream fomde("Cu001_in_C60-rot.mde");
@@ -190,9 +190,9 @@ MDBuilderWindow::draw()
         fomde.close();
       }
       {
-        mdtk::SimLoop& sl_cluster = *mdbuilder::build_cluster(Cu_EL,6);
+        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,6);
 
-        mdtk::SimLoop& sl = *mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
         mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
 
         yaatk::text_ofstream fomde("Cu006_in_C60-rot.mde");
@@ -200,9 +200,9 @@ MDBuilderWindow::draw()
         fomde.close();
       }
       {
-        mdtk::SimLoop& sl_cluster = *mdbuilder::build_cluster(Cu_EL,13);
+        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,13);
 
-        mdtk::SimLoop& sl = *mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
         mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
 
         yaatk::text_ofstream fomde("Cu013_in_C60-rot.mde");
@@ -212,16 +212,16 @@ MDBuilderWindow::draw()
     }
     if (0)
     {
-      mdtk::SimLoop& sl_Cu = *mdbuilder::build_FCC_lattice(14,14,7,Cu_EL);
+      mdtk::SimLoop sl_Cu = mdbuilder::build_FCC_lattice(14,14,7,Cu_EL);
 
-      mdtk::SimLoop& sl_C60 = *mdbuilder::build_C60_optimized();
+      mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
 
-      mdtk::SimLoop& sl_cluster = *mdbuilder::build_cluster(Cu_EL,6);
+      mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,6);
 
-      mdtk::SimLoop& sl_endo = *mdbuilder::build_embed(sl_cluster,sl_C60);
+      mdtk::SimLoop sl_endo = mdbuilder::build_embed(sl_cluster,sl_C60);
       mdbuilder::add_rotational_motion(sl_endo,50*eV,Vector3D(0,0,1));
 
-      mdtk::SimLoop& sl = *mdbuilder::build_target_by_cluster_bombardment(sl_Cu,sl_endo,200*eV);
+      mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Cu,sl_endo,200*eV);
 
       TRACE(sl.energyKin()/eV);
 

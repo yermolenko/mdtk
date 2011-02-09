@@ -50,10 +50,10 @@ place_C60(mdtk::SimLoop& sl)
 }
 
 inline
-mdtk::SimLoop*
+mdtk::SimLoop
 build_C60_optimized()
 {
-  mdtk::SimLoop& sl = *(new mdtk::SimLoop);
+  mdtk::SimLoop sl;
   initialize_simloop(sl);
 
   glLoadIdentity();
@@ -61,7 +61,7 @@ build_C60_optimized()
   
   quench(sl,0.2*ps);
 
-  return &sl;
+  return sl;
 }
 
 inline
@@ -260,13 +260,13 @@ add1atom(mdtk::AtomsContainer& atoms, ElementID id)
 }
 
 inline
-SimLoop*
+SimLoop
 build_cluster(ElementID id, int clusterSize)
 {
-  mdtk::SimLoop& sl = *(new mdtk::SimLoop);
+  mdtk::SimLoop sl;
   initialize_simloop(sl);
 
-  if (clusterSize == 0) return &sl;
+  if (clusterSize == 0) return sl;
 
   yaatk::mkdir("_tmp-Cu-clusters");
   yaatk::chdir("_tmp-Cu-clusters");
@@ -307,15 +307,15 @@ build_cluster(ElementID id, int clusterSize)
 
   yaatk::chdir("..");
 
-  return &sl;
+  return sl;
 }
 
 inline
-SimLoop*
-build_embed(mdtk::SimLoop& sl_cluster, 
-            mdtk::SimLoop& sl_shell)
+SimLoop
+build_embed(const mdtk::SimLoop& sl_cluster, 
+            const mdtk::SimLoop& sl_shell)
 {
-  mdtk::SimLoop& sl = *(new mdtk::SimLoop);
+  mdtk::SimLoop sl;
   initialize_simloop(sl);
 
   shiftToOrigin(sl_cluster.atoms);
@@ -343,7 +343,7 @@ build_embed(mdtk::SimLoop& sl_cluster,
 
   removeMomentum(sl.atoms);
 
-  return &sl;
+  return sl;
 }
 
 inline
@@ -379,10 +379,10 @@ add_rotational_motion(mdtk::SimLoop& sl,
 }
 
 inline
-SimLoop*
+SimLoop
 build_target_by_cluster_bombardment(
-  mdtk::SimLoop& sl_target, 
-  mdtk::SimLoop sl_cluster,
+  const mdtk::SimLoop& sl_target, 
+  const mdtk::SimLoop sl_cluster,
   Float clusterEnergy = 100*eV)
 {
   shiftToOrigin(sl_cluster.atoms);
@@ -438,7 +438,7 @@ build_target_by_cluster_bombardment(
     a.V += Vector3D(0,0,sqrt(2.0*clusterEnergy/(mass(sl_cluster.atoms))));
   }
 
-  mdtk::SimLoop& sl = *(new mdtk::SimLoop);
+  mdtk::SimLoop sl;
   initialize_simloop(sl);
 
   sl = sl_target;
@@ -446,7 +446,7 @@ build_target_by_cluster_bombardment(
 
 //  removeMomentum(sl.atoms);
 
-  return &sl;
+  return sl;
 }
 
 inline
@@ -471,19 +471,19 @@ prepare_Cu_by_Cu_at_C60_bobardment()
   rot_axes.push_back(Vector3D(0,0,1));
   rot_axes.push_back(Vector3D(0,1,0));
 
-  mdtk::SimLoop& sl_Cu = *mdbuilder::build_FCC_lattice(20,20,10,Cu_EL);
-  mdtk::SimLoop& sl_C60 = *mdbuilder::build_C60_optimized();
+  mdtk::SimLoop sl_Cu = mdbuilder::build_FCC_lattice(20,20,10,Cu_EL);
+  mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
 
   for(size_t i_cluster_size = 0; i_cluster_size < cluster_sizes.size(); i_cluster_size++)
   {
     int& cluster_size = cluster_sizes[i_cluster_size];
-    mdtk::SimLoop& sl_cluster = *mdbuilder::build_cluster(Cu_EL,cluster_size);
+    mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,cluster_size);
 
     for(size_t i_rot_axis = 0; i_rot_axis < rot_axes.size(); i_rot_axis++)
     {
       for(size_t i_rot_energy = 0; i_rot_energy < rot_energies.size(); i_rot_energy++)
       {
-        mdtk::SimLoop& sl_endo = *mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl_endo = mdbuilder::build_embed(sl_cluster,sl_C60);
         Vector3D& rot_axis = rot_axes[i_rot_axis];
         Float& rot_energy = rot_energies[i_rot_energy];
         mdbuilder::add_rotational_motion(sl_endo,rot_energy,rot_axis);
@@ -491,7 +491,7 @@ prepare_Cu_by_Cu_at_C60_bobardment()
         for(size_t i_trans_energy = 0; i_trans_energy < trans_energies.size(); i_trans_energy++)
         {
           Float& trans_energy = trans_energies[i_trans_energy];
-          mdtk::SimLoop& sl = *mdbuilder::build_target_by_cluster_bombardment(sl_Cu,sl_endo,trans_energy);
+          mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Cu,sl_endo,trans_energy);
           
           TRACE(sl.energyKin()/eV);
 
@@ -517,19 +517,10 @@ prepare_Cu_by_Cu_at_C60_bobardment()
           sl.saveToMDE(fomde);
           fomde.close();
           yaatk::chdir("..");
-
-          delete &sl;
         }
-
-        delete &sl_endo;
       }
     }
-    
-    delete &sl_cluster;
   }
-
-  delete &sl_Cu;
-  delete &sl_C60;
 }
 
 }

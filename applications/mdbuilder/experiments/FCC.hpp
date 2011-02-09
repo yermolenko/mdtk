@@ -122,7 +122,7 @@ place_FCC_lattice(mdtk::SimLoop& sl,
 }
 
 inline
-mdtk::SimLoop*
+mdtk::SimLoop
 build_FCC_lattice(int a_num = 14,
                   int b_num = 14,
                   int c_num = 7,
@@ -133,7 +133,7 @@ build_FCC_lattice(int a_num = 14,
                   double c = 3.615*Ao
                   )
 {
-  mdtk::SimLoop& sl = *(new mdtk::SimLoop);
+  mdtk::SimLoop sl;
   initialize_simloop(sl);
 
   place_FCC_lattice(sl,a_num,b_num,c_num,el,fixBottomLayer,a,b,c);
@@ -146,7 +146,7 @@ build_FCC_lattice(int a_num = 14,
 
   removeMomentum(sl.atoms);
 
-  return &sl;
+  return sl;
 }
 
 }
