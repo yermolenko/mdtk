@@ -410,7 +410,7 @@ build_target_by_cluster_bombardment(
       {
         Atom& clusterAtom = *(sl_cluster.atoms[cli]);
         Atom& surfaceAtom = *(sl_target.atoms[surfi]);
-        if (depos(clusterAtom,surfaceAtom).module() < ((clusterEnergy==0.0)?3.0*Ao:6.0*Ao))
+        if (depos(clusterAtom,surfaceAtom).module() < (/*(clusterEnergy==0.0)?3.0*Ao:*/6.0*Ao))
         {
           areInteracting = true;
         }
