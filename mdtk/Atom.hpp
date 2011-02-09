@@ -1,7 +1,7 @@
 /*
    The Atom class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -345,7 +345,7 @@ inline
 Vector3D
 depos(const Atom &a1, const Atom &a2)
 {
-  Vector3D r = a1.coords - a2.coords;
+  Vector3D r(a1.coords - a2.coords);
 //if (a1.globalIndex == 1806) {TRACE("before getPBC");TRACE(a1.container);}
   if (a1.container == NULL) return r;
   Vector3D PBC = a1.container->getPBC();
@@ -354,9 +354,9 @@ depos(const Atom &a1, const Atom &a2)
 
   if (!(a1.apply_PBC && a2.apply_PBC)) return r;
 
-  if(fabs(r.x) > PBC.x*0.5 && fabs(r.x) <= PBC.x) {if (r.x > 0) r.x -= PBC.x; else r.x += PBC.x;}
-  if(fabs(r.y) > PBC.y*0.5 && fabs(r.y) <= PBC.y) {if (r.y > 0) r.y -= PBC.y; else r.y += PBC.y;}
-  if(fabs(r.z) > PBC.z*0.5 && fabs(r.z) <= PBC.z) {if (r.z > 0) r.z -= PBC.z; else r.z += PBC.z;}
+  if(fabs(r.x) > PBC.x*0.5) {r.x += (r.x > 0)?(-PBC.x):(PBC.x);}
+  if(fabs(r.y) > PBC.y*0.5) {r.y += (r.y > 0)?(-PBC.y):(PBC.y);}
+  if(fabs(r.z) > PBC.z*0.5) {r.z += (r.z > 0)?(-PBC.z):(PBC.z);}
 
   return r;
 }
