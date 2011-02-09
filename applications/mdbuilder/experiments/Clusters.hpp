@@ -471,6 +471,7 @@ prepare_Cu_by_Cu_at_C60_bobardment()
   std::vector<Vector3D> rot_axes;
   rot_axes.push_back(Vector3D(0,0,1));
   rot_axes.push_back(Vector3D(0,1,0));
+  rot_axes.push_back(Vector3D(0,1,1));
 
   mdtk::SimLoop sl_Cu = mdbuilder::build_FCC_lattice(20,20,10,Cu_EL);
   mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
@@ -503,13 +504,13 @@ prepare_Cu_by_Cu_at_C60_bobardment()
 
           char id_string[1000];
           sprintf(id_string,
-                  "%s_by_Cu%02d@%s_%s%03deV_%s%03deV",
+                  "%s_by_Cu%02d@%s_%s%03deV_(%01d%01d%01d)%03deV",
                   "Cu",
                   cluster_size,
                   "C60",
                   "n",
                   int(trans_energy/eV),
-                  rot_axis==Vector3D(0,0,1)?"z":"y",
+                  int(rot_axis.x),int(rot_axis.y),int(rot_axis.z),
                   int(rot_energy/eV));
           
           yaatk::mkdir(id_string);
