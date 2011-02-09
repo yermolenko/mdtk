@@ -363,7 +363,7 @@ SimLoop::execute_wo_checks()
         if (To_by_T < -max_To_by_T) To_by_T = -max_To_by_T;
         if (To_by_T > +max_To_by_T) To_by_T = +max_To_by_T;
 
-        Float gamma = 5.0e13;
+        Float gamma = 1.0e13;
 //        Float gamma = 1.0/(1000.0*dt_);
 
         Vector3D dforce = -atom.V*atom.M*gamma*(1.0-sqrt(To_by_T));
