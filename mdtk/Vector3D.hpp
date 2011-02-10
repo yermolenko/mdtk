@@ -1,7 +1,7 @@
 /*
    The Vector3D class header file.
 
-   Copyright (C) 2004, 2005, 2009 Oleksandr Yermolenko
+   Copyright (C) 2004, 2005, 2009, 2011 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -62,6 +62,7 @@ public:
   Vector3D(const Float&);
 
   Float    module() const;
+  Float    module_squared() const;
   void     normalize();
   Vector3D normalized() const;
   friend Vector3D operator+(const Vector3D& a,const Vector3D& b);
@@ -292,6 +293,13 @@ Float
 Vector3D::module() const
 {
   return sqrt(x*x+y*y+z*z);
+}
+
+inline
+Float
+Vector3D::module_squared() const
+{
+  return x*x+y*y+z*z;
 }
 
 inline
