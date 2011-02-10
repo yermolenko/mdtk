@@ -65,7 +65,7 @@ void
 quench(mdtk::SimLoop& sl, 
        Float forTemp = 1.0*K,
        Float forTime = 200*ps,
-       Float checkTime = 0.05*ps,
+       Float checkTime = 0.01*ps,
        std::string tmpDir = "_tmp-X")
 {
   yaatk::mkdir(tmpDir.c_str());

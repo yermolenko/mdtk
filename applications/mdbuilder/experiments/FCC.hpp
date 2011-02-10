@@ -142,7 +142,8 @@ build_FCC_lattice(int a_num = 14,
   sl.thermalBath.zMin = c*c_num-c*3-c/4.0;
   sl.thermalBath.dBoundary = 3.0*Ao;
 
-  quench(sl);
+  relax(sl,0.01*ps);
+  quench(sl,1.0*K);
 
   removeMomentum(sl.atoms);
 
