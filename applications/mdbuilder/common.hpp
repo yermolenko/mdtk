@@ -63,14 +63,11 @@ place(ElementID id, mdtk::SimLoop& sl, Vector3D pos = getPosition())
 inline
 void
 quench(mdtk::SimLoop& sl, 
-       Float forTime = 0.2*ps,
+       Float forTemp = 0.1*K,
+       Float forTime = 200*ps,
        Float checkTime = 0.05*ps,
        std::string tmpDir = "_tmp-X")
 {
-  Float freezingEnergy = 0.0001*2.5*mdtk::eV*sl.atoms_.size();
-  TRACE(freezingEnergy/mdtk::eV);
-  ERRTRACE(freezingEnergy/mdtk::eV);
-
   yaatk::mkdir(tmpDir.c_str());
   yaatk::chdir(tmpDir.c_str());
   sl.initialize();
@@ -79,11 +76,12 @@ quench(mdtk::SimLoop& sl,
   sl.simTimeSaveTrajInterval = 0.05*ps;
   Float tb_zMin_bak = sl.thermalBath.zMin;
   sl.thermalBath.zMin = -100000.0*Ao;
-  while (sl.simTimeFinal < forTime)
+  while (1)
   {
     sl.simTimeFinal += checkTime;
     sl.execute();
-    if (sl.energyKin() < freezingEnergy) break;
+    Float Temp = sl.energyKin()/(3.0/2.0*kb*sl.atoms.size());
+    if (Temp < forTemp) break;
   }
   sl.thermalBath.zMin = tb_zMin_bak;
   yaatk::chdir("..");
