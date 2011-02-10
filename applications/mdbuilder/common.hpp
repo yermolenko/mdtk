@@ -63,7 +63,7 @@ place(ElementID id, mdtk::SimLoop& sl, Vector3D pos = getPosition())
 inline
 void
 quench(mdtk::SimLoop& sl, 
-       Float forTemp = 0.1*K,
+       Float forTemp = 1.0*K,
        Float forTime = 200*ps,
        Float checkTime = 0.05*ps,
        std::string tmpDir = "_tmp-X")
