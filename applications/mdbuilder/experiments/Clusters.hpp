@@ -59,7 +59,7 @@ build_C60_optimized()
   glLoadIdentity();
   mdbuilder::place_C60(sl);
   
-  quench(sl,0.2*ps);
+  quench(sl);
 
   return sl;
 }
@@ -339,7 +339,7 @@ build_embed(const mdtk::SimLoop& sl_cluster,
     a.V = 0.0;
   }
 
-  quench(sl,0.5*ps);
+  quench(sl);
 
   removeMomentum(sl.atoms);
 
