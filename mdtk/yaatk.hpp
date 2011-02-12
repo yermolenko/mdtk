@@ -1,7 +1,7 @@
 /*
    Yet another auxiliary toolkit (header file).
 
-   Copyright (C) 2003, 2005, 2006, 2009, 2010 Oleksandr Yermolenko
+   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -140,7 +140,10 @@ namespace yaatk
   if (SMODE == YAATK_FSTREAM_TEXT) {FSTREAM_INST << VAR_INST;} else YAATK_BIN_WRITE(FSTREAM_INST, VAR_INST);
 
 #define YAATK_FSTREAM_READ(FSTREAM_INST,VAR_INST,SMODE) \
-  if (SMODE == YAATK_FSTREAM_TEXT) {FSTREAM_INST >> VAR_INST;} else YAATK_BIN_READ (FSTREAM_INST, VAR_INST);
+  {                                                                     \
+  if (SMODE == YAATK_FSTREAM_TEXT) {FSTREAM_INST >> VAR_INST;} else YAATK_BIN_READ (FSTREAM_INST, VAR_INST); \
+  if (FSTREAM_INST.fail()) throw mdtk::Exception("Error in reading variable "#VAR_INST); \
+  }
 
 inline
 void mkdir(const char *name)
