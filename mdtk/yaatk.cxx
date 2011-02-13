@@ -192,7 +192,7 @@ Stream::unZipMe()
   else
     zipped   = fopen(getZippedFileName().c_str(),"rb");
 
-  REQUIRE(zipped != 0);
+  if(!zipped) return -1;
   int unzippedFileSize;
   while ((unzippedFileSize = fread(buf,1,MDTK_GZ_BUFFER_SIZE,zipped)) > 0)
   {
@@ -243,7 +243,7 @@ Stream::unZipMe_internal()
   using mdtk::Exception;
   char buf[MDTK_GZ_BUFFER_SIZE];
   gzFile zipped   = gzopen(getZippedFileName().c_str(),"rb");
-  REQUIRE(zipped != 0);
+  if(!zipped) return -1;
   int unzippedFileSize;
   while ((unzippedFileSize = gzread(zipped,buf,MDTK_GZ_BUFFER_SIZE)) > 0)
   {
