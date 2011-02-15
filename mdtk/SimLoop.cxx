@@ -419,6 +419,12 @@ SimLoop::execute_wo_checks()
         atoms_[j]->apply_ThermalBath = false;
       }
  
+      if (c.z >= thermalBath.zMinOfFreeZone && usePBC()) 
+      {
+        atoms_[j]->apply_PBC = true;
+        atoms_[j]->apply_ThermalBath = true;
+      }
+ 
       applyPBC(*(atoms_[j]));
       checkOnSpot(*(atoms_[j])); // obsolete
     }
