@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <fstream>
 #include <cstring>
+#include <algorithm>
 #include <mdtk/SimLoop.hpp>
 
 #include "../common.h"
@@ -36,6 +37,7 @@ public:
   CustomSimLoop();
   void doBeforeIteration();
   void doAfterIteration();
+  bool bondedToSubstrate(Atom& a, std::vector<size_t>& excludedAtoms);
 };
 
 CustomSimLoop::CustomSimLoop()
@@ -53,6 +55,57 @@ CustomSimLoop::doBeforeIteration()
 void
 CustomSimLoop::doAfterIteration()
 {
+  for(size_t j = 0; j < atoms.size(); j++)
+  {
+    Atom& a = *atoms[j];
+    Vector3D c = a.coords;
+    if (c.z < thermalBath.zMinOfFreeZone && usePBC() &&
+        (
+          (c.x < 0.0 + thermalBath.dBoundary) ||
+          (c.x > getPBC().x - thermalBath.dBoundary) ||
+          (c.y < 0.0 + thermalBath.dBoundary) ||
+          (c.y > getPBC().y - thermalBath.dBoundary)
+          )
+      ) 
+    {
+      if (a.apply_PBC)
+      {
+        std::vector<size_t> bondedAtoms;
+        if (!bondedToSubstrate(a, bondedAtoms))
+        {
+          for(size_t i = 0; i < bondedAtoms.size(); ++i)
+          {
+            cout << "Disabling PBC and thermal bath for the molecule ( " 
+                 << bondedAtoms.size() << " atoms ).";
+            atoms[bondedAtoms[i]]->apply_PBC = false;
+            atoms[bondedAtoms[i]]->apply_ThermalBath = false;
+          }
+        }
+      }
+    }
+  }
+}
+
+bool
+CustomSimLoop::bondedToSubstrate(Atom& a, std::vector<size_t>& excludedAtoms)
+{
+  excludedAtoms.push_back(a.globalIndex);
+  if (a.coords.z > 0.5*Ao) return true;
+  bool bonded = false;
+
+  for(size_t i = 0; i < atoms.size() && !bonded; i++)
+  {
+    Atom &nba = *(atoms[i]);
+    if (nba.coords.z > 4.0*Ao) continue;
+    if (find(excludedAtoms.begin(), 
+             excludedAtoms.end(), 
+             nba.globalIndex) == excludedAtoms.end())
+      if (depos(a,nba).module() < 4.0*Ao)
+        if (bondedToSubstrate(nba, excludedAtoms))
+          bonded = true;
+  }
+
+  return bonded;
 }
 
 bool

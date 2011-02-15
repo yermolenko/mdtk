@@ -405,20 +405,6 @@ SimLoop::execute_wo_checks()
     {
       atoms_[j]->coords = new_coords[j];
  
-      Vector3D c = atoms_[j]->coords;
-      if (c.z < thermalBath.zMinOfFreeZone && usePBC() &&
-             (
-               (c.x < 0.0 + thermalBath.dBoundary) ||
-               (c.x > getPBC().x - thermalBath.dBoundary) ||
-               (c.y < 0.0 + thermalBath.dBoundary) ||
-               (c.y > getPBC().y - thermalBath.dBoundary)
-             )
-         ) 
-      {
-        atoms_[j]->apply_PBC = false;
-        atoms_[j]->apply_ThermalBath = false;
-      }
- 
       applyPBC(*(atoms_[j]));
       checkOnSpot(*(atoms_[j])); // obsolete
     }
