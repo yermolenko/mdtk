@@ -348,6 +348,70 @@ operator<<(ostream& os, const Vector3D& vec)
   return os;
 }
 
+class IntVector3D
+{
+public:
+  int x,y,z;
+  IntVector3D(int xc, int yc, int zc);
+  IntVector3D();
+  IntVector3D& operator=(const int&);
+  IntVector3D(const int&);
+
+  friend std::istream&  operator>> (std::istream& is, IntVector3D& vec);
+  friend std::ostream&  operator<< (std::ostream& os, const IntVector3D& vec);
+};
+
+inline
+IntVector3D::IntVector3D(int xc, int yc, int zc):
+  x(xc),y(yc),z(zc)
+{
+}
+
+inline
+IntVector3D::IntVector3D():
+  x(0),y(0),z(0)
+{
+}
+
+inline
+IntVector3D::IntVector3D(const int& obj):
+  x(obj),y(obj),z(obj)
+{
+}
+
+inline
+IntVector3D&
+IntVector3D::operator=(const int& obj)
+{
+  x = obj;
+  y = obj;
+  z = obj;
+  return (*this); 
+}
+
+inline
+istream&
+operator>>(istream& is,  IntVector3D& vec)
+{
+  int u = 0, v = 0, w = 0;
+  is >> u >> v >> w;
+  if (is)
+    vec = IntVector3D(u,v,w);
+  else
+    cerr << " Error in reading IntVector3D " << endl << flush;
+  return is;
+}
+
+inline
+ostream&
+operator<<(ostream& os, const IntVector3D& vec)
+{
+  os << vec.x << " "
+     << vec.y << " "
+     << vec.z << " ";
+  return os;
+}
+
 } // namespace mdtk
 
 #endif

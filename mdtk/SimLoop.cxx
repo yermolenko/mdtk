@@ -240,18 +240,18 @@ SimLoop::applyPBC(Atom& a)
 
   if (PBC.x < MDTK_MAX_PBC)
   {
-    while(ac.x < 0)      ac.x += PBC.x;
-    while(ac.x >= PBC.x) ac.x -= PBC.x;
+    while(ac.x < 0)      {ac.x += PBC.x;--a.PBC_count.x;}
+    while(ac.x >= PBC.x) {ac.x -= PBC.x;++a.PBC_count.x;}
   }  
   if (PBC.y < MDTK_MAX_PBC)
   {
-    while(ac.y < 0)      ac.y += PBC.y;
-    while(ac.y >= PBC.y) ac.y -= PBC.y;
+    while(ac.y < 0)      {ac.y += PBC.y;--a.PBC_count.y;}
+    while(ac.y >= PBC.y) {ac.y -= PBC.y;++a.PBC_count.y;}
   }
   if (PBC.z < MDTK_MAX_PBC)
   {
-    while(ac.z < 0)      ac.z += PBC.z;
-    while(ac.z >= PBC.z) ac.z -= PBC.z;
+    while(ac.z < 0)      {ac.z += PBC.z;--a.PBC_count.z;}
+    while(ac.z >= PBC.z) {ac.z -= PBC.z;++a.PBC_count.z;}
   }  
 }  
 
@@ -689,6 +689,7 @@ TRACE(XVA_DISTANCE_SCALE);
   {
     is >> atoms_[i]->V;
     is >> atoms_[i]->coords;
+    is >> atoms_[i]->PBC_count;
 
     atoms_[i]->V *= XVA_VELOCITY_SCALE;
     atoms_[i]->coords *= XVA_DISTANCE_SCALE;
@@ -761,6 +762,10 @@ os << XVA_DISTANCE_SCALE << "\n";
     os << atoms_[i]->coords.x/XVA_DISTANCE_SCALE  << " ";
     os << atoms_[i]->coords.y/XVA_DISTANCE_SCALE  << " ";
     os << atoms_[i]->coords.z/XVA_DISTANCE_SCALE  << "\n";
+
+    os << atoms_[i]->PBC_count.x << " ";
+    os << atoms_[i]->PBC_count.y << " ";
+    os << atoms_[i]->PBC_count.z << "\n";
   }
   os << scientific;
 

@@ -55,6 +55,7 @@ public:
   Float M;
   Vector3D V;
   Vector3D coords;
+  IntVector3D PBC_count;
 
   Vector3D an;
   Vector3D an_no_tb;
@@ -211,7 +212,19 @@ normalize()
     a.V -= mvsum/msum;
   }
 }
-
+    void unfoldPBC()
+    {
+      for (size_t i = 0; i < size(); i++)
+      {
+        Atom& a = *(at(i));
+        if (PBC.x != NO_PBC.x)
+          a.coords.x += PBC.x*a.PBC_count.x;
+        if (PBC.y != NO_PBC.y)
+          a.coords.y += PBC.y*a.PBC_count.y;
+        if (PBC.z != NO_PBC.z)
+          a.coords.z += PBC.z*a.PBC_count.z;
+      }
+    }
 };
 
 
@@ -264,6 +277,7 @@ Atom::Atom(Float Zx,Float Mx,
   :
    ID(H_EL),
    Z(Zx),M(Mx),V(Vx),coords(Cx),
+   PBC_count(),
    an(0.0,0.0,0.0),
    an_no_tb(0.0,0.0,0.0),
    apply_barrier(false),apply_PBC(true),apply_ThermalBath(true),ejected(false),tag(0),
@@ -279,6 +293,7 @@ Atom::Atom(ElementID id,
   :
    ID(id),
    Z(1.0*e),M(1.0*amu),V(Vx),coords(Cx),
+   PBC_count(),
    an(0.0,0.0,0.0),
    an_no_tb(0.0,0.0,0.0),
    apply_barrier(false),apply_PBC(true),apply_ThermalBath(true),ejected(false),tag(0),
@@ -300,6 +315,7 @@ Atom::Atom( const Atom &C )
   M = C.M;
   V = C.V;
   coords = C.coords;
+  PBC_count = C.PBC_count;
   an = C.an;
   an_no_tb = C.an_no_tb;
   apply_barrier = C.apply_barrier;
@@ -325,6 +341,7 @@ Atom::operator =(const Atom &C)
     M = C.M;
     V = C.V;
     coords = C.coords;
+    PBC_count = C.PBC_count;
     an = C.an;
     an_no_tb = C.an_no_tb;
     apply_barrier = C.apply_barrier;
@@ -370,16 +387,18 @@ operator>>(istream& is,  Atom& vec)
   Float Z = 0, M = 0;
   int t;
   Vector3D V,C,an, an_no_tb;
+  IntVector3D PBC_count;
   bool apply_barrier;
   bool apply_PBC;
   bool apply_ThermalBath;
   bool ejected;
   size_t gi;
   bool fixed;
-  is >> ID >> Z >> M >> V >> C >> an >> an_no_tb >> apply_barrier >> apply_PBC >> apply_ThermalBath >> ejected >> t >> gi >> fixed;
+  is >> ID >> Z >> M >> V >> C >> PBC_count >> an >> an_no_tb >> apply_barrier >> apply_PBC >> apply_ThermalBath >> ejected >> t >> gi >> fixed;
   if (is)
   {
     vec = Atom(Z,M,V,C);
+    vec.PBC_count = PBC_count;
     vec.ID = ElementID(ID);
     vec.an = an;
     vec.an_no_tb = an_no_tb;
@@ -406,6 +425,7 @@ operator<<(ostream& os, const Atom& vec)
      << vec.M << "\n"
      << vec.V << "\n"
      << vec.coords << "\n"
+     << vec.PBC_count << "\n"
      << vec.an << "\n"
      << vec.an_no_tb << "\n"
      << vec.apply_barrier << "\n"
