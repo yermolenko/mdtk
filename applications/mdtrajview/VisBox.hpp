@@ -63,6 +63,7 @@ public:
   bool showAtoms;
   bool showBath;
   bool showBathSketch;
+  bool unfoldPBC;
   bool showCustom1;
   bool showCustom2;
   bool showCustom3;

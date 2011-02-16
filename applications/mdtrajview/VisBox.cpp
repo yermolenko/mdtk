@@ -138,6 +138,7 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     showAtoms(true),
     showBath(false),
     showBathSketch(false),
+    unfoldPBC(false),
     showCustom1(false),
     showCustom2(false),
     showCustom3(false),
@@ -292,6 +293,9 @@ VisBox::reArrange(double xmin, double xmax,
 void
 VisBox::setData(mdtk::SimLoop &ml)
 {
+  if (unfoldPBC)
+    ml.atoms.unfoldPBC();
+
   zbar = ml.barrier.z;
   Ro = ml.atoms_;
 

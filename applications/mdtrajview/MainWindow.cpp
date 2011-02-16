@@ -157,6 +157,15 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
     t->value(false);
   }
 
+  {
+    Fl_Light_Button* t
+      = new Fl_Light_Button(700,320,105,30,
+			    "Unfold PBC");
+    t->callback(btn_bool_toggle_cb,
+		&renderBox->unfoldPBC);
+    t->value(renderBox->unfoldPBC);
+  }
+
   btn_animate = new Fl_Light_Button(580,450,105,30,
 				    "Animate");
   btn_animate->callback((Fl_Callback*)btn_animate_cb);
