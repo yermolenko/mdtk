@@ -167,7 +167,7 @@ public:
     Float zMinOfFreeZone;
     Float To;
 //    void disableGlobally() {zMin = 1000000.0*Ao;dBoundary = 0.0;zMinOfFreeZone = 0.0;}
-    ThermalBath(Float zMin_ = 1000000.0*Ao, Float dBoundary_ = 0.0, Float zMinOfFreeZone_ = -2.0*mdtk::Ao)
+    ThermalBath(Float zMin_ = 1000000.0*Ao, Float dBoundary_ = 0.0, Float zMinOfFreeZone_ = -5.0*mdtk::Ao)
     : zMin(zMin_), dBoundary(dBoundary_), zMinOfFreeZone(zMinOfFreeZone_), To(0.0)
     {
     }
