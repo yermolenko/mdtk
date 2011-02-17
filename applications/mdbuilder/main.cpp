@@ -265,6 +265,8 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     return 0;
   }
 
+  srand(12345);
+
   Fl_Window win(500, 300, "MDBuilder");
   MDBuilderWindow mygl(10, 10, win.w()-20, win.h()-20);
   win.end();
