@@ -73,10 +73,10 @@ CustomSimLoop::doAfterIteration()
         std::vector<size_t> bondedAtoms;
         if (!bondedToSubstrate(a, bondedAtoms))
         {
+          cout << "Disabling PBC and thermal bath for the sputtered molecule ( " 
+               << bondedAtoms.size() << " atoms )." << endl;
           for(size_t i = 0; i < bondedAtoms.size(); ++i)
           {
-            cout << "Disabling PBC and thermal bath for the molecule ( " 
-                 << bondedAtoms.size() << " atoms ).";
             atoms[bondedAtoms[i]]->apply_PBC = false;
             atoms[bondedAtoms[i]]->apply_ThermalBath = false;
           }
