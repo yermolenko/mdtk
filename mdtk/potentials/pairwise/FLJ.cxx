@@ -136,8 +136,8 @@ Atom& atom2 = *(atoms[j]);
     int i;
     for(i = 2; i <= 6; i++) s_div_r_6 *= s_div_r;
     Float s_div_r_12 = s_div_r_6*s_div_r_6;
-    Float DerVLJ = 4.0*zeta_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
-    Float VLJ = 4.0*zeta_ij*(s_div_r_12-s_div_r_6);
+    DerVLJ = 4.0*zeta_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
+    VLJ = 4.0*zeta_ij*(s_div_r_12-s_div_r_6);
   }
 
   v[1] = VLJ;
