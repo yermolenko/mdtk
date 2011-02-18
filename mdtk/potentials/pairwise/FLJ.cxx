@@ -77,7 +77,7 @@ FLJ::fillR_concat_()
   atoms.push_back(new Atom());
   atoms[0]->ID = Cu_EL;
   atoms[1]->ID = C_EL;
-  atoms[1]->ID = H_EL;
+  atoms[2]->ID = H_EL;
   atoms.setAttributesByElementID();
 
 for(size_t i = 0; i < atoms.size(); i++)
