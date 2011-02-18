@@ -1,6 +1,6 @@
 #  CMakeLists.txt file for MDTK applications and tools
 #
-#  Copyright (C) 2007, 2008, 2009, 2010 Oleksandr Yermolenko
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
 #  <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -20,6 +20,7 @@
 #
 
 add_subdirectory (mdtrajsim)
+add_subdirectory (selftest)
 
 IF(MSVC)
   SET(FLTK_LIBRARIES fltk fltkgl)
