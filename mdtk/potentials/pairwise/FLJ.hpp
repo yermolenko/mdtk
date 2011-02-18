@@ -2,7 +2,7 @@
    The Lennard-Jones interatomic potential implementation
    (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -25,6 +25,9 @@
 #define mdtk_FLJ_hpp
 
 #include "FPairwise.hpp"
+#include <mdtk/Spline.hpp>
+
+//#define  LJ_HANDLE_SHORTRANGE
 
 namespace mdtk
 {
@@ -61,6 +64,10 @@ public:
       default : throw Exception("e2i() : unknown element");
     };  
   }  
+
+  Spline* splines[ECOUNT][ECOUNT];
+  void fillR_concat_();
+
 public:
   virtual Float operator()(AtomsContainer&);
   virtual Vector3D grad(Atom &a1,AtomsContainer&);
