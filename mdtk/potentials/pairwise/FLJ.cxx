@@ -62,6 +62,92 @@ FLJ::FLJ(Rcutoff rcutoff):
   zeta_[H][H]   = 0.0*eV;
   zeta_[Cu][H]  = 0.01*eV;
     zeta_[H][Cu] = zeta_[Cu][H];
+
+  fillR_concat_();
+}
+
+void
+FLJ::fillR_concat_()
+{
+  Float r;
+
+  AtomsContainer atoms;
+  atoms.push_back(new Atom());
+  atoms.push_back(new Atom());
+  atoms.push_back(new Atom());
+  atoms[0]->ID = Cu_EL;
+  atoms[1]->ID = C_EL;
+  atoms[2]->ID = H_EL;
+  atoms.setAttributesByElementID();
+
+for(size_t i = 0; i < atoms.size(); i++)
+for(size_t j = 0; j < atoms.size(); j++)
+{
+Atom& atom1 = *(atoms[i]);
+Atom& atom2 = *(atoms[j]);
+
+         Float       x[2]; x[0] = 1.2*Ao; x[1] = 1.9*Ao;
+         Float       v[2];
+         Float    dvdx[2];
+//         Float    d2vdxdx[2];
+//d2vdxdx[0] = 0;
+//d2vdxdx[1] = 0;
+
+{
+  r = x[0];
+
+  Float VZBL = 0.0;
+  Float DerVZBL = 0.0;
+  {
+  Float AB_ = 0.53e-8;
+
+  Float ZA = atom1.Z; Float ZB = atom2.Z;
+
+  Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
+
+  Float Y=r/AS;
+
+  VZBL=   ZA*ZB/r*(0.18175*exp(-3.1998*Y)+
+          0.50986*exp(-0.94229*Y)+
+          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y));
+
+  DerVZBL =
+          -ZA*ZB/(r*r)*(0.18175*exp(-3.1998*Y)+
+          0.50986*exp(-0.94229*Y)+
+          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y))-
+          ZA*ZB/(r*AS)*(0.18175*3.1998*exp(-3.1998*Y)+
+          0.50986*0.94229*exp(-0.94229*Y)+0.28022*0.4029*exp(-0.4029*Y)+
+          0.02817*0.20162*exp(-0.20162*Y));
+
+  }
+  v[0] = VZBL;
+  dvdx[0] = DerVZBL/* = -1.5*/;
+
+  r = x[1];
+
+  Float VLJ = 0.0;
+  Float DerVLJ = 0.0;
+  {
+    Float sigma_ij=     this->sigma(atom1,atom2);
+    Float zeta_ij =     this->zeta(atom1,atom2);
+
+    Float s_div_r    = sigma_ij/r;
+    Float s_div_r_6  = s_div_r;
+    int i;
+    for(i = 2; i <= 6; i++) s_div_r_6 *= s_div_r;
+    Float s_div_r_12 = s_div_r_6*s_div_r_6;
+    DerVLJ = 4.0*zeta_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
+    VLJ = 4.0*zeta_ij*(s_div_r_12-s_div_r_6);
+  }
+
+  v[1] = VLJ;
+  dvdx[1] = DerVLJ/* = 0*/;
+}
+
+splines[e2i(atom1)][e2i(atom2)] = new Spline(x,v,dvdx/*,d2vdxdx*/);
+
+}
+
 }
 
 Float
@@ -74,6 +160,35 @@ FLJ::VLJ(Atom &atom1,Atom &atom2)
 #endif
 
   Float r = r_vec_module(atom1,atom2);
+
+#ifndef  LJ_HANDLE_SHORTRANGE
+  Spline& spline = *(splines[e2i(atom1)][e2i(atom2)]);
+  if (r < spline.x1())
+  {
+  Float AB_ = 0.53e-8;
+
+  Float ZA = atom1.Z; Float ZB = atom2.Z;
+
+  Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
+
+  Float Y=r/AS;
+
+  if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
+
+  return  ZA*ZB/r*(0.18175*exp(-3.1998*Y)+
+          0.50986*exp(-0.94229*Y)+
+          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y));
+  }
+  else
+  {
+    if (r < spline.x2())
+    {
+      if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
+
+      return spline(r);
+    }
+  }
+#endif
 
   Float sigma_ij=     this->sigma(atom1,atom2);
   Float zeta_ij =     this->zeta(atom1,atom2);
@@ -99,6 +214,31 @@ FLJ::dVLJ(Atom &atom1,Atom &atom2, Atom &datom)
 #endif
 
   Float r = r_vec_module(atom1,atom2);
+
+#ifndef  LJ_HANDLE_SHORTRANGE
+  Spline& spline = *(splines[e2i(atom1)][e2i(atom2)]);
+  if (r < spline.x1())
+  {
+  Float AB_ = 0.53e-8;
+
+  Float ZA = atom1.Z; Float ZB = atom2.Z;
+  Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
+  Float Y=r/AS;
+  Float Der =
+          -ZA*ZB/(r*r)*(0.18175*exp(-3.1998*Y)+
+          0.50986*exp(-0.94229*Y)+
+          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y))-
+          ZA*ZB/(r*AS)*(0.18175*3.1998*exp(-3.1998*Y)+
+          0.50986*0.94229*exp(-0.94229*Y)+0.28022*0.4029*exp(-0.4029*Y)+
+          0.02817*0.20162*exp(-0.20162*Y));
+
+  return Der*drmodvar;
+  }
+  else
+  {
+    if (r < spline.x2()) return spline.der(r)*drmodvar;
+  }
+#endif
 
   Float sigma_ij=     this->sigma(atom1,atom2);
   Float zeta_ij =     this->zeta(atom1,atom2);
