@@ -86,7 +86,7 @@ for(size_t j = 0; j < atoms.size(); j++)
 Atom& atom1 = *(atoms[i]);
 Atom& atom2 = *(atoms[j]);
 
-         Float       x[2]; x[0] = 1.0*Ao; x[1] = 1.4*Ao;
+         Float       x[2]; x[0] = 1.2*Ao; x[1] = 1.9*Ao;
          Float       v[2];
          Float    dvdx[2];
 //         Float    d2vdxdx[2];
