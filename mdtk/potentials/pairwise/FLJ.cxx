@@ -1,7 +1,7 @@
 /*
    The Lennard-Jones interatomic potential implementation.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -39,9 +39,15 @@ FLJ::FLJ(Rcutoff rcutoff):
   handledElementPairs.insert(std::make_pair(C_EL,Cu_EL));
   handledElementPairs.insert(std::make_pair(H_EL,Cu_EL));
 
+//  See [D.E. Ellis et al., Materials Science in Semiconductor
+//  Processing 3, 123 (2000)]
+
+  Float C6_CuC = 41.548*eV*pow(Ao,6);
+  Float C12_CuC = 2989.105*eV*pow(Ao,12);
+
   sigma_[Cu][Cu] = 0.0*Ao;
   sigma_[C][C]   = 0.0*Ao;
-  sigma_[Cu][C]  = 2.049067052*Ao;
+  sigma_[Cu][C]  = pow(C12_CuC/C6_CuC,1.0/6.0);
     sigma_[C][Cu] = sigma_[Cu][C];
   sigma_[Cu][Cu] = 0.0*Ao;
   sigma_[H][H]   = 0.0*Ao;
@@ -50,7 +56,7 @@ FLJ::FLJ(Rcutoff rcutoff):
   
   zeta_[Cu][Cu] = 0.0*eV;
   zeta_[C][C]   = 0.0*eV;
-  zeta_[Cu][C]  = 0.05*eV;
+  zeta_[Cu][C]  = pow(C6_CuC,2)/(4.0*C12_CuC);
     zeta_[C][Cu] = zeta_[Cu][C];
   zeta_[Cu][Cu] = 0.0*eV;
   zeta_[H][H]   = 0.0*eV;
