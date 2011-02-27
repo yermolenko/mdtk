@@ -108,13 +108,17 @@ try
   pp->printFullereneInfo();
   pp->plotFullereneLandings(false,"010");
   pp->plotFullereneLandings(false,"001");
+  pp->plotFullereneLandings(false,"011");
   pp->plotFullereneLandings(true,"010");
   pp->plotFullereneLandings(true,"001");
+  pp->plotFullereneLandings(true,"011");
 
   pp->plotFullereneImplantDepth(false,"010");
   pp->plotFullereneImplantDepth(false,"001");
+  pp->plotFullereneImplantDepth(false,"011");
   pp->plotFullereneImplantDepth(true,"010");
   pp->plotFullereneImplantDepth(true,"001");
+  pp->plotFullereneImplantDepth(true,"011");
 
 //  pp->printClusterDynamicsTotal();
 
