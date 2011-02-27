@@ -616,10 +616,12 @@ std::string parseRotDirection(const std::string trajname)
   using namespace std;
   size_t istart = trajname.find("_(");
   REQUIRE(istart != std::string::npos);
+  istart+=2;
   size_t iend = trajname.find(")",istart);
   REQUIRE(iend != std::string::npos);
+  REQUIRE(iend-istart == 3);
 
-  std::string rotDir = trajname.substr(istart,iend);
+  std::string rotDir = trajname.substr(istart,iend-istart);
   REQUIRE(rotDir == "001" || rotDir == "010" ||  rotDir == "011");
 
   return rotDir;
@@ -628,10 +630,10 @@ std::string parseRotDirection(const std::string trajname)
 Float parseRotEnergy(const std::string trajname)
 {
   using namespace std;
-  size_t istart = trajname.find("_)");
+  size_t istart = trajname.find(")");
   REQUIRE(istart != std::string::npos);
 
-  istart+=2;
+  istart+=1;
   size_t iend = trajname.find("eV",istart);
   REQUIRE(iend != std::string::npos);
 
@@ -745,16 +747,12 @@ splot '" << fnb.str() << ".dat' matrix notitle\n\
   ofstream fdat((fnb.str()+".dat").c_str());
 
   std::vector<int> transEnergies;
-  transEnergies.push_back(50);
-  transEnergies.push_back(100);
-  transEnergies.push_back(200);
-  transEnergies.push_back(300);
-  transEnergies.push_back(400);
+  for(int e = 0; e <= 400; e += 50)
+    transEnergies.push_back(e);
+  transEnergies.push_back(10);
   std::vector<int> rotEnergies;
-  rotEnergies.push_back(0);
-  rotEnergies.push_back(10);
-  rotEnergies.push_back(50);
-  rotEnergies.push_back(100);
+  for(Float e = 0; e <= 100; e += 10)
+    rotEnergies.push_back(e);
   const size_t NX = transEnergies.size();
   const size_t NY = rotEnergies.size();
   Float depth[NX][NY];

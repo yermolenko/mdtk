@@ -50,6 +50,25 @@ setTags(mdtk::SimLoop* ml)
 	atom.tag |= ATOMTAG_SUBSTRATE;
       };
       break;
+    case 16060:
+    case 16061:
+    case 16066:
+    case 16073:
+      if (atom.ID == mdtk::C_EL) 
+      {
+	atom.tag |= ATOMTAG_FULLERENE;
+	atom.tag |= ATOMTAG_PROJECTILE;
+      };
+      if (atom.ID == mdtk::Cu_EL && atom.globalIndex >= 16060-60)
+      {
+	atom.tag |= ATOMTAG_CLUSTER;
+	atom.tag |= ATOMTAG_PROJECTILE;
+      };
+      if (atom.ID == mdtk::Cu_EL && atom.globalIndex <  16060-60)
+      {
+	atom.tag |= ATOMTAG_SUBSTRATE;
+      };
+      break;
     case 4860:
       if (atom.ID == mdtk::C_EL) 
       {
