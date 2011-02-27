@@ -1,7 +1,7 @@
 /* 
    mdpp (molecular dynamics postprocessor)
 
-   Copyright (C) 2010 Oleksandr Yermolenko
+   Copyright (C) 2010, 2011 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -54,7 +54,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
 try
 {
-  mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Custom;
+  mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Custom1;
 //  mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Cu13_at_C60_Only;
 
   std::vector<std::string> trajDirNames;
@@ -106,15 +106,15 @@ try
   pp->printClassicMoleculesTotal();
 
   pp->printFullereneInfo();
-  pp->plotFullereneLandings(false,'y');
-  pp->plotFullereneLandings(false,'z');
-  pp->plotFullereneLandings(true,'y');
-  pp->plotFullereneLandings(true,'z');
+  pp->plotFullereneLandings(false,"010");
+  pp->plotFullereneLandings(false,"001");
+  pp->plotFullereneLandings(true,"010");
+  pp->plotFullereneLandings(true,"001");
 
-  pp->plotFullereneImplantDepth(false,'y');
-  pp->plotFullereneImplantDepth(false,'z');
-  pp->plotFullereneImplantDepth(true,'y');
-  pp->plotFullereneImplantDepth(true,'z');
+  pp->plotFullereneImplantDepth(false,"010");
+  pp->plotFullereneImplantDepth(false,"001");
+  pp->plotFullereneImplantDepth(true,"010");
+  pp->plotFullereneImplantDepth(true,"001");
 
 //  pp->printClusterDynamicsTotal();
 

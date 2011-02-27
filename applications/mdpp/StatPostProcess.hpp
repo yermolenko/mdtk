@@ -1,7 +1,7 @@
 /* 
    Molecular dynamics postprocessor, main classes, header
 
-   Copyright (C) 2007, 2008, 2009, 2010 Oleksandr Yermolenko
+   Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -260,8 +260,8 @@ public:
   void  printFullereneInfo(size_t trajIndex) const;
   void  printFullereneInfo() const;
 
-  void  plotFullereneLandings(bool endo, char rotDir) const;
-  void  plotFullereneImplantDepth(bool endo, char rotDir) const;
+  void  plotFullereneLandings(bool endo, const std::string rotDir) const;
+  void  plotFullereneImplantDepth(bool endo, const std::string rotDir) const;
 
   void  printClusterDynamics(size_t trajIndex) const;
   void  printClusterDynamicsTotal() const;

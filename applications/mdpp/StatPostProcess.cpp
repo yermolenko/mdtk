@@ -1,7 +1,7 @@
 /* 
    Molecular dynamics postprocessor, main classes
 
-   Copyright (C) 2007, 2008, 2009, 2010 Oleksandr Yermolenko
+   Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -611,26 +611,25 @@ Float parseTransEnergy(const std::string trajname)
   return val;
 }
 
-char parseRotDirection(const std::string trajname)
+std::string parseRotDirection(const std::string trajname)
 {
   using namespace std;
-  size_t istart = trajname.find("_y");
-  if (istart == std::string::npos)
-    istart = trajname.find("_z");
+  size_t istart = trajname.find("_(");
+  REQUIRE(istart != std::string::npos);
+  size_t iend = trajname.find(")",istart);
+  REQUIRE(iend != std::string::npos);
 
-  if (istart == std::string::npos) return 'N';
+  std::string rotDir = trajname.substr(istart,iend);
+  REQUIRE(rotDir == "001" || rotDir == "010" ||  rotDir == "011");
 
-  return trajname[istart+1];
+  return rotDir;
 }
 
 Float parseRotEnergy(const std::string trajname)
 {
   using namespace std;
-  size_t istart = trajname.find("_y");
-  if (istart == std::string::npos)
-    istart = trajname.find("_z");
-
-  if (istart == std::string::npos) return 0.0;
+  size_t istart = trajname.find("_)");
+  REQUIRE(istart != std::string::npos);
 
   istart+=2;
   size_t iend = trajname.find("eV",istart);
@@ -644,7 +643,7 @@ Float parseRotEnergy(const std::string trajname)
 }
 
 void
-StatPostProcess::plotFullereneLandings(bool endo, char rotDir) const
+StatPostProcess::plotFullereneLandings(bool endo, const std::string rotDir) const
 {
   std::stringstream fnb;
   fnb << "landed-intact" << (endo?"-endo":"") << "-rot" << rotDir;
@@ -692,10 +691,10 @@ plot '" << fnb.str() << ".dat' with points notitle\n	\
     std::string trajId = yaatk::extractLastItem(td.trajDir);
 
     Float transEnergy = parseTransEnergy(trajId);
-    char rotDirection = parseRotDirection(trajId);
+    std::string rotDirection = parseRotDirection(trajId);
     Float rotEnergy = parseRotEnergy(trajId);
 
-    if (rotDirection != 'N' && rotDirection != rotDir) continue;
+    if (rotDirection != rotDir) continue;
     if (fstart.isEndoFullerene() == endo)
     {
       if (fend.isIntegral() && fend.massCenter().z > -10.0*Ao)
@@ -707,7 +706,7 @@ plot '" << fnb.str() << ".dat' with points notitle\n	\
 }
 
 void
-StatPostProcess::plotFullereneImplantDepth(bool endo, char rotDir) const
+StatPostProcess::plotFullereneImplantDepth(bool endo, const std::string rotDir) const
 {
   std::stringstream fnb;
   fnb << "implant-depth" << (endo?"-endo":"") << "-rot" << rotDir;
@@ -779,7 +778,7 @@ splot '" << fnb.str() << ".dat' matrix notitle\n\
     std::string trajId = yaatk::extractLastItem(td.trajDir);
 
     Float transEnergy = parseTransEnergy(trajId);
-    char rotDirection = parseRotDirection(trajId);
+    const std::string rotDirection = parseRotDirection(trajId);
     Float rotEnergy = parseRotEnergy(trajId);
 
     std::vector<int>::iterator tei = 
@@ -789,7 +788,7 @@ splot '" << fnb.str() << ".dat' matrix notitle\n\
       find(rotEnergies.begin(),rotEnergies.end(),rotEnergy);
     REQUIRE(tei != rotEnergies.end());
 
-    if (rotDirection != 'N' && rotDirection != rotDir) continue;
+    if (rotDirection != rotDir) continue;
     if (fstart.isEndoFullerene() == endo)
     {
 /*
