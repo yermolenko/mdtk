@@ -137,7 +137,7 @@ Stream::zipMe()
   FILE* zipped;
   if (zipInvokeInfo.command!="nozip")
   {
-    char cmd[2000];sprintf(cmd,"%s -c >%s",zipInvokeInfo.command.c_str(),getZippedFileName().c_str());
+    char cmd[2000];sprintf(cmd,"%s -c >\"%s\"",zipInvokeInfo.command.c_str(),getZippedFileName().c_str());
 #ifndef __WIN32__
     zipped   = popen(cmd,"w");
 #else
@@ -182,7 +182,7 @@ Stream::unZipMe()
   FILE* zipped;
   if (zipInvokeInfo.command!="nozip")
   {
-    char cmd[2000];sprintf(cmd,"%s -dc %s",zipInvokeInfo.command.c_str(),getZippedFileName().c_str());
+    char cmd[2000];sprintf(cmd,"%s -dc \"%s\"",zipInvokeInfo.command.c_str(),getZippedFileName().c_str());
 #ifndef __WIN32__
     zipped   = popen(cmd,"r");
 #else
