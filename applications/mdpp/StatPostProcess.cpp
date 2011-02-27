@@ -653,8 +653,8 @@ StatPostProcess::plotFullereneLandings(bool endo, const std::string rotDir) cons
   ofstream fplt((fnb.str()+".plt").c_str());
   fplt << "\
 reset\n\
-set yrange [-5:110]\n\
-set xrange [25:450]\n\
+set yrange [-10:110]\n\
+set xrange [-50:450]\n\
 #set palette gray\n\
 \n\
 #set border 1+2+4+8 lw 3\n\
@@ -710,6 +710,14 @@ plot '" << fnb.str() << ".dat' with points notitle\n	\
 void
 StatPostProcess::plotFullereneImplantDepth(bool endo, const std::string rotDir) const
 {
+  std::vector<int> transEnergies;
+  transEnergies.push_back(10);
+  for(int e = 50; e <= 400; e += 50)
+    transEnergies.push_back(e);
+  std::vector<int> rotEnergies;
+  for(Float e = 0; e <= 100; e += 10)
+    rotEnergies.push_back(e);
+
   std::stringstream fnb;
   fnb << "implant-depth" << (endo?"-endo":"") << "-rot" << rotDir;
   
@@ -731,8 +739,20 @@ set xlabel \"Энергия поступательного движения, э�
 set ylabel \"Энергия вращательного движения вокруг оси "<< rotDir << ", эВ\"\n\
 set zlabel \"z-координата центра масс, Å\"\n\
 \n\
-set xtics mirror (\"50\" 0, \"100\" 1, \"200\" 2,\"300\" 3,\"400\" 4)\n\
-set ytics mirror (\"0\" 0, \"10\" 1, \"50\"  2, \"100\" 3)\n\
+set xtics mirror (";
+
+  for(size_t i = 0; i < transEnergies.size(); i++)
+    fplt << "\"" << transEnergies[i] << "\" " << i 
+         << ((i!=transEnergies.size()-1)?", ":"");
+
+  fplt << ")\n\
+set ytics mirror (";
+
+  for(size_t i = 0; i < rotEnergies.size(); i++)
+    fplt << "\"" << rotEnergies[i] << "\" " << i
+         << ((i!=rotEnergies.size()-1)?", ":"");
+
+  fplt << ")\n\
 \n\
 set border 4095\n\
 set pm3d map interpolate 100,100\n\
@@ -746,13 +766,6 @@ splot '" << fnb.str() << ".dat' matrix notitle\n\
 
   ofstream fdat((fnb.str()+".dat").c_str());
 
-  std::vector<int> transEnergies;
-  for(int e = 0; e <= 400; e += 50)
-    transEnergies.push_back(e);
-  transEnergies.push_back(10);
-  std::vector<int> rotEnergies;
-  for(Float e = 0; e <= 100; e += 10)
-    rotEnergies.push_back(e);
   const size_t NX = transEnergies.size();
   const size_t NY = rotEnergies.size();
   Float depth[NX][NY];
