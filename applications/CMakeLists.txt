@@ -20,6 +20,7 @@
 #
 
 add_subdirectory (mdtrajsim)
+add_subdirectory (mdpp)
 
 IF(MSVC)
   SET(FLTK_LIBRARIES fltk fltkgl)
