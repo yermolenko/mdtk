@@ -4,8 +4,8 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -426,12 +426,12 @@ if (wmax >= 1.0)  return 0.0/*1.0-wmax*/;
     Atom &atom_k = *(CREBO::NL(atom1)[k]);
     if (isHandled(atom_k))
 #ifdef REBO_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom1,atom_k) < CREBO::R(1,atom1,atom_k))
+    if (r_vec_no_touch(atom1,atom_k).module_squared() < SQR(CREBO::R(1,atom1,atom_k)))
 #endif
     if (&atom_k != &atom1 && &atom_k != &atom2)
     {
 #ifdef REBO_OPTIMIZED_EVEN_BETTER
-      if (r_vec_module_no_touch(atom2,atom_k) < CREBO::R(1,atom2,atom_k))
+      if (r_vec_no_touch(atom2,atom_k).module_squared() < SQR(CREBO::R(1,atom2,atom_k)))
 #endif
       {
         Float new_wmax = CREBO::f(atom1,atom_k)*CREBO::f(atom_k,atom2);
@@ -446,12 +446,12 @@ if (wmax >= 1.0)  return 0.0/*1.0-wmax*/;
         Atom &atom_l = *(CREBO::NL(atom2)[l]); 
         if (isHandled(atom_l))
 #ifdef REBO_OPTIMIZED_EVEN_BETTER
-        if (r_vec_module_no_touch(atom2,atom_l) < CREBO::R(1,atom2,atom_l))
+        if (r_vec_no_touch(atom2,atom_l).module_squared() < SQR(CREBO::R(1,atom2,atom_l)))
 #endif
         if (&atom_l != &atom_k && &atom_l != &atom1 && &atom_l != &atom2)
         {
 #ifdef REBO_OPTIMIZED_EVEN_BETTER
-          if (r_vec_module_no_touch(atom_k,atom_l) < CREBO::R(1,atom_k,atom_l))
+          if (r_vec_no_touch(atom_k,atom_l).module_squared() < SQR(CREBO::R(1,atom_k,atom_l)))
 #endif
           {
             Float new_wmax = CREBO::f(atom1,atom_k)*CREBO::f(atom_k,atom_l)*CREBO::f(atom_l,atom2);
@@ -486,12 +486,12 @@ if (wmax >= 1.0)  {REQUIRE(dwmax==0);return -dwmax;}
     Atom &atom_k = *(CREBO::NL(atom1)[k]);
     if (isHandled(atom_k))
 #ifdef REBO_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom1,atom_k) < CREBO::R(1,atom1,atom_k))
+    if (r_vec_no_touch(atom1,atom_k).module_squared() < SQR(CREBO::R(1,atom1,atom_k)))
 #endif
     if (&atom_k != &atom1 && &atom_k != &atom2)
     {
 #ifdef REBO_OPTIMIZED_EVEN_BETTER
-      if (r_vec_module_no_touch(atom2,atom_k) < CREBO::R(1,atom2,atom_k))
+      if (r_vec_no_touch(atom2,atom_k).module_squared() < SQR(CREBO::R(1,atom2,atom_k)))
 #endif
       {
         Float new_wmax = CREBO::f(atom1,atom_k)*CREBO::f(atom_k,atom2);
@@ -508,12 +508,12 @@ if (wmax >= 1.0)  {REQUIRE(dwmax==0);return -dwmax;}
         Atom &atom_l = *(CREBO::NL(atom2)[l]); 
         if (isHandled(atom_l))
 #ifdef REBO_OPTIMIZED_EVEN_BETTER
-        if (r_vec_module_no_touch(atom2,atom_l) < CREBO::R(1,atom2,atom_l))
+        if (r_vec_no_touch(atom2,atom_l).module_squared() < SQR(CREBO::R(1,atom2,atom_l)))
 #endif
         if (&atom_l != &atom_k && &atom_l != &atom1 && &atom_l != &atom2)
         {
 #ifdef REBO_OPTIMIZED_EVEN_BETTER
-          if (r_vec_module_no_touch(atom_k,atom_l) < CREBO::R(1,atom_k,atom_l))
+          if (r_vec_no_touch(atom_k,atom_l).module_squared() < SQR(CREBO::R(1,atom_k,atom_l)))
 #endif
           {
             Float new_wmax = CREBO::f(atom1,atom_k)*CREBO::f(atom_k,atom_l)*CREBO::f(atom_l,atom2);
