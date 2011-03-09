@@ -4,8 +4,8 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -53,6 +53,7 @@ public:
   Vector3D dETor(Atom &,AtomsContainer&);
 
   ETors();
+//  bool probablyAreNeighbours(Atom& atom1, Atom& atom2); not needed because of the same R[][][] values
 private:
   void setupPotential();
 

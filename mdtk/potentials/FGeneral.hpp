@@ -1,7 +1,7 @@
 /*
    The generalized interatomic potential class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -62,6 +62,7 @@ public:
 protected:
   NeighbourList nl;
 public:
+  virtual bool probablyAreNeighbours(Atom& atom1, Atom& atom2) {return true;}
   AtomsContainer& NL(Atom& atom)
   {
     return nl.nl[atom.globalIndex];

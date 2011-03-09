@@ -4,8 +4,8 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -133,6 +133,13 @@ public:
 
   REBO(ParamSet /*parSet*/ = POTENTIAL1);
   Float getRcutoff() const {return      max3(R_[C][C][1],R_[C][H][1],R_[H][H][1]);}
+  bool probablyAreNeighbours(Atom& atom1, Atom& atom2)
+    {
+      if (r_vec_no_touch(atom1,atom2).module_squared() > SQR(R(1,atom1,atom2)))
+        return false;
+
+      return true;
+    }
 
 protected:
   enum {ECOUNT = 2};
