@@ -275,6 +275,72 @@ isIdentical(const std::string& file1,const std::string& file2);
 
 }
 
+#define MDTK_REPEAT_ALOT1(expr) \
+{        \
+TRACE(expr); \
+procmon::ProcmonTimer pmt_repeat_alot; \
+        for(size_t tmp = 0; tmp < 1; tmp++) \
+        { \
+        expr;\
+        }  \
+TRACE(pmt_repeat_alot.getDeltaTimeInSeconds()); \
+}
+
+#define MDTK_REPEAT_ALOT10(expr) \
+{        \
+TRACE(expr); \
+procmon::ProcmonTimer pmt_repeat_alot; \
+        for(size_t tmp = 0; tmp < 10; tmp++) \
+        { \
+        expr;\
+        }  \
+TRACE(pmt_repeat_alot.getDeltaTimeInSeconds()); \
+}
+
+#define MDTK_REPEAT_ALOT100(expr) \
+{        \
+TRACE(expr); \
+procmon::ProcmonTimer pmt_repeat_alot; \
+        for(size_t tmp = 0; tmp < 100; tmp++) \
+        { \
+        expr;\
+        }  \
+TRACE(pmt_repeat_alot.getDeltaTimeInSeconds()); \
+}
+
+#define MDTK_REPEAT_ALOT1000(expr) \
+{        \
+TRACE(expr); \
+procmon::ProcmonTimer pmt_repeat_alot; \
+        for(size_t tmp = 0; tmp < 1000; tmp++) \
+        { \
+        expr;\
+        }  \
+TRACE(pmt_repeat_alot.getDeltaTimeInSeconds()); \
+}
+
+#define MDTK_REPEAT_ALOT10000(expr) \
+{        \
+TRACE(expr); \
+procmon::ProcmonTimer pmt_repeat_alot; \
+        for(size_t tmp = 0; tmp < 10000; tmp++) \
+        { \
+        expr;\
+        }  \
+TRACE(pmt_repeat_alot.getDeltaTimeInSeconds()); \
+}
+
+#define MDTK_REPEAT_ALOT1E6(expr) \
+{        \
+TRACE(expr); \
+procmon::ProcmonTimer pmt_repeat_alot; \
+        for(size_t tmp = 0; tmp < 1000000; tmp++) \
+        { \
+        expr;\
+        }  \
+TRACE(pmt_repeat_alot.getDeltaTimeInSeconds()); \
+}
+
 #endif
 
 

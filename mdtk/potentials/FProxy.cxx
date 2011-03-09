@@ -50,6 +50,8 @@ FProxy::operator()(AtomsContainer& gl)
   for(size_t i = 0; i < potentials.size(); i++)
   {
     Float Ecur = (*(potentials[i]))(gl);
+TRACE(i);
+MDTK_REPEAT_ALOT1((*(potentials[i]))(gl));
     Ei += Ecur;
     {Float E = Ecur/eV;PTRACE_SIMPLE("E");PTRACE_SIMPLE(i);PTRACE_SIMPLE(" : ");PTRACE_SIMPLE(E);PTRACE_SIMPLE("\n");}
   }
@@ -60,11 +62,14 @@ FProxy::operator()(AtomsContainer& gl)
 Vector3D
 FProxy::grad(Atom &atom,AtomsContainer&gl)
 {
+TRACE(atom.globalIndex);
   Vector3D dEi(0.0,0.0,0.0);
 
   for(size_t i = 0; i < potentials.size(); i++)
   {
     dEi += potentials[i]->grad(atom,gl);
+TRACE(i);
+MDTK_REPEAT_ALOT1000(potentials[i]->grad(atom,gl));
   }
 
   return dEi;
