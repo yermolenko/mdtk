@@ -35,6 +35,7 @@
 #include "experiments/H2.hpp"
 #include "experiments/FCC.hpp"
 #include "experiments/Clusters.hpp"
+#include "experiments/Graphite.hpp"
 
 class MDBuilderWindow : public Fl_Gl_Window
 {
@@ -234,9 +235,28 @@ MDBuilderWindow::draw()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-//    if (0)
+    if (0)
     {
       mdbuilder::prepare_Cu_by_Cu_at_C60_bobardment();
+    }
+//    if (0)
+    {
+      glLoadIdentity();
+      mdtk::SimLoop sl;
+      mdbuilder::place_Graphite_lattice(sl);
+
+      yaatk::text_ofstream fomde("Graphite.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
+    }
+//    if (0)
+    {
+      glLoadIdentity();
+      mdtk::SimLoop sl = mdbuilder::build_Graphite_lattice();
+
+      yaatk::text_ofstream fomde("Graphite_PBC.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
     }
   }
   exit(0);
