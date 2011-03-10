@@ -71,7 +71,7 @@ setupPotentials(mdtk::SimLoop& simloop)
   simloop.fpot.addPotential(pot);
 #endif
 
-  pot = new mdtk::AIREBO();
+  pot = new mdtk::AIREBO((CREBO*)pot);
   simloop.fpot.addPotential(pot);
 
   pot = new mdtk::ETors();

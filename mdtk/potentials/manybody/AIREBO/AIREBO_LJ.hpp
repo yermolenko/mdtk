@@ -59,6 +59,8 @@ namespace mdtk
 
 class AIREBO : public CREBO
 {
+  CREBO& rebo;
+
   Float S(Float arg, Float arg_min, Float arg_max) const;
     Float dS(Float arg, Float arg_min, Float arg_max) const;
 
@@ -81,7 +83,7 @@ public:
   Float ELJ(AtomsContainer&);
   Vector3D dELJ(Atom &,AtomsContainer&);
 
-  AIREBO();
+  AIREBO(CREBO* crebo);
 //  virtual
   Float getRcutoff() const {return      max3(R_[C][C][1],R_[C][H][1],R_[H][H][1]);}
   bool probablyAreNeighbours(Atom& atom1, Atom& atom2)

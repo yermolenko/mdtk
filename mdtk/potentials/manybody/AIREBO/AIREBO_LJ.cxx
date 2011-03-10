@@ -333,13 +333,14 @@ AIREBO::dELJ(Atom &atom,AtomsContainer &gl)
 
 
 
-AIREBO::AIREBO():
+AIREBO::AIREBO(CREBO* crebo):
 #ifdef AIREBO_USING_BRENNER
   CREBO(CREBO::POTENTIAL2)
 #endif
 #ifdef AIREBO_USING_REBO
   CREBO(CREBO::POTENTIAL1)
 #endif
+  ,rebo(*crebo)
   ,nl(this)
 {
   setupPotential();
@@ -415,46 +416,34 @@ Float
 AIREBO::Cij(Atom &atom1,Atom &atom2)
 {
   Float wmax = 0.0;
-  Float new_wmax = CREBO::f(atom1,atom2);
+  Float new_wmax = rebo.f(atom1,atom2);
   if (new_wmax > wmax)
   {
     wmax  = new_wmax;
 if (wmax >= 1.0)  return 0.0/*1.0-wmax*/;
   }
-  for(Index k = 0; k < CREBO::NL(atom1).size(); k++)
+  for(Index k = 0; k < rebo.NL(atom1).size(); k++)
   {
-    Atom &atom_k = *(CREBO::NL(atom1)[k]);
+    Atom &atom_k = *(rebo.NL(atom1)[k]);
     if (isHandled(atom_k))
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-    if (r_vec_no_touch(atom1,atom_k).module_squared() < SQR(CREBO::R(1,atom1,atom_k)))
-#endif
     if (&atom_k != &atom1 && &atom_k != &atom2)
     {
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-      if (r_vec_no_touch(atom2,atom_k).module_squared() < SQR(CREBO::R(1,atom2,atom_k)))
-#endif
       {
-        Float new_wmax = CREBO::f(atom1,atom_k)*CREBO::f(atom_k,atom2);
+        Float new_wmax = rebo.f(atom1,atom_k)*rebo.f(atom_k,atom2);
         if (new_wmax > wmax)
         {
           wmax  = new_wmax;
 if (wmax >= 1.0)  return 0.0/*1.0-wmax*/;
         }  
       }  
-      for(Index l = 0; l < CREBO::NL(atom2).size(); l++)
+      for(Index l = 0; l < rebo.NL(atom2).size(); l++)
       {
-        Atom &atom_l = *(CREBO::NL(atom2)[l]); 
+        Atom &atom_l = *(rebo.NL(atom2)[l]); 
         if (isHandled(atom_l))
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-        if (r_vec_no_touch(atom2,atom_l).module_squared() < SQR(CREBO::R(1,atom2,atom_l)))
-#endif
         if (&atom_l != &atom_k && &atom_l != &atom1 && &atom_l != &atom2)
         {
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-          if (r_vec_no_touch(atom_k,atom_l).module_squared() < SQR(CREBO::R(1,atom_k,atom_l)))
-#endif
           {
-            Float new_wmax = CREBO::f(atom1,atom_k)*CREBO::f(atom_k,atom_l)*CREBO::f(atom_l,atom2);
+            Float new_wmax = rebo.f(atom1,atom_k)*rebo.f(atom_k,atom_l)*rebo.f(atom_l,atom2);
             if (new_wmax > wmax)
             {
                wmax  = new_wmax;
@@ -474,54 +463,42 @@ AIREBO::dCij(Atom &atom1,Atom &atom2, Atom &datom)
 {
   Float wmax = 0.0;
   Vector3D dwmax = 0.0;
-  Float new_wmax = CREBO::f(atom1,atom2);
+  Float new_wmax = rebo.f(atom1,atom2);
   if (new_wmax > wmax)
   {
-    dwmax  = CREBO::df(atom1,atom2,datom);
+    dwmax  = rebo.df(atom1,atom2,datom);
      wmax  = new_wmax;
 if (wmax >= 1.0)  {REQUIRE(dwmax==0);return -dwmax;}
   }  
-  for(Index k = 0; k < CREBO::NL(atom1).size(); k++)
+  for(Index k = 0; k < rebo.NL(atom1).size(); k++)
   {
-    Atom &atom_k = *(CREBO::NL(atom1)[k]);
+    Atom &atom_k = *(rebo.NL(atom1)[k]);
     if (isHandled(atom_k))
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-    if (r_vec_no_touch(atom1,atom_k).module_squared() < SQR(CREBO::R(1,atom1,atom_k)))
-#endif
     if (&atom_k != &atom1 && &atom_k != &atom2)
     {
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-      if (r_vec_no_touch(atom2,atom_k).module_squared() < SQR(CREBO::R(1,atom2,atom_k)))
-#endif
       {
-        Float new_wmax = CREBO::f(atom1,atom_k)*CREBO::f(atom_k,atom2);
+        Float new_wmax = rebo.f(atom1,atom_k)*rebo.f(atom_k,atom2);
         if (new_wmax > wmax)
         {
-          dwmax  = CREBO::df(atom1,atom_k,datom)*CREBO:: f(atom_k,atom2)+
-                   CREBO:: f(atom1,atom_k)      *CREBO::df(atom_k,atom2,datom);
+          dwmax  = rebo.df(atom1,atom_k,datom)*rebo. f(atom_k,atom2)+
+                   rebo. f(atom1,atom_k)      *rebo.df(atom_k,atom2,datom);
            wmax  = new_wmax;
 if (wmax >= 1.0)  {REQUIRE(dwmax==0);return -dwmax;}
         }
       }
-      for(Index l = 0; l < CREBO::NL(atom2).size(); l++)
+      for(Index l = 0; l < rebo.NL(atom2).size(); l++)
       {
-        Atom &atom_l = *(CREBO::NL(atom2)[l]); 
+        Atom &atom_l = *(rebo.NL(atom2)[l]); 
         if (isHandled(atom_l))
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-        if (r_vec_no_touch(atom2,atom_l).module_squared() < SQR(CREBO::R(1,atom2,atom_l)))
-#endif
         if (&atom_l != &atom_k && &atom_l != &atom1 && &atom_l != &atom2)
         {
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-          if (r_vec_no_touch(atom_k,atom_l).module_squared() < SQR(CREBO::R(1,atom_k,atom_l)))
-#endif
           {
-            Float new_wmax = CREBO::f(atom1,atom_k)*CREBO::f(atom_k,atom_l)*CREBO::f(atom_l,atom2);
+            Float new_wmax = rebo.f(atom1,atom_k)*rebo.f(atom_k,atom_l)*rebo.f(atom_l,atom2);
             if (new_wmax > wmax)
             {
-              dwmax  = CREBO::df(atom1,atom_k,datom)*CREBO:: f(atom_k,atom_l)      *CREBO:: f(atom_l,atom2)+
-                       CREBO:: f(atom1,atom_k)      *CREBO::df(atom_k,atom_l,datom)*CREBO:: f(atom_l,atom2)+
-                       CREBO:: f(atom1,atom_k)      *CREBO:: f(atom_k,atom_l)      *CREBO::df(atom_l,atom2,datom);
+              dwmax  = rebo.df(atom1,atom_k,datom)*rebo. f(atom_k,atom_l)      *rebo. f(atom_l,atom2)+
+                       rebo. f(atom1,atom_k)      *rebo.df(atom_k,atom_l,datom)*rebo. f(atom_l,atom2)+
+                       rebo. f(atom1,atom_k)      *rebo. f(atom_k,atom_l)      *rebo.df(atom_l,atom2,datom);
                wmax  = new_wmax;
 if (wmax >= 1.0)  {REQUIRE(dwmax==0);return -dwmax;}
             }  
