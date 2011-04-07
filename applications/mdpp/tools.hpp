@@ -69,7 +69,7 @@ bool
 trajProcess_Custom1(const char* trajDirName)
 {
   return 
-    strstr(trajDirName,"Cu_by_Cu00@C60");
+    strstr(trajDirName,"Cu_by_Cu");
 }
 
 inline
