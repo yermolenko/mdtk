@@ -73,6 +73,16 @@ trajProcess_Custom1(const char* trajDirName)
 }
 
 inline
+bool 
+isAlreadyFinished(const char* trajDirName)
+{
+  std::string finalStateFile 
+    = std::string(trajDirName)+DIR_DELIMIT_STR+"mde_final";
+  if (yaatk::exists(finalStateFile.c_str())) return true;
+  return false;
+}
+
+inline
 void
 addTrajDirNames(std::vector<std::string> &stateFileNames,const char *trajsetDir_, FProcessTrajectory fpt)
 {
@@ -101,7 +111,7 @@ addTrajDirNames(std::vector<std::string> &stateFileNames,const char *trajsetDir_
         {
           std::sprintf(trajdir_src,"%s%s",trajsetDir,entry->d_name);
           std::sprintf(stateFileName,"%s"DIR_DELIMIT_STR,trajdir_src);
-          if (fpt(stateFileName))
+          if (fpt(stateFileName) && isAlreadyFinished(stateFileName))
 	    stateFileNames.push_back(stateFileName);
         }
         entry = readdir(trajsetDirHandle);
