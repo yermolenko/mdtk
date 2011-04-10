@@ -224,6 +224,8 @@ public:
 
     setSpottedDistanceFromInit();
 
+    TRACE(trajData.size());
+
     for(size_t i = 0; i < trajData.size(); i++)
       TRACE(trajData[i].trajDir);
   }  
