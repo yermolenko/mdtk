@@ -273,6 +273,7 @@ TightBinding::drho(Atom &atom_i, Atom &datom)
     if (/*atom_j.globalIndex > atom_i.globalIndex &&*/ isHandled(atom_j))
     {
       Derrho += dg(atom_i,atom_j,datom);
+      TRACE(dg(atom_i,atom_j,datom));
     }  
   }  
   return Derrho;
