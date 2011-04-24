@@ -253,7 +253,9 @@ TightBinding::rho(Atom &atom_i)
   {
     Atom& atom_j = *(NL(atom_i)[j]);
     if (/*atom_j.globalIndex > atom_i.globalIndex &&*/ isHandled(atom_j))
+#ifdef TightBinding_OPTIMIZED  
     if (r_vec_module_no_touch(atom_i,atom_j) < R(1,atom_i,atom_j))
+#endif
     {
       rhoij += g(atom_i,atom_j);
     }  
@@ -268,9 +270,13 @@ TightBinding::drho(Atom &atom_i, Atom &datom)
   for(Index j = 0; j < NL(atom_i).size(); j++)
   {
     Atom& atom_j = *(NL(atom_i)[j]);
+#ifdef TightBinding_OPTIMIZED  
     if (&datom == &atom_i || &datom == &atom_j)
+#endif
     if (/*atom_j.globalIndex > atom_i.globalIndex &&*/ isHandled(atom_j))
+#ifdef TightBinding_OPTIMIZED  
     if (r_vec_module_no_touch(atom_i,atom_j) < R(1,atom_i,atom_j))
+#endif
     {
       Derrho += dg(atom_i,atom_j,datom);
     }  
