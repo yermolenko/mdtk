@@ -275,7 +275,6 @@ TightBinding::drho(Atom &atom_i, Atom &datom)
     if (r_vec_module_no_touch(atom_i,atom_j) < R(1,atom_i,atom_j))
     {
       Derrho += dg(atom_i,atom_j,datom);
-      TRACE(dg(atom_i,atom_j,datom));
     }  
   }  
   return Derrho;
