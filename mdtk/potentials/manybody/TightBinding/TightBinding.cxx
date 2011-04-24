@@ -268,9 +268,9 @@ TightBinding::drho(Atom &atom_i, Atom &datom)
   for(Index j = 0; j < NL(atom_i).size(); j++)
   {
     Atom& atom_j = *(NL(atom_i)[j]);
+    if (&datom == &atom_i || &datom == &atom_j)
     if (/*atom_j.globalIndex > atom_i.globalIndex &&*/ isHandled(atom_j))
     if (r_vec_module_no_touch(atom_i,atom_j) < R(1,atom_i,atom_j))
-    if (&datom == &atom_i || &datom == &atom_j)
     {
       Derrho += dg(atom_i,atom_j,datom);
     }  
