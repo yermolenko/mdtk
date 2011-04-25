@@ -46,13 +46,14 @@ NeighbourList::Update(AtomsContainer& atoms_)
     
     Atom& atom_i = *(atoms_[i]);
 
-    if (!fpot->isHandled(atom_i)) continue;
-
     size_t nl_size_prev = nl_.size();
     nl_.clear();
-    nl_.reserve(nl_size_prev+MDTK_NB_RESERVE_ADD /*50+1*/);
     size_t nl_with_self_size_prev = nl_with_self_.size();
     nl_with_self_.clear();
+
+    if (!fpot->isHandled(atom_i)) continue;
+
+    nl_.reserve(nl_size_prev+MDTK_NB_RESERVE_ADD /*50+1*/);
     nl_with_self_.reserve(nl_with_self_size_prev+MDTK_NB_RESERVE_ADD /*50+1*/);
 
     for(j = 0; j < N; j++)
