@@ -3,7 +3,7 @@
    (header file).
    See [G. Betz, W. Husinsky, Nucl. Instr. and Meth. B 102, 281 (1995)]
 
-   Copyright (C) 2006, 2007, 2008, 2009, 2011 Oleksandr Yermolenko
+   Copyright (C) 2006, 2007, 2008, 2009 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -143,12 +143,6 @@ df(Atom &atom1,Atom &atom2, Atom &datom)
            *dr_vec_module(atom1,atom2,datom);
 #endif
   }     
-}
-
-bool
-isHandled(Atom& atom) const
-{
-  return atom.ID == Cu_EL;
 }
 
 };
