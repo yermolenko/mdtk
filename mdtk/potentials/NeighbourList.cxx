@@ -43,6 +43,9 @@ NeighbourList::Update(AtomsContainer& atoms_)
     AtomsContainer& nl_with_self_ = nl_with_self[i];
     
     Atom& atom_i = *(atoms_[i]);
+
+    if (!fpot->isHandled(atom_i)) continue;
+
     size_t nl_size_prev = nl_.size();
     nl_.clear();
     nl_.reserve(nl_size_prev+MDTK_NB_RESERVE_ADD /*50+1*/);
@@ -53,6 +56,9 @@ NeighbourList::Update(AtomsContainer& atoms_)
     for(j = 0; j < N; j++)
     {
       Atom& atom_j = *(atoms_[j]);
+
+      if (!fpot->isHandled(atom_j)) continue;
+
       if (j != i)
       {
         dij_squared = fpot->r_vec_no_touch(atom_i,atom_j).module_squared();
