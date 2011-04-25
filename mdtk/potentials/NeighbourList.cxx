@@ -39,6 +39,8 @@ NeighbourList::Update(AtomsContainer& atoms_)
   N = atoms_.size();
   for(i = 0; i < N; i++)
   {
+    displacements[i] = Vector3D(0,0,0);
+
     AtomsContainer& nl_ = nl[i];
     AtomsContainer& nl_with_self_ = nl_with_self[i];
     
@@ -73,8 +75,6 @@ NeighbourList::Update(AtomsContainer& atoms_)
         nl_with_self_.push_back(&atom_j);
       }  
     }
-    
-    displacements[i] = Vector3D(0,0,0);
   }
 }
 
