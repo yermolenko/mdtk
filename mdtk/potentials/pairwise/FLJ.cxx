@@ -34,6 +34,10 @@ using std::pow;
 FLJ::FLJ(Rcutoff rcutoff):
   FPairwise(rcutoff)
 {
+  handledElements.insert(Cu_EL);
+  handledElements.insert(C_EL);
+  handledElements.insert(H_EL);
+
   handledElementPairs.insert(std::make_pair(Cu_EL,C_EL));
   handledElementPairs.insert(std::make_pair(Cu_EL,H_EL));
   handledElementPairs.insert(std::make_pair(C_EL,Cu_EL));
