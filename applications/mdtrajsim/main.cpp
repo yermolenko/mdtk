@@ -219,12 +219,13 @@ sort(trajDirNames.begin(),trajDirNames.end());
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-    if (comm_rank == 0) {
-/*
-for(size_t i = 0; i < trajDirNames.size(); i++)
-  TRACE(trajDirNames[i]);
-*/
-    } // if (rank == 0)
+  if (comm_rank == 0)
+  {
+    for(size_t i = 0; i < trajDirNames.size(); i++)
+      TRACE(trajDirNames[i]);
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+
 size_t firstTraj = ceil(double(trajDirNames.size())/comm_size)*comm_rank;
 size_t lastTraj  = ceil(double(trajDirNames.size())/comm_size)*(comm_rank+1);
 
