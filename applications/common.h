@@ -85,11 +85,6 @@ setupPotentials(mdtk::SimLoop& simloop)
   simloop.fpot.addPotential(pot);
 */
 
-  pot = new mdtk::FBM(Rcutoff(1.029*Ao,1.029*Ao));
-  pot->handledElements.clear();
-  pot->handledElementPairs.clear();
-  pot->handledElementPairs.insert(std::make_pair(Cu_EL,Cu_EL));
-  simloop.fpot.addPotential(pot);
   pot = new mdtk::TightBinding();
   simloop.fpot.addPotential(pot);
 
