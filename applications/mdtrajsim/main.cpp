@@ -160,6 +160,30 @@ addTrajDirNames(std::vector<std::string> &stateFileNames,const char *trajsetDir_
   }  
 }
 
+void
+removeAlreadyFinished(std::vector<std::string> &trajDirs)
+{
+  std::vector<std::string> trajDirsWithoutFinished;
+  size_t removedCount = 0;
+
+  for(size_t ti = 0; ti < trajDirs.size(); ti++)
+  {
+    yaatk::chdir(trajDirs[ti].c_str());
+
+    if (isAlreadyFinished())
+      ++removedCount;
+    else
+      trajDirsWithoutFinished.push_back(trajDirs[ti]);
+      
+    yaatk::chdir("..");
+  }
+
+  REQUIRE(removedCount + trajDirsWithoutFinished.size() == trajDirs.size());
+
+  trajDirs.clear();
+  trajDirs = trajDirsWithoutFinished;
+}
+
 #include <mpi.h>
 #include <algorithm>
 
@@ -190,8 +214,10 @@ main_mpibatch(int argc , char *argv[])
 
 std::vector<std::string> trajDirNames;
 addTrajDirNames(trajDirNames,"./");
+removeAlreadyFinished(trajDirNames);
 sort(trajDirNames.begin(),trajDirNames.end());
 
+  MPI_Barrier(MPI_COMM_WORLD);
 
     if (comm_rank == 0) {
 /*
