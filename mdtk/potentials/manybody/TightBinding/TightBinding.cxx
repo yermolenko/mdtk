@@ -343,7 +343,7 @@ TightBinding::fillR_concat_()
   Atom atom1; atom1.ID = Cu_EL; atom1.setAttributesByElementID();
   Atom atom2; atom2.ID = Cu_EL; atom2.setAttributesByElementID();
 
-  Float       x[2]; x[0] = 1.0*Ao; x[1] = 1.4*Ao;
+  Float       x[2]; x[0] = 1.0*Ao; x[1] = 1.2*Ao;
   Float       v[2];
   Float    dvdx[2];
 //  Float    d2vdxdx[2];
