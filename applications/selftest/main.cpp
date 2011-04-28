@@ -55,7 +55,7 @@ pairtest()
     fof << mdloop.atoms.back()->coords.x/Ao 
         << " " << (*pot).grad(*mdloop.atoms.back(),mdloop.atoms).module() 
         << "\n";
-    mdloop.atoms.back()->coords.x += 0.01*Ao;
+    mdloop.atoms.back()->coords.x += 0.001*Ao;
   }
   foe.close();
   fof.close();
