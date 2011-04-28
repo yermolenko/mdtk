@@ -198,7 +198,7 @@ TightBinding::dPhi(Atom &atom1,Atom &atom2, Atom &datom)
 inline
 Float
 TightBinding::g(Atom &atom1,Atom &atom2)
-{return 0;
+{
   Float fvar = f(atom1,atom2);
 
 #ifdef TightBinding_OPTIMIZED  
@@ -223,7 +223,7 @@ TightBinding::g(Atom &atom1,Atom &atom2)
 inline
 Vector3D
 TightBinding::dg(Atom &atom1,Atom &atom2, Atom &datom)
-{return 0;
+{
   Vector3D dfvar = df(atom1,atom2,datom);
   Vector3D drmodvar = dr_vec_module(atom1,atom2,datom);
 
