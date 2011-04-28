@@ -146,19 +146,9 @@ TightBinding::Phi(Atom &atom1,Atom &atom2)
   Spline& spline = *(this->spline);
   if (r < spline.x1())
   {
-  Float AB_ = 0.53e-8;
-
-  Float ZA = atom1.Z; Float ZB = atom2.Z;
-
-  Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
-
-  Float Y=r/AS;
-
   if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
 
-  return  ZA*ZB/r*(0.18175*exp(-3.1998*Y)+
-          0.50986*exp(-0.94229*Y)+
-          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y));
+  return  BM_A*exp(-BM_B*r);
   }
   else
   {
@@ -193,19 +183,7 @@ TightBinding::dPhi(Atom &atom1,Atom &atom2, Atom &datom)
   Spline& spline = *(this->spline);
   if (r < spline.x1())
   {
-  Float AB_ = 0.53e-8;
-
-  Float ZA = atom1.Z; Float ZB = atom2.Z;
-  Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
-  Float Y=r/AS;
-  Float Der =
-          -ZA*ZB/(r*r)*(0.18175*exp(-3.1998*Y)+
-          0.50986*exp(-0.94229*Y)+
-          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y))-
-          ZA*ZB/(r*AS)*(0.18175*3.1998*exp(-3.1998*Y)+
-          0.50986*0.94229*exp(-0.94229*Y)+0.28022*0.4029*exp(-0.4029*Y)+
-          0.02817*0.20162*exp(-0.20162*Y));
-
+  Float Der = -BM_B*BM_A*exp(-BM_B*r);
   return Der*drmodvar;
   }
   else
@@ -352,6 +330,8 @@ TightBinding::setupPotential()
   R_[0]  = 5.0*Ao;
   R_[1]  = 5.5*Ao;
 
+  BM_A = 22.565*1000.0*eV;
+  BM_B = 50.88/(10.0*Ao);
   fillR_concat_();
 }  
 
@@ -378,26 +358,8 @@ TightBinding::fillR_concat_()
     Float VShortRange = 0.0;
     Float DerVShortRange = 0.0;
     {
-      Float AB_ = 0.53e-8;
-
-      Float ZA = atom1.Z; Float ZB = atom2.Z;
-
-      Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
-
-      Float Y=r/AS;
-
-      VShortRange=   ZA*ZB/r*(0.18175*exp(-3.1998*Y)+
-                              0.50986*exp(-0.94229*Y)+
-                              0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y));
-      
-      DerVShortRange =
-        -ZA*ZB/(r*r)*(0.18175*exp(-3.1998*Y)+
-                      0.50986*exp(-0.94229*Y)+
-                      0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y))-
-        ZA*ZB/(r*AS)*(0.18175*3.1998*exp(-3.1998*Y)+
-                      0.50986*0.94229*exp(-0.94229*Y)+0.28022*0.4029*exp(-0.4029*Y)+
-                      0.02817*0.20162*exp(-0.20162*Y));
-      
+      VShortRange=   BM_A*exp(-BM_B*r);
+      DerVShortRange = -BM_B*BM_A*exp(-BM_B*r);
     }
     v[0] = VShortRange;
     dvdx[0] = DerVShortRange;

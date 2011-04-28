@@ -61,6 +61,8 @@ public:
 private:
   Spline* spline;
   void fillR_concat_();
+  Float BM_A;
+  Float BM_B;
 
   Float alpha_;
   Float beta_;
