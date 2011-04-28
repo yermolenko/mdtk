@@ -143,7 +143,32 @@ TightBinding::Phi(Atom &atom1,Atom &atom2)
     r  = r_vec_module(atom1,atom2);
 
 #ifndef  EAM_HANDLE_SHORTRANGE
-  if (r < 1.029*Ao) return 0.0;
+  Spline& spline = *(this->spline);
+  if (r < spline.x1())
+  {
+  Float AB_ = 0.53e-8;
+
+  Float ZA = atom1.Z; Float ZB = atom2.Z;
+
+  Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
+
+  Float Y=r/AS;
+
+  if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
+
+  return  ZA*ZB/r*(0.18175*exp(-3.1998*Y)+
+          0.50986*exp(-0.94229*Y)+
+          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y));
+  }
+  else
+  {
+    if (r < spline.x2())
+    {
+      if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
+
+      return spline(r);
+    }
+  }
 #endif
 
   if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
@@ -165,7 +190,28 @@ TightBinding::dPhi(Atom &atom1,Atom &atom2, Atom &datom)
   Float r = r_vec_module(atom1,atom2);
 
 #ifndef  EAM_HANDLE_SHORTRANGE
-  if (r < 1.029*Ao) return 0.0;
+  Spline& spline = *(this->spline);
+  if (r < spline.x1())
+  {
+  Float AB_ = 0.53e-8;
+
+  Float ZA = atom1.Z; Float ZB = atom2.Z;
+  Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
+  Float Y=r/AS;
+  Float Der =
+          -ZA*ZB/(r*r)*(0.18175*exp(-3.1998*Y)+
+          0.50986*exp(-0.94229*Y)+
+          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y))-
+          ZA*ZB/(r*AS)*(0.18175*3.1998*exp(-3.1998*Y)+
+          0.50986*0.94229*exp(-0.94229*Y)+0.28022*0.4029*exp(-0.4029*Y)+
+          0.02817*0.20162*exp(-0.20162*Y));
+
+  return Der*drmodvar;
+  }
+  else
+  {
+    if (r < spline.x2()) return spline.der(r)*drmodvar;
+  }
 #endif
 
   return Phi0_*exp(-alpha_*r)*(dfvar-alpha_*drmodvar*f(atom1,atom2));
@@ -305,7 +351,72 @@ TightBinding::setupPotential()
   Phi0_  = 9.892 *1000.0 *eV;
   R_[0]  = 5.0*Ao;
   R_[1]  = 5.5*Ao;
+
+  fillR_concat_();
 }  
+
+void
+TightBinding::fillR_concat_()
+{
+  Float r;
+
+  Atom atom1; atom1.ID = Cu_EL; atom1.setAttributesByElementID();
+  Atom atom2; atom2.ID = Cu_EL; atom2.setAttributesByElementID();
+
+  Float       x[2]; x[0] = 1.0*Ao; x[1] = 1.4*Ao;
+  Float       v[2];
+  Float    dvdx[2];
+//  Float    d2vdxdx[2];
+//  d2vdxdx[0] = 0;
+//  d2vdxdx[1] = 0;
+
+  REQUIRE(x[1] < R_[0]);
+
+  {
+    r = x[0];
+
+    Float VShortRange = 0.0;
+    Float DerVShortRange = 0.0;
+    {
+      Float AB_ = 0.53e-8;
+
+      Float ZA = atom1.Z; Float ZB = atom2.Z;
+
+      Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
+
+      Float Y=r/AS;
+
+      VShortRange=   ZA*ZB/r*(0.18175*exp(-3.1998*Y)+
+                              0.50986*exp(-0.94229*Y)+
+                              0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y));
+      
+      DerVShortRange =
+        -ZA*ZB/(r*r)*(0.18175*exp(-3.1998*Y)+
+                      0.50986*exp(-0.94229*Y)+
+                      0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y))-
+        ZA*ZB/(r*AS)*(0.18175*3.1998*exp(-3.1998*Y)+
+                      0.50986*0.94229*exp(-0.94229*Y)+0.28022*0.4029*exp(-0.4029*Y)+
+                      0.02817*0.20162*exp(-0.20162*Y));
+      
+    }
+    v[0] = VShortRange;
+    dvdx[0] = DerVShortRange;
+    
+    r = x[1];
+    
+    Float VLongRange = 0.0;
+    Float DerVLongRange = 0.0;
+    {
+      VLongRange = Phi0_*exp(-alpha_*r);
+      DerVLongRange = -alpha_*Phi0_*exp(-alpha_*r);
+    }
+    
+    v[1] = VLongRange;
+    dvdx[1] = DerVLongRange;
+  }
+  
+  spline = new Spline(x,v,dvdx/*,d2vdxdx*/);
+}
 
 }
 

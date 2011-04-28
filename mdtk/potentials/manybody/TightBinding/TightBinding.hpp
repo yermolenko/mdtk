@@ -31,6 +31,7 @@
 #include <mdtk/Atom.hpp>
 #include <mdtk/consts.hpp>
 #include <mdtk/potentials/manybody/FManybody.hpp>
+#include <mdtk/Spline.hpp>
 #include <mdtk/potentials/pairwise/FBM.hpp>
 
 //#define  EAM_HANDLE_SHORTRANGE
@@ -58,6 +59,9 @@ public:
   TightBinding();
   Float getRcutoff() const {return R_[1];}
 private:
+  Spline* spline;
+  void fillR_concat_();
+
   Float alpha_;
   Float beta_;
   Float c_;
