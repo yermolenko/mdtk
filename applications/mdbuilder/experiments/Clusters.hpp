@@ -38,6 +38,9 @@ void
 place_C60(mdtk::SimLoop& sl)
 {
   yaatk::text_ifstream fcoords("C60.coords");
+  if (!fcoords.isOpened())
+    cerr << "Can't find file with C60 configuration." << endl;
+  REQUIRE(fcoords.isOpened());
   size_t atomsCount;
   fcoords >> atomsCount;
   
