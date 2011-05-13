@@ -647,6 +647,7 @@ Float parseRotEnergy(const std::string trajname)
 void
 StatPostProcess::plotFullereneLandings(bool endo, const std::string rotDir) const
 {
+  if (!isThereAnythingToPlot(endo,rotDir)) return;
   std::stringstream fnb;
   fnb << "landed-intact" << (endo?"-endo":"") << "-rot" << rotDir;
   
@@ -710,6 +711,7 @@ plot '" << fnb.str() << ".dat' with points notitle\n	\
 void
 StatPostProcess::plotFullereneImplantDepth(bool endo, const std::string rotDir) const
 {
+  if (!isThereAnythingToPlot(endo,rotDir)) return;
   std::vector<int> transEnergies;
   transEnergies.push_back(10);
   for(int e = 50; e <= 400; e += 50)
@@ -822,6 +824,34 @@ splot '" << fnb.str() << ".dat' matrix notitle\n\
   }
 
   fdat.close();
+}
+
+bool
+StatPostProcess::isThereAnythingToPlot(bool endo, const std::string rotDir) const
+{
+  for(size_t traj = 0; traj < trajData.size(); traj++)
+  {
+    REQUIRE (trajData[traj].trajFullerene.size() > 0);
+
+    using namespace mdtk;
+    const TrajData& td = trajData[traj];
+    std::map< Float, Fullerene >::const_iterator i;
+    REQUIRE(fabs(td.trajFullerene.begin()->first-0.0*ps)<0.05*ps);
+    REQUIRE(fabs(td.trajFullerene.rbegin()->first-10.0*ps)<0.05*ps);
+    const Fullerene& fstart = td.trajFullerene.begin()->second;
+
+    std::string trajId = yaatk::extractLastItem(td.trajDir);
+
+    std::string rotDirection = parseRotDirection(trajId);
+
+    if (rotDirection != rotDir) continue;
+    if (fstart.isEndoFullerene() == endo)
+    {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 int

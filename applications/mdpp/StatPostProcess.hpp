@@ -265,6 +265,8 @@ public:
   void  plotFullereneLandings(bool endo, const std::string rotDir) const;
   void  plotFullereneImplantDepth(bool endo, const std::string rotDir) const;
 
+  bool  isThereAnythingToPlot(bool endo, const std::string rotDir) const;
+
   void  printClusterDynamics(size_t trajIndex) const;
   void  printClusterDynamicsTotal() const;
 
