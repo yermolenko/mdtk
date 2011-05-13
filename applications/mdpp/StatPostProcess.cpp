@@ -779,7 +779,7 @@ set ytics mirror (";
   fplt << ")\n\
 \n\
 set border 4095\n\
-set pm3d map interpolate 100,100\n\
+set pm3d map interpolate 20,20\n\
 #set pm3d map\n\
 set palette gray negative\n\
 #set samples 100; set isosamples 100\n\
