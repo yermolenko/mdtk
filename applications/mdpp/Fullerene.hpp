@@ -32,7 +32,7 @@ public:
   bool isUnparted() const {return maxMolecule().size() == atoms.size();}
   Float maxDistanceFromMassCenter() const;
   Float minDistanceFromMassCenter() const;
-  bool isIntegral() const;
+  bool isIntegral(Float threshold = 3.0*Ao) const;
 };
 
 }

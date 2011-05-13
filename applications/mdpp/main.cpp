@@ -106,19 +106,33 @@ try
   pp->printClassicMoleculesTotal();
 
   pp->printFullereneInfo();
-  pp->plotFullereneLandings(false,"010");
-  pp->plotFullereneLandings(false,"001");
-  pp->plotFullereneLandings(false,"011");
-  pp->plotFullereneLandings(true,"010");
-  pp->plotFullereneLandings(true,"001");
-  pp->plotFullereneLandings(true,"011");
 
-  pp->plotFullereneImplantDepth(false,"010");
-  pp->plotFullereneImplantDepth(false,"001");
-  pp->plotFullereneImplantDepth(false,"011");
-  pp->plotFullereneImplantDepth(true,"010");
-  pp->plotFullereneImplantDepth(true,"001");
-  pp->plotFullereneImplantDepth(true,"011");
+  using namespace mdtk;
+
+  Float integralThreshold = 0.1*Ao;
+  while (integralThreshold < 21.0*Ao)
+  {
+    pp->plotFullereneLandings(false,"010",integralThreshold);
+    pp->plotFullereneLandings(false,"001",integralThreshold);
+    pp->plotFullereneLandings(false,"011",integralThreshold);
+    pp->plotFullereneLandings(true,"010",integralThreshold);
+    pp->plotFullereneLandings(true,"001",integralThreshold);
+    pp->plotFullereneLandings(true,"011",integralThreshold);
+
+    pp->plotFullereneImplantDepth(false,"010",integralThreshold);
+    pp->plotFullereneImplantDepth(false,"001",integralThreshold);
+    pp->plotFullereneImplantDepth(false,"011",integralThreshold);
+    pp->plotFullereneImplantDepth(true,"010",integralThreshold);
+    pp->plotFullereneImplantDepth(true,"001",integralThreshold);
+    pp->plotFullereneImplantDepth(true,"011",integralThreshold);
+
+    if (integralThreshold < 3.0*Ao)
+      integralThreshold += 0.1*Ao;
+    else if (integralThreshold < 10.0*Ao)
+      integralThreshold += 0.5*Ao;
+    else
+      integralThreshold += 5.0*Ao;
+  }
 
 //  pp->printClusterDynamicsTotal();
 

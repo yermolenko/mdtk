@@ -645,11 +645,22 @@ Float parseRotEnergy(const std::string trajname)
 }
 
 void
-StatPostProcess::plotFullereneLandings(bool endo, const std::string rotDir) const
+StatPostProcess::plotFullereneLandings(bool endo, const std::string rotDir, Float integralThreshold) const
 {
   if (!isThereAnythingToPlot(endo,rotDir)) return;
   std::stringstream fnb;
   fnb << "landed-intact" << (endo?"-endo":"") << "-rot" << rotDir;
+
+  {
+    fnb << "-";
+    char fill_prev = fnb.fill ('0');
+    streamsize width_prev = fnb.width(4);
+    streamsize precision_prev = fnb.precision(1);
+    fnb << fixed << integralThreshold/Ao << "Ao";
+    fnb.precision(precision_prev);
+    fnb.width(width_prev);
+    fnb.fill(fill_prev);
+  }
   
   ofstream fplt((fnb.str()+".plt").c_str());
   fplt << "\
@@ -700,7 +711,7 @@ plot '" << fnb.str() << ".dat' with points notitle\n	\
     if (rotDirection != rotDir) continue;
     if (fstart.isEndoFullerene() == endo)
     {
-      if (fend.isIntegral() && fend.massCenter().z > -10.0*Ao)
+      if (fend.isIntegral(integralThreshold) && fend.massCenter().z > -10.0*Ao)
 	fdat << transEnergy << "\t" << rotEnergy << std::endl;
     }
   }
@@ -709,7 +720,7 @@ plot '" << fnb.str() << ".dat' with points notitle\n	\
 }
 
 void
-StatPostProcess::plotFullereneImplantDepth(bool endo, const std::string rotDir) const
+StatPostProcess::plotFullereneImplantDepth(bool endo, const std::string rotDir, Float integralThreshold) const
 {
   if (!isThereAnythingToPlot(endo,rotDir)) return;
   std::vector<int> transEnergies;
@@ -722,6 +733,17 @@ StatPostProcess::plotFullereneImplantDepth(bool endo, const std::string rotDir) 
 
   std::stringstream fnb;
   fnb << "implant-depth" << (endo?"-endo":"") << "-rot" << rotDir;
+  
+  {
+    fnb << "-";
+    char fill_prev = fnb.fill ('0');
+    streamsize width_prev = fnb.width(4);
+    streamsize precision_prev = fnb.precision(1);
+    fnb << fixed << integralThreshold/Ao << "Ao";
+    fnb.precision(precision_prev);
+    fnb.width(width_prev);
+    fnb.fill(fill_prev);
+  }
   
   ofstream fplt((fnb.str()+".plt").c_str());
   fplt << "\
@@ -808,7 +830,7 @@ splot '" << fnb.str() << ".dat' matrix notitle\n\
       if (fend.isIntegral() && fend.massCenter().z > -10.0*Ao)
         depth[tei-transEnergies.begin()][rei-rotEnergies.begin()] = 0.0*Ao;
 */
-      if (fend.isIntegral() && fend.massCenter().z > NOT_LANDED_DEPTH)
+      if (fend.isIntegral(integralThreshold) && fend.massCenter().z > NOT_LANDED_DEPTH)
       {
 	depth[tei-transEnergies.begin()][rei-rotEnergies.begin()] = 
 	  fend.massCenter().z;
