@@ -310,6 +310,8 @@ SimLoop::execute_wo_checks()
 
   int j,atoms_count;
   Float new_v_max,tmp_v;
+
+  Float dt_prev = dt_;
   
   atoms_count = atoms_.size();
   Vector3D *new_coords = new Vector3D[atoms_count]; REQUIRE(new_coords != 0);
@@ -331,7 +333,7 @@ SimLoop::execute_wo_checks()
       cout << "done. " << endl;
     };
 
-    if (simTime == 0.0 || int(simTime/simTimeSaveTrajInterval) != int((simTime - dt_)/simTimeSaveTrajInterval))
+    if (simTime == 0.0 || int(simTime/simTimeSaveTrajInterval) != int((simTime - dt_prev)/simTimeSaveTrajInterval))
     {
       cout << "Writing trajectory ... " ;
       writetrajXVA();
@@ -445,6 +447,8 @@ SimLoop::execute_wo_checks()
         cout << "FullForce != 0" << endl << flush;
       }  
     }    
+
+    dt_prev = dt_;
 
     const Float dt_max = 5e-16;
     const Float dt_min = 1e-20;
