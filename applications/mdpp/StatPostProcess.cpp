@@ -390,7 +390,6 @@ StatPostProcess::execute()
     }  
 
 //  if (td.molecules.size() > 0)
-    if (0)
     {
       std::vector<std::string> interStates;
       findIntermediateStates(td.trajDir,interStates);
