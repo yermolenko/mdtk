@@ -267,6 +267,8 @@ public:
 
   bool  isThereAnythingToPlot(bool endo, const std::string rotDir) const;
 
+  void  plotFullereneIntegrityEvolutions(Float maxTime = 10.0*ps, Float maxUnintegrity=-1000.0*Ao) const;
+
   void  printClusterDynamics(size_t trajIndex) const;
   void  printClusterDynamicsTotal() const;
 

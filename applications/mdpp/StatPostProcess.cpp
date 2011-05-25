@@ -875,6 +875,93 @@ StatPostProcess::isThereAnythingToPlot(bool endo, const std::string rotDir) cons
   return false;
 }
 
+void
+StatPostProcess::plotFullereneIntegrityEvolutions(Float maxTime, Float maxUnintegrity) const
+{
+  std::stringstream fnb;
+  fnb << "integrity-evolutions";
+  
+  {
+    fnb << "-";
+    char fill_prev = fnb.fill ('0');
+    streamsize width_prev = fnb.width(4);
+    streamsize precision_prev = fnb.precision(1);
+    fnb << fixed << maxTime/ps << "ps";
+    fnb << "-";
+    fnb << fixed << maxUnintegrity/Ao << "Ao";
+    fnb.precision(precision_prev);
+    fnb.width(width_prev);
+    fnb.fill(fill_prev);
+  }
+  
+  ofstream fplt((fnb.str()+".plt").c_str());
+  fplt << "\
+reset\n";
+  if (maxUnintegrity > 0)
+    fplt <<"set yrange [0:" << maxUnintegrity/Ao << "]\n";
+  fplt << 
+"set xrange [0:" << maxTime/ps << "]\n\
+\n\
+#set border 1+2+4+8 lw 3\n\
+set border 1+2+4+8 lw 2\n\
+\n\
+set encoding koi8u\n\
+set output \"" << fnb.str() << ".eps\"\n\
+set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
+\n\
+set xlabel \"Модельное время, пс\"\n\
+set ylabel \"Значения критерия целостности, п.е.\"\n\
+\n\
+set xtics mirror (";
+
+  fplt << ")\n\
+\n\
+set border 4095\n\
+\n\
+plot \\\n";
+
+  for(size_t traj = 0; traj < trajData.size(); traj++)
+  {
+    REQUIRE (trajData[traj].trajFullerene.size() > 0);
+
+    using namespace mdtk;
+    const TrajData& td = trajData[traj];
+
+    std::string trajId = yaatk::extractLastItem(td.trajDir);
+
+    Float transEnergy = parseTransEnergy(trajId);
+    const std::string rotDirection = parseRotDirection(trajId);
+    Float rotEnergy = parseRotEnergy(trajId);
+
+    fplt << "'" << (fnb.str()+"-"+trajId+".dat") << "' with lines title \""
+         << trajId << ((traj!=trajData.size()-1)?"\",\\\n":"\n");
+
+    ofstream fdat((fnb.str()+"-"+trajId+".dat").c_str());
+    {
+      const Float NOT_LANDED_DEPTH = -4.5*Ao-3.615*Ao/* /2*/;
+
+      REQUIRE(fabs(td.trajFullerene.begin()->first-0.0*ps)<0.05*ps);
+      REQUIRE(fabs(td.trajFullerene.rbegin()->first-10.0*ps)<0.05*ps);
+      const Fullerene& fstart = td.trajFullerene.begin()->second;
+      const Fullerene& fend = td.trajFullerene.rbegin()->second;
+
+      std::map< Float, Fullerene >::const_iterator i;
+      i = td.trajFullerene.begin();
+      while (i != td.trajFullerene.end())
+      {
+        const Fullerene f = i->second;
+        Float unintegrity = 
+          (f.maxDistanceFromMassCenter()-f.minDistanceFromMassCenter())/Ao;
+        fdat << i->first/mdtk::ps << "\t" << unintegrity << "\n";
+        ++i;
+      }
+    }
+    fdat.close();
+  }
+
+  fplt.close();
+}
+
 int
 StatPostProcess::getAboveSpottedHeight(mdtk::SimLoop& state) const
 {
