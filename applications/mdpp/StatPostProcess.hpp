@@ -263,7 +263,7 @@ public:
   void  printFullereneInfo() const;
 
   void  plotFullereneLandings(bool endo, const std::string rotDir, Float integralThreshold = 3.0*Ao) const;
-  void  plotFullereneImplantDepth(bool endo, const std::string rotDir, Float integralThreshold = 3.0*Ao, bool showEvents = true) const;
+  void  plotFullereneImplantDepth(bool endo, const std::string rotDir, Float integralThreshold = 3.0*Ao, Float maxDepth = 4.0*Ao, bool showEvents = true) const;
 
   bool  isThereAnythingToPlot(bool endo, const std::string rotDir) const;
 

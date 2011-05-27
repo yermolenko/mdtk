@@ -719,7 +719,7 @@ plot '" << fnb.str() << ".dat' with points notitle\n	\
 }
 
 void
-StatPostProcess::plotFullereneImplantDepth(bool endo, const std::string rotDir, Float integralThreshold, bool showEvents) const
+StatPostProcess::plotFullereneImplantDepth(bool endo, const std::string rotDir, Float integralThreshold, Float maxDepth, bool showEvents) const
 {
   if (!isThereAnythingToPlot(endo,rotDir)) return;
   std::vector<int> transEnergies;
@@ -746,8 +746,9 @@ StatPostProcess::plotFullereneImplantDepth(bool endo, const std::string rotDir, 
   
   ofstream fplt((fnb.str()+".plt").c_str());
   fplt << "reset\n";
+  if (maxDepth/Ao >= 1000) fplt << "#";
   fplt <<
-"#set zrange [-8.5:-2]\n\
+    "set cbrange [*:" << maxDepth/Ao << "]\n\
 \n\
 #set border 1+2+4+8 lw 3\n\
 set border 1+2+4+8 lw 2\n\
@@ -838,6 +839,7 @@ set palette gray negative\n\
       {
 	depth[tei-transEnergies.begin()][rei-rotEnergies.begin()] = 
 	  fend.massCenter().z;
+        REQUIRE(fend.massCenter().z <= maxDepth);
       }
       else
       {
