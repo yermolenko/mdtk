@@ -112,13 +112,6 @@ try
   Float integralThreshold = 0.1*Ao;
   while (integralThreshold < 21.0*Ao)
   {
-    pp->plotFullereneLandings(false,"010",integralThreshold);
-    pp->plotFullereneLandings(false,"001",integralThreshold);
-    pp->plotFullereneLandings(false,"011",integralThreshold);
-    pp->plotFullereneLandings(true,"010",integralThreshold);
-    pp->plotFullereneLandings(true,"001",integralThreshold);
-    pp->plotFullereneLandings(true,"011",integralThreshold);
-
     pp->plotFullereneImplantDepth(false,"010",integralThreshold);
     pp->plotFullereneImplantDepth(false,"001",integralThreshold);
     pp->plotFullereneImplantDepth(false,"011",integralThreshold);

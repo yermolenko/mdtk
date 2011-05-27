@@ -719,7 +719,7 @@ plot '" << fnb.str() << ".dat' with points notitle\n	\
 }
 
 void
-StatPostProcess::plotFullereneImplantDepth(bool endo, const std::string rotDir, Float integralThreshold) const
+StatPostProcess::plotFullereneImplantDepth(bool endo, const std::string rotDir, Float integralThreshold, bool showEvents) const
 {
   if (!isThereAnythingToPlot(endo,rotDir)) return;
   std::vector<int> transEnergies;
@@ -745,11 +745,16 @@ StatPostProcess::plotFullereneImplantDepth(bool endo, const std::string rotDir, 
   }
   
   ofstream fplt((fnb.str()+".plt").c_str());
-  fplt << "\
-reset\n\
-#set yrange [-1:4]\n\
-#set xrange [-1:6]\n\
-#set zrange [-8.5:-2]\n\
+  fplt << "reset\n";
+  
+  if (showEvents)
+  {
+    fplt << "set xrange [" << -1 << ":" << transEnergies.size() << "]\n";
+    fplt << "set yrange [" << -1 << ":" << rotEnergies.size() << "]\n";
+  }
+
+  fplt <<
+"#set zrange [-8.5:-2]\n\
 \n\
 #set border 1+2+4+8 lw 3\n\
 set border 1+2+4+8 lw 2\n\
@@ -782,12 +787,19 @@ set pm3d map interpolate 20,20\n\
 #set pm3d map\n\
 set palette gray negative\n\
 #set samples 100; set isosamples 100\n\
-\n\
-splot '" << fnb.str() << ".dat' matrix notitle\n\
-";
+\n";
+  if (showEvents)
+    fplt << 
+      "splot '" << fnb.str() << ".dat' matrix notitle,\\\n" <<
+      "      '" << fnb.str() << "-landings.dat' with points pt 1 notitle\n";
+  else
+    fplt << 
+      "splot '" << fnb.str() << ".dat' matrix notitle\n";
+
   fplt.close();
 
   ofstream fdat((fnb.str()+".dat").c_str());
+  ofstream fdat_landings((fnb.str()+"-landings.dat").c_str());
 
   const size_t NX = transEnergies.size();
   const size_t NY = rotEnergies.size();
@@ -833,6 +845,9 @@ splot '" << fnb.str() << ".dat' matrix notitle\n\
       {
 	depth[tei-transEnergies.begin()][rei-rotEnergies.begin()] = 
 	  fend.massCenter().z;
+	fdat_landings << tei-transEnergies.begin() << "\t" 
+                      << rei-rotEnergies.begin() << "\t" 
+                      << "1" << std::endl;
       }
     }
   }
@@ -844,6 +859,7 @@ splot '" << fnb.str() << ".dat' matrix notitle\n\
     fdat << std::endl;
   }
 
+  fdat_landings.close();
   fdat.close();
 }
 
