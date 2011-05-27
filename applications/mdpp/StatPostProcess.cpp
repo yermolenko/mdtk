@@ -746,13 +746,6 @@ StatPostProcess::plotFullereneImplantDepth(bool endo, const std::string rotDir, 
   
   ofstream fplt((fnb.str()+".plt").c_str());
   fplt << "reset\n";
-  
-  if (showEvents)
-  {
-    fplt << "set xrange [" << -1 << ":" << transEnergies.size() << "]\n";
-    fplt << "set yrange [" << -1 << ":" << rotEnergies.size() << "]\n";
-  }
-
   fplt <<
 "#set zrange [-8.5:-2]\n\
 \n\
@@ -791,7 +784,7 @@ set palette gray negative\n\
   if (showEvents)
     fplt << 
       "splot '" << fnb.str() << ".dat' matrix notitle,\\\n" <<
-      "      '" << fnb.str() << "-landings.dat' with points pt 1 notitle\n";
+      "      '" << fnb.str() << "-landings.dat' with points pt 6 notitle\n";
   else
     fplt << 
       "splot '" << fnb.str() << ".dat' matrix notitle\n";
@@ -845,6 +838,9 @@ set palette gray negative\n\
       {
 	depth[tei-transEnergies.begin()][rei-rotEnergies.begin()] = 
 	  fend.massCenter().z;
+      }
+      else
+      {
 	fdat_landings << tei-transEnergies.begin() << "\t" 
                       << rei-rotEnergies.begin() << "\t" 
                       << "1" << std::endl;
