@@ -978,7 +978,7 @@ plot \\\n";
 }
 
 void
-StatPostProcess::plotFullereneIntegrity(bool endo, const std::string rotDir, Float maxUnintegrity) const
+StatPostProcess::plotFullereneIntegrity(bool endo, const std::string rotDir, Float maxUnintegrity, bool showEvents) const
 {
   if (!isThereAnythingToPlot(endo,rotDir)) return;
   std::vector<int> transEnergies;
@@ -1029,12 +1029,18 @@ set pm3d map interpolate 20,20\n\
 set palette gray\n\
 #set samples 100; set isosamples 100\n\
 \n";
-  fplt << 
-    "splot '" << fnb.str() << ".dat' matrix notitle\n";
+  if (showEvents)
+    fplt << 
+      "splot '" << fnb.str() << ".dat' matrix notitle,\\\n" <<
+      "      '" << fnb.str() << "-parted.dat' with points pt 4 notitle\n";
+  else
+    fplt << 
+      "splot '" << fnb.str() << ".dat' matrix notitle\n";
 
   fplt.close();
 
   ofstream fdat((fnb.str()+".dat").c_str());
+  ofstream fdat_parted((fnb.str()+"-parted.dat").c_str());
 
   const size_t NX = transEnergies.size();
   const size_t NY = rotEnergies.size();
@@ -1076,6 +1082,12 @@ set palette gray\n\
         integrity[tei-transEnergies.begin()][rei-rotEnergies.begin()] = 
           fend.maxDistanceFromMassCenter()-fend.minDistanceFromMassCenter();
       }
+      else
+      {
+	fdat_parted << tei-transEnergies.begin() << "\t" 
+                    << rei-rotEnergies.begin() << "\t" 
+                    << "1" << std::endl;
+      }
     }
   }
 
@@ -1086,6 +1098,7 @@ set palette gray\n\
     fdat << std::endl;
   }
 
+  fdat_parted.close();
   fdat.close();
 }
 

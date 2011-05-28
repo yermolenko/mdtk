@@ -269,7 +269,7 @@ public:
 
   void  plotFullereneIntegrityEvolutions(Float maxTime = 10.0*ps, Float maxUnintegrity=-1000.0*Ao) const;
 
-  void  plotFullereneIntegrity(bool endo, const std::string rotDir, Float maxUnintegrity = 8.0*Ao) const;
+  void  plotFullereneIntegrity(bool endo, const std::string rotDir, Float maxUnintegrity = 8.0*Ao, bool showEvents = true) const;
   void  plotFullereneIntegrityHistogram(bool endo, const std::string rotDir, bool landedOnly = false, Float maxUnintegrity = 15.0*Ao) const;
 
   void  printClusterDynamics(size_t trajIndex) const;
