@@ -126,12 +126,12 @@ try
     else
       integralThreshold += 5.0*Ao;
   }
-
+/*
   pp->plotFullereneIntegrityEvolutions(10.0*ps);
   pp->plotFullereneIntegrityEvolutions(10.0*ps,16.0*Ao);
   pp->plotFullereneIntegrityEvolutions(5.0*ps);
   pp->plotFullereneIntegrityEvolutions(5.0*ps,16.0*Ao);
-
+*/
   pp->plotFullereneIntegrity(false,"010");
   pp->plotFullereneIntegrity(false,"001");
   pp->plotFullereneIntegrity(false,"011");
