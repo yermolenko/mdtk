@@ -798,7 +798,7 @@ set palette gray negative\n\
   const size_t NX = transEnergies.size();
   const size_t NY = rotEnergies.size();
   Float depth[NX][NY];
-  const Float NOT_LANDED_DEPTH = -4.5*Ao-3.615*Ao/* /2*/;
+  const Float NOT_LANDED_DEPTH = -4.0*Ao;//-4.5*Ao-3.615*Ao/* /2*/;
   for(size_t i = 0; i < NX; ++i)
     for(size_t j = 0; j < NY; ++j)
       depth[i][j] = NOT_LANDED_DEPTH;
@@ -840,6 +840,7 @@ set palette gray negative\n\
 	depth[tei-transEnergies.begin()][rei-rotEnergies.begin()] = 
 	  fend.massCenter().z;
         REQUIRE(fend.massCenter().z <= maxDepth);
+        REQUIRE(fend.massCenter().z > NOT_LANDED_DEPTH);
       }
       else
       {
