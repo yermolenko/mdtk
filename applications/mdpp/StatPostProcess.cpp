@@ -1085,6 +1085,97 @@ set palette gray\n\
   fdat.close();
 }
 
+void
+StatPostProcess::plotFullereneIntegrityHistogram(bool endo, const std::string rotDir, bool landedOnly, Float maxUnintegrity) const
+{
+  if (!isThereAnythingToPlot(endo,rotDir)) return;
+
+  std::stringstream fnb;
+  fnb << "hintegrity" << (landedOnly?"-landedOnly":"-all") << (endo?"-endo":"") << "-rot" << rotDir;
+  
+  ofstream fplt((fnb.str()+".plt").c_str());
+  fplt << "reset\n";
+  fplt <<
+    "set xrange [*:" << maxUnintegrity/Ao << "]\n\
+\n\
+#set border 1+2+4+8 lw 3\n\
+set border 1+2+4+8 lw 2\n\
+\n\
+set encoding koi8u\n\
+set output \"" << fnb.str() << ".eps\"\n\
+set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
+\n\
+set xlabel \"Значение критерия целостности, Å\"\n\
+set ylabel \"Частота\"\n\
+\n\
+set border 4095\n";
+
+  fplt << 
+    "plot '" << fnb.str() << ".dat' with boxes notitle\n";
+
+  fplt.close();
+
+  const Float NOT_LANDED_DEPTH = -4.5*Ao-3.615*Ao/* /2*/;
+
+  ofstream fdat((fnb.str()+".dat").c_str());
+
+  const Float minValue_desired   =    0.0;
+  const Float maxValue_desired   =  100.0;
+  const Float matchPoint         =    0.0;
+  const Float histStep           =    0.5;
+
+  REQUIRE(minValue_desired <= matchPoint);
+  REQUIRE(maxValue_desired >= matchPoint);
+  const int n_below_matchPoint = int( (matchPoint       - minValue_desired)/histStep ) +1;
+  const int n_above_matchPoint = int( (maxValue_desired - matchPoint      )/histStep ) +1;
+
+  const int n = n_above_matchPoint + n_below_matchPoint;
+  const Float minValue   = matchPoint - n_below_matchPoint*histStep;
+  const Float maxValue   = matchPoint + n_above_matchPoint*histStep;
+
+  fdat << "# min value = " << minValue << " Ao" << std::endl
+       << "# max value = " << maxValue << " Ao" << std::endl
+       << "# number of bins = " << n << std::endl;
+  gsl_histogram * h = gsl_histogram_alloc (n);
+  gsl_histogram_set_ranges_uniform (h, minValue, maxValue);
+
+  for(size_t traj = 0; traj < trajData.size(); traj++)
+  {
+    REQUIRE (trajData[traj].trajFullerene.size() > 0);
+
+    using namespace mdtk;
+    const TrajData& td = trajData[traj];
+    std::map< Float, Fullerene >::const_iterator i;
+    REQUIRE(fabs(td.trajFullerene.begin()->first-0.0*ps)<0.05*ps);
+    REQUIRE(fabs(td.trajFullerene.rbegin()->first-10.0*ps)<0.05*ps);
+    const Fullerene& fstart = td.trajFullerene.begin()->second;
+    const Fullerene& fend = td.trajFullerene.rbegin()->second;
+
+    std::string trajId = yaatk::extractLastItem(td.trajDir);
+
+    Float transEnergy = parseTransEnergy(trajId);
+    const std::string rotDirection = parseRotDirection(trajId);
+    Float rotEnergy = parseRotEnergy(trajId);
+
+    if (rotDirection != rotDir) continue;
+    if (fstart.isEndoFullerene() == endo)
+    {
+      if (landedOnly && fend.massCenter().z <= NOT_LANDED_DEPTH) continue;
+      gsl_histogram_increment(h, (fend.maxDistanceFromMassCenter()-fend.minDistanceFromMassCenter())/Ao);
+    }
+  }
+
+  for(int i = 0; i < n; i++)
+  {
+    double lower, upper;
+    gsl_histogram_get_range (h, i, &lower, &upper);
+    fdat << (lower+upper)/2.0 << "\t" << gsl_histogram_get(h,i) << std::endl;
+  }  
+  gsl_histogram_free (h);
+
+  fdat.close();
+}
+
 int
 StatPostProcess::getAboveSpottedHeight(mdtk::SimLoop& state) const
 {

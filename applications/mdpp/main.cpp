@@ -139,6 +139,20 @@ try
   pp->plotFullereneIntegrity(true,"001");
   pp->plotFullereneIntegrity(true,"011");
 
+  pp->plotFullereneIntegrityHistogram(false,"010",false);
+  pp->plotFullereneIntegrityHistogram(false,"001",false);
+  pp->plotFullereneIntegrityHistogram(false,"011",false);
+  pp->plotFullereneIntegrityHistogram(true,"010",false);
+  pp->plotFullereneIntegrityHistogram(true,"001",false);
+  pp->plotFullereneIntegrityHistogram(true,"011",false);
+
+  pp->plotFullereneIntegrityHistogram(false,"010",true);
+  pp->plotFullereneIntegrityHistogram(false,"001",true);
+  pp->plotFullereneIntegrityHistogram(false,"011",true);
+  pp->plotFullereneIntegrityHistogram(true,"010",true);
+  pp->plotFullereneIntegrityHistogram(true,"001",true);
+  pp->plotFullereneIntegrityHistogram(true,"011",true);
+
 //  pp->printClusterDynamicsTotal();
 
 //  pp->spottedTotalByMass();
