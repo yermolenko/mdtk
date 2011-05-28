@@ -758,7 +758,7 @@ set output \"" << fnb.str() << ".eps\"\n\
 set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
 \n\
 set xlabel \"Энергия поступательного движения, эВ\"\n\
-set ylabel \"Энергия вращательного движения вокруг оси "<< rotDir << ", эВ\"\n\
+set ylabel \"Энергия вращения, эВ\"\n\
 set zlabel \"z-координата центра масс, Å\"\n\
 \n\
 set xtics mirror (";
@@ -1005,7 +1005,7 @@ set output \"" << fnb.str() << ".eps\"\n\
 set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
 \n\
 set xlabel \"Энергия поступательного движения, эВ\"\n\
-set ylabel \"Энергия вращательного движения вокруг оси "<< rotDir << ", эВ\"\n\
+set ylabel \"Энергия вращения, эВ\"\n\
 set zlabel \"Значение критерия целостности, Å\"\n\
 \n\
 set xtics mirror (";
