@@ -1041,7 +1041,7 @@ set palette gray\n\
   Float integrity[NX][NY];
   for(size_t i = 0; i < NX; ++i)
     for(size_t j = 0; j < NY; ++j)
-      integrity[i][j] = 0.0;
+      integrity[i][j] = maxUnintegrity;
 
   for(size_t traj = 0; traj < trajData.size(); traj++)
   {
@@ -1071,8 +1071,11 @@ set palette gray\n\
     if (rotDirection != rotDir) continue;
     if (fstart.isEndoFullerene() == endo)
     {
-      integrity[tei-transEnergies.begin()][rei-rotEnergies.begin()] = 
-        fend.maxDistanceFromMassCenter()-fend.minDistanceFromMassCenter();
+      if (fend.isUnparted())
+      {
+        integrity[tei-transEnergies.begin()][rei-rotEnergies.begin()] = 
+          fend.maxDistanceFromMassCenter()-fend.minDistanceFromMassCenter();
+      }
     }
   }
 
