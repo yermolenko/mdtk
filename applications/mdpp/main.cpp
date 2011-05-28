@@ -132,6 +132,13 @@ try
   pp->plotFullereneIntegrityEvolutions(5.0*ps);
   pp->plotFullereneIntegrityEvolutions(5.0*ps,16.0*Ao);
 
+  pp->plotFullereneIntegrity(false,"010");
+  pp->plotFullereneIntegrity(false,"001");
+  pp->plotFullereneIntegrity(false,"011");
+  pp->plotFullereneIntegrity(true,"010");
+  pp->plotFullereneIntegrity(true,"001");
+  pp->plotFullereneIntegrity(true,"011");
+
 //  pp->printClusterDynamicsTotal();
 
 //  pp->spottedTotalByMass();
