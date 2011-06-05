@@ -62,4 +62,6 @@ install(TARGETS ${MDTK_CurrentTarget}
 ENDMACRO(mdtrajsim) 
 
 mdtrajsim(FALSE)
-mdtrajsim(TRUE)
+IF(MPI_FOUND)
+  mdtrajsim(TRUE)
+ENDIF(MPI_FOUND)
