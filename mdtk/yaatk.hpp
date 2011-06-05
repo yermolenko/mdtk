@@ -165,6 +165,21 @@ void chdir(const char *name)
 #endif  
 }
 
+inline
+std::string getcwd()
+{
+  const int maxlen = 1000;
+  char dir[maxlen];
+  char* getcwd_retval;
+#ifdef __WIN32__
+  getcwd_retval = ::_getcwd(dir,maxlen);
+#else
+  getcwd_retval = ::getcwd(dir,maxlen);
+#endif
+  REQUIRE(getcwd_retval);
+  return std::string(dir);
+}
+
 #define DIR_DELIMIT_CHAR '/'
 #define DIR_DELIMIT_STR "/"
 

@@ -755,9 +755,10 @@ MainWindow::btn_quick_save_image_cb(Fl_Widget *w, void *)
 //  if (tmp_filename) yaatk::mkdir(tmp_filename);
   if (tmp_filename && (fl_filename_isdir(tmp_filename)))
   {
+    std::string trajdir = yaatk::getcwd();
     yaatk::chdir(tmp_filename);
     yaatk::mkdir("video");
-    yaatk::chdir("..");
+    yaatk::chdir(trajdir.c_str());
     for(size_t i = 0; i < MainWindow_Ptr->stateList.size()/*-1*/; i++)
     {
 //	MainWindow_Ptr->loadNewState(i);
@@ -770,8 +771,7 @@ MainWindow::btn_quick_save_image_cb(Fl_Widget *w, void *)
       while (!Fl::ready()) {};
       MainWindow_Ptr->quickSaveBitmap();
 //        sleep(1);
-      yaatk::chdir("..");
-      yaatk::chdir("..");
+      yaatk::chdir(trajdir.c_str());
     }
   }
 }
