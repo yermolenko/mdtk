@@ -47,6 +47,11 @@ main()
   mdloop.initialize();
   mdloop.simTimeSaveTrajInterval = 0.001*ps;
   mdloop.simTimeFinal = 0.5*ps;
+
+  yaatk::text_ofstream fomde("input.mde");
+  mdloop.saveToMDE(fomde);
+  fomde.close();
+
   mdloop.execute();
 
   puts("Simulation finished.");

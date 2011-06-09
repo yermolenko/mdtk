@@ -55,6 +55,9 @@ setupPotentials(mdtk::SimLoop& simloop)
 */
   pot = new mdtk::FLJ(Rcutoff(5.0*Ao,5.5*Ao));
   pot->handledElements.clear();
+  pot->handledElements.insert(Cu_EL);
+  pot->handledElements.insert(C_EL);
+  pot->handledElements.insert(H_EL);
   pot->handledElementPairs.clear();
   pot->handledElementPairs.insert(std::make_pair(Cu_EL,C_EL));
   pot->handledElementPairs.insert(std::make_pair(Cu_EL,H_EL));
@@ -77,19 +80,14 @@ setupPotentials(mdtk::SimLoop& simloop)
   pot = new mdtk::ETors();
   simloop.fpot.addPotential(pot);
 
-
+/*
   pot = new mdtk::Ackland();
   simloop.fpot.addPotential(pot);
+*/
 
-/*
-  pot = new mdtk::FBM(Rcutoff(1.029*Ao,1.029*Ao));
-  pot->handledElements.clear();
-  pot->handledElementPairs.clear();
-  pot->handledElementPairs.insert(std::make_pair(Cu_EL,Cu_EL));
-  simloop.fpot.addPotential(pot);
   pot = new mdtk::TightBinding();
   simloop.fpot.addPotential(pot);
-*/
+
 /*
   pot = new mdtk::Brenner(Brenner::POTENTIAL2);
   simloop.fpot.addPotential(pot);

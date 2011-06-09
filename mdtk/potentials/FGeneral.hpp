@@ -96,7 +96,7 @@ public:
   virtual void onTouch(Atom& a)  = 0;
 
   Vector3D  r_vec(Atom &atom1, Atom &atom2) ;  
-  Vector3D  r_vec_no_touch(Atom &atom1, Atom &atom2) ;  
+  Vector3D  r_vec_no_touch(Atom &atom1, Atom &atom2) const ;  
   void      r_vec_touch_only(Atom &atom1, Atom &atom2) ;  
 
   Float r_vec_module(Atom &atom1,Atom &atom2) ; 
@@ -229,7 +229,7 @@ FGeneral::r_vec_module_squared_no_touch(Atom &atom1,Atom &atom2)
 
 inline
 Vector3D
-FGeneral::r_vec_no_touch(Atom &atom1, Atom &atom2) 
+FGeneral::r_vec_no_touch(Atom &atom1, Atom &atom2) const
 {
   Vector3D val;
 

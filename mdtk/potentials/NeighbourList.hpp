@@ -1,7 +1,7 @@
 /*
    The NeighbourList class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -38,14 +38,14 @@ namespace mdtk
 {
 class NeighbourList
 {
-  FGeneral* fpot;
+  const FGeneral* fpot;
   bool ListUpdateRequested;
 public:
   Float Rcutoff;
   std::vector<AtomsContainer> nl;
   std::vector<AtomsContainer> nl_with_self;
   std::vector<Vector3D> displacements;
-  NeighbourList(FGeneral* pot)
+  NeighbourList(const FGeneral* pot)
    : fpot(pot), ListUpdateRequested(true),
      Rcutoff(0.0),
      nl(), nl_with_self(), displacements()

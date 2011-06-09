@@ -1,6 +1,7 @@
-#  CMakeLists.txt file for Molecular Dynamics Trajectory Simulator
+#  CMakeLists.txt file for the selftest - program for selftesting
+#  Molecular Dynamics Toolkit (MDTK).
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
+#  Copyright (C) 2009, 2011 Oleksandr Yermolenko
 #  <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -19,32 +20,15 @@
 #  along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-MACRO(mdtrajsim MPIBATCH)
+SET(MDTK_CurrentTarget "selftest${MDTK_BINARY_SUFFIX}")
 
-SET(MPIBATCH "${MPIBATCH}")
-
-FIND_PACKAGE(MPI)
-IF(MPI_FOUND)
-  MESSAGE("MPI FOUND!!!!")
-ENDIF(MPI_FOUND)
+include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
 
 link_directories (${MDTK_BINARY_DIR})
 
-IF(MPIBATCH)
-  SET(MDTK_CurrentTarget "mdtrajsim${MDTK_BINARY_SUFFIX}_mpibatch")
-  include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR} ${MPI_INCLUDE_PATH})
-  add_executable (${MDTK_CurrentTarget} main.cpp)
-  target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES} ${MPI_LIBRARIES})
-ELSE(MPIBATCH)
-  SET(MDTK_CurrentTarget "mdtrajsim${MDTK_BINARY_SUFFIX}")
-  include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
-  add_executable (${MDTK_CurrentTarget} main.cpp)
-  target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
-ENDIF(MPIBATCH)
+add_executable (${MDTK_CurrentTarget} main.cpp)
 
-IF(MPIBATCH)
-  SET_TARGET_PROPERTIES(${MDTK_CurrentTarget} PROPERTIES COMPILE_FLAGS "-DMPIBATCH")
-ENDIF(MPIBATCH)
+target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
   IF(WIN32)
@@ -58,10 +42,3 @@ install(TARGETS ${MDTK_CurrentTarget}
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib)
-
-ENDMACRO(mdtrajsim) 
-
-mdtrajsim(FALSE)
-IF(MPI_FOUND)
-  mdtrajsim(TRUE)
-ENDIF(MPI_FOUND)
