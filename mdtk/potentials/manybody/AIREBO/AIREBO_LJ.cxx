@@ -51,7 +51,6 @@ namespace mdtk
         Atom &atom_j = *(NL(atom_i)[jj]);
         if (atom_i.globalIndex > atom_j.globalIndex) continue;
         std::pair<int,int> sample_pair(atom_i.globalIndex,atom_j.globalIndex);
-        if (isHandled(atom_j))
         if (&atom_i != &atom_j)
         if (r_vec_module(atom_i,atom_j) < R(1,atom_i,atom_j))
 #ifdef AIREBO_OPTIMIZED_EVEN_BETTER
@@ -251,12 +250,10 @@ AIREBO::dELJ(Atom &atom,AtomsContainer &gl)
     for(i = 0; i < acnt.size(); i++)
     {
       Atom &atom_i = *(gl[acnt[i].first]);
-      if (isHandled(atom_i))
       {
         Atom &atom_j = *(gl[acnt[i].second]);
 
         REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
-        if (isHandled(atom_j))
         {
           Vector3D dEij = 0.0; dEij = 0.0;
 
@@ -425,7 +422,6 @@ if (wmax >= 1.0)  return 0.0/*1.0-wmax*/;
   for(Index k = 0; k < rebo.NL(atom1).size(); k++)
   {
     Atom &atom_k = *(rebo.NL(atom1)[k]);
-    if (isHandled(atom_k))
     if (&atom_k != &atom1 && &atom_k != &atom2)
     {
       {
@@ -439,7 +435,6 @@ if (wmax >= 1.0)  return 0.0/*1.0-wmax*/;
       for(Index l = 0; l < rebo.NL(atom2).size(); l++)
       {
         Atom &atom_l = *(rebo.NL(atom2)[l]); 
-        if (isHandled(atom_l))
         if (&atom_l != &atom_k && &atom_l != &atom1 && &atom_l != &atom2)
         {
           {
@@ -473,7 +468,6 @@ if (wmax >= 1.0)  {REQUIRE(dwmax==0);return -dwmax;}
   for(Index k = 0; k < rebo.NL(atom1).size(); k++)
   {
     Atom &atom_k = *(rebo.NL(atom1)[k]);
-    if (isHandled(atom_k))
     if (&atom_k != &atom1 && &atom_k != &atom2)
     {
       {
@@ -489,7 +483,6 @@ if (wmax >= 1.0)  {REQUIRE(dwmax==0);return -dwmax;}
       for(Index l = 0; l < rebo.NL(atom2).size(); l++)
       {
         Atom &atom_l = *(rebo.NL(atom2)[l]); 
-        if (isHandled(atom_l))
         if (&atom_l != &atom_k && &atom_l != &atom1 && &atom_l != &atom2)
         {
           {

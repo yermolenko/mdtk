@@ -4,7 +4,7 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009 Oleksandr Yermolenko
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -49,7 +49,6 @@ namespace mdtk
         Atom &atom_j = *(NL(atom_i)[jj]);
         if (atom_i.globalIndex > atom_j.globalIndex) continue;
         std::pair<int,int> sample_pair(atom_i.globalIndex,atom_j.globalIndex);
-        if (isHandled(atom_j))
         if (&atom_i != &atom_j)
         if (r_vec_module(atom_i,atom_j) < R(1,atom_i,atom_j))
         {
@@ -301,12 +300,10 @@ REBO::grad(Atom &atom,AtomsContainer &gl)
     for(i = 0; i < acnt.size(); i++)
     {
       Atom &atom_i = *(gl[acnt[i].first]);
-      if (isHandled(atom_i))
       {
         Atom &atom_j = *(gl[acnt[i].second]);
 
         REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
-        if (isHandled(atom_j))
 #if defined(REBO_OPTIMIZED_EVEN_BETTER)
         if (r_vec_module(atom_i,atom_j) < R(1,atom_i,atom_j))
 #endif
@@ -397,7 +394,6 @@ REBO::D(Atom &atom1,Atom &atom2)
   for(k = 0; k < NL(atom1).size(); k++)
   {
     Atom& atom_k = *(NL(atom1)[k]);
-    if (isHandled(atom_k))
     if (&atom_k != &atom2/* && &atom_k != &atom1*/)
     {
 #ifdef REBO_OPTIMIZED  
@@ -424,7 +420,6 @@ REBO::dD(Atom &atom1,Atom &atom2, Atom &datom)
   for(Index k = 0; k < NL(atom1).size(); k++)
   {
     Atom& atom_k = *(NL(atom1)[k]);
-    if (isHandled(atom_k))
     if (&atom_k != &atom2/* && &atom_k != &atom1*/)
 #ifdef REBO_OPTIMIZED_EVEN_BETTER
     if (r_vec_module(atom1,atom_k) < R(1,atom1,atom_k))
@@ -543,7 +538,6 @@ REBO::Nt(Atom &atom_i, Atom &atom_j)
   for(Index k = 0; k < NL(atom_i).size(); k++)  
   {
     Atom &atom_k = *NL(atom_i)[k];
-    if (isHandled(atom_k))
     if (&atom_k != &atom_j)
     {
       Nt_i += f(atom_i,atom_k);
@@ -565,7 +559,6 @@ REBO::dNt(Atom &atom_i, Atom &atom_j, Atom &datom)
   for(Index k = 0; k < NL(atom_i).size(); k++)  
   {
     Atom &atom_k = *NL(atom_i)[k];
-    if (isHandled(atom_k))
     if (&atom_k != &atom_j)
     {
       Nt_i += df(atom_i,atom_k,datom);
@@ -619,7 +612,6 @@ REBO::NC(Atom &atom_i, Atom &atom_j)
   for(Index k = 0; k < NL(atom_i).size(); k++)  
   {
     Atom &atom_k = *NL(atom_i)[k];
-//    if (isHandled(atom_k))
     if (atom_k.ID == C_EL && &atom_k != &atom_j)
     {
       NC_i += f(atom_i,atom_k);
@@ -691,7 +683,6 @@ REBO::Nconj(Atom &atom1,Atom &atom2)
   for(Index k = 0; k < NL(atom1).size(); k++)
   {
     Atom& atom_k = *(NL(atom1)[k]);
-    if (isHandled(atom_k))
     if (&atom_k != &atom2 && 
         atom_k.ID == C_EL)
     {
@@ -712,7 +703,6 @@ REBO::Nconj(Atom &atom1,Atom &atom2)
   for(Index l = 0; l < NL(atom2).size(); l++)
   {
     Atom& atom_l = *(NL(atom2)[l]);
-    if (isHandled(atom_l))
     if (&atom_l != &atom1 &&
         atom_l.ID == C_EL)
     {
@@ -744,7 +734,6 @@ REBO::dNconj(Atom &atom1,Atom &atom2, Atom &datom)
   {
     Atom& atom_k = *(NL(atom1)[k]);
 
-    if (isHandled(atom_k))
     if (&atom_k != &atom2 && 
         atom_k.ID == C_EL)
     {
@@ -775,7 +764,6 @@ REBO::dNconj(Atom &atom1,Atom &atom2, Atom &datom)
   {
     Atom& atom_l = *(NL(atom2)[l]);
 
-    if (isHandled(atom_l))
     if (&atom_l != &atom1 &&
         atom_l.ID == C_EL)
     {
@@ -999,8 +987,6 @@ RETURN_REBO_0;
     if (&atom_k != &atom_l) // otherwise cos=1 -> temp_sum=0
     if (&atom_k != &atom_j /* && atom_k.ID == C_EL*/)
     if (&atom_l != &atom_i /* && atom_l.ID == C_EL*/)
-    if (isHandled(atom_k))
-    if (isHandled(atom_l))
 #ifdef REBO_OPTIMIZED_EVEN_BETTER
     if (r_vec_module(atom_i,atom_k) < R(1,atom_i,atom_k))
 #endif
@@ -1062,8 +1048,6 @@ RETURN_REBO_0;
     if (&atom_k != &atom_l) // otherwise cos=1 -> temp_sum=0
     if (&atom_k != &atom_j /* && atom_k.ID == C_EL*/)
     if (&atom_l != &atom_i /* && atom_l.ID == C_EL*/)
-    if (isHandled(atom_k))
-    if (isHandled(atom_l))
 #ifdef REBO_OPTIMIZED_EVEN_BETTER
     if (r_vec_module(atom_i,atom_k) < R(1,atom_i,atom_k))
 #endif

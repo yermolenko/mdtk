@@ -4,7 +4,7 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009 Oleksandr Yermolenko
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -53,7 +53,6 @@ namespace mdtk
         Atom &atom_j = *(NL(atom_i)[jj]);
         if (atom_i.globalIndex > atom_j.globalIndex) continue;
         std::pair<int,int> sample_pair(atom_i.globalIndex,atom_j.globalIndex);
-        if (isHandled(atom_j))
         if (&atom_i != &atom_j)
         if (r_vec_module(atom_i,atom_j) < R(1,atom_i,atom_j))
         {
@@ -64,13 +63,11 @@ namespace mdtk
   for(Index k = 0; k < EREBO::NL(atom_i).size(); k++)
   {
     Atom &atom_k = *(EREBO::NL(atom_i)[k]);
-    if (isHandled(atom_k))
     if (&atom_k != &atom_i && &atom_k != &atom_j)
     if (r_vec_module_no_touch(atom_k,atom_i) < EREBO::R(1,atom_k,atom_i))
     for(Index l = 0; l < EREBO::NL(atom_j).size(); l++)
     {
       Atom &atom_l = *(EREBO::NL(atom_j)[l]);
-      if (isHandled(atom_l))
       if (&atom_l != &atom_i && &atom_l != &atom_j &&  &atom_l != &atom_k )
       {
         Float wki  = EREBO::f(atom_k,atom_i);
@@ -155,25 +152,21 @@ ETors::dETor(Atom &atom,AtomsContainer &gl)
     for(i = 0; i < acnt.size(); i++)
     {
       Atom &atom_i = *(gl[acnt[i].first]);
-      if (isHandled(atom_i))
       {
         Atom &atom_j = *(gl[acnt[i].second]);
 
         REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
-        if (isHandled(atom_j))
         {
 
 
   for(Index k = 0; k < EREBO::NL(atom_i).size(); k++)
   {
     Atom &atom_k = *(EREBO::NL(atom_i)[k]);
-    if (isHandled(atom_k))
     if (&atom_k != &atom_i && &atom_k != &atom_j)
     if (r_vec_module_no_touch(atom_k,atom_i) < EREBO::R(1,atom_k,atom_i))
     for(Index l = 0; l < EREBO::NL(atom_j).size(); l++)
     {
       Atom &atom_l = *(EREBO::NL(atom_j)[l]);
-      if (isHandled(atom_l))
       if (&atom_l != &atom_i && &atom_l != &atom_j &&  &atom_l != &atom_k )
       {
         Float wki     = EREBO::f(atom_k,atom_i);
