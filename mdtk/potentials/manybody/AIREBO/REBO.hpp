@@ -133,7 +133,7 @@ public:
 
   REBO(ParamSet /*parSet*/ = POTENTIAL1);
   Float getRcutoff() const {return      max3(R_[C][C][1],R_[C][H][1],R_[H][H][1]);}
-  bool probablyAreNeighbours(Atom& atom1, Atom& atom2)
+  bool probablyAreNeighbours(Atom& atom1, Atom& atom2) const
     {
       if (r_vec_no_touch(atom1,atom2).module_squared() > SQR(R(1,atom1,atom2)))
         return false;

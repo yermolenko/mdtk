@@ -53,7 +53,7 @@ public:
   Vector3D dETor(Atom &,AtomsContainer&);
 
   ETors();
-//  bool probablyAreNeighbours(Atom& atom1, Atom& atom2); not needed because of the same R[][][] values
+//  bool probablyAreNeighbours(Atom& atom1, Atom& atom2) const; not needed because of the same R[][][] values
 private:
   void setupPotential();
 

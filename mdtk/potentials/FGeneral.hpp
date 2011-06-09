@@ -62,7 +62,7 @@ public:
 protected:
   NeighbourList nl;
 public:
-  virtual bool probablyAreNeighbours(Atom& atom1, Atom& atom2) {return true;}
+  virtual bool probablyAreNeighbours(Atom& atom1, Atom& atom2) const {return true;}
   AtomsContainer& NL(Atom& atom)
   {
     return nl.nl[atom.globalIndex];
