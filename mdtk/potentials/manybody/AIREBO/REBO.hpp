@@ -200,7 +200,6 @@ protected:
     if (rho_[e2i(atom1)][e2i(atom2)] == 0.0) throw Exception("REBO rho. CC");
     return rho_[e2i(atom1)][e2i(atom2)];
   }  
-//  virtual
   Float R(int i,Atom &atom1,Atom &atom2) const
   {
     return R_[e2i(atom1)][e2i(atom2)][i];

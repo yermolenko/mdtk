@@ -217,9 +217,9 @@ AIREBO::BijAsterix(Atom &atom1,Atom &atom2)
 {
   Float bij = 0.0;
   
-  set_r_vec_exception(atom1,atom2,CREBO::R(0,atom1,atom2));
-  bij = Baver(atom1, atom2);
-  cleat_r_vec_exception();
+  rebo.set_r_vec_exception(atom1,atom2,rebo.R(0,atom1,atom2));
+  bij = rebo.Baver(atom1, atom2);
+  rebo.cleat_r_vec_exception();
   
   return bij;
 }
@@ -331,14 +331,8 @@ AIREBO::dELJ(Atom &atom,AtomsContainer &gl)
 
 
 AIREBO::AIREBO(CREBO* crebo):
-#ifdef AIREBO_USING_BRENNER
-  CREBO(CREBO::POTENTIAL2)
-#endif
-#ifdef AIREBO_USING_REBO
-  CREBO(CREBO::POTENTIAL1)
-#endif
+  FManybody()
   ,rebo(*crebo)
-  ,nl(this)
 {
   setupPotential();
 
@@ -349,6 +343,11 @@ void
 AIREBO::setupPotential()
 {
   PTRACE("Setup AIREBO");
+
+  handledElements.insert(H_EL);
+  handledElements.insert(C_EL);
+  handledElementPairs.insert(std::make_pair(H_EL,C_EL));
+  handledElementPairs.insert(std::make_pair(C_EL,H_EL));
 
   sigma_[C][C] = 3.40*Ao;
   sigma_[H][H] = 2.65*Ao;

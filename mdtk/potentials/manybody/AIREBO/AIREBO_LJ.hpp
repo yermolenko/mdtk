@@ -57,7 +57,7 @@
 namespace mdtk
 {
 
-class AIREBO : public CREBO
+class AIREBO : public FManybody
 {
   CREBO& rebo;
 
@@ -104,28 +104,27 @@ private:
 
   Float sigma(Atom &atom1,Atom &atom2) const
   {
-    return sigma_[CREBO::e2i(atom1)][CREBO::e2i(atom2)];
+    return sigma_[rebo.e2i(atom1)][rebo.e2i(atom2)];
   }  
 
-//  virtual
   Float R(int i,Atom &atom1,Atom &atom2) const
   {
-    return R_[CREBO::e2i(atom1)][CREBO::e2i(atom2)][i];
+    return R_[rebo.e2i(atom1)][rebo.e2i(atom2)][i];
   }  
 
   Float RLJ(int i,Atom &atom1,Atom &atom2) const
   {
-    return RLJ_[CREBO::e2i(atom1)][CREBO::e2i(atom2)][i];
+    return RLJ_[rebo.e2i(atom1)][rebo.e2i(atom2)][i];
   }  
 
   Float b(int i,Atom &atom1,Atom &atom2) const
   {
-    return b_[CREBO::e2i(atom1)][CREBO::e2i(atom2)][i];
+    return b_[rebo.e2i(atom1)][rebo.e2i(atom2)][i];
   }  
 
   Float zeta(Atom &atom1,Atom &atom2) const
   {
-    return zeta_[CREBO::e2i(atom1)][CREBO::e2i(atom2)];
+    return zeta_[rebo.e2i(atom1)][rebo.e2i(atom2)];
   }  
   Float R_[ECOUNT][ECOUNT][2];
   Float RLJ_[ECOUNT][ECOUNT][2];
@@ -135,46 +134,13 @@ private:
 public:
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {
-    CREBO::SaveToStream(os,smode);
+    FManybody::SaveToStream(os,smode);
   }  
   void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   {
-    CREBO::LoadFromStream(is,smode);
+    FManybody::LoadFromStream(is,smode);
   }  
   Float  buildPairs(AtomsContainer& gl);
-
-  NeighbourList nl;
-
-  AtomsContainer& NL(Atom& atom)
-  {
-    return nl.nl[atom.globalIndex];
-  }  
-  AtomsContainer& NL_with_self(Atom& atom)
-  {
-    return nl.nl_with_self[atom.globalIndex];
-  }  
-
-  void NL_checkRequestUpdate(AtomsContainer& atoms)
-  {
-    CREBO::NL_checkRequestUpdate(atoms);
-    nl.checkRequestUpdate(atoms);
-  }
-  void NL_UpdateIfNeeded(AtomsContainer& atoms)
-  {
-    CREBO::NL_UpdateIfNeeded(atoms);
-    nl.UpdateIfNeeded(atoms);
-  }
-  void NL_init(AtomsContainer& atoms)
-  {
-    CREBO::NL_init(atoms);
-    nl.init(atoms);
-  }
-  void incDisplacement(Atom& atom, Vector3D inc)
-  {
-    CREBO::incDisplacement(atom,inc);
-    nl.displacements[atom.globalIndex] += inc;
-  }  
-
 
 Float
 f(Atom &atom1,Atom &atom2)
