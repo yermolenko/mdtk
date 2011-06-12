@@ -532,7 +532,6 @@ REBO::dG(Atom &atom_i,Atom &atom_j,Atom &atom_k, Atom &datom)
 Float
 REBO::Nt(Atom &atom_i, Atom &atom_j)
 {
-  disable_r_vec_ex();
   Float Nt_i = 0;
 
   for(Index k = 0; k < NL(atom_i).size(); k++)  
@@ -544,16 +543,12 @@ REBO::Nt(Atom &atom_i, Atom &atom_j)
     }  
   }     
 
-  enable_r_vec_ex();
-
   return Nt_i;
 } 
 
 Vector3D
 REBO::dNt(Atom &atom_i, Atom &atom_j, Atom &datom)
 {
-  disable_r_vec_ex();
-
   Vector3D Nt_i = 0;
 
   for(Index k = 0; k < NL(atom_i).size(); k++)  
@@ -565,15 +560,12 @@ REBO::dNt(Atom &atom_i, Atom &atom_j, Atom &datom)
     }  
   }     
 
-  enable_r_vec_ex();
-
   return Nt_i;
 }
 
 Float
 REBO::NH(Atom &atom_i, Atom &atom_j)
 { 
-  disable_r_vec_ex();
   Float NH_i = 0;
   for(Index k = 0; k < NL(atom_i).size(); k++)  
   {
@@ -583,14 +575,13 @@ REBO::NH(Atom &atom_i, Atom &atom_j)
       NH_i += f(atom_i,atom_k);
     }  
   }    
-  enable_r_vec_ex();
+
   return NH_i;
 }
 
 Vector3D
 REBO::dNH(Atom &atom_i, Atom &atom_j, Atom &datom)
 { 
-  disable_r_vec_ex();
   Vector3D NH_i = 0;
   for(Index k = 0; k < NL(atom_i).size(); k++)  
   {
@@ -600,14 +591,13 @@ REBO::dNH(Atom &atom_i, Atom &atom_j, Atom &datom)
       NH_i += df(atom_i,atom_k,datom);
     }  
   }    
-  enable_r_vec_ex();
+
   return NH_i;
 }
 
 Float
 REBO::NC(Atom &atom_i, Atom &atom_j)
 {
-  disable_r_vec_ex();
   Float NC_i = 0;
   for(Index k = 0; k < NL(atom_i).size(); k++)  
   {
@@ -617,14 +607,13 @@ REBO::NC(Atom &atom_i, Atom &atom_j)
       NC_i += f(atom_i,atom_k);
     }  
   }    
-  enable_r_vec_ex();
+
   return NC_i;
 }
 
 Vector3D
 REBO::dNC(Atom &atom_i, Atom &atom_j, Atom &datom)
 {
-  disable_r_vec_ex();
   Vector3D NC_i = 0;
   for(Index k = 0; k < NL(atom_i).size(); k++)  
   {
@@ -634,7 +623,7 @@ REBO::dNC(Atom &atom_i, Atom &atom_j, Atom &datom)
       NC_i += df(atom_i,atom_k,datom);
     }  
   }    
-  enable_r_vec_ex();
+
   return NC_i;
 }
 
