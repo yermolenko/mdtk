@@ -225,9 +225,15 @@ AIREBO::BijAsterix(Atom &atom1,Atom &atom2)
 }
 
 Vector3D
-AIREBO::dBijAsterix(Atom &/*atom1*/,Atom &/*atom2*/, Atom &/*datom*/)
+AIREBO::dBijAsterix(Atom &atom1,Atom &atom2, Atom &datom)
 {
-  return 0.0; // TODO
+  Vector3D dbij;
+  
+  rebo.set_r_vec_exception(atom1,atom2,rebo.R(0,atom1,atom2));
+  dbij = rebo.dBaver(atom1, atom2, datom);
+  rebo.cleat_r_vec_exception();
+  
+  return dbij;
 }   
 
 Float
