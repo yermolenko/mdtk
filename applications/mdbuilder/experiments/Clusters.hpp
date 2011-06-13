@@ -525,6 +525,82 @@ prepare_Cu_by_Cu_at_C60_bobardment()
   }
 }
 
+inline
+void
+prepare_Graphite_by_Cu_at_C60_bombardment()
+{
+  std::vector<int> cluster_sizes;
+  cluster_sizes.push_back(0);
+//  cluster_sizes.push_back(1);
+//  cluster_sizes.push_back(6);
+//  cluster_sizes.push_back(13);
+
+  std::vector<Float> trans_energies;
+  for(Float e = 0; e <= 400; e += 50)
+    trans_energies.push_back(e*eV);
+  trans_energies.push_back(10.0*eV);
+
+  std::vector<Float> rot_energies;
+  for(Float e = 0; e <= 100; e += 10)
+    rot_energies.push_back(e*eV);
+
+  std::vector<Vector3D> rot_axes;
+  rot_axes.push_back(Vector3D(0,0,1));
+//  rot_axes.push_back(Vector3D(0,1,0));
+//  rot_axes.push_back(Vector3D(0,1,1));
+
+  mdtk::SimLoop sl_Graphite = mdbuilder::build_Graphite_lattice(12,14,3);
+  mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
+
+  for(size_t i_cluster_size = 0; i_cluster_size < cluster_sizes.size(); i_cluster_size++)
+  {
+    int& cluster_size = cluster_sizes[i_cluster_size];
+    mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,cluster_size);
+
+    for(size_t i_rot_axis = 0; i_rot_axis < rot_axes.size(); i_rot_axis++)
+    {
+      for(size_t i_rot_energy = 0; i_rot_energy < rot_energies.size(); i_rot_energy++)
+      {
+        mdtk::SimLoop sl_endo = mdbuilder::build_embed(sl_cluster,sl_C60);
+        Vector3D& rot_axis = rot_axes[i_rot_axis];
+        Float& rot_energy = rot_energies[i_rot_energy];
+        mdbuilder::add_rotational_motion(sl_endo,rot_energy,rot_axis);
+
+        for(size_t i_trans_energy = 0; i_trans_energy < trans_energies.size(); i_trans_energy++)
+        {
+          Float& trans_energy = trans_energies[i_trans_energy];
+          mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Graphite,sl_endo,trans_energy);
+          
+          TRACE(sl.energyKin()/eV);
+
+          sl.iteration = 0;
+          sl.simTime = 0.0*ps;
+          sl.simTimeFinal = 10.0*ps;
+          sl.simTimeSaveTrajInterval = 0.05*ps;
+
+          char id_string[1000];
+          sprintf(id_string,
+                  "%s_by_Cu%02d@%s_%s%03deV_(%01d%01d%01d)%03deV",
+                  "Cu",
+                  cluster_size,
+                  "C60",
+                  "n",
+                  int(trans_energy/eV),
+                  int(rot_axis.x),int(rot_axis.y),int(rot_axis.z),
+                  int(rot_energy/eV));
+          
+          yaatk::mkdir(id_string);
+          yaatk::chdir(id_string);
+          yaatk::text_ofstream fomde("in.mde");
+          sl.saveToMDE(fomde);
+          fomde.close();
+          yaatk::chdir("..");
+        }
+      }
+    }
+  }
+}
+
 }
 
 #endif
