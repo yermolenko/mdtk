@@ -319,6 +319,7 @@ SimLoop::execute_wo_checks()
     {
       cout << "Writing trajectory ... " ;
       writetrajXVA();
+      writetrajAccumulated();
       cout << "done. " << endl;
     };
 
@@ -463,6 +464,7 @@ SimLoop::execute_wo_checks()
     {
       cout << "Writing trajectory ... " ;
       writetrajXVA();
+      writetrajAccumulated();
       cout << "done. " << endl;
     };
   curWallTime = time(NULL);
@@ -890,6 +892,11 @@ SimLoop::writetrajXYZ()
   }
 
   os.close();
+}
+
+void
+SimLoop::writetrajAccumulated()
+{
 }
 
 void

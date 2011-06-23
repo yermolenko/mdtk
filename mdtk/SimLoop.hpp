@@ -231,6 +231,7 @@ public:
   void writetrajXVA();
   void writetrajXVA_bin();
   void writetrajXYZ();
+  void writetrajAccumulated();
   void saveToMDE(std::ostream& fo);
   void loadFromMDE(std::istream& fi);
   void loadFromMDE_OLD(std::istream& fi);
