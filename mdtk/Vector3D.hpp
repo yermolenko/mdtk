@@ -352,6 +352,26 @@ class IntVector3D
 {
 public:
   int x,y,z;
+  int& X(size_t i)
+  {
+        switch (i)
+        { 
+          case 0: return x;break;
+          case 1: return y;break;
+          case 2: return z;break;
+          default: throw;
+        };
+  }
+  const int& X(size_t i) const
+  {
+        switch (i)
+        { 
+          case 0: return x;break;
+          case 1: return y;break;
+          case 2: return z;break;
+          default: throw;
+        };
+  }
   IntVector3D(int xc, int yc, int zc);
   IntVector3D();
   IntVector3D& operator=(const int&);
