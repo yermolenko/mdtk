@@ -953,10 +953,10 @@ SimLoop::writetrajAccumulated()
     {
       for(size_t si = 0; si < stateCount; si++)
       {
-        accPrev >> tempFloat;
-        acc << tempFloat << " ";
+        accPrev >> tempInt;
+        acc << tempInt << " ";
       }
-      acc << fixed << setprecision(2) << atoms[ai]->V.X(ci)/XVA_VELOCITY_SCALE << "\n";
+      acc << atoms[ai]->PBC_count.X(ci) << "\n";
     }
   }
   for(size_t ai = 0; ai < atomsCount; ai++)
@@ -977,10 +977,10 @@ SimLoop::writetrajAccumulated()
     {
       for(size_t si = 0; si < stateCount; si++)
       {
-        accPrev >> tempInt;
-        acc << tempInt << " ";
+        accPrev >> tempFloat;
+        acc << tempFloat << " ";
       }
-      acc << atoms[ai]->PBC_count.X(ci) << "\n";
+      acc << fixed << setprecision(2) << atoms[ai]->V.X(ci)/XVA_VELOCITY_SCALE << "\n";
     }
   }
   cout << endl;
