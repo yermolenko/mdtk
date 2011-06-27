@@ -966,7 +966,7 @@ SimLoop::writetrajAccumulated()
       for(size_t si = 0; si < stateCount; si++)
       {
         accPrev >> tempFloat;
-        acc << tempFloat << " ";
+        acc << fixed << setprecision(2) << tempFloat << " ";
       }
       acc << fixed << setprecision(2) << atoms[ai]->coords.X(ci)/XVA_DISTANCE_SCALE << "\n";
     }
