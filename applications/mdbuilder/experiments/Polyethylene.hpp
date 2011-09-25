@@ -85,6 +85,108 @@ place_Ethylene(
 
 inline
 void
+place_Polyethylene_fold(
+  mdtk::SimLoop& sl,
+  Vector3D va,
+  Vector3D vb,
+  Vector3D vc
+  )
+{
+  glTranslated(0.0,0.0,+vc.z*0.3);
+
+  glPushMatrix();
+  {
+    glTranslated(((va+vb)/2.0).x *(+0.1),((va+vb)/2.0).y *(+0.1),0.0);
+
+    glRotated(45.0,0.0,0.0,1.0);
+
+    place(C_EL,sl);
+
+    glPushMatrix();
+    glTranslated(+0.3*Ao,-1.0*Ao,0.0);
+    place(H_EL,sl);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslated(-0.3*Ao,1.0*Ao,0.0);
+    place(H_EL,sl);
+    glPopMatrix();
+
+    glTranslated(0.0,0.0,-vc.z*0.7);
+
+    place(C_EL,sl);
+
+    glPushMatrix();
+    glTranslated(0.0,-1.0*Ao,0.0);
+    place(H_EL,sl);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslated( 0.0,1.0*Ao,0.0);
+    place(H_EL,sl);
+    glPopMatrix();
+  }
+  glPopMatrix();
+
+  glPushMatrix();
+  {
+    glTranslated(((va+vb)/2.0).x,((va+vb)/2.0).y,0.0);
+    glTranslated(((va+vb)/2.0).x *(+0.1),((va+vb)/2.0).y *(-0.1),0.0);
+
+    glRotated(-90.0,0.0,0.0,1.0);
+    glRotated( 45.0,0.0,0.0,1.0);
+
+    place(C_EL,sl);
+
+    glPushMatrix();
+    glTranslated(-1.0*Ao,+0.3*Ao,0.0);
+    place(H_EL,sl);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslated( 1.0*Ao,-0.3*Ao,0.0);
+    place(H_EL,sl);
+    glPopMatrix();
+
+    glTranslated(0.0,0.0,-vc.z*0.7);
+
+    place(C_EL,sl);
+
+    glPushMatrix();
+    glTranslated(-1.0*Ao,0.0,0.0);
+    place(H_EL,sl);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslated( 1.0*Ao,0.0,0.0);
+    place(H_EL,sl);
+    glPopMatrix();
+  }
+  glPopMatrix();
+
+  glTranslated(0.0,0.0,-vc.z*0.9);
+
+  glPushMatrix();
+  {
+    glTranslated(((va+vb)/2.0).x*(+0.65),((va+vb)/2.0).y*(+0.55),/*+c*0.7*/0.0);
+
+    place(C_EL,sl);
+
+    glPushMatrix();
+    glTranslated(-0.7*Ao,0.7*Ao,-0.5*Ao);
+    place(H_EL,sl);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslated(0.7*Ao,-0.7*Ao,-0.5*Ao);
+    place(H_EL,sl);
+    glPopMatrix();
+  }
+  glPopMatrix();
+}
+
+inline
+void
 place_Polyethylene_cell(
   mdtk::SimLoop& sl, 
   Vector3D va,
@@ -168,6 +270,47 @@ place_Polyethylene_lattice(
 }
 
 inline
+void
+place_Polyethylene_folds(
+  mdtk::SimLoop& sl,
+  int a_num = 8,
+  int b_num = 12,
+  int c_num = 10,
+  int cellsFromXYPlane = 0,
+  double a = 7.417*Ao,
+  double b = 4.945*Ao,
+  double c = 2.547*Ao
+  )
+{
+  glPushMatrix();
+
+  Vector3D va = Vector3D(a,0,0);
+  Vector3D vb = Vector3D(0,b,0);
+  Vector3D vc = Vector3D(0,0,c);
+
+  for(int ia = 0; ia < a_num; ia++)
+    for(int ib = 0; ib < b_num; ib++)
+      for(int ic = cellsFromXYPlane-1; ic < cellsFromXYPlane; ic++)
+      {
+        glPushMatrix();
+
+        glTranslated(
+          (va*ia+vb*ib+vc*ic).x,
+          (va*ia+vb*ib+vc*ic).y,
+          (va*ia+vb*ib+vc*ic).z
+          );
+
+        glPushMatrix();
+        place_Polyethylene_fold(sl,va,vb,vc);
+        glPopMatrix();
+
+        glPopMatrix();
+      }
+
+  glPopMatrix();
+}
+
+inline
 mdtk::SimLoop
 build_Polyethylene_lattice_without_folds(
   int a_num = 8,
@@ -192,6 +335,75 @@ build_Polyethylene_lattice_without_folds(
   quench(sl,1.0*K);
 
   removeMomentum(sl.atoms);
+
+  return sl;
+}
+
+inline
+mdtk::SimLoop
+build_Polyethylene_lattice_with_folds(
+  int a_num = 8,
+  int b_num = 12,
+  int c_num = 10,
+  bool fixBottomCellLayer = true,
+  double a = 7.417*Ao,
+  double b = 4.945*Ao,
+  double c = 2.547*Ao
+  )
+{
+  mdtk::SimLoop sl;
+  initialize_simloop(sl);
+
+  place_Polyethylene_lattice(sl,a_num,b_num,c_num,fixBottomCellLayer,2,a,b,c);
+
+  sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
+  sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
+  sl.thermalBath.dBoundary = 3.0*Ao;
+
+//  relax(sl,0.01*ps);
+//  quench(sl,1.0*K);
+
+  removeMomentum(sl.atoms);
+
+  {
+    yaatk::text_ofstream fomde("000-Polyethylene_without_folds.mde");
+    sl.saveToMDE(fomde);
+    fomde.close();
+  }
+
+  std::vector<size_t> fixedAtoms =
+    fixNotFixedAtoms(sl.atoms,0,sl.atoms.size());
+
+  {
+    yaatk::text_ofstream fomde("001-Polyethylene_without_folds-fixed.mde");
+    sl.saveToMDE(fomde);
+    fomde.close();
+  }
+
+  place_Polyethylene_folds(sl,a_num,b_num,c_num,2,a,b,c);
+
+  sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
+  sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
+  sl.thermalBath.dBoundary = 3.0*Ao;
+
+  relax_flush(sl,0.01*ps);
+//  quench(sl,1.0*K);
+
+  removeMomentum(sl.atoms);
+
+  {
+    yaatk::text_ofstream fomde("002-Polyethylene_with_folds-before-unfix.mde");
+    sl.saveToMDE(fomde);
+    fomde.close();
+  }
+
+  unfixAtoms(sl.atoms,fixedAtoms);
+
+  {
+    yaatk::text_ofstream fomde("003-Polyethylene_with_folds.mde");
+    sl.saveToMDE(fomde);
+    fomde.close();
+  }
 
   return sl;
 }

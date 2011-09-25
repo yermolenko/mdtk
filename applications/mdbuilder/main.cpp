@@ -263,12 +263,21 @@ MDBuilderWindow::draw()
     {
       mdbuilder::prepare_Graphite_by_Cu_at_C60_bombardment();
     }
-//    if (0)
+    if (0)
     {
       glLoadIdentity();
       mdtk::SimLoop sl = mdbuilder::build_Polyethylene_lattice_without_folds();
 
       yaatk::text_ofstream fomde("Polyethylene_without_folds.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
+    }
+//    if (0)
+    {
+      glLoadIdentity();
+      mdtk::SimLoop sl = mdbuilder::build_Polyethylene_lattice_with_folds(4,6,10);
+
+      yaatk::text_ofstream fomde("Polyethylene_with_folds.mde");
       sl.saveToMDE(fomde);
       fomde.close();
     }
