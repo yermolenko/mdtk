@@ -234,6 +234,31 @@ initialize_simloop(mdtk::SimLoop& sl)
   sl.initialize();
 }
 
+inline
+std::vector<size_t>
+fixNotFixedAtoms(mdtk::AtomsContainer& atoms,
+                    const size_t begin, const size_t end)
+{
+  std::vector<size_t> fixated;
+  for(size_t i = 0; i < end; i++)
+    if (!atoms[i]->isFixed())
+    {
+      atoms[i]->fix();
+      fixated.push_back(i);
+    }
+  return fixated;
+}
+
+inline
+void
+unfixAtoms(mdtk::AtomsContainer& atoms,
+              const std::vector<size_t> fixedAtoms)
+{
+  std::vector<size_t> fixated;
+  for(size_t i = 0; i < fixedAtoms.size(); i++)
+    atoms[fixedAtoms[i]]->unfix();
+}
+
 }
 
 #endif
