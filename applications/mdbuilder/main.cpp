@@ -35,6 +35,7 @@
 #include "experiments/H2.hpp"
 #include "experiments/FCC.hpp"
 #include "experiments/Graphite.hpp"
+#include "experiments/Polyethylene.hpp"
 #include "experiments/Clusters.hpp"
 
 class MDBuilderWindow : public Fl_Gl_Window
@@ -258,9 +259,18 @@ MDBuilderWindow::draw()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-//    if (0)
+    if (0)
     {
       mdbuilder::prepare_Graphite_by_Cu_at_C60_bombardment();
+    }
+//    if (0)
+    {
+      glLoadIdentity();
+      mdtk::SimLoop sl = mdbuilder::build_Polyethylene_lattice_without_folds();
+
+      yaatk::text_ofstream fomde("Polyethylene_without_folds.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
     }
   }
   exit(0);
