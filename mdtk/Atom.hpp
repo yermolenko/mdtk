@@ -98,11 +98,21 @@ public:
   void setAttributesByElementID();
 
 #define ATOMTAG_FIXED 1<<0
-bool
-isFixed()
-{
-  return (tag & ATOMTAG_FIXED);
-}
+  bool isFixed()
+    {
+      return (tag & ATOMTAG_FIXED);
+    }
+  void fix()
+    {
+      tag |= ATOMTAG_FIXED;
+      M = INFINITE_MASS;V=0.0;an=0.0;an_no_tb=0.0;
+    }
+  void unfix()
+    {
+      tag &= ~((unsigned int)ATOMTAG_FIXED);
+      setAttributesByElementID();
+      V=0.0;an=0.0;an_no_tb=0.0;
+    }
 };
 
 inline
