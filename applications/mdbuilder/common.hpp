@@ -119,6 +119,30 @@ relax_flush(mdtk::SimLoop& sl,
   yaatk::chdir("..");
 }
 
+class SimLoopDump : public SimLoop
+{
+  Float dumpConstant;
+  bool dumpEnabled;
+public:
+  bool isDumpEnabled() {return dumpEnabled;}
+  void disableDump() {dumpEnabled = false;}
+  void enableDump() {dumpEnabled = true;}
+  Float dumpConst() {return dumpConstant;}
+  void  dumpConst(Float dc) {dumpConstant = dc;}
+  SimLoopDump(Float dc = 0.95)
+    :SimLoop(),
+     dumpConstant(dc),
+     dumpEnabled(true)
+    {
+    }
+  virtual void doBeforeIteration()
+    {
+      if (dumpEnabled)
+        for(size_t i = 0; i < atoms.size(); ++i)
+          atoms[i]->V *= dumpConstant;
+    };
+};
+
 inline
 Float
 mass(const AtomsContainer& atoms)

@@ -353,7 +353,7 @@ build_Polyethylene_lattice_with_folds(
   double c = 2.547*Ao
   )
 {
-  mdtk::SimLoop sl;
+  SimLoopDump sl;
   initialize_simloop(sl);
 
   place_Polyethylene_lattice(sl,a_num,b_num,c_num,fixBottomCellLayer,2,a,b,c);
@@ -388,8 +388,19 @@ build_Polyethylene_lattice_with_folds(
   sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
   sl.thermalBath.dBoundary = 3.0*Ao;
 
+  sl.dumpConst(0.95);
   relax_flush(sl,0.05*ps);
-//  quench(sl,1.0*K);
+/*
+  sl.dumpConst(0.97);
+  relax_flush(sl,0.05*ps);
+
+  sl.dumpConst(0.99);
+  relax_flush(sl,0.05*ps);
+
+  sl.disableDump();
+  relax_flush(sl,0.05*ps);
+*/
+  quench(sl,1.0*K);
 
   removeMomentum(sl.atoms);
 
