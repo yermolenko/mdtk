@@ -113,6 +113,7 @@ place_Polyethylene_fold(
     glPopMatrix();
 
     glTranslated(0.0,0.0,-vc.z*0.7);
+    glTranslated(((va+vb)/2.0).x *(+0.3),((va+vb)/2.0).y *(+0.1),0.0);
 
     place(C_EL,sl);
 
@@ -149,6 +150,7 @@ place_Polyethylene_fold(
     glPopMatrix();
 
     glTranslated(0.0,0.0,-vc.z*0.7);
+    glTranslated(((va+vb)/2.0).x *(-0.3),((va+vb)/2.0).y *(-0.1),0.0);
 
     place(C_EL,sl);
 
