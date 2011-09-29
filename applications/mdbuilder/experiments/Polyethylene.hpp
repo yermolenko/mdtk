@@ -388,7 +388,7 @@ build_Polyethylene_lattice_with_folds(
   sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
   sl.thermalBath.dBoundary = 3.0*Ao;
 
-  relax_flush(sl,0.01*ps);
+  relax_flush(sl,0.05*ps);
 //  quench(sl,1.0*K);
 
   removeMomentum(sl.atoms);
