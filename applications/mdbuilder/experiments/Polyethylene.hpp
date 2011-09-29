@@ -113,7 +113,7 @@ place_Polyethylene_fold(
     glPopMatrix();
 
     glTranslated(0.0,0.0,-vc.z*0.7);
-    glTranslated(((va+vb)/2.0).x *(+0.3),((va+vb)/2.0).y *(+0.1),0.0);
+//    glTranslated(((va+vb)/2.0).x *(+0.3),((va+vb)/2.0).y *(+0.1),0.0);
 
     place(C_EL,sl);
 
@@ -132,7 +132,7 @@ place_Polyethylene_fold(
   glPushMatrix();
   {
     glTranslated(((va+vb)/2.0).x,((va+vb)/2.0).y,0.0);
-    glTranslated(((va+vb)/2.0).x *(+0.1),((va+vb)/2.0).y *(-0.1),0.0);
+    glTranslated(((va+vb)/2.0).x *(-0.1),((va+vb)/2.0).y *(-0.1),0.0);
 
     glRotated(-90.0,0.0,0.0,1.0);
     glRotated( 45.0,0.0,0.0,1.0);
@@ -150,7 +150,7 @@ place_Polyethylene_fold(
     glPopMatrix();
 
     glTranslated(0.0,0.0,-vc.z*0.7);
-    glTranslated(((va+vb)/2.0).x *(-0.3),((va+vb)/2.0).y *(-0.1),0.0);
+//    glTranslated(((va+vb)/2.0).x *(-0.3),((va+vb)/2.0).y *(-0.1),0.0);
 
     place(C_EL,sl);
 
@@ -170,7 +170,7 @@ place_Polyethylene_fold(
 
   glPushMatrix();
   {
-    glTranslated(((va+vb)/2.0).x*(+0.65),((va+vb)/2.0).y*(+0.55),/*+c*0.7*/0.0);
+    glTranslated(((va+vb)/2.0).x*(+0.5),((va+vb)/2.0).y*(+0.5),/*+c*0.7*/0.0);
 
     place(C_EL,sl);
 
