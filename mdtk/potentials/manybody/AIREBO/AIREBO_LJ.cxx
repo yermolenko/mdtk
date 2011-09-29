@@ -33,6 +33,16 @@ namespace mdtk
 
   Float  AIREBO::buildPairs(AtomsContainer& gl)
   {
+    std::vector<std::vector<AtomPair> > backup = rebo.pairs;
+    if (gl.size() != rebo.pairs.size()) rebo.pairs.resize(gl.size());
+    size_t iir;
+    for(iir = 0; iir < gl.size(); iir++)
+    {
+      size_t prevSize = rebo.pairs[iir].size();
+      rebo.pairs[iir].clear();
+      rebo.pairs[iir].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
+    }
+
     Float Ei = 0;
     if (gl.size() != pairs.size()) pairs.resize(gl.size());    
     size_t ii;
@@ -59,6 +69,9 @@ namespace mdtk
         {
     currentPairPtr = &sample_pair;
     ontouch_enabled = true;
+
+    rebo.currentPairPtr = &sample_pair;
+    rebo.ontouch_enabled = true;
 
       {
         Float C = Cij(atom_i, atom_j);
@@ -93,9 +106,30 @@ namespace mdtk
       }  
     currentPairPtr = NULL;
     ontouch_enabled = false;
+
+    rebo.currentPairPtr = NULL;
+    rebo.ontouch_enabled = false;
         }  
       }  
     }  
+
+    for(size_t ai = 0; ai < rebo.pairs.size(); ++ai)
+    {
+      const std::vector<AtomPair>& rebo_atom_pairs = rebo.pairs[ai];
+      std::vector<AtomPair>& atom_pairs = pairs[ai];
+      for(size_t pi = 0; pi < rebo_atom_pairs.size(); pi++)
+      {
+        const AtomPair& rebo_pair = rebo_atom_pairs[pi];
+        if (std::find(atom_pairs.begin(),atom_pairs.end(),rebo_pair)
+            == atom_pairs.end())
+        {
+          atom_pairs.push_back(rebo_pair);
+        }
+      }
+    }
+
+    rebo.pairs = backup;
+
     return Ei;
   }  
 
