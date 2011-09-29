@@ -342,6 +342,30 @@ build_Polyethylene_lattice_without_folds(
 }
 
 inline
+void
+initialize_simloop_REBO_only(mdtk::SimLoop& sl) 
+{
+  using namespace mdtk;
+
+  mdtk::FGeneral* pot = NULL;
+
+  pot = new mdtk::REBO();
+  sl.fpot.addPotential(pot);
+/*
+  pot = new mdtk::AIREBO((CREBO*)pot);
+  simloop.fpot.addPotential(pot);
+
+  pot = new mdtk::ETors();
+  simloop.fpot.addPotential(pot);
+*/
+/*
+  pot = new mdtk::Brenner(Brenner::POTENTIAL2);
+  simloop.fpot.addPotential(pot);
+*/
+  sl.initialize();
+}
+
+inline
 mdtk::SimLoop
 build_Polyethylene_lattice_with_folds(
   int a_num = 8,
@@ -354,7 +378,7 @@ build_Polyethylene_lattice_with_folds(
   )
 {
   SimLoopDump sl;
-  initialize_simloop(sl);
+  initialize_simloop_REBO_only(sl);
 
   place_Polyethylene_lattice(sl,a_num,b_num,c_num,fixBottomCellLayer,2,a,b,c);
 
