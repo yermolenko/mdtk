@@ -473,6 +473,27 @@ build_Polyethylene_lattice_with_folds(
       }
     }
     unfixAtoms(sl_with_chain.atoms,fixedAtoms);
+
+    {
+      yaatk::text_ofstream fomde("_tmp-X-relax_flush-folds-airebo-unfixed.mde");
+      sl_with_chain.saveToMDE(fomde);
+      fomde.close();
+    }
+
+    sl_with_chain.enableDump();
+
+    sl_with_chain.dumpConst(0.95);
+    relax_flush(sl_with_chain,0.05*ps,"_tmp-X-relax_flush-folds-airebo-unfixed");
+
+    sl_with_chain.dumpConst(0.97);
+    relax(sl_with_chain,0.05*ps);
+
+    sl_with_chain.dumpConst(0.99);
+    relax(sl_with_chain,0.05*ps);
+
+    sl_with_chain.disableDump();
+
+    quench(sl_with_chain,0.01*K);
   }
 
   removeMomentum(sl_with_chain.atoms);
@@ -486,8 +507,26 @@ build_Polyethylene_lattice_with_folds(
   sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
   sl.thermalBath.dBoundary = 3.0*Ao;
 
-//  relax(sl,0.01*ps);
-//  quench(sl,1.0*K);
+  {
+    yaatk::text_ofstream fomde("_tmp-X-relax_flush-FINAL.mde");
+    sl.saveToMDE(fomde);
+    fomde.close();
+  }
+
+  sl.enableDump();
+
+  sl.dumpConst(0.95);
+  relax_flush(sl,0.05*ps,"_tmp-X-relax_flush-FINAL");
+
+  sl.dumpConst(0.97);
+  relax(sl,0.05*ps);
+
+  sl.dumpConst(0.99);
+  relax(sl,0.05*ps);
+
+  sl.disableDump();
+
+  quench(sl,0.01*K);
 
   removeMomentum(sl.atoms);
 
