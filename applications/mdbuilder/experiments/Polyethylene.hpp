@@ -313,6 +313,50 @@ place_Polyethylene_folds(
 }
 
 inline
+void
+place_Polyethylene_folded_chains(
+  mdtk::SimLoop& sl,
+  const mdtk::SimLoop& sl_with_chain,
+  int a_num = 8,
+  int b_num = 12,
+  double a = 7.417*Ao,
+  double b = 4.945*Ao
+  )
+{
+  glPushMatrix();
+
+  Vector3D va = Vector3D(a,0,0);
+  Vector3D vb = Vector3D(0,b,0);
+
+  for(int ia = 0; ia < a_num; ia++)
+    for(int ib = 0; ib < b_num; ib++)
+    {
+      glPushMatrix();
+      
+      glTranslated(
+        (va*ia+vb*ib).x,
+        (va*ia+vb*ib).y,
+        (va*ia+vb*ib).z
+        );
+
+      glPushMatrix();
+      
+      for(size_t ai = 0; ai < sl_with_chain.atoms.size(); ai++)
+      {
+        const mdtk::Atom& atom = *sl_with_chain.atoms[ai];
+        REQUIRE(atom.ID == C_EL || atom.ID == H_EL);
+        place_and_inherit(sl,atom,getPosition()+atom.coords);
+      };
+
+      glPopMatrix();
+      
+      glPopMatrix();
+    }
+  
+  glPopMatrix();
+}
+
+inline
 mdtk::SimLoop
 build_Polyethylene_lattice_without_folds(
   int a_num = 8,
@@ -377,8 +421,8 @@ build_Polyethylene_lattice_with_folds(
   double c = 2.547*Ao
   )
 {
-  SimLoopDump sl;
-  initialize_simloop(sl);
+  SimLoopDump sl_with_chain;
+  initialize_simloop(sl_with_chain);
 
   {
     SimLoopDump sl_rebo;
@@ -421,17 +465,18 @@ build_Polyethylene_lattice_with_folds(
 
         quench(sl_airebo,0.01*K);
 
-        sl = sl_airebo;
+        sl_with_chain = sl_airebo;
       }
     }
-    unfixAtoms(sl.atoms,fixedAtoms);
+    unfixAtoms(sl_with_chain.atoms,fixedAtoms);
   }
 
-  removeMomentum(sl.atoms);
+  removeMomentum(sl_with_chain.atoms);
 
-  return sl;
+  SimLoopDump sl;
+  initialize_simloop(sl);
 
-  place_Polyethylene_lattice(sl,a_num,b_num,c_num,fixBottomCellLayer,2,a,b,c);
+  place_Polyethylene_folded_chains(sl,sl_with_chain,a_num,b_num,a,b);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
   sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
@@ -441,57 +486,6 @@ build_Polyethylene_lattice_with_folds(
 //  quench(sl,1.0*K);
 
   removeMomentum(sl.atoms);
-
-  {
-    yaatk::text_ofstream fomde("000-Polyethylene_without_folds.mde");
-    sl.saveToMDE(fomde);
-    fomde.close();
-  }
-
-  std::vector<size_t> fixedAtoms =
-    fixNotFixedAtoms(sl.atoms,0,sl.atoms.size());
-
-  {
-    yaatk::text_ofstream fomde("001-Polyethylene_without_folds-fixed.mde");
-    sl.saveToMDE(fomde);
-    fomde.close();
-  }
-
-  place_Polyethylene_folds(sl,a_num,b_num,c_num,2,a,b,c);
-
-  sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
-  sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
-  sl.thermalBath.dBoundary = 3.0*Ao;
-
-  sl.dumpConst(0.95);
-  relax_flush(sl,0.05*ps);
-/*
-  sl.dumpConst(0.97);
-  relax_flush(sl,0.05*ps);
-
-  sl.dumpConst(0.99);
-  relax_flush(sl,0.05*ps);
-
-  sl.disableDump();
-  relax_flush(sl,0.05*ps);
-*/
-  quench(sl,1.0*K);
-
-  removeMomentum(sl.atoms);
-
-  {
-    yaatk::text_ofstream fomde("002-Polyethylene_with_folds-before-unfix.mde");
-    sl.saveToMDE(fomde);
-    fomde.close();
-  }
-
-  unfixAtoms(sl.atoms,fixedAtoms);
-
-  {
-    yaatk::text_ofstream fomde("003-Polyethylene_with_folds.mde");
-    sl.saveToMDE(fomde);
-    fomde.close();
-  }
 
   return sl;
 }
