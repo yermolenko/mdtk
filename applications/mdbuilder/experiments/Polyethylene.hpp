@@ -435,6 +435,8 @@ build_Polyethylene_lattice_with_folds(
     {
       place_Polyethylene_folds(sl_rebo,1,1,c_num,2,a,b,c);
 
+      sl_rebo.enableDump();
+
       sl_rebo.dumpConst(0.95);
       relax(sl_rebo,0.05*ps);
 
@@ -451,6 +453,8 @@ build_Polyethylene_lattice_with_folds(
       {
         SimLoopDump sl_airebo(sl_rebo);
         initialize_simloop(sl_airebo);
+
+        sl_airebo.enableDump();
 
         sl_airebo.dumpConst(0.95);
         relax_flush(sl_airebo,0.05*ps,"_tmp-X-relax_flush-folds-airebo");
