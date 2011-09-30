@@ -378,7 +378,58 @@ build_Polyethylene_lattice_with_folds(
   )
 {
   SimLoopDump sl;
-  initialize_simloop_REBO_only(sl);
+  initialize_simloop(sl);
+
+  {
+    SimLoopDump sl_rebo;
+    initialize_simloop_REBO_only(sl_rebo);
+
+    place_Polyethylene_lattice(sl_rebo,1,1,c_num,fixBottomCellLayer,2,a,b,c);
+
+    std::vector<size_t> fixedAtoms =
+      fixNotFixedAtoms(sl_rebo.atoms,0,sl_rebo.atoms.size());
+    {
+      place_Polyethylene_folds(sl_rebo,1,1,c_num,2,a,b,c);
+
+      sl_rebo.dumpConst(0.95);
+      relax(sl_rebo,0.05*ps);
+
+      sl_rebo.dumpConst(0.97);
+      relax(sl_rebo,0.05*ps);
+
+      sl_rebo.dumpConst(0.99);
+      relax(sl_rebo,0.05*ps);
+
+      sl_rebo.disableDump();
+
+      quench(sl_rebo,0.01*K);
+
+      {
+        SimLoopDump sl_airebo(sl_rebo);
+        initialize_simloop(sl_airebo);
+
+        sl_airebo.dumpConst(0.95);
+        relax_flush(sl_airebo,0.05*ps,"_tmp-X-relax_flush-folds-airebo");
+
+        sl_airebo.dumpConst(0.97);
+        relax(sl_airebo,0.05*ps);
+
+        sl_airebo.dumpConst(0.99);
+        relax(sl_airebo,0.05*ps);
+
+        sl_airebo.disableDump();
+
+        quench(sl_airebo,0.01*K);
+
+        sl = sl_airebo;
+      }
+    }
+    unfixAtoms(sl.atoms,fixedAtoms);
+  }
+
+  removeMomentum(sl.atoms);
+
+  return sl;
 
   place_Polyethylene_lattice(sl,a_num,b_num,c_num,fixBottomCellLayer,2,a,b,c);
 
