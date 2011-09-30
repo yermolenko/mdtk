@@ -61,6 +61,17 @@ place(ElementID id, mdtk::SimLoop& sl, Vector3D pos = getPosition())
 }
 
 inline
+Atom*
+place_and_inherit(mdtk::SimLoop& sl, const Atom& base,
+             Vector3D pos = getPosition())
+{
+  Atom* a = new Atom(base);
+  a->coords = pos;
+  sl.atoms.push_back(a);
+  return a;
+}
+
+inline
 void
 quench(mdtk::SimLoop& sl, 
        Float forTemp = 1.0*K,
