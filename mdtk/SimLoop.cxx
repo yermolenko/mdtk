@@ -88,6 +88,22 @@ SimLoop::SimLoop(const SimLoop &c)
     ,CPUTimeUsed_prev(0)
     ,CPUTimeUsed_total(0)
 {
+  verboseTrace = true;
+
+  timeaccel_ = 1.0*Ao;
+
+  dt_ = 1e-20; // initial dt_, it changes adaptive during simulation
+//  dt_ = 1e-17;
+
+  iterationFlushStateInterval = 10;
+  simTimeFinal = 4.0*ps;
+
+  simTimeSaveTrajInterval = 0.1*ps;
+
+  check.checkEnergy = true;
+  check.checkForce = true;
+  check.checkEnergyAfter = 1; // dummy, will be removed soon
+
   setPBC(c.getPBC());
   thermalBath = c.thermalBath;
   for(size_t i = 0; i < c.atoms_.size(); i++)
