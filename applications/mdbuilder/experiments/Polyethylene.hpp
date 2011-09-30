@@ -504,8 +504,6 @@ build_Polyethylene_lattice_with_folds(
   place_Polyethylene_folded_chains(sl,sl_with_chain,a_num,b_num,a,b);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
-  sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
-  sl.thermalBath.dBoundary = 3.0*Ao;
 
   {
     yaatk::text_ofstream fomde("_tmp-X-relax_flush-FINAL.mde");
@@ -527,6 +525,9 @@ build_Polyethylene_lattice_with_folds(
   sl.disableDump();
 
   quench(sl,0.01*K);
+
+  sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
+  sl.thermalBath.dBoundary = 3.0*Ao;
 
   removeMomentum(sl.atoms);
 
