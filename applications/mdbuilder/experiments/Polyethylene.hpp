@@ -528,6 +528,7 @@ build_Polyethylene_lattice_with_folds(
 
   sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
   sl.thermalBath.dBoundary = 3.0*Ao;
+  sl.thermalBath.zMinOfFreeZone = -2.0*Ao;
 
   removeMomentum(sl.atoms);
 
