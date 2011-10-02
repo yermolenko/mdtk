@@ -601,6 +601,42 @@ prepare_Graphite_by_Cu_at_C60_bombardment()
   }
 }
 
+inline
+mdtk::SimLoop
+build_Cluster_landed_on_Polyethylene(
+  int a_num,
+  int b_num,
+  int c_num,
+  ElementID id,
+  int clusterSize
+  )
+{
+  mdtk::SimLoop sl_Polyethylene = mdbuilder::build_Polyethylene_lattice_with_folds(a_num,b_num,c_num);
+  mdtk::SimLoop sl_Cluster = mdbuilder::build_cluster(id,clusterSize);
+  removeMomentum(sl_Cluster.atoms);
+
+  mdtk::SimLoop/*Dump*/ sl = mdbuilder::build_target_by_cluster_bombardment(sl_Polyethylene,sl_Cluster,0.1*eV*clusterSize);
+          
+  TRACE(sl.energyKin()/eV);
+
+  {
+    yaatk::text_ofstream fomde("_tmp-X-relax_flush-landing.mde");
+    sl.saveToMDE(fomde);
+    fomde.close();
+  }
+
+//  sl.enableDump();
+
+//  sl.dumpConst(0.95);
+  relax_flush(sl,10.0*ps,"_tmp-X-relax_flush-landing");
+
+//  sl.disableDump();
+
+//  quench(sl,0.01*K);
+
+  return sl;
+}
+
 }
 
 #endif

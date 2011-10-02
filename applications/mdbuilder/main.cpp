@@ -272,10 +272,19 @@ MDBuilderWindow::draw()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-//    if (0)
+    if (0)
     {
       glLoadIdentity();
       mdtk::SimLoop sl = mdbuilder::build_Polyethylene_lattice_with_folds(4,6,10);
+
+      yaatk::text_ofstream fomde("Polyethylene_with_folds.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
+    }
+//    if (0)
+    {
+      glLoadIdentity();
+      mdtk::SimLoop sl = mdbuilder::build_Cluster_landed_on_Polyethylene(4,6,6,Cu_EL,1);
 
       yaatk::text_ofstream fomde("Polyethylene_with_folds.mde");
       sl.saveToMDE(fomde);
