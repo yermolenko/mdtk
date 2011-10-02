@@ -284,7 +284,7 @@ MDBuilderWindow::draw()
 //    if (0)
     {
       glLoadIdentity();
-      mdtk::SimLoop sl = mdbuilder::build_Cluster_landed_on_Polyethylene(4,6,6,Cu_EL,1);
+      mdtk::SimLoop sl = mdbuilder::build_Cluster_landed_on_Polyethylene(4,6,6,Cu_EL,13);
 
       yaatk::text_ofstream fomde("Polyethylene_with_folds.mde");
       sl.saveToMDE(fomde);
