@@ -615,7 +615,7 @@ build_Cluster_landed_on_Polyethylene(
   mdtk::SimLoop sl_Cluster = mdbuilder::build_cluster(id,clusterSize);
   removeMomentum(sl_Cluster.atoms);
 
-  mdtk::SimLoopDump sl = mdbuilder::build_target_by_cluster_bombardment(sl_Polyethylene,sl_Cluster,0.1*eV*clusterSize);
+  mdtk::SimLoop/*Dump*/ sl = mdbuilder::build_target_by_cluster_bombardment(sl_Polyethylene,sl_Cluster,0.1*eV*clusterSize);
           
   TRACE(sl.energyKin()/eV);
 
@@ -625,17 +625,14 @@ build_Cluster_landed_on_Polyethylene(
     fomde.close();
   }
 
-  std::vector<size_t> fixedAtoms = fixCHatoms(sl,0,sl.atoms.size());
+//  sl.enableDump();
 
-  sl.dumpEnable();
-  relax_flush(sl,10.0*ps,"_tmp-X-relax_flush-landing");
-  sl.dumpDisable();
-
-  unfixAtoms(sl.atoms,fixedAtoms);
-
+//  sl.dumpConst(0.95);
   relax_flush(sl,10.0*ps,"_tmp-X-relax_flush-landing");
 
-  quench(sl,0.01*K);
+//  sl.disableDump();
+
+//  quench(sl,0.01*K);
 
   return sl;
 }
