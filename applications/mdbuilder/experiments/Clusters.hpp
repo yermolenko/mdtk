@@ -615,7 +615,7 @@ build_Cluster_landed_on_Polyethylene(
   mdtk::SimLoop sl_Cluster = mdbuilder::build_cluster(id,clusterSize);
   removeMomentum(sl_Cluster.atoms);
 
-  mdtk::SimLoopDump sl = mdbuilder::build_target_by_cluster_bombardment(sl_Polyethylene,sl_Cluster,0.1*eV*clusterSize);
+  mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Polyethylene,sl_Cluster,0.2*eV*clusterSize);
           
   TRACE(sl.energyKin()/eV);
 
@@ -625,15 +625,19 @@ build_Cluster_landed_on_Polyethylene(
     fomde.close();
   }
 
-  std::vector<size_t> fixedAtoms = fixCHatoms(sl,0,sl.atoms.size());
 
-  sl.dumpEnable();
-  relax_flush(sl,10.0*ps,"_tmp-X-relax_flush-landing");
-  sl.dumpDisable();
+  std::vector<size_t> fixedAtoms = fixUnfixedCHAtoms(sl.atoms,0,sl.atoms.size());
+  {
+    Float tb_zMin_bak = sl.thermalBath.zMin;
+    sl.thermalBath.zMin = -1.0*Ao;
 
+    relax_flush(sl,5.0*ps,"_tmp-X-landing-fixed-CH-relax_flush");
+
+    sl.thermalBath.zMin = tb_zMin_bak;
+  }
   unfixAtoms(sl.atoms,fixedAtoms);
 
-  relax_flush(sl,10.0*ps,"_tmp-X-relax_flush-landing");
+  relax_flush(sl,5.0*ps,"_tmp-X-landing-unfixed-CH-relax_flush");
 
   quench(sl,0.01*K);
 

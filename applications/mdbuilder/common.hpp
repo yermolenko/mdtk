@@ -285,6 +285,22 @@ fixNotFixedAtoms(mdtk::AtomsContainer& atoms,
 }
 
 inline
+std::vector<size_t>
+fixUnfixedCHAtoms(mdtk::AtomsContainer& atoms,
+           const size_t begin, const size_t end)
+{
+  std::vector<size_t> fixated;
+  for(size_t i = 0; i < end; i++)
+    if (!atoms[i]->isFixed())
+      if (atoms[i]->ID == C_EL || atoms[i]->ID == H_EL)
+      {
+        atoms[i]->fix();
+        fixated.push_back(i);
+      }
+  return fixated;
+}
+
+inline
 void
 unfixAtoms(mdtk::AtomsContainer& atoms,
               const std::vector<size_t> fixedAtoms)
