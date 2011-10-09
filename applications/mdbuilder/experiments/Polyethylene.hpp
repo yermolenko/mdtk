@@ -457,7 +457,7 @@ build_Polyethylene_lattice_with_folds(
         sl_airebo.enableDump();
 
         sl_airebo.dumpConst(0.95);
-        relax_flush(sl_airebo,0.05*ps,"_tmp-X-relax_flush-folds-airebo");
+        relax/*_flush*/(sl_airebo,0.05*ps,"_tmp-X-relax_flush-folds-airebo");
 
         sl_airebo.dumpConst(0.97);
         relax(sl_airebo,0.05*ps);
@@ -483,7 +483,7 @@ build_Polyethylene_lattice_with_folds(
     sl_with_chain.enableDump();
 
     sl_with_chain.dumpConst(0.95);
-    relax_flush(sl_with_chain,0.05*ps,"_tmp-X-relax_flush-folds-airebo-unfixed");
+    relax/*_flush*/(sl_with_chain,0.05*ps,"_tmp-X-relax_flush-folds-airebo-unfixed");
 
     sl_with_chain.dumpConst(0.97);
     relax(sl_with_chain,0.05*ps);
@@ -514,7 +514,7 @@ build_Polyethylene_lattice_with_folds(
   sl.enableDump();
 
   sl.dumpConst(0.95);
-  relax_flush(sl,0.05*ps,"_tmp-X-relax_flush-FINAL");
+  relax/*_flush*/(sl,0.05*ps,"_tmp-X-relax_flush-FINAL");
 
   sl.dumpConst(0.97);
   relax(sl,0.05*ps);

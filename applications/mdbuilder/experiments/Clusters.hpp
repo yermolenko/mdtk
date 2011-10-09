@@ -372,7 +372,7 @@ add_rotational_motion(mdtk::SimLoop& sl,
 
   TRACE(sl.energyKin()/eV);
   sl.thermalBath.zMin = +100000.0*Ao;
-  relax_flush(sl,0.2*ps);
+  relax/*_flush*/(sl,0.2*ps);
   TRACE(sl.energyKin()/eV);
   removeMomentum(sl.atoms);
   TRACE(sl.energyKin()/eV);
@@ -631,13 +631,13 @@ build_Cluster_landed_on_Polyethylene(
     Float tb_zMin_bak = sl.thermalBath.zMin;
     sl.thermalBath.zMin = -1.0*Ao;
 
-    relax_flush(sl,5.0*ps,"_tmp-X-landing-fixed-CH-relax_flush");
+    relax/*_flush*/(sl,5.0*ps,"_tmp-X-landing-fixed-CH-relax_flush");
 
     sl.thermalBath.zMin = tb_zMin_bak;
   }
   unfixAtoms(sl.atoms,fixedAtoms);
 
-  relax_flush(sl,5.0*ps,"_tmp-X-landing-unfixed-CH-relax_flush");
+  relax/*_flush*/(sl,5.0*ps,"_tmp-X-landing-unfixed-CH-relax_flush");
 
   quench(sl,0.01*K);
 
