@@ -36,7 +36,7 @@ class Atom;
 typedef std::pair<int,int> AtomPair;
 
 enum ElementID 
-{H_EL = 1, C_EL = 12, Cu_EL = 64, Ag_EL = 108, Au_EL = 197, Ar_EL = 40, DUMMY_EL = -1};
+{H_EL = 1, C_EL = 12, Cu_EL = 64, Ag_EL = 108, Au_EL = 197, Ar_EL = 40, Xe_EL = 131, DUMMY_EL = -1};
 
 #define INFINITE_MASS 1.0e100*mdtk::amu
 
@@ -127,6 +127,7 @@ Atom::setAttributesByElementID()
     case Ag_EL : Z =  47.0*e; M =  107.8682*amu; break;
     case Au_EL : Z =  79.0*e; M =  196.96654*amu; break;
     case Ar_EL : Z =  18.0*e; M =  40.0*amu; break;
+    case Xe_EL : Z =  54.0*e; M =  131.293*amu; break;
     case DUMMY_EL : break;
   }
 }
