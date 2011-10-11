@@ -620,20 +620,17 @@ prepare_Graphite_by_Cu_at_C60_bombardment()
 
 inline
 mdtk::SimLoop
-build_Cluster_landed_on_Polyethylene(
-  int a_num,
-  int b_num,
-  int c_num,
+build_Cluster_Landed_on_Substrate(
+  const mdtk::SimLoop sl_Substrate,
   ElementID id,
   int clusterSize
   )
 {
-  mdtk::SimLoop sl_Polyethylene = mdbuilder::build_Polyethylene_lattice_with_folds(a_num,b_num,c_num);
   mdtk::SimLoop sl_Cluster = mdbuilder::build_cluster(id,clusterSize);
   removeMomentum(sl_Cluster.atoms);
 
-  mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Polyethylene,sl_Cluster,0.2*eV*clusterSize);
-          
+  mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Substrate,sl_Cluster,0.2*eV*clusterSize);
+
   TRACE(sl.energyKin()/eV);
 
   {
