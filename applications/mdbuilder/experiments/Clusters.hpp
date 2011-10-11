@@ -629,7 +629,9 @@ build_Cluster_Landed_on_Substrate(
   mdtk::SimLoop sl_Cluster = mdbuilder::build_cluster(id,clusterSize);
   removeMomentum(sl_Cluster.atoms);
 
-  mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Substrate,sl_Cluster,0.2*eV*clusterSize);
+  mdtk::SimLoop sl;
+  initialize_simloop(sl);
+  sl = mdbuilder::build_target_by_cluster_bombardment(sl_Substrate,sl_Cluster,0.2*eV*clusterSize);
 
   TRACE(sl.energyKin()/eV);
 
