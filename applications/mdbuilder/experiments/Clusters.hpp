@@ -658,6 +658,219 @@ build_Cluster_Landed_on_Substrate(
   return sl;
 }
 
+inline
+void
+bomb_Cluster_with_Ions(
+  std::string dirname,
+  const mdtk::SimLoop& target,
+  std::vector<size_t> clusterAtomIndices,
+  ElementID ionElement,
+  Float ionEnergy,
+  Float halo,
+  size_t numberOfImpacts = 1024
+  )
+{
+  yaatk::mkdir(dirname.c_str());
+  yaatk::chdir(dirname.c_str());
+
+  mdtk::SimLoop sl(target);
+
+  std::ofstream rngout("rng.out");
+  REQUIRE(rngout != NULL);
+  std::ofstream rngNOTout("rng.NOT.out");
+  REQUIRE(rngNOTout != NULL);
+
+  TRACE(clusterAtomIndices.size());
+  REQUIRE(clusterAtomIndices.size() > 0);
+
+  for(size_t i = 0; i < clusterAtomIndices.size(); i++)
+  {
+    TRACE(i);
+    Atom& clusterAtom = *sl.atoms[clusterAtomIndices[i]];
+
+    clusterAtom.apply_PBC = false;
+    clusterAtom.apply_ThermalBath = false;
+  }
+
+  const Atom& clusterAtom = *target.atoms[clusterAtomIndices[0]];
+
+  Float clusterXMax = clusterAtom.coords.x;
+  Float clusterXMin = clusterAtom.coords.x;
+  Float clusterYMax = clusterAtom.coords.y;
+  Float clusterYMin = clusterAtom.coords.y;
+  Float clusterZMax = clusterAtom.coords.z;
+  Float clusterZMin = clusterAtom.coords.z;
+
+  for(size_t i = 0; i < clusterAtomIndices.size(); i++)
+  {
+    TRACE(i);
+    const Atom& clusterAtom = *target.atoms[clusterAtomIndices[i]];
+
+    if (clusterAtom.coords.x > clusterXMax)
+      clusterXMax = clusterAtom.coords.x;
+    if (clusterAtom.coords.x < clusterXMin)
+      clusterXMin = clusterAtom.coords.x;
+    if (clusterAtom.coords.y > clusterYMax)
+      clusterYMax = clusterAtom.coords.y;
+    if (clusterAtom.coords.y < clusterYMin)
+      clusterYMin = clusterAtom.coords.y;
+    if (clusterAtom.coords.z > clusterZMax)
+      clusterZMax = clusterAtom.coords.z;
+    if (clusterAtom.coords.z < clusterZMin)
+      clusterZMin = clusterAtom.coords.z;
+  }
+
+  clusterXMin -= halo;
+  clusterXMax += halo;
+  clusterYMin -= halo;
+  clusterYMax += halo;
+  Float a = clusterXMax - clusterXMin;
+  Float b = clusterYMax - clusterYMin;
+
+  gsl_qrng * coord2d_qrng = gsl_qrng_alloc (/*gsl_qrng_sobol*/ gsl_qrng_niederreiter_2, 2);
+  REQUIRE(coord2d_qrng != NULL);
+
+  yaatk::mkdir("dataset");
+  yaatk::chdir("dataset");
+
+  for(int trajIndex = 0; trajIndex < numberOfImpacts; trajIndex++)
+  {
+    Float bombX = 0.0;
+    Float bombY = 0.0;
+    bool allowBomb = false;
+    Float cell_part_x;
+    Float cell_part_y;
+    do
+    {
+      double v[2];
+      gsl_qrng_get (coord2d_qrng, v);
+      cell_part_x = v[0];
+      cell_part_y = v[1];
+
+      allowBomb = false;
+      for(size_t i = 0; i < clusterAtomIndices.size(); i++)
+      {
+        const Atom& clusterAtom = *target.atoms[clusterAtomIndices[i]];
+
+        bombX = clusterXMin + cell_part_x*(a+b);
+        bombY = clusterYMin + cell_part_y*(a+b);
+
+        if (distance(clusterAtom.coords,
+                     Vector3D(bombX,bombY,clusterAtom.coords.z))
+            < halo)
+        {
+          allowBomb = true; break;
+        }
+      }
+
+      if ((cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) || !allowBomb)
+        rngNOTout << cell_part_x << " " << cell_part_y << "\n";
+
+    }while ( (cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) || !allowBomb);
+    rngout << cell_part_x << " " << cell_part_y << "\n";
+
+    Atom* projectile
+      = new Atom(ionElement,
+                 Vector3D(bombX,bombY,clusterZMin-5.5*Ao));
+
+    projectile->V = Vector3D(0,0,sqrt(2.0*ionEnergy/(projectile->M)));
+    projectile->apply_PBC=false;
+    projectile->apply_ThermalBath=false;
+    sl.atoms.push_back(projectile);
+
+    char trajDirName[1024];
+    sprintf(trajDirName,"%08d",trajIndex);
+    yaatk::mkdir(trajDirName);
+    yaatk::chdir(trajDirName);
+
+    sl.simTime = 0.0*ps;
+    sl.simTimeFinal = 10.0*ps;
+    sl.simTimeSaveTrajInterval = 0.1*ps;
+
+    yaatk::text_ofstream fomde("in.mde");
+    sl.saveToMDE(fomde);
+    fomde.close();
+    yaatk::chdir("..");
+
+    sl.atoms.resize(sl.atoms.size()-1);
+    delete projectile;
+  }
+
+  yaatk::chdir("..");
+
+  rngout.close();
+  rngNOTout.close();
+  gsl_qrng_free (coord2d_qrng);
+
+  yaatk::chdir("..");
+}
+
+inline
+void
+bomb_MetalCluster_on_Polyethylene_with_Ions(
+  int a_num,
+  int b_num,
+  int c_num,
+  std::vector<int> clusterSizes,
+  std::vector<ElementID> clusterElements,
+  std::vector<ElementID> ionElements,
+  std::vector<Float> ionEnergies
+  )
+{
+  mdtk::SimLoop sl_Polyethylene =
+    mdbuilder::build_Polyethylene_lattice_with_folds(a_num,b_num,c_num);
+  for(size_t clusterElementIndex = 0;
+      clusterElementIndex < clusterElements.size();
+      ++clusterElementIndex)
+  {
+    ElementID clusterElement = clusterElements[clusterElementIndex];
+    for(size_t sizeIndex = 0;
+        sizeIndex < clusterSizes.size();
+        ++sizeIndex)
+    {
+      int clusterSize = clusterSizes[sizeIndex];
+      mdtk::SimLoop sl_Landed =
+        build_Cluster_Landed_on_Substrate(sl_Polyethylene,
+                                          clusterElement,
+                                          clusterSize);
+      for(size_t ionEnergyIndex = 0;
+          ionEnergyIndex < ionEnergies.size();
+          ++ionEnergyIndex)
+      {
+        Float ionEnergy = ionEnergies[ionEnergyIndex];
+        for(size_t ionElementIndex = 0;
+            ionElementIndex < ionElements.size();
+            ++ionElementIndex)
+        {
+          ElementID ionElement = ionElements[ionElementIndex];
+
+          char id_string[1000];
+          sprintf(id_string,
+                  "%s%03d_on_PE_by_%s_%04deV",
+                  ElementIDtoString(clusterElement).c_str(),
+                  clusterSize,
+                  ElementIDtoString(ionElement).c_str(),
+                  int(ionEnergy/eV));
+          std::string dirname(id_string);
+
+          Float halo = 5.5*Ao;
+
+          std::vector<size_t> clusterAtomIndices;
+          for(size_t ai = 0; ai < sl_Landed.atoms.size(); ++ai)
+            if (sl_Landed.atoms[ai]->ID == clusterElement)
+              clusterAtomIndices.push_back(ai);
+
+          bomb_Cluster_with_Ions(dirname,
+                                 sl_Landed,
+                                 clusterAtomIndices,
+                                 ionElement, ionEnergy,
+                                 halo);
+        }
+      }
+    }
+  }
+}
+
 }
 
 #endif

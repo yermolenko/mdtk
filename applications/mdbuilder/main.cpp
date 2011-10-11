@@ -284,11 +284,29 @@ MDBuilderWindow::draw()
 //    if (0)
     {
       glLoadIdentity();
-      mdtk::SimLoop sl = mdbuilder::build_Cluster_landed_on_Polyethylene(4,6,6,Cu_EL,13);
-
-      yaatk::text_ofstream fomde("Polyethylene_with_folds.mde");
-      sl.saveToMDE(fomde);
-      fomde.close();
+      std::vector<int> clusterSizes;
+      clusterSizes.push_back(1);
+      clusterSizes.push_back(13);
+      clusterSizes.push_back(27);
+      clusterSizes.push_back(39);
+//      clusterSizes.push_back(75);
+//      clusterSizes.push_back(195);
+      std::vector<ElementID> clusterElements;
+      clusterElements.push_back(Cu_EL);
+//      clusterElements.push_back(Au_EL);
+      std::vector<ElementID> ionElements;
+      ionElements.push_back(Ar_EL);
+      ionElements.push_back(Xe_EL);
+      std::vector<Float> ionEnergies;
+      ionEnergies.push_back(100*eV);
+      ionEnergies.push_back(200*eV);
+      ionEnergies.push_back(300*eV);
+      ionEnergies.push_back(400*eV);
+      mdbuilder::bomb_MetalCluster_on_Polyethylene_with_Ions(4,6,10,
+                                                             clusterSizes,
+                                                             clusterElements,
+                                                             ionElements,
+                                                             ionEnergies);
     }
   }
   exit(0);
