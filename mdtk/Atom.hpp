@@ -123,10 +123,10 @@ Atom::setAttributesByElementID()
   {
     case H_EL  : Z =   1.0*e; M =   1.0*amu; break;
     case C_EL  : Z =   6.0*e; M =  12.0*amu; break;
-    case Cu_EL : Z =  29.0*e; M =  64.0*amu; break;
-    case Ag_EL : Z =  47.0*e; M =  107.8682*amu; break;
-    case Au_EL : Z =  79.0*e; M =  196.96654*amu; break;
-    case Ar_EL : Z =  18.0*e; M =  40.0*amu; break;
+    case Cu_EL : Z =  29.0*e; M =  63.546*amu; break;
+    case Ag_EL : Z =  47.0*e; M =  107.868*amu; break;
+    case Au_EL : Z =  79.0*e; M =  196.967*amu; break;
+    case Ar_EL : Z =  18.0*e; M =  39.948*amu; break;
     case Xe_EL : Z =  54.0*e; M =  131.293*amu; break;
     case DUMMY_EL : break;
   }
