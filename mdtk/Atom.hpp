@@ -38,6 +38,26 @@ typedef std::pair<int,int> AtomPair;
 enum ElementID 
 {H_EL = 1, C_EL = 12, Cu_EL = 64, Ag_EL = 108, Au_EL = 197, Ar_EL = 40, Xe_EL = 131, DUMMY_EL = -1};
 
+inline
+std::string
+ElementIDtoString(ElementID id)
+{
+  std::string str;
+  switch (id)
+  {
+  case H_EL  : str = "H"; break;
+  case C_EL  : str = "C"; break;
+  case Cu_EL : str = "Cu"; break;
+  case Ag_EL : str = "Ag"; break;
+  case Au_EL : str = "Au"; break;
+  case Ar_EL : str = "Ar"; break;
+  case Xe_EL : str = "Xe"; break;
+  case DUMMY_EL :
+  default : Exception("Unknown element");
+  }
+  return str;
+}
+
 #define INFINITE_MASS 1.0e100*mdtk::amu
 
 const int EL_ID_size = 200;
