@@ -1167,11 +1167,11 @@ SimLoop::loadFromMDE_OLD(std::istream& fi)
 }
 
 void
-SimLoop::heatUpEveryAtom(Float upEnergy)
+SimLoop::heatUpEveryAtom(Float upEnergy, gsl_rng* rng)
 {
   for(size_t i = 0; i < atoms_.size(); i++)
   {
-    Vector3D vn(rand()/Float(RAND_MAX)-1.0,rand()/Float(RAND_MAX)-1.0,rand()/Float(RAND_MAX)-1.0);    
+    Vector3D vn(gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0);
     vn.normalize();
   
     atoms_[i]->V = vn*sqrt(2.0*upEnergy/atoms_[i]->M);
@@ -1179,11 +1179,11 @@ SimLoop::heatUpEveryAtom(Float upEnergy)
 }  
 
 void
-SimLoop::displaceEveryAtom(Float dist)
+SimLoop::displaceEveryAtom(Float dist, gsl_rng* rng)
 {
   for(size_t i = 0; i < atoms_.size(); i++)
   {
-    Vector3D vn(rand()/Float(RAND_MAX)-1.0,rand()/Float(RAND_MAX)-1.0,rand()/Float(RAND_MAX)-1.0);    
+    Vector3D vn(gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0);
     vn.normalize();
   
     TRACE(vn*dist/Ao);

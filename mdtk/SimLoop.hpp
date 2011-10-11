@@ -23,6 +23,9 @@
 #ifndef mdtk_SimLoop_hpp
 #define mdtk_SimLoop_hpp
 
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_qrng.h>
+
 #include <mdtk/config.hpp>
 #include <mdtk/tools.hpp>
 #include <mdtk/Vector3D.hpp>
@@ -239,8 +242,8 @@ public:
   FProxy fpot;
 public:
   double getRcutoff() {return fpot.getRcutoff();}
-  void heatUpEveryAtom(Float upEnergy);
-  void displaceEveryAtom(Float dist);
+  void heatUpEveryAtom(Float upEnergy, gsl_rng* rng);
+  void displaceEveryAtom(Float dist, gsl_rng* rng);
 private:
 private:
   double CPUTimeUsed_prev;

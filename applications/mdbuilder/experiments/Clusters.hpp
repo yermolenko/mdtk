@@ -23,6 +23,9 @@
 #ifndef MDBUILDER_Clusters_HPP
 #define MDBUILDER_Clusters_HPP
 
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_qrng.h>
+
 #include "../common.hpp"
 
 namespace mdbuilder
@@ -92,7 +95,7 @@ checkOnEnergyPotMin(SimLoop& simloop,Float& minPotEnergy)
 
 inline
 Float
-optimize_single(SimLoop *modloop)
+optimize_single(SimLoop *modloop, gsl_rng* rng)
 {
   const Float ENERGYINF = 1e6*eV;
 
@@ -116,7 +119,7 @@ optimize_single(SimLoop *modloop)
     modloop->dt_ = 1e-20;
     modloop->iteration = 0;
     cerr << "Heating up every atom to " << maxHeatUpEnergy/mdtk::eV << " eV" << std::endl;
-    modloop->heatUpEveryAtom(maxHeatUpEnergy);
+    modloop->heatUpEveryAtom(maxHeatUpEnergy, rng);
     TRACE(modloop->getPBC());
     int retval;
     cerr << "Releasing..." << std::endl;
@@ -198,7 +201,7 @@ findMinMax(mdtk::AtomsContainer& atoms, Float xm[3][2], size_t xmi[3][2])
 
 inline
 void 
-add1atom(mdtk::AtomsContainer& atoms, ElementID id)
+add1atom(mdtk::AtomsContainer& atoms, ElementID id, gsl_rng* r)
 {
   Float  xm[3][2];
   size_t xmi[3][2];
@@ -224,8 +227,8 @@ add1atom(mdtk::AtomsContainer& atoms, ElementID id)
     }
   }
 
-  xi = rand()%3;
-  xs = rand()%2;
+  xi = gsl_rng_get(r)%3;
+  xs = gsl_rng_get(r)%2;
 
   Float sign = (xs==0)?-1:+1;
 
@@ -241,9 +244,9 @@ add1atom(mdtk::AtomsContainer& atoms, ElementID id)
   mdtk::Atom* newAtom = new Atom;
   newAtom->ID  = id;
   newAtom->setAttributesByElementID();
-  Vector3D vn(rand()/Float(RAND_MAX),
-              rand()/Float(RAND_MAX),
-              rand()/Float(RAND_MAX));    
+  Vector3D vn(gsl_rng_uniform(r),
+              gsl_rng_uniform(r),
+              gsl_rng_uniform(r));
   vn.normalize();
   
   Vector3D dv(0,0,0);
@@ -263,6 +266,18 @@ inline
 SimLoop
 build_cluster(ElementID id, int clusterSize)
 {
+  const gsl_rng_type * T;
+  gsl_rng * r;
+
+  T = gsl_rng_ranlxd2;
+  r = gsl_rng_alloc (T);
+  REQUIRE(r != NULL);
+
+  gsl_rng_set(r, 123);
+
+  REQUIRE(gsl_rng_min(r) == 0);
+  REQUIRE(gsl_rng_max(r) > 1000);
+
   mdtk::SimLoop sl;
   initialize_simloop(sl);
 
@@ -274,7 +289,7 @@ build_cluster(ElementID id, int clusterSize)
   std::ofstream foGlobal("energy.min.all",std::ios::app); 
 
   if (sl.atoms.size() > 0)
-    add1atom(sl.atoms_,id);
+    add1atom(sl.atoms_,id,r);
   else
     add1atomInit(sl.atoms_, id);
 
@@ -291,7 +306,7 @@ build_cluster(ElementID id, int clusterSize)
     yaatk::mkdir(dirname);
     yaatk::chdir(dirname);
 
-    Float minPotEnergyOf = optimize_single(&sl);
+    Float minPotEnergyOf = optimize_single(&sl, r);
 
     foGlobal << std::setw (10) << sl.atoms_.size() << " "
              << std::setw (20) << minPotEnergyOf/mdtk::eV << " "
@@ -300,12 +315,14 @@ build_cluster(ElementID id, int clusterSize)
     yaatk::chdir("..");
 
     if (atomsCount < clusterSize)
-      add1atom(sl.atoms_, id);
+      add1atom(sl.atoms_, id, r);
   }
 
   foGlobal.close(); 
 
   yaatk::chdir("..");
+
+  gsl_rng_free (r);
 
   return sl;
 }
