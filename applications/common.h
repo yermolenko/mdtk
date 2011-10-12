@@ -41,15 +41,6 @@ setupPotentials(mdtk::SimLoop& simloop)
   mdtk::FGeneral* pot = NULL;
 
   pot = new mdtk::FBZL(Rcutoff(5.0*Ao,5.5*Ao));
-  pot->handledElements.clear();
-  pot->handledElementPairs.clear();
-  pot->handledElementPairs.insert(std::make_pair(Ar_EL,C_EL));
-  pot->handledElementPairs.insert(std::make_pair(Ar_EL,H_EL));
-  pot->handledElementPairs.insert(std::make_pair(C_EL,Ar_EL));
-  pot->handledElementPairs.insert(std::make_pair(H_EL,Ar_EL));
-  pot->handledElementPairs.insert(std::make_pair(Ar_EL,Ar_EL));
-  pot->handledElementPairs.insert(std::make_pair(Ar_EL,Cu_EL));
-  pot->handledElementPairs.insert(std::make_pair(Cu_EL,Ar_EL));
   simloop.fpot.addPotential(pot);
 
   pot = new mdtk::FLJ(Rcutoff(5.0*Ao,5.5*Ao));

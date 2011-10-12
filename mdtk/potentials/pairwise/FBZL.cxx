@@ -1,7 +1,7 @@
 /*
    The Ziegler-Biersack-Littmark interatomic potential implementation.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -35,14 +35,50 @@ FBZL::FBZL(Rcutoff rcutoff):
   FPairwise(rcutoff),
   AB_(0.53e-8)
 {
-  handledElementPairs.insert(std::make_pair(Ar_EL,C_EL));
-  handledElementPairs.insert(std::make_pair(Ar_EL,H_EL));
-  handledElementPairs.insert(std::make_pair(C_EL,Ar_EL));
-  handledElementPairs.insert(std::make_pair(H_EL,Ar_EL));
+  std::vector<ElementID> elements;
+  elements.push_back(H_EL);
+  elements.push_back(C_EL);
+  elements.push_back(Cu_EL);
+  elements.push_back(Au_EL);
+  elements.push_back(Ag_EL);
 
-  handledElementPairs.insert(std::make_pair(Ar_EL,Cu_EL));
-  handledElementPairs.insert(std::make_pair(Cu_EL,Ar_EL));
-  handledElementPairs.insert(std::make_pair(Ar_EL,Ar_EL));
+  std::vector<ElementID> ions;
+  ions.push_back(Ar_EL);
+  ions.push_back(Xe_EL);
+
+  for(size_t i = 0; i < elements.size(); ++i)
+    handledElements.insert(elements[i]);
+
+  for(size_t i = 0; i < ions.size(); ++i)
+    handledElements.insert(ions[i]);
+
+  for(size_t i = 0; i < ions.size(); ++i)
+    for(size_t j = 0; j < ions.size(); ++j)
+    {
+      handledElementPairs.insert(std::make_pair(ions[i],ions[j]));
+      handledElementPairs.insert(std::make_pair(ions[j],ions[i]));
+    }
+
+  for(size_t i = 0; i < ions.size(); ++i)
+    for(size_t j = 0; j < elements.size(); ++j)
+    {
+      handledElementPairs.insert(std::make_pair(ions[i],elements[j]));
+      handledElementPairs.insert(std::make_pair(elements[j],ions[i]));
+    }
+
+  TRACE(":::: ZBL Handles ::::");
+  for(std::set<ElementID>::iterator i = handledElements.begin();
+      i != handledElements.end(); ++i)
+  {
+    cout << ElementIDtoString(*i) << "\n";
+  }
+  for(std::set<std::pair<ElementID,ElementID> >::iterator i = handledElementPairs.begin();
+      i != handledElementPairs.end(); ++i)
+  {
+    cout << ElementIDtoString(i->first) << " : " << ElementIDtoString(i->second) << "\n";
+  }
+  cout << endl;
+  exit(1);
 }
 
 Float
