@@ -65,20 +65,6 @@ FBZL::FBZL(Rcutoff rcutoff):
       handledElementPairs.insert(std::make_pair(ions[i],elements[j]));
       handledElementPairs.insert(std::make_pair(elements[j],ions[i]));
     }
-
-  TRACE(":::: ZBL Handles ::::");
-  for(std::set<ElementID>::iterator i = handledElements.begin();
-      i != handledElements.end(); ++i)
-  {
-    cout << ElementIDtoString(*i) << "\n";
-  }
-  for(std::set<std::pair<ElementID,ElementID> >::iterator i = handledElementPairs.begin();
-      i != handledElementPairs.end(); ++i)
-  {
-    cout << ElementIDtoString(i->first) << " : " << ElementIDtoString(i->second) << "\n";
-  }
-  cout << endl;
-  exit(1);
 }
 
 Float
