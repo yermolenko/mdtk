@@ -586,6 +586,7 @@ VisBox::listVertexes()
       case H_EL:  c = (0x00FF00); break; 
       case C_EL:  c = (0x0000FF); break; 
       case Ar_EL: c = (0xFF00FF); break; 
+      case Xe_EL: c = (0xFF0000); break; 
       case Cu_EL: c = (0x00FFFF); break; 
       case Ag_EL: c = (0x00FFFF); break; 
       case Au_EL: c = (0x00FFFF); break; 
