@@ -461,8 +461,14 @@ if (wmax >= 1.0)  return 0.0/*1.0-wmax*/;
   for(Index k = 0; k < rebo.NL(atom1).size(); k++)
   {
     Atom &atom_k = *(rebo.NL(atom1)[k]);
+#ifdef REBO_OPTIMIZED_EVEN_BETTER
+    if (rebo.probablyAreNeighbours(atom1,atom_k))
+#endif
     if (&atom_k != &atom1 && &atom_k != &atom2)
     {
+#ifdef REBO_OPTIMIZED_EVEN_BETTER
+      if (rebo.probablyAreNeighbours(atom2,atom_k))
+#endif
       {
         Float new_wmax = rebo.f(atom1,atom_k)*rebo.f(atom_k,atom2);
         if (new_wmax > wmax)
@@ -474,8 +480,14 @@ if (wmax >= 1.0)  return 0.0/*1.0-wmax*/;
       for(Index l = 0; l < rebo.NL(atom2).size(); l++)
       {
         Atom &atom_l = *(rebo.NL(atom2)[l]); 
+#ifdef REBO_OPTIMIZED_EVEN_BETTER
+        if (rebo.probablyAreNeighbours(atom2,atom_l))
+#endif
         if (&atom_l != &atom_k && &atom_l != &atom1 && &atom_l != &atom2)
         {
+#ifdef REBO_OPTIMIZED_EVEN_BETTER
+          if (rebo.probablyAreNeighbours(atom_k,atom_l))
+#endif
           {
             Float new_wmax = rebo.f(atom1,atom_k)*rebo.f(atom_k,atom_l)*rebo.f(atom_l,atom2);
             if (new_wmax > wmax)
@@ -507,8 +519,14 @@ if (wmax >= 1.0)  {REQUIRE(dwmax==0);return -dwmax;}
   for(Index k = 0; k < rebo.NL(atom1).size(); k++)
   {
     Atom &atom_k = *(rebo.NL(atom1)[k]);
+#ifdef REBO_OPTIMIZED_EVEN_BETTER
+    if (rebo.probablyAreNeighbours(atom1,atom_k))
+#endif
     if (&atom_k != &atom1 && &atom_k != &atom2)
     {
+#ifdef REBO_OPTIMIZED_EVEN_BETTER
+      if (rebo.probablyAreNeighbours(atom2,atom_k))
+#endif
       {
         Float new_wmax = rebo.f(atom1,atom_k)*rebo.f(atom_k,atom2);
         if (new_wmax > wmax)
@@ -522,8 +540,14 @@ if (wmax >= 1.0)  {REQUIRE(dwmax==0);return -dwmax;}
       for(Index l = 0; l < rebo.NL(atom2).size(); l++)
       {
         Atom &atom_l = *(rebo.NL(atom2)[l]); 
+#ifdef REBO_OPTIMIZED_EVEN_BETTER
+        if (rebo.probablyAreNeighbours(atom2,atom_l))
+#endif
         if (&atom_l != &atom_k && &atom_l != &atom1 && &atom_l != &atom2)
         {
+#ifdef REBO_OPTIMIZED_EVEN_BETTER
+          if (rebo.probablyAreNeighbours(atom_k,atom_l))
+#endif
           {
             Float new_wmax = rebo.f(atom1,atom_k)*rebo.f(atom_k,atom_l)*rebo.f(atom_l,atom2);
             if (new_wmax > wmax)

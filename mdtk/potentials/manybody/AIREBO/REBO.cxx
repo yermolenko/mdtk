@@ -976,6 +976,12 @@ RETURN_REBO_0;
     if (&atom_k != &atom_l) // otherwise cos=1 -> temp_sum=0
     if (&atom_k != &atom_j /* && atom_k.ID == C_EL*/)
     if (&atom_l != &atom_i /* && atom_l.ID == C_EL*/)
+#ifdef REBO_OPTIMIZED_EVEN_BETTER
+    if (probablyAreNeighbours(atom_i,atom_k))
+#endif
+#ifdef REBO_OPTIMIZED_EVEN_BETTER
+    if (probablyAreNeighbours(atom_j,atom_l))
+#endif
     {
       Float f_ik = fprime(atom_k,atom_i);
       Float f_jl = fprime(atom_l,atom_j);
@@ -1031,6 +1037,12 @@ RETURN_REBO_0;
     if (&atom_k != &atom_l) // otherwise cos=1 -> temp_sum=0
     if (&atom_k != &atom_j /* && atom_k.ID == C_EL*/)
     if (&atom_l != &atom_i /* && atom_l.ID == C_EL*/)
+#ifdef REBO_OPTIMIZED_EVEN_BETTER
+    if (probablyAreNeighbours(atom_i,atom_k))
+#endif
+#ifdef REBO_OPTIMIZED_EVEN_BETTER
+    if (probablyAreNeighbours(atom_j,atom_l))
+#endif
     {
       Float f_ik = fprime(atom_k,atom_i);
       Float f_jl = fprime(atom_l,atom_j);
