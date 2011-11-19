@@ -337,6 +337,7 @@ SimLoop::execute_wo_checks()
     {
       cout << "Writing trajectory ... " ;
       writetrajXVA();
+      writetrajAccumulated();
       cout << "done. " << endl;
     };
 
@@ -483,6 +484,7 @@ SimLoop::execute_wo_checks()
     {
       cout << "Writing trajectory ... " ;
       writetrajXVA();
+      writetrajAccumulated();
       cout << "done. " << endl;
     };
   curWallTime = time(NULL);
@@ -910,6 +912,104 @@ SimLoop::writetrajXYZ()
   }
 
   os.close();
+}
+
+void
+SimLoop::writetrajAccumulated()
+{
+  Float XVA_VELOCITY_SCALE = 0.0;//1.0e3;
+  Float XVA_DISTANCE_SCALE = Ao;
+  {
+    for(size_t i = 0; i < atoms_.size(); i++)
+    {
+      XVA_VELOCITY_SCALE += fabs(atoms_[i]->V.x);
+      XVA_VELOCITY_SCALE += fabs(atoms_[i]->V.y);
+      XVA_VELOCITY_SCALE += fabs(atoms_[i]->V.z);
+    }
+
+    XVA_VELOCITY_SCALE /= (3.0*atoms_.size());
+    if (fabs(XVA_VELOCITY_SCALE) < 1e-30) XVA_VELOCITY_SCALE = 1e-30;
+    XVA_VELOCITY_SCALE = pow(10.0,ceil(log10(fabs(XVA_VELOCITY_SCALE)))-2);
+  }
+
+  yaatk::text_ifstream accPrev("acc");
+  yaatk::text_ofstream acc("acc_next");
+
+  size_t stateCount = 0;
+  size_t atomsCount = atoms.size();
+  if (accPrev.isOpened())
+  {
+    accPrev >> stateCount;
+    accPrev >> atomsCount;
+    REQUIRE(atomsCount == atoms.size());
+  }
+  acc << stateCount+1 << "\n";
+  acc << atomsCount << "\n";
+
+  Float tempFloat;
+  int   tempInt;
+
+  {
+    for(size_t si = 0; si < stateCount; si++)
+    {
+      accPrev >> tempFloat;
+      acc << tempFloat << " ";
+    }
+    acc << XVA_VELOCITY_SCALE << "\n";
+  }
+
+  {
+    for(size_t si = 0; si < stateCount; si++)
+    {
+      accPrev >> tempFloat;
+      acc << tempFloat << " ";
+    }
+    acc << XVA_DISTANCE_SCALE << "\n";
+  }
+
+  for(size_t ai = 0; ai < atomsCount; ai++)
+  {
+    for(size_t ci = 0; ci < 3; ci++)
+    {
+      for(size_t si = 0; si < stateCount; si++)
+      {
+        accPrev >> tempInt;
+        acc << tempInt << " ";
+      }
+      acc << atoms[ai]->PBC_count.X(ci) << "\n";
+    }
+  }
+  for(size_t ai = 0; ai < atomsCount; ai++)
+  {
+    for(size_t ci = 0; ci < 3; ci++)
+    {
+      for(size_t si = 0; si < stateCount; si++)
+      {
+        accPrev >> tempFloat;
+        acc << fixed << setprecision(2) << tempFloat << " ";
+      }
+      acc << fixed << setprecision(2) << atoms[ai]->coords.X(ci)/XVA_DISTANCE_SCALE << "\n";
+    }
+  }
+  for(size_t ai = 0; ai < atomsCount; ai++)
+  {
+    for(size_t ci = 0; ci < 3; ci++)
+    {
+      for(size_t si = 0; si < stateCount; si++)
+      {
+        accPrev >> tempFloat;
+        acc << tempFloat << " ";
+      }
+      acc << fixed << setprecision(2) << atoms[ai]->V.X(ci)/XVA_VELOCITY_SCALE << "\n";
+    }
+  }
+  cout << endl;
+
+  accPrev.close();
+  acc.close();
+
+  yaatk::remove("acc.xz");
+  yaatk::rename("acc_next.xz","acc.xz");
 }
 
 void

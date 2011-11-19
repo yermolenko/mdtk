@@ -224,6 +224,8 @@ public:
 
     setSpottedDistanceFromInit();
 
+    TRACE(trajData.size());
+
     for(size_t i = 0; i < trajData.size(); i++)
       TRACE(trajData[i].trajDir);
   }  
@@ -260,8 +262,15 @@ public:
   void  printFullereneInfo(size_t trajIndex) const;
   void  printFullereneInfo() const;
 
-  void  plotFullereneLandings(bool endo, const std::string rotDir) const;
-  void  plotFullereneImplantDepth(bool endo, const std::string rotDir) const;
+  void  plotFullereneLandings(bool endo, const std::string rotDir, Float integralThreshold = 3.0*Ao) const;
+  void  plotFullereneImplantDepth(bool endo, const std::string rotDir, Float integralThreshold = 3.0*Ao, Float maxDepth = 4.0*Ao, bool showEvents = true) const;
+
+  bool  isThereAnythingToPlot(bool endo, const std::string rotDir) const;
+
+  void  plotFullereneIntegrityEvolutions(Float maxTime = 10.0*ps, Float maxUnintegrity=-1000.0*Ao) const;
+
+  void  plotFullereneIntegrity(bool endo, const std::string rotDir, Float maxUnintegrity = 4.0*Ao, bool showEvents = false) const;
+  void  plotFullereneIntegrityHistogram(bool endo, const std::string rotDir, bool landedOnly = false, Float maxUnintegrity = 4.0*Ao) const;
 
   void  printClusterDynamics(size_t trajIndex) const;
   void  printClusterDynamicsTotal() const;

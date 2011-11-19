@@ -207,12 +207,12 @@ Stream::unZipMe()
 #else
     int pclose_status = _pclose(zipped);
 #endif
-  REQUIRE(!pclose_status);
+    if (pclose_status) return -1;
   }
   else
   {
     int fclose_status = fclose(zipped);
-    REQUIRE(!fclose_status);
+    if (fclose_status) return -1;
   }
 
   return 0;

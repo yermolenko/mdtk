@@ -93,10 +93,10 @@ Fullerene::minDistanceFromMassCenter() const
 }
 
 bool
-Fullerene::isIntegral() const
+Fullerene::isIntegral(Float threshold) const
 {
   return isUnparted() 
-    && maxDistanceFromMassCenter()-minDistanceFromMassCenter() < 3.0*Ao;
+    && maxDistanceFromMassCenter()-minDistanceFromMassCenter() < threshold;
 }
 
 }

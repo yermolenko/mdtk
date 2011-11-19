@@ -29,7 +29,7 @@
 #include <mdtk/Exception.hpp>
 #include <mdtk/config.hpp>
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <sstream>
 
@@ -178,6 +178,18 @@ std::string getcwd()
 #endif
   REQUIRE(getcwd_retval);
   return std::string(dir);
+}
+
+inline
+void remove(const char *name)
+{
+  std::remove(name);
+}
+
+inline
+void rename(const char *oldname, const char *newname)
+{
+  std::rename(oldname,newname);
 }
 
 #define DIR_DELIMIT_CHAR '/'
