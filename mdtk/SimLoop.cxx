@@ -284,6 +284,14 @@ SimLoop::initPBC()
 int
 SimLoop::execute_wo_checks()
 {
+  std::vector<size_t> atomsSelectedForSaving;
+  for(size_t ai = 0; ai < atoms.size(); ++ai)
+    if (atoms[ai]->ID == Cu_EL ||
+        atoms[ai]->ID == Au_EL ||
+        atoms[ai]->ID == Ar_EL ||
+        atoms[ai]->ID == Xe_EL)
+      atomsSelectedForSaving.push_back(ai);
+
   gsl_rng * r;
   r = gsl_rng_alloc (gsl_rng_ranlxd2);
   gsl_rng_set(r, 697860L);
@@ -337,7 +345,7 @@ SimLoop::execute_wo_checks()
     {
       cout << "Writing trajectory ... " ;
       writetrajXVA();
-      writetrajAccumulated();
+      writetrajAccumulated(atomsSelectedForSaving);
       cout << "done. " << endl;
     };
 
@@ -484,7 +492,7 @@ SimLoop::execute_wo_checks()
     {
       cout << "Writing trajectory ... " ;
       writetrajXVA();
-      writetrajAccumulated();
+      writetrajAccumulated(atomsSelectedForSaving);
       cout << "done. " << endl;
     };
   curWallTime = time(NULL);
@@ -915,7 +923,7 @@ SimLoop::writetrajXYZ()
 }
 
 void
-SimLoop::writetrajAccumulated()
+SimLoop::writetrajAccumulated(const std::vector<size_t>& atomIndices)
 {
   Float XVA_VELOCITY_SCALE = 0.0;//1.0e3;
   Float XVA_DISTANCE_SCALE = Ao;
@@ -936,15 +944,29 @@ SimLoop::writetrajAccumulated()
   yaatk::text_ofstream acc("acc_next");
 
   size_t stateCount = 0;
-  size_t atomsCount = atoms.size();
   if (accPrev.isOpened())
   {
+    size_t atomsCount;
     accPrev >> stateCount;
     accPrev >> atomsCount;
-    REQUIRE(atomsCount == atoms.size());
+    REQUIRE(atomsCount == atomIndices.size());
   }
   acc << stateCount+1 << "\n";
-  acc << atomsCount << "\n";
+  acc << atomIndices.size() << "\n";
+
+  for(size_t ai = 0; ai < atomIndices.size(); ai++)
+  {
+    size_t atomIndex = 0;
+    if (stateCount > 0)
+      accPrev >> atomIndex;
+    else
+      atomIndex = atomIndices[ai];
+
+    REQUIRE(atomIndex == atomIndices[ai]);
+
+    acc << atomIndex << " ";
+  }
+  acc << "\n";
 
   Float tempFloat;
   int   tempInt;
@@ -967,7 +989,7 @@ SimLoop::writetrajAccumulated()
     acc << XVA_DISTANCE_SCALE << "\n";
   }
 
-  for(size_t ai = 0; ai < atomsCount; ai++)
+  for(size_t ai = 0; ai < atomIndices.size(); ai++)
   {
     for(size_t ci = 0; ci < 3; ci++)
     {
@@ -976,10 +998,10 @@ SimLoop::writetrajAccumulated()
         accPrev >> tempInt;
         acc << tempInt << " ";
       }
-      acc << atoms[ai]->PBC_count.X(ci) << "\n";
+      acc << atoms[atomIndices[ai]]->PBC_count.X(ci) << "\n";
     }
   }
-  for(size_t ai = 0; ai < atomsCount; ai++)
+  for(size_t ai = 0; ai < atomIndices.size(); ai++)
   {
     for(size_t ci = 0; ci < 3; ci++)
     {
@@ -988,10 +1010,10 @@ SimLoop::writetrajAccumulated()
         accPrev >> tempFloat;
         acc << fixed << setprecision(2) << tempFloat << " ";
       }
-      acc << fixed << setprecision(2) << atoms[ai]->coords.X(ci)/XVA_DISTANCE_SCALE << "\n";
+      acc << fixed << setprecision(2) << atoms[atomIndices[ai]]->coords.X(ci)/XVA_DISTANCE_SCALE << "\n";
     }
   }
-  for(size_t ai = 0; ai < atomsCount; ai++)
+  for(size_t ai = 0; ai < atomIndices.size(); ai++)
   {
     for(size_t ci = 0; ci < 3; ci++)
     {
@@ -1000,7 +1022,7 @@ SimLoop::writetrajAccumulated()
         accPrev >> tempFloat;
         acc << tempFloat << " ";
       }
-      acc << fixed << setprecision(2) << atoms[ai]->V.X(ci)/XVA_VELOCITY_SCALE << "\n";
+      acc << fixed << setprecision(2) << atoms[atomIndices[ai]]->V.X(ci)/XVA_VELOCITY_SCALE << "\n";
     }
   }
   cout << endl;
