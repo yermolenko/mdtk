@@ -341,6 +341,8 @@ SimLoop::execute_wo_checks()
       cout << "done. " << endl;
     };
 
+    writetrajAccumulated_bin(atomsSelectedForSaving);
+
     if (simTime == 0.0 || int(simTime/simTimeSaveTrajInterval) != int((simTime - dt_prev)/simTimeSaveTrajInterval))
     {
       cout << "Writing trajectory ... " ;
@@ -1032,6 +1034,95 @@ SimLoop::writetrajAccumulated(const std::vector<size_t>& atomIndices)
 
   yaatk::remove("acc.xz");
   yaatk::rename("acc_next.xz","acc.xz");
+}
+
+void
+SimLoop::writetrajAccumulated_bin(const std::vector<size_t>& atomIndices)
+{
+  yaatk::binary_ifstream accPrev("acc.bin");
+  yaatk::binary_ofstream acc("acc_next.bin");
+
+  size_t stateCount = 0;
+  if (accPrev.isOpened())
+  {
+    size_t atomsCount;
+    YAATK_BIN_READ(accPrev,stateCount);
+    YAATK_BIN_READ(accPrev,atomsCount);
+    REQUIRE(atomsCount == atomIndices.size());
+  }
+  size_t stateCount_newval = stateCount+1;
+  YAATK_BIN_WRITE(acc,stateCount_newval);
+  size_t atomsCount_val = atomIndices.size();
+  YAATK_BIN_WRITE(acc,atomsCount_val);
+
+  for(size_t ai = 0; ai < atomIndices.size(); ai++)
+  {
+    size_t atomIndex = 0;
+    if (stateCount > 0)
+      YAATK_BIN_READ(accPrev,atomIndex);
+    else
+      atomIndex = atomIndices[ai];
+
+    REQUIRE(atomIndex == atomIndices[ai]);
+
+    YAATK_BIN_WRITE(acc,atomIndex);
+  }
+
+  Float tempFloat;
+  int   tempInt;
+
+  {
+    for(size_t si = 0; si < stateCount; si++)
+    {
+      YAATK_BIN_READ(accPrev,tempFloat);
+      YAATK_BIN_WRITE(acc,tempFloat);
+    }
+    YAATK_BIN_WRITE(acc,simTime);
+  }
+
+  for(size_t ai = 0; ai < atomIndices.size(); ai++)
+  {
+    for(size_t ci = 0; ci < 3; ci++)
+    {
+      for(size_t si = 0; si < stateCount; si++)
+      {
+        YAATK_BIN_READ(accPrev,tempInt);
+        YAATK_BIN_WRITE(acc,tempInt);
+      }
+      YAATK_BIN_WRITE(acc,atoms[atomIndices[ai]]->PBC_count.X(ci));
+    }
+  }
+  for(size_t ai = 0; ai < atomIndices.size(); ai++)
+  {
+    for(size_t ci = 0; ci < 3; ci++)
+    {
+      for(size_t si = 0; si < stateCount; si++)
+      {
+        YAATK_BIN_READ(accPrev,tempFloat);
+        YAATK_BIN_WRITE(acc,tempFloat);
+      }
+      YAATK_BIN_WRITE(acc,atoms[atomIndices[ai]]->coords.X(ci));
+    }
+  }
+  for(size_t ai = 0; ai < atomIndices.size(); ai++)
+  {
+    for(size_t ci = 0; ci < 3; ci++)
+    {
+      for(size_t si = 0; si < stateCount; si++)
+      {
+        YAATK_BIN_READ(accPrev,tempFloat);
+        YAATK_BIN_WRITE(acc,tempFloat);
+      }
+      YAATK_BIN_WRITE(acc,atoms[atomIndices[ai]]->V.X(ci));
+    }
+  }
+  cout << endl;
+
+  accPrev.close();
+  acc.close();
+
+  yaatk::remove("acc.bin.xz");
+  yaatk::rename("acc_next.bin.xz","acc.bin.xz");
 }
 
 void

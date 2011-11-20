@@ -235,6 +235,7 @@ public:
   void writetrajXVA_bin();
   void writetrajXYZ();
   void writetrajAccumulated(const std::vector<size_t>& atomIndices);
+  void writetrajAccumulated_bin(const std::vector<size_t>& atomIndices);
   void saveToMDE(std::ostream& fo);
   void loadFromMDE(std::istream& fi);
   void loadFromMDE_OLD(std::istream& fi);
