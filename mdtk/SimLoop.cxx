@@ -284,14 +284,6 @@ SimLoop::initPBC()
 int
 SimLoop::execute_wo_checks()
 {
-  std::vector<size_t> atomsSelectedForSaving;
-  for(size_t ai = 0; ai < atoms.size(); ++ai)
-    if (atoms[ai]->ID == Cu_EL ||
-        atoms[ai]->ID == Au_EL ||
-        atoms[ai]->ID == Ar_EL ||
-        atoms[ai]->ID == Xe_EL)
-      atomsSelectedForSaving.push_back(ai);
-
   gsl_rng * r;
   r = gsl_rng_alloc (gsl_rng_ranlxd2);
   gsl_rng_set(r, 697860L);
@@ -341,13 +333,11 @@ SimLoop::execute_wo_checks()
       cout << "done. " << endl;
     };
 
-    writetrajAccumulated_bin(atomsSelectedForSaving);
 
     if (simTime == 0.0 || int(simTime/simTimeSaveTrajInterval) != int((simTime - dt_prev)/simTimeSaveTrajInterval))
     {
       cout << "Writing trajectory ... " ;
       writetrajXVA();
-      writetrajAccumulated(atomsSelectedForSaving);
       cout << "done. " << endl;
     };
 
@@ -494,7 +484,6 @@ SimLoop::execute_wo_checks()
     {
       cout << "Writing trajectory ... " ;
       writetrajXVA();
-      writetrajAccumulated(atomsSelectedForSaving);
       cout << "done. " << endl;
     };
   curWallTime = time(NULL);
