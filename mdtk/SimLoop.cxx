@@ -61,7 +61,7 @@ SimLoop::SimLoop()
   dt_ = 1e-20; // initial dt_, it changes adaptive during simulation
 //  dt_ = 1e-17;
   
-  iterationFlushStateInterval = 10;
+  iterationFlushStateInterval = 1000;
   simTimeFinal = 4.0*ps;
 
   simTimeSaveTrajInterval = 0.1*ps;
@@ -95,7 +95,7 @@ SimLoop::SimLoop(const SimLoop &c)
   dt_ = 1e-20; // initial dt_, it changes adaptive during simulation
 //  dt_ = 1e-17;
 
-  iterationFlushStateInterval = 10;
+  iterationFlushStateInterval = 1000;
   simTimeFinal = 4.0*ps;
 
   simTimeSaveTrajInterval = 0.1*ps;
