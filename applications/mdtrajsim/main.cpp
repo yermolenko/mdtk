@@ -62,7 +62,7 @@ CustomSimLoop::isItTimeToSave(Float interval)
 void
 CustomSimLoop::doBeforeIteration()
 {
-  if (simTime < 4.0*ps) simTimeSaveTrajInterval = 0.05*ps;
+  if (simTime < 2.0*ps) simTimeSaveTrajInterval = 0.05*ps;
   else simTimeSaveTrajInterval = 0.2*ps;
 
   if (simTime < 2.0*ps)
