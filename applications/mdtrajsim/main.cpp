@@ -66,12 +66,15 @@ CustomSimLoop::doBeforeIteration()
   else simTimeSaveTrajInterval = 0.2*ps;
 
   if (simTime < 2.0*ps)
-    snapshotList.getSnapshot(*this);
+  {
+    if (iteration%5 == 0)
+      snapshotList.getSnapshot(*this);
+  }
   else
   {
     if (simTime < 4.0*ps)
     {
-      if (iteration%10 == 0)
+      if (iteration%25 == 0)
         snapshotList.getSnapshot(*this);
     }
     else
