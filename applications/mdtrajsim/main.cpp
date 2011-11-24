@@ -26,15 +26,19 @@
 #include <cstring>
 #include <algorithm>
 #include <mdtk/SimLoop.hpp>
+#include <mdtk/SnapshotList.hpp>
 
 #include "../common.h"
 
 using namespace mdtk;
 
+SnapshotList snapshotList;
+
 class CustomSimLoop : public SimLoop
 {
 public:
   CustomSimLoop();
+  bool isItTimeToSave(Float interval);
   void doBeforeIteration();
   void doAfterIteration();
   bool bondedToSubstrate(Atom& a, std::vector<size_t>& excludedAtoms);
@@ -45,11 +49,43 @@ CustomSimLoop::CustomSimLoop()
 {
 }
 
+bool
+CustomSimLoop::isItTimeToSave(Float interval)
+{
+  return true;
+/*
+  return (simTime == 0.0 || 
+          int(simTime/interval) != int((simTime - dt_prev)/interval));
+*/
+}
+
 void
 CustomSimLoop::doBeforeIteration()
 {
   if (simTime < 4.0*ps) simTimeSaveTrajInterval = 0.05*ps;
   else simTimeSaveTrajInterval = 0.2*ps;
+
+  if (simTime < 2.0*ps)
+    snapshotList.getSnapshot(*this);
+  else
+  {
+    if (simTime < 4.0*ps)
+    {
+      if (iteration%10 == 0)
+        snapshotList.getSnapshot(*this);
+    }
+    else
+    {
+      if (iteration%50 == 0)
+        snapshotList.getSnapshot(*this);
+    }
+  }
+
+  if (iteration%iterationFlushStateInterval == 0/* && iteration != 0*/)
+  {
+    snapshotList.writestate();
+    snapshotList.saveInText("snapshots.conf.txt");
+  }
 }
 
 void
@@ -301,6 +337,7 @@ try
   if (yaatk::exists("simloop.conf") || yaatk::exists("simloop.conf.bak")) // have to continue interrupted simulation ?
   {
     mdloop.loadstate();
+    snapshotList.loadstate();
   }
   else
   {
