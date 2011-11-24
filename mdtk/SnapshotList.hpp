@@ -39,20 +39,32 @@ struct SnapshotList
 {
   struct AtomSnapshot
   {
-    IntVector3D PBC_count;
-    Vector3D pos;
-    Vector3D v;
-    AtomSnapshot(const Atom& a):
-      PBC_count(a.PBC_count),
-      pos(a.coords),
-      v(a.V)
+    short PBC_count[3];
+    float pos[3];
+    float v[3];
+    AtomSnapshot(const Atom& a)
       {
+        PBC_count[0] = a.PBC_count.X(0);
+        PBC_count[1] = a.PBC_count.X(1);
+        PBC_count[2] = a.PBC_count.X(2);
+        pos[0] = a.coords.X(0);
+        pos[1] = a.coords.X(1);
+        pos[2] = a.coords.X(2);
+        v[0] = a.V.X(0);
+        v[1] = a.V.X(1);
+        v[2] = a.V.X(2);
       }
-    AtomSnapshot():
-      PBC_count(),
-      pos(),
-      v()
+    AtomSnapshot()
       {
+        PBC_count[0] = 0;
+        PBC_count[1] = 0;
+        PBC_count[2] = 0;
+        pos[0] = 0;
+        pos[1] = 0;
+        pos[2] = 0;
+        v[0] = 0;
+        v[1] = 0;
+        v[2] = 0;
       }
   };
   typedef std::vector<AtomSnapshot> SelectedAtomSnapshotList;
@@ -162,9 +174,9 @@ struct SnapshotList
         for(size_t ai = 0; ai < snapshots[shotIndex].second.size(); ++ai)
         {
           const AtomSnapshot& as = snapshots[shotIndex].second[ai];
-          fo << as.PBC_count << "\n";
-          fo << as.pos << "\n";
-          fo << as.v << "\n";
+          fo << as.PBC_count[0] << " " << as.PBC_count[1] << " " << as.PBC_count[2] << " \n";
+          fo << as.pos[0] << " " << as.pos[1]<< " "  << as.pos[2] << " \n";
+          fo << as.v[0] << " " << as.v[1] << " " << as.v[2] << " \n";
         }
       }
 
