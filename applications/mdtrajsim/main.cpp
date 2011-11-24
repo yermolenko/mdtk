@@ -343,6 +343,7 @@ try
   {
     yaatk::text_ifstream fi(inputFile.c_str());
     mdloop.loadFromMDE(fi);
+    mdloop.simTimeFinal = 6.0*ps;
 //    mdloop.loadFromMDE_OLD(fi);
     fi.close();
   yaatk::text_ofstream fo1("mde""_init");
