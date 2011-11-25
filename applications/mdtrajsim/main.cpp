@@ -84,7 +84,6 @@ CustomSimLoop::doBeforeIteration()
   if (iteration%iterationFlushStateInterval == 0/* && iteration != 0*/)
   {
     snapshotList.writestate();
-    snapshotList.saveInText("snapshots.conf.txt");
   }
 }
 
