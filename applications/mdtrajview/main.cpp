@@ -157,7 +157,19 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 	  else
 	    {baseFile = "";}
 	}
-      findIntermediateStates("./",fileList);
+      if (argc > 1 && !strcmp(argv[1],"-s"))
+      {
+        SnapshotList shots;
+        shots.loadstate();
+        if (shots.snapshots.size() > 0) fileList.push_back("shot");
+        for(size_t i = 1; i < shots.snapshots.size(); ++i)
+        {
+          ostringstream os; os << "shot" << i;
+          fileList.push_back(os.str());
+        }
+      }
+      else
+        findIntermediateStates("./",fileList);
     }
 
   if (baseFile.size() <= 3/* || fileList.size()==0*/)
@@ -175,7 +187,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     }
 
   std::vector<std::string> fileList_tmp = fileList;
-  if (fileList.size() > 5000)
+  if (fileList.size() > 5000 && fileList[0] != "shot")
   {
     fileList.clear();
     for(size_t i = 0; i < fileList_tmp.size(); ++i)
@@ -185,7 +197,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
   }
 
   const size_t maxsize = 2000;
-  if (fileList.size() > maxsize) fileList.resize(maxsize);
+  if (fileList.size() > maxsize && fileList[0] != "shot") fileList.resize(maxsize);
 
   xmde::VisBox avb(15,35,500,500,baseFile,fileList);
   avb.set_non_modal();

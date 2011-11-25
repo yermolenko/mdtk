@@ -1,7 +1,7 @@
 /*
    Collision Tree class (header file)
 
-   Copyright (C) 2010 Oleksandr Yermolenko
+   Copyright (C) 2010, 2011 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -24,6 +24,7 @@
 #define	mde_CollisionTree_hpp
 
 #include "mdtk/Atom.hpp"
+#include "mdtk/SnapshotList.hpp"
 #include <map>
 #include <vector>
 
@@ -37,6 +38,9 @@ typedef std::map<Float,std::vector<Atom> > MDTrajectory;
 void MDTrajectory_read(MDTrajectory& mdt,
 		       const std::string basefile, 
 		       const std::vector<std::string>& xvas);
+
+void MDTrajectory_read_from_SnapshotList(MDTrajectory& mdt,
+		       const std::string basefile);
 
 class CollisionTree
 {

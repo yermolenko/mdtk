@@ -76,6 +76,7 @@ VisBox::loadNewSnapshot(std::string base_state_filename,std::string file)
       }
       fi.close(); 
     }
+    if (file != "shot")
     {
       yaatk::text_ifstream fixva(file.c_str()); 
       ml_->loadFromStreamXVA(fixva);
@@ -195,7 +196,10 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     fi.close(); 
   }
   setData(*ml_);
-  MDTrajectory_read(mdt,base_state_filename,xvas);
+  if (xvas.size() > 0 && xvas[0] != "shot")
+    MDTrajectory_read(mdt,base_state_filename,xvas);
+  else
+    MDTrajectory_read_from_SnapshotList(mdt,base_state_filename);
 //    ctree = new CollisionTree(*(ml_->atoms.back()),mdt.begin(),mdt);
   }
   size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);

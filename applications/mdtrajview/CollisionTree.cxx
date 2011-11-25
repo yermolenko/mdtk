@@ -1,7 +1,7 @@
 /*
    Collision Tree class (implementation)
 
-   Copyright (C) 2010 Oleksandr Yermolenko
+   Copyright (C) 2010, 2011 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -86,6 +86,58 @@ void MDTrajectory_read(MDTrajectory& mdt,
       ml_->loadFromStreamXVA_bin(fixva);
       fixva.close(); 
     */
+    if (i == 0)
+      getAtomsFromSimLoop(ml,atoms);
+    else
+      updateAtomsFromSimLoop(ml,atoms);
+    mdt[ml.simTime] = atoms;
+    TRACE(ml.simTime);
+    TRACE(atoms.size());
+  }  
+}
+
+void MDTrajectory_read_from_SnapshotList(
+  MDTrajectory& mdt,
+  const std::string basefile)
+{
+  SimLoop ml;
+  if (basefile.find("simloop.conf") != std::string::npos) 
+  {
+    ml.loadstate();
+  }
+  else
+  {
+    yaatk::text_ifstream fi(basefile.c_str()); 
+
+    ml.initNLafterLoading = false;
+
+    if (basefile.find("mde_init") != std::string::npos)
+      ml.loadFromStream(fi);
+    else
+    {
+      ml.loadFromMDE(fi);
+//	  ml_->loadFromMDE_OLD(fi);
+      ml.allowPartialLoading = true; // hack, disables essential checks
+      ml.updateGlobalIndexes();
+    }
+    fi.close(); 
+  }
+
+  std::vector<Atom> atoms;
+  SnapshotList shots;
+  shots.loadstate();
+
+  for(size_t i = 0; i < shots.snapshots.size(); ++i)
+  {
+    ml.simTime = shots.snapshots[i].first;
+    for(size_t ai = 0; ai < shots.snapshots[i].second.size(); ++ai)
+    {
+      const SnapshotList::AtomSnapshot& as =
+        shots.snapshots[i].second[ai];
+      Atom& a = *ml.atoms[shots.atomsSelectedForSaving[ai]];
+      as.restoreToAtom(a);
+    }
+
     if (i == 0)
       getAtomsFromSimLoop(ml,atoms);
     else
