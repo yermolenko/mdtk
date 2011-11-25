@@ -66,6 +66,18 @@ struct SnapshotList
         v[1] = 0;
         v[2] = 0;
       }
+    void restoreToAtom(Atom& a) const
+      {
+        a.PBC_count.X(0) = PBC_count[0];
+        a.PBC_count.X(1) = PBC_count[1];
+        a.PBC_count.X(2) = PBC_count[2];
+        a.coords.X(0) = pos[0];
+        a.coords.X(1) = pos[1];
+        a.coords.X(2) = pos[2];
+        a.V.X(0) = v[0];
+        a.V.X(1) = v[1];
+        a.V.X(2) = v[2];
+      }
   };
   typedef std::vector<AtomSnapshot> SelectedAtomSnapshotList;
   typedef std::pair<Float,SelectedAtomSnapshotList> TimeSnapshot;
