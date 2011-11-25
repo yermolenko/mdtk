@@ -60,6 +60,7 @@ SimLoop::SimLoop()
 
   dt_ = 1e-20; // initial dt_, it changes adaptive during simulation
 //  dt_ = 1e-17;
+  dt_prev = dt_;
   
   iterationFlushStateInterval = 1000;
   simTimeFinal = 4.0*ps;
@@ -94,6 +95,7 @@ SimLoop::SimLoop(const SimLoop &c)
 
   dt_ = 1e-20; // initial dt_, it changes adaptive during simulation
 //  dt_ = 1e-17;
+  dt_prev = dt_;
 
   iterationFlushStateInterval = 1000;
   simTimeFinal = 4.0*ps;
@@ -311,7 +313,7 @@ SimLoop::execute_wo_checks()
   int j,atoms_count;
   Float new_v_max,tmp_v;
 
-  Float dt_prev = dt_;
+  dt_prev = dt_;
   
   atoms_count = atoms_.size();
   Vector3D *new_coords = new Vector3D[atoms_count]; REQUIRE(new_coords != 0);

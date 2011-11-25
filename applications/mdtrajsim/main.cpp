@@ -52,11 +52,8 @@ CustomSimLoop::CustomSimLoop()
 bool
 CustomSimLoop::isItTimeToSave(Float interval)
 {
-  return true;
-/*
   return (simTime == 0.0 || 
           int(simTime/interval) != int((simTime - dt_prev)/interval));
-*/
 }
 
 void
@@ -67,19 +64,19 @@ CustomSimLoop::doBeforeIteration()
 
   if (simTime < 2.0*ps)
   {
-    if (iteration%5 == 0)
+    if (isItTimeToSave(5e-16*5))
       snapshotList.getSnapshot(*this);
   }
   else
   {
     if (simTime < 4.0*ps)
     {
-      if (iteration%25 == 0)
+      if (isItTimeToSave(5e-16*25))
         snapshotList.getSnapshot(*this);
     }
     else
     {
-      if (iteration%50 == 0)
+      if (isItTimeToSave(5e-16*50))
         snapshotList.getSnapshot(*this);
     }
   }

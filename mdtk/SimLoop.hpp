@@ -121,6 +121,7 @@ protected:
   Float timeaccel_;
 public:
   Float dt_;
+  Float dt_prev;
   unsigned long iteration;
   unsigned long iterationFlushStateInterval;
 public:
