@@ -181,7 +181,7 @@ operator =(const ClassicMolecule &C)
     Rc_[C][H] = 1.8*Ao;
       Rc_[H][C] = Rc_[C][H];
 
-    Rc_[Cu][Cu] = 3.0*Ao;
+    Rc_[Cu][Cu] = 4.0*Ao;
 
 
     Rc_[Cu][H] = 2.75*Ao;
