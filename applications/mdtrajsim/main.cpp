@@ -340,6 +340,7 @@ try
   }
   else
   {
+    REQUIRE(yaatk::exists(inputFile.c_str()));
     yaatk::text_ifstream fi(inputFile.c_str());
     mdloop.loadFromMDE(fi);
     mdloop.simTimeFinal = 6.0*ps;

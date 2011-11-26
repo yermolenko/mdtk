@@ -145,6 +145,7 @@ struct SnapshotList
     }
   void loadstate()
     {
+      REQUIRE(yaatk::exists("snapshots.conf"));
       yaatk::binary_ifstream state("snapshots.conf");
       size_t size;
 
