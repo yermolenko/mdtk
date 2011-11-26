@@ -54,7 +54,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
 try
 {
-  mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Custom1;
+  mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Custom2;
 //  mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Cu13_at_C60_Only;
 
   std::vector<std::string> trajDirNames;
@@ -105,53 +105,7 @@ try
 
   pp->printClassicMoleculesTotal();
 
-  pp->printFullereneInfo();
-
   using namespace mdtk;
-
-  Float integralThreshold = 0.1*Ao;
-  while (integralThreshold < 21.0*Ao)
-  {
-    pp->plotFullereneImplantDepth(false,"010",integralThreshold);
-    pp->plotFullereneImplantDepth(false,"001",integralThreshold);
-    pp->plotFullereneImplantDepth(false,"011",integralThreshold);
-    pp->plotFullereneImplantDepth(true,"010",integralThreshold);
-    pp->plotFullereneImplantDepth(true,"001",integralThreshold);
-    pp->plotFullereneImplantDepth(true,"011",integralThreshold);
-
-    if (integralThreshold < 3.0*Ao)
-      integralThreshold += 0.1*Ao;
-    else if (integralThreshold < 10.0*Ao)
-      integralThreshold += 0.5*Ao;
-    else
-      integralThreshold += 5.0*Ao;
-  }
-/*
-  pp->plotFullereneIntegrityEvolutions(10.0*ps);
-  pp->plotFullereneIntegrityEvolutions(10.0*ps,16.0*Ao);
-  pp->plotFullereneIntegrityEvolutions(5.0*ps);
-  pp->plotFullereneIntegrityEvolutions(5.0*ps,16.0*Ao);
-*/
-  pp->plotFullereneIntegrity(false,"010");
-  pp->plotFullereneIntegrity(false,"001");
-  pp->plotFullereneIntegrity(false,"011");
-  pp->plotFullereneIntegrity(true,"010");
-  pp->plotFullereneIntegrity(true,"001");
-  pp->plotFullereneIntegrity(true,"011");
-
-  pp->plotFullereneIntegrityHistogram(false,"010",false);
-  pp->plotFullereneIntegrityHistogram(false,"001",false);
-  pp->plotFullereneIntegrityHistogram(false,"011",false);
-  pp->plotFullereneIntegrityHistogram(true,"010",false);
-  pp->plotFullereneIntegrityHistogram(true,"001",false);
-  pp->plotFullereneIntegrityHistogram(true,"011",false);
-
-  pp->plotFullereneIntegrityHistogram(false,"010",true);
-  pp->plotFullereneIntegrityHistogram(false,"001",true);
-  pp->plotFullereneIntegrityHistogram(false,"011",true);
-  pp->plotFullereneIntegrityHistogram(true,"010",true);
-  pp->plotFullereneIntegrityHistogram(true,"001",true);
-  pp->plotFullereneIntegrityHistogram(true,"011",true);
 
 //  pp->printClusterDynamicsTotal();
 

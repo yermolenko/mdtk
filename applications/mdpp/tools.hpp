@@ -74,6 +74,14 @@ trajProcess_Custom1(const char* trajDirName)
 
 inline
 bool 
+trajProcess_Custom2(const char* trajDirName)
+{
+  return 
+    strstr(trajDirName,"000");
+}
+
+inline
+bool 
 isAlreadyFinished(const char* trajDirName)
 {
   std::string finalStateFile 
@@ -107,7 +115,7 @@ addTrajDirNames(std::vector<std::string> &stateFileNames,const char *trajsetDir_
       while (entry != NULL)
       {
         if (entry->d_type == DT_DIR && strcmp(entry->d_name,".") && strcmp(entry->d_name,".."))
-        if (entry->d_name[0] == 'C')
+        if (entry->d_name[0] == '0')
         {
           std::sprintf(trajdir_src,"%s%s",trajsetDir,entry->d_name);
           std::sprintf(stateFileName,"%s"DIR_DELIMIT_STR,trajdir_src);

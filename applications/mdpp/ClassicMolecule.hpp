@@ -31,60 +31,18 @@ setTags(mdtk::SimLoop* ml)
     mdtk::Atom& atom = *(ml->atoms_[i]);
     atom.tag = 0;
 //    if (atom.M > 1000.0*mdtk::amu) atom.tag |= ATOMTAG_FIXED;
-    switch (ml->atoms_.size())
+    if (atom.ID == mdtk::C_EL || atom.ID == mdtk::H_EL)
     {
-    case 4092:
-    case 4105:
-      if (atom.ID == mdtk::C_EL) 
-      {
-	atom.tag |= ATOMTAG_FULLERENE;
-	atom.tag |= ATOMTAG_PROJECTILE;
-      };
-      if (atom.ID == mdtk::Cu_EL && atom.globalIndex >= 4105-13)
-      {
-	atom.tag |= ATOMTAG_CLUSTER;
-	atom.tag |= ATOMTAG_PROJECTILE;
-      };
-      if (atom.ID == mdtk::Cu_EL && atom.globalIndex <  4105-13)
-      {
-	atom.tag |= ATOMTAG_SUBSTRATE;
-      };
-      break;
-    case 16060:
-    case 16061:
-    case 16066:
-    case 16073:
-      if (atom.ID == mdtk::C_EL) 
-      {
-	atom.tag |= ATOMTAG_FULLERENE;
-	atom.tag |= ATOMTAG_PROJECTILE;
-      };
-      if (atom.ID == mdtk::Cu_EL && atom.globalIndex >= 16060-60)
-      {
-	atom.tag |= ATOMTAG_CLUSTER;
-	atom.tag |= ATOMTAG_PROJECTILE;
-      };
-      if (atom.ID == mdtk::Cu_EL && atom.globalIndex <  16060-60)
-      {
-	atom.tag |= ATOMTAG_SUBSTRATE;
-      };
-      break;
-    case 4860:
-      if (atom.ID == mdtk::C_EL) 
-      {
-	atom.tag |= ATOMTAG_FULLERENE;
-	atom.tag |= ATOMTAG_PROJECTILE;
-      };
-      if (atom.ID == mdtk::Cu_EL)
-      {
-	atom.tag |= ATOMTAG_SUBSTRATE;
-      };
-      break;
-    default: TRACE("Unknown experiment"); throw;
+      atom.tag |= ATOMTAG_SUBSTRATE;
     }
-//    if (atom.ID == mdtk::Cu_EL) atom.tag |= ATOMTAG_CLUSTER;
-//    if (atom.ID == mdtk::C_EL || atom.ID == mdtk::H_EL) atom.tag |= ATOMTAG_SUBSTRATE;
-//    if (atom.ID == mdtk::Ar_EL) atom.tag |= ATOMTAG_PROJECTILE;
+    if (atom.ID == mdtk::Ar_EL || atom.ID == mdtk::Xe_EL)
+    {
+      atom.tag |= ATOMTAG_PROJECTILE;
+    }
+    if (atom.ID == mdtk::Cu_EL || atom.ID == mdtk::Au_EL)
+    {
+      atom.tag |= ATOMTAG_CLUSTER;
+    }
   }
 }
 

@@ -355,6 +355,7 @@ StatPostProcess::execute()
 //    buildProjectileDynamics(*state,trajIndex,STATE_FINAL);
 
 //  if (td.molecules.size() > 0)
+    if (0)
     {
       mdtk::SimLoop* mde_init = new mdtk::SimLoop();    
       mde_init->allowToFreePotentials = true;
