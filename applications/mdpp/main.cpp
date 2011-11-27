@@ -27,6 +27,7 @@
 #include <mdtk/SimLoop.hpp>
 
 #include "StatPostProcess.hpp"
+#include "BatchPostProcess.hpp"
 
 int
 main(int argc , char *argv[])
@@ -54,68 +55,24 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
 try
 {
-  mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Custom2;
-//  mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Cu13_at_C60_Only;
+  mdepp::BatchPostProcess* pp;
 
-  std::vector<std::string> trajDirNames;
-
-  mdepp::findTrajDirs("../mdepp.in","../../trajset"DIR_DELIMIT_STR,trajDirNames,fpt);
-
-  mdepp::StatPostProcess* pp = NULL;
   bool fullpp = !yaatk::exists("pp.state.orig");
 
   if (!fullpp)
   {
     yaatk::text_ifstream fi("pp.state.orig");
-    pp = new mdepp::StatPostProcess();
+    pp = new mdepp::BatchPostProcess();
     pp->loadFromStream(fi);
     fi.close();
   }
   else
   {
-    pp = new mdepp::StatPostProcess(trajDirNames);
+    pp = new mdepp::BatchPostProcess("../mdepp.in");
     pp->execute();
   }
 
-  yaatk::mkdir("results");
-  yaatk::chdir("results");
-
-  for(size_t i = 0; i < pp->trajData.size(); i++)
-  {
-    TRACE(pp->trajData[i].trajDir);
-
-    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessFullerene));
-    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessCluster));
-    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessProjectile));
-    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessSubstrate));
-    TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessAll));
-  }
-
-  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessFullerene));
-  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessCluster));
-  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessProjectile));
-  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessSubstrate));
-  TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessAll));
-
-  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessFullerene));
-  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessCluster));
-  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessProjectile));
-  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessSubstrate));
-  TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessAll));
-
-  pp->printClassicMoleculesTotal();
-
-  using namespace mdtk;
-
-//  pp->printClusterDynamicsTotal();
-
-//  pp->spottedTotalByMass();
-
-//  pp->spottedByDepth();
-
-  pp->buildMassSpectrum();
-
-  yaatk::chdir("..");
+  pp->printResults();
 
   if (fullpp)
   {
