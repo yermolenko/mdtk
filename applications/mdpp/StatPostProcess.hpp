@@ -201,12 +201,36 @@ public:
   };
   std::vector<TrajData> trajData;
   double SPOTTED_DISTANCE;
-  StatPostProcess(std::vector<std::string>& savedStateNames)
+  struct Id
+  {
+    std::string str;
+    mdtk::ElementID ionElement;
+    Id(std::string s);
+    Id():str(),ionElement(){};
+    void saveToStream(std::ostream& os) const
+      {
+        os << str << "\n";
+        os << ionElement << "\n";
+      }
+    void loadFromStream(std::istream& is)
+      {
+        is >> str;
+        int ID;
+        is >> ID; ionElement = ElementID(ID);
+      }
+  }id;
+  StatPostProcess(std::string trajsetDir)
    :testProcessClassicMolecule(&ProcessAll),
     trajData(),
-    SPOTTED_DISTANCE(-5.0*mdtk::Ao)
+    SPOTTED_DISTANCE(-5.0*mdtk::Ao),
+    id(yaatk::extractItemFromEnd(trajsetDir,1))
   {
     using mdtk::Exception;
+
+    std::vector<std::string> savedStateNames;
+    mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Custom2;
+    mdepp::addTrajDirNames(savedStateNames,trajsetDir.c_str(),fpt);
+    std::sort(savedStateNames.begin(),savedStateNames.end());
     
     std::vector<_SavedStateSortStruct> sorted;
     for(size_t i = 0; i < savedStateNames.size(); i++)
@@ -231,7 +255,8 @@ public:
   }  
   StatPostProcess()
    :trajData(),
-    SPOTTED_DISTANCE(-5.0*mdtk::Ao)
+    SPOTTED_DISTANCE(-5.0*mdtk::Ao),
+    id()
   {
   }  
   
@@ -331,6 +356,8 @@ public:
       trajData[i].saveToStream(os);
 
     os << SPOTTED_DISTANCE << "\n";
+
+    id.saveToStream(os);
   }  
   void loadFromStream(std::istream& is)
   {
@@ -341,6 +368,8 @@ public:
       trajData[i].loadFromStream(is);
 
     is >> SPOTTED_DISTANCE;
+
+    id.loadFromStream(is);
   }  
   void loadFromStreamADD(std::istream& is)
   {

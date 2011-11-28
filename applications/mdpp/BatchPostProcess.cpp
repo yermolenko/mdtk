@@ -45,11 +45,7 @@ BatchPostProcess::BatchPostProcess(std::string mdeppinPath)
   {
     if (strlen(trajsetDir) > 0)
     {
-      std::vector<std::string> trajDirNames;
-      mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Custom2;
-      mdepp::addTrajDirNames(trajDirNames,trajsetDir,fpt);
-      std::sort(trajDirNames.begin(),trajDirNames.end());
-      pps.push_back(new mdepp::StatPostProcess(trajDirNames));
+      pps.push_back(new mdepp::StatPostProcess(trajsetDir));
     }
   };
 
@@ -92,15 +88,15 @@ BatchPostProcess::execute()
 void
 BatchPostProcess::printResults()
 {
+  yaatk::mkdir("results");
+  yaatk::chdir("results");
+
   for(size_t i = 0; i < pps.size(); ++i)
   {
     mdepp::StatPostProcess* pp = pps[i];
 
-    std::ostringstream oss;
-    oss << "results" << i;
-
-    yaatk::mkdir(oss.str().c_str());
-    yaatk::chdir(oss.str().c_str());
+    yaatk::mkdir(pp->id.str.c_str());
+    yaatk::chdir(pp->id.str.c_str());
 
     for(size_t i = 0; i < pp->trajData.size(); i++)
     {
@@ -139,6 +135,7 @@ BatchPostProcess::printResults()
 
     yaatk::chdir("..");
   }
+  yaatk::chdir("..");
 }
 
 }

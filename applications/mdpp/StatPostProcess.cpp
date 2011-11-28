@@ -33,6 +33,15 @@
 namespace mdepp
 {
 
+StatPostProcess::Id::Id(std::string s)
+  :str(s)
+{
+  TRACE(str);
+  REQUIRE(str.size()>1);
+  REQUIRE(*str.begin()=='C');
+  REQUIRE(*(str.end()-1)=='V');
+}
+
 void
 StatPostProcess::buildSputteredClassicMolecules(mdtk::SimLoop& state,size_t trajIndex,
   StatPostProcess::StateType s, NeighbourList& nl)
