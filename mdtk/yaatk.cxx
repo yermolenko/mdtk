@@ -285,6 +285,33 @@ std::string extractLastItem(std::string trajNameFinal)
     return res;
 }  
 
+std::string extractItemFromEnd(std::string trajNameFinal, int fromEnd)
+{
+    std::string mde_dirname = trajNameFinal;
+    std::string res;
+    if (mde_dirname[mde_dirname.size()-1]==DIR_DELIMIT_CHAR)
+      mde_dirname.resize(mde_dirname.size()-1);
+    int delimitCount = 0;
+    size_t itemLen = 0;
+    {
+      int i;
+      for(i = mde_dirname.size()-1; i >= 0; i--)
+      {
+        if (mde_dirname[i] == DIR_DELIMIT_CHAR)
+        {
+          if (delimitCount == fromEnd) break;
+          ++delimitCount;
+          itemLen = 0;
+        }
+        else
+          ++itemLen;
+      }
+      i++;
+      res = mde_dirname.substr(i,itemLen);
+    }
+    return res;
+}
+
 
 #define  MDTK_FILECMP_BUFFER_SIZE 10000
 

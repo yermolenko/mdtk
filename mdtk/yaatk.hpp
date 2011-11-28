@@ -296,6 +296,7 @@ bool exists(std::string filename)
 
 std::string extractDir(std::string trajNameFinal);
 std::string extractLastItem(std::string trajNameFinal);
+std::string extractItemFromEnd(std::string trajNameFinal, int fromEnd = 0);
 
 bool
 isIdentical(const std::string& file1,const std::string& file2);
