@@ -98,6 +98,9 @@ BatchPostProcess::printResults()
     yaatk::mkdir(pp->id.str.c_str());
     yaatk::chdir(pp->id.str.c_str());
 
+    yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
+    yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
+
     for(size_t i = 0; i < pp->trajData.size(); i++)
     {
       TRACE(pp->trajData[i].trajDir);
