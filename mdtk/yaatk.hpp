@@ -24,6 +24,7 @@
 #define yaatk_hpp
 
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <vector>
 #include <mdtk/Exception.hpp>
@@ -300,6 +301,28 @@ std::string extractItemFromEnd(std::string trajNameFinal, int fromEnd = 0);
 
 bool
 isIdentical(const std::string& file1,const std::string& file2);
+
+struct StreamToFileRedirect
+{
+  std::ostream& stream;
+  std::string filename;
+  std::streambuf* origstream_sbuf;
+  std::ofstream filestream;
+  StreamToFileRedirect(std::ostream& s = std::cout,
+                       std::string fname = "stdout.txt")
+    :stream(s),
+     filename(fname),
+     origstream_sbuf(stream.rdbuf()),
+     filestream(filename.c_str(),std::ios::app)
+    {
+      stream.rdbuf(filestream.rdbuf());
+    }
+  ~StreamToFileRedirect()
+    {
+      filestream.close();
+      stream.rdbuf(origstream_sbuf);
+    }
+};
 
 }
 
