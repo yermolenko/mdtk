@@ -65,7 +65,7 @@ public:
   AtomsContainer& atoms; // added for compatibility
   void updateGlobalIndexes();
   void initialize();
-protected:
+public:
   struct Check
   {
     Vector3D fullForce;
