@@ -314,11 +314,60 @@ StatPostProcess::buildDummyDynamics(mdtk::SimLoop& state,size_t trajIndex,
   }
 }
 
+void
+StatPostProcess::removeBadTrajectories()
+{
+  std::vector<size_t> badTrajIndices;
+  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
+  {
+    TrajData& td = trajData[trajIndex];
+
+    mdtk::SimLoop* state = new mdtk::SimLoop();
+    state->allowToFreePotentials = true;
+    state->allowToFreeAtoms = true;
+    setupPotentials(*state);
+
+    std::string trajFinalName = trajData[trajIndex].trajDir+"mde_final";
+    cout << "Loading state " << trajFinalName << std::endl;
+    yaatk::text_ifstream fi(trajFinalName.c_str());
+    state->initNLafterLoading = false;
+    state->loadFromStream(fi);
+    state->updateGlobalIndexes();
+    fi.close();
+
+    {
+      SimLoop::Check& check = state->check;
+      Float ediff = (check.energyCur-check.energyStart)
+        /
+        (/*check.energyStart-*/check.energy0);
+      if (fabs(ediff) > 0.01)
+      {
+        cerr << "Trajectory " << trajData[trajIndex].trajDir << " has bad energy conservation. Handle it separately." << endl;
+        badTrajIndices.push_back(trajIndex);
+      }
+    }
+
+    delete state;
+  }
+
+  size_t oldSize = trajData.size();
+
+  for(int i = badTrajIndices.size()-1; i >= 0; i--)
+  {
+    cerr << "Reoving trajectory from postprocess: "
+         << (trajData.begin()+badTrajIndices[i])->trajDir << endl;
+    trajData.erase(trajData.begin()+badTrajIndices[i]);
+  }
+
+  cerr << "Removed " << oldSize - trajData.size() << " trajectories." << endl;
+}
 
 void
 StatPostProcess::execute() 
 {
   using mdtk::Exception;
+
+  removeBadTrajectories();
 
   cout << "PostProcess::execute() started." << std::endl;
   cerr << "PostProcess::execute() started." << std::endl;

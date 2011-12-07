@@ -385,6 +385,7 @@ public:
     is >> SPOTTED_DISTANCE;
   }  
   void execute();
+  void removeBadTrajectories();
 };
 
 struct MassCount
