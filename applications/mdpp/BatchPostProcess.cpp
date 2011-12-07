@@ -139,6 +139,27 @@ BatchPostProcess::printResults()
     yaatk::chdir("..");
   }
   yaatk::chdir("..");
+
+  {
+    yaatk::StreamToFileRedirect cout_redir(std::cout,"yieldsout.txt");
+    yaatk::StreamToFileRedirect cerr_redir(std::cerr,"yieldserr.txt");
+
+    for(size_t i = 0; i < pps.size(); ++i)
+    {
+      mdepp::StatPostProcess* pp = pps[i];
+
+      TRACE(pp->id.str);
+
+      TRACE(pp->trajData.size());
+
+      TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessCluster));
+      TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessProjectile));
+      TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessSubstrate));
+      TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessAll));
+
+      TRACE("--------------------");
+    }
+  }
 }
 
 }
