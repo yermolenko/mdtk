@@ -204,19 +204,32 @@ public:
   struct Id
   {
     std::string str;
+    mdtk::ElementID clusterElement;
+    size_t clusterSize;
     mdtk::ElementID ionElement;
+    Float ionEnergy;
     Id(std::string s);
-    Id():str(),ionElement(){};
+    Id():str(),
+         clusterElement(),
+         clusterSize(),
+         ionElement(),
+         ionEnergy(){};
     void saveToStream(std::ostream& os) const
       {
         os << str << "\n";
+        os << clusterElement << "\n";
+        os << clusterSize << "\n";
         os << ionElement << "\n";
+        os << ionEnergy << "\n";
       }
     void loadFromStream(std::istream& is)
       {
         is >> str;
         int ID;
+        is >> ID; clusterElement = ElementID(ID);
+        is >> clusterSize;
         is >> ID; ionElement = ElementID(ID);
+        is >> ionEnergy;
       }
   }id;
   StatPostProcess(std::string trajsetDir)

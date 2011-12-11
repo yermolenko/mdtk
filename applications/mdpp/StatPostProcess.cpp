@@ -34,9 +34,59 @@ namespace mdepp
 {
 
 StatPostProcess::Id::Id(std::string s)
-  :str(s)
+  :str(s),
+   clusterElement(),
+   clusterSize(),
+   ionElement(),
+   ionEnergy()
 {
+  {
+    std::string clusterElementString = s.substr(0,2);
+    bool elementRecognized = false;
+    if (clusterElementString == "Cu")
+    {
+      clusterElement = Cu_EL; elementRecognized = true;
+    }
+    if (clusterElementString == "Au")
+    {
+      clusterElement = Au_EL; elementRecognized = true;
+    }
+    REQUIRE(elementRecognized);
+  }
+
+  {
+    istringstream is(s.substr(2,3));
+    is >> clusterSize;
+  }
+
+  {
+    size_t istart = s.find("_by_");
+    REQUIRE(istart != std::string::npos);
+    istart += 4;
+
+    std::string ionElementString = s.substr(istart,2);
+    bool elementRecognized = false;
+    if (ionElementString == "Ar")
+    {
+      ionElement = Ar_EL; elementRecognized = true;
+    }
+    if (ionElementString == "Xe")
+    {
+      ionElement = Xe_EL; elementRecognized = true;
+    }
+    REQUIRE(elementRecognized);
+  }
+
+  {
+    istringstream is(s.substr(s.find("_by_")+7,4));
+    is >> ionEnergy;
+  }
+
   TRACE(str);
+  TRACE(ElementIDtoString(clusterElement));
+  TRACE(clusterSize);
+  TRACE(ElementIDtoString(ionElement));
+  TRACE(ionEnergy);
   REQUIRE(str.size()>1);
   REQUIRE(*str.begin()=='C');
   REQUIRE(*(str.end()-1)=='V');
