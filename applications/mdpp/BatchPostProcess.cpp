@@ -136,6 +136,21 @@ BatchPostProcess::printResults()
 
     pp->buildMassSpectrum();
 
+#define MDPP_PROCESS_ONLY(FPM) \
+    {\
+      std::string s = "Process"#FPM;\
+      yaatk::mkdir(s.c_str());\
+      yaatk::chdir(s.c_str());\
+      pp->buildMassSpectrum(mdepp::StatPostProcess::Process##FPM);\
+      pp->buildAngular2(mdepp::StatPostProcess::Process##FPM);\
+      yaatk::chdir("..");\
+    }
+
+    MDPP_PROCESS_ONLY(Cluster);
+    MDPP_PROCESS_ONLY(Projectile);
+    MDPP_PROCESS_ONLY(Substrate);
+    MDPP_PROCESS_ONLY(All);
+
     yaatk::chdir("..");
   }
 
