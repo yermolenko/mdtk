@@ -46,7 +46,9 @@ public:
   void printResults();
 
   void plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
-                                  std::string idStr = "yields") const;
+                                  std::string idStr = "yields",
+                                  ElementID specIonElement = DUMMY_EL,
+                                  size_t specClusterSize = 0) const;
 };
 
 }

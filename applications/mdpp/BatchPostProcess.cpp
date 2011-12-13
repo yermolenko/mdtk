@@ -146,6 +146,39 @@ BatchPostProcess::printResults()
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,"yields-All");
   }
 
+
+  std::vector<ElementID> elements;
+  elements.push_back(Ar_EL);
+  elements.push_back(Xe_EL);
+  for(size_t i = 0; i < elements.size(); i++)
+  {
+    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,
+                               "yields-Cluster", elements[i]);
+    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,
+                               "yields-Projectile", elements[i]);
+    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessSubstrate,
+                               "yields-Substrate", elements[i]);
+    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
+                               "yields-All", elements[i]);
+  }
+
+  std::vector<size_t> clusterSizes;
+  clusterSizes.push_back(1);
+  clusterSizes.push_back(13);
+  clusterSizes.push_back(27);
+  clusterSizes.push_back(39);
+  for(size_t i = 0; i < clusterSizes.size(); i++)
+  {
+    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,
+                               "yields-Cluster", DUMMY_EL, clusterSizes[i]);
+    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,
+                               "yields-Projectile", DUMMY_EL, clusterSizes[i]);
+    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessSubstrate,
+                               "yields-Substrate", DUMMY_EL, clusterSizes[i]);
+    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
+                               "yields-All", DUMMY_EL, clusterSizes[i]);
+  }
+
   yaatk::chdir("..");
 
   {
@@ -172,10 +205,18 @@ BatchPostProcess::printResults()
 
 void
 BatchPostProcess::plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
-                                             std::string idStr) const
+                                             std::string idStr,
+                                             ElementID specIonElement,
+                                             size_t specClusterSize) const
 {
   std::stringstream fnb;
   fnb << idStr;
+
+  if (specIonElement != DUMMY_EL)
+    fnb << "_" << ElementIDtoString(specIonElement);
+
+  if (specClusterSize > 0)
+    fnb << "_" << specClusterSize;
 
   ofstream fplt((fnb.str()+".plt").c_str());
   fplt << "\
@@ -202,6 +243,18 @@ plot \\\n\
   for(size_t i = 0; i < pps.size(); ++i)
   {
     mdepp::StatPostProcess* pp = pps[i];
+
+    if (specIonElement != DUMMY_EL)
+    {
+      if (pp->id.ionElement != specIonElement)
+        continue;
+    }
+
+    if (specClusterSize > 0)
+    {
+      if (pp->id.clusterSize != specClusterSize)
+        continue;
+    }
 
     data << pp->id.ionEnergy << " " << pp->getAverageYield(fpm) << "\n";
 
