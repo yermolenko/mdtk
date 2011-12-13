@@ -138,6 +138,14 @@ BatchPostProcess::printResults()
 
     yaatk::chdir("..");
   }
+
+  {
+    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,"yields-Cluster");
+    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,"yields-Projectile");
+    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessSubstrate,"yields-Substrate");
+    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,"yields-All");
+  }
+
   yaatk::chdir("..");
 
   {
@@ -160,6 +168,70 @@ BatchPostProcess::printResults()
       TRACE("--------------------");
     }
   }
+}
+
+void
+BatchPostProcess::plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
+                                             std::string idStr) const
+{
+  std::stringstream fnb;
+  fnb << idStr;
+
+  ofstream fplt((fnb.str()+".plt").c_str());
+  fplt << "\
+reset\n\
+set xrange [0:500]\n\
+set yrange [0:*]\n\
+set xtics (100,200,400)\n\
+set pointsize 1.5\n\
+#set grid ytics\n\
+#set key left top\n\
+#set key right top\n\
+set key spacing 1.5\n\
+set xlabel \"Енергія іона, еВ\"\n\
+set ylabel \"Коефіцієнт зворотного розсіювання, атом/іон\"\n\
+set encoding koi8u\n\
+set output  \"" << fnb.str() << ".eps\"\n\
+set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
+plot \\\n\
+";
+
+  std::vector<std::string> plotCmds;
+  std::ostringstream data;
+
+  for(size_t i = 0; i < pps.size(); ++i)
+  {
+    mdepp::StatPostProcess* pp = pps[i];
+
+    data << pp->id.ionEnergy << " " << pp->getAverageYield(fpm) << "\n";
+
+    if (i%3 == 2)
+    {
+      std::ostringstream cmd;
+      cmd << "'-' title \"{/Italic "
+          << ElementIDtoString(pp->id.ionElement) << " "
+          << ElementIDtoString(pp->id.clusterElement)
+          << "_{" << pp->id.clusterSize << "}"
+          << "}\" "
+          << "with linespoints";
+      plotCmds.push_back(cmd.str());
+
+      data << "e\n";
+    }
+  }
+
+  REQUIRE(plotCmds.size() > 0);
+  for(size_t i = 0; i < plotCmds.size(); ++i)
+  {
+    if (i != plotCmds.size()-1)
+      fplt << plotCmds[i] << ",\\\n";
+    else
+      fplt << plotCmds[i] << "\n";
+  }
+
+  fplt << data.str();
+
+  fplt.close();
 }
 
 }

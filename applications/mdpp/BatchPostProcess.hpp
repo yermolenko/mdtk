@@ -44,6 +44,9 @@ public:
   void execute();
 
   void printResults();
+
+  void plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
+                                  std::string idStr = "yields") const;
 };
 
 }
