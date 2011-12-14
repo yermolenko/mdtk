@@ -356,7 +356,7 @@ public:
   void  histEnergyByPolarByAtomsInRange(gsl_histogram* h, FProcessClassicMolecule fpm) const;
   void  histEnergyByAzimuthByAtomsInRange(gsl_histogram* h, FProcessClassicMolecule fpm) const;
 
-  void  buildAngular2(FProcessClassicMolecule fpm) const;
+  void  buildAngular(FProcessClassicMolecule fpm) const;
 
   void  buildByTime( FProcessClassicMolecule fpm) const;
 

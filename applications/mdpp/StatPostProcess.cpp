@@ -3370,368 +3370,260 @@ StatPostProcess::buildEnergyByAzimuthByAtomsInRange(const int n, FProcessClassic
   return std::string(ofilename);
 }  
 
-/*
-#define MDEPP_ANGULAR_DIR "_angular"
-
 void
-StatPostProcess::buildAngular() const
+appendFileToStream(std::ofstream& fo, std::string& filename)
 {
-  system("mkdir "MDEPP_ANGULAR_DIR);
-
-//  system("cd "MDEPP_ANGULAR_DIR);
-  chdir(MDEPP_ANGULAR_DIR);
-
-  bool accountSputtered = false;
-  do{
-    bool accountBackScattered = false;
-    do{
-//      if (!accountSputtered || !accountBackScattered)
-      {
-        std::string datFileName;
-        char pltFileName[1000];
-        sprintf(pltFileName,"!!!%s%sAtomByEnergy.plt",
-          accountSputtered?"S":"_", accountBackScattered?"B":"_");
-        std::ofstream fo(pltFileName);
-        fo << "reset\nset xrange [*:20]\n";
-//        for(Float energyStep = 0.05; energyStep <= 10.0; energyStep += 0.05)  
-        for(Float energyStep = 0.1; energyStep <= 10.0; energyStep += 0.1)  
-        {
-          datFileName = 
-            buildAtomByEnergy(energyStep,accountSputtered,accountBackScattered);
-          fo << "reset\nset xrange [*:20]\nplot \'" << datFileName << "\' with histeps\n";
-          fo << "pause -1 \"Press Return\" \n";
-        }  
-        fo.close();
-      }  
-
-      {
-        std::string datFileName;
-        char pltFileName[1000];
-        sprintf(pltFileName,"!!!%s%sEnergyByPolar.plt",
-          accountSputtered?"S":"_", accountBackScattered?"B":"_");
-        std::ofstream fo(pltFileName);
-        sprintf(pltFileName,"!!!%s%sEnergyByPolarByAtom.plt",
-          accountSputtered?"S":"_", accountBackScattered?"B":"_");
-        std::ofstream fo_by_atom(pltFileName);
-        sprintf(pltFileName,"!!!%s%sEnergyByPolarByAtomsInRange.plt",
-          accountSputtered?"S":"_", accountBackScattered?"B":"_");
-        std::ofstream fo_by_range(pltFileName);
-        fo << "reset\n";
-        fo_by_atom << "reset\n";
-        fo_by_range << "reset\n";
-//        for(int n = 1; n <= 180; n++)
-        for(int n = 1; n <= 90; n++)
-        {
-          datFileName = 
-            buildEnergyByPolar(n,false,accountSputtered,accountBackScattered);
-          fo         << "plot \'" << datFileName << "\' with histeps\n";
-          fo         << "pause -1 \"Press Return\" \n";
-          datFileName = 
-            buildEnergyByPolar(n,true,accountSputtered,accountBackScattered);
-          fo_by_atom << "plot \'" << datFileName << "\' with histeps\n";
-          fo_by_atom << "pause -1 \"Press Return\" \n";
-          datFileName = 
-            buildEnergyByPolarByAtomsInRange(n,accountSputtered,accountBackScattered);
-          fo_by_range << "plot \'" << datFileName << "\' with histeps\n";
-          fo_by_range << "pause -1 \"Press Return\" \n";
-        }
-        fo.close();
-        fo_by_atom.close();
-        fo_by_range.close();
-      }    
-
-      {
-        std::string datFileName;
-        char pltFileName[1000];
-        sprintf(pltFileName,"!!!%s%sEnergyByAzimuth.plt",
-          accountSputtered?"S":"_", accountBackScattered?"B":"_");
-        std::ofstream fo(pltFileName);
-        sprintf(pltFileName,"!!!%s%sEnergyByAzimuthByAtom.plt",
-          accountSputtered?"S":"_", accountBackScattered?"B":"_");
-        std::ofstream fo_by_atom(pltFileName);
-        sprintf(pltFileName,"!!!%s%sEnergyByAzimuthByAtomsInRange.plt",
-          accountSputtered?"S":"_", accountBackScattered?"B":"_");
-        std::ofstream fo_by_range(pltFileName);
-        fo << "reset\n";
-        fo_by_atom << "reset\n";
-        fo_by_range << "reset\n";
-        for(int n = 1; n <= 180; n++)
-//        for(int n = 1; n <= 360; n++)
-//        for(int n = 1; n <= 360*2; n++)
-        {
-          datFileName = 
-            buildEnergyByAzimuth(n,false,accountSputtered,accountBackScattered);
-          fo         << "plot \'" << datFileName << "\' with histeps\n";
-          fo         << "pause -1 \"Press Return\" \n";
-          datFileName = 
-            buildEnergyByAzimuth(n,true,accountSputtered,accountBackScattered);
-          fo_by_atom << "plot \'" << datFileName << "\' with histeps\n";
-          fo_by_atom << "pause -1 \"Press Return\" \n";
-          datFileName = 
-            buildEnergyByAzimuthByAtomsInRange(n,accountSputtered,accountBackScattered);
-          fo_by_range << "plot \'" << datFileName << "\' with histeps\n";
-          fo_by_range << "pause -1 \"Press Return\" \n";
-        }  
-        fo.close();
-        fo_by_atom.close();
-        fo_by_range.close();
-      }  
-
-      if (accountBackScattered) break;
-      accountBackScattered = true;
-    }while (1);
-    if (accountSputtered) break;
-    accountSputtered = true;
-  }while (1);
-
-//  system("cd ""..");
-  chdir("..");
-}  
-*/
-
-#define MDEPP_ANGULAR_DIR2 "_angular2"
-
-void
-StatPostProcess::buildAngular2(FProcessClassicMolecule fpm) const
-{
-  system("mkdir "MDEPP_ANGULAR_DIR2);
-
-//  system("cd "MDEPP_ANGULAR_DIR);
-  chdir(MDEPP_ANGULAR_DIR2);
-/*
-  bool accountSputtered = false;
-  do{
-    bool accountBackScattered = false;
-    do{
-      if (accountSputtered || accountBackScattered)
-*/
-{
-      {
-        std::string datFileName;
-        char pltFileName[1000];
-        sprintf(pltFileName,"!!!AtomByEnergy.plt");
-        std::ofstream fo(pltFileName);
-        fo << "reset\nset xrange [0:10]\nset yrange [0:*]\nset format y \"%10g\"\n";
-//        for(Float energyStep = 0.05; energyStep <= 10.0; energyStep += 0.05)  
-        for(Float energyStep = 0.1; energyStep <= 10.0; energyStep += 0.1)  
-        {
-          datFileName = "-";
-          fo << "reset\nset xrange [0:10]\nset yrange [0:*]\nset format y \"%10g\"\nplot \'" << datFileName << "\' with histeps";
-          datFileName = 
-            buildAtomByEnergy(energyStep,fpm);
-          fo << " title \"" << datFileName << "\"\n";
-          {
-            char tempStr[1000];
-            std::ifstream fi(datFileName.c_str());
-            while(fi.getline(tempStr, 1000-1, '\n')) {fo << tempStr << "\n";}
-            fi.close();
-          }  
-          std::remove(datFileName.c_str());
-          std::remove((datFileName+".plt").c_str());
-          fo << "e\n";
-          fo << "pause -1 \"Press Return\" \n";
-        }  
-        fo.close();
-      }  
-
-      {
-        std::string datFileName;
-        char pltFileName[1000];
-        sprintf(pltFileName,"!!!EnergyByPolar.plt");
-        std::ofstream fo(pltFileName);
-        sprintf(pltFileName,"!!!AtomsCountByPolar.plt");
-        std::ofstream fo_count(pltFileName);
-        sprintf(pltFileName,"!!!EnergyByPolarByAtom.plt");
-        std::ofstream fo_by_atom(pltFileName);
-        sprintf(pltFileName,"!!!EnergyByPolarByAtomsInRange.plt");
-        std::ofstream fo_by_range(pltFileName);
-        fo << "reset\nset xrange [0:90]\nset yrange [0:*]\nset format y \"%10g\"\n";
-        fo_count << "reset\nset xrange [0:90]\nset yrange [0:*]\nset format y \"%10g\"\n";
-        fo_by_atom << "reset\nset xrange [0:90]\nset yrange [0:*]\nset format y \"%10g\"\n";
-        fo_by_range << "reset\nset xrange [0:90]\nset yrange [0:*]\nset format y \"%10g\"\n";
-//        for(int n = 1; n <= 180; n++)
-        for(int n = 1; n <= 90; n++)
-        {
-          datFileName = "-";
-          fo         << "plot \'" << datFileName << "\' with histeps";
-          datFileName = 
-            buildEnergyByPolar(n,false,fpm);
-          fo << " title \"" << datFileName << "\"\n";
-          {
-            char tempStr[1000];
-            std::ifstream fi(datFileName.c_str());
-            while(fi.getline(tempStr, 1000-1, '\n')) {fo << tempStr << "\n";}
-            fi.close();
-          }  
-if (n!=9)
-          std::remove(datFileName.c_str());
-          std::remove((datFileName+".plt").c_str());
-          fo << "e\n";
-          fo         << "pause -1 \"Press Return\" \n";
-
-          datFileName = "-";
-          fo_count         << "plot \'" << datFileName << "\' with histeps";
-          datFileName = 
-            buildAtomsCountByPolar(n,fpm);
-          fo_count << " title \"" << datFileName << "\"\n";
-          {
-            char tempStr[1000];
-            std::ifstream fi(datFileName.c_str());
-            while(fi.getline(tempStr, 1000-1, '\n')) {fo_count << tempStr << "\n";}
-            fi.close();
-          }  
-if (n!=9)
-          std::remove(datFileName.c_str());
-          std::remove((datFileName+".plt").c_str());
-          fo_count << "e\n";
-          fo_count         << "pause -1 \"Press Return\" \n";
-
-          datFileName = "-";
-          fo_by_atom         << "plot \'" << datFileName << "\' with histeps";
-          datFileName = 
-            buildEnergyByPolar(n,true,fpm);
-          fo_by_atom << " title \"" << datFileName << "\"\n";
-          {
-            char tempStr[1000];
-            std::ifstream fi(datFileName.c_str());
-            while(fi.getline(tempStr, 1000-1, '\n')) {fo_by_atom << tempStr << "\n";}
-            fi.close();
-          }  
-if (n!=9)
-          std::remove(datFileName.c_str());
-          std::remove((datFileName+".plt").c_str());
-          fo_by_atom << "e\n";
-          fo_by_atom         << "pause -1 \"Press Return\" \n";
-
-          datFileName = "-";
-          fo_by_range         << "plot \'" << datFileName << "\' with histeps";
-          datFileName = 
-            buildEnergyByPolarByAtomsInRange(n,fpm);
-          fo_by_range << " title \"" << datFileName << "\"\n";
-          {
-            char tempStr[1000];
-            std::ifstream fi(datFileName.c_str());
-            while(fi.getline(tempStr, 1000-1, '\n')) {fo_by_range << tempStr << "\n";}
-            fi.close();
-          }  
-if (n!=9)
-          std::remove(datFileName.c_str());
-          std::remove((datFileName+".plt").c_str());
-          fo_by_range << "e\n";
-          fo_by_range         << "pause -1 \"Press Return\" \n";
-        }
-        fo.close();
-        fo_count.close();
-        fo_by_atom.close();
-        fo_by_range.close();
-      }    
-
-      {
-        std::string datFileName;
-        char pltFileName[1000];
-        sprintf(pltFileName,"!!!EnergyByAzimuth.plt");
-        std::ofstream fo(pltFileName);
-        sprintf(pltFileName,"!!!AtomsCountByAzimuth.plt");
-        std::ofstream fo_count(pltFileName);
-        sprintf(pltFileName,"!!!EnergyByAzimuthByAtom.plt");
-        std::ofstream fo_by_atom(pltFileName);
-        sprintf(pltFileName,"!!!EnergyByAzimuthByAtomsInRange.plt");
-        std::ofstream fo_by_range(pltFileName);
-        fo << "reset\nset xrange [-180:180]\nset yrange [0:*]\nset format y \"%10g\"\n";
-        fo_count << "reset\nset xrange [-180:180]\nset yrange [0:*]\nset format y \"%10g\"\n";
-        fo_by_atom << "reset\nset xrange [-180:180]\nset yrange [0:*]\nset format y \"%10g\"\n";
-        fo_by_range << "reset\nset xrange [-180:180]\nset yrange [0:*]\nset format y \"%10g\"\n";
-//        for(int n = 1; n <= 180; n++)
-        for(int n = 1; n <= 360; n++)
-//        for(int n = 1; n <= 360*2; n++)
-        {
-          datFileName = "-";
-          fo         << "plot \'" << datFileName << "\' with histeps";
-          datFileName = 
-            buildEnergyByAzimuth(n,false,fpm);
-          fo << " title \"" << datFileName << "\"\n";
-          {
-            char tempStr[1000];
-            std::ifstream fi(datFileName.c_str());
-            while(fi.getline(tempStr, 1000-1, '\n')) {fo << tempStr << "\n";}
-            fi.close();
-          }  
-if (n!=36)
-          std::remove(datFileName.c_str());
-          std::remove((datFileName+".plt").c_str());
-          fo << "e\n";
-          fo         << "pause -1 \"Press Return\" \n";
-
-          datFileName = "-";
-          fo_count         << "plot \'" << datFileName << "\' with histeps";
-          datFileName = 
-            buildAtomsCountByAzimuth(n,fpm);
-          fo_count << " title \"" << datFileName << "\"\n";
-          {
-            char tempStr[1000];
-            std::ifstream fi(datFileName.c_str());
-            while(fi.getline(tempStr, 1000-1, '\n')) {fo_count << tempStr << "\n";}
-            fi.close();
-          }  
-if (n!=36)
-          std::remove(datFileName.c_str());
-          std::remove((datFileName+".plt").c_str());
-          fo_count << "e\n";
-          fo_count         << "pause -1 \"Press Return\" \n";
-
-          datFileName = "-";
-          fo_by_atom         << "plot \'" << datFileName << "\' with histeps";
-          datFileName = 
-            buildEnergyByAzimuth(n,true,fpm);
-          fo_by_atom << " title \"" << datFileName << "\"\n";
-          {
-            char tempStr[1000];
-            std::ifstream fi(datFileName.c_str());
-            while(fi.getline(tempStr, 1000-1, '\n')) {fo_by_atom << tempStr << "\n";}
-            fi.close();
-          }  
-if (n!=36)
-          std::remove(datFileName.c_str());
-          std::remove((datFileName+".plt").c_str());
-          fo_by_atom << "e\n";
-          fo_by_atom         << "pause -1 \"Press Return\" \n";
-
-          datFileName = "-";
-          fo_by_range         << "plot \'" << datFileName << "\' with histeps";
-          datFileName = 
-            buildEnergyByAzimuthByAtomsInRange(n,fpm);
-          fo_by_range << " title \"" << datFileName << "\"\n";
-          {
-            char tempStr[1000];
-            std::ifstream fi(datFileName.c_str());
-            while(fi.getline(tempStr, 1000-1, '\n')) {fo_by_range << tempStr << "\n";}
-            fi.close();
-          }  
-if (n!=36)
-          std::remove(datFileName.c_str());
-          std::remove((datFileName+".plt").c_str());
-          fo_by_range << "e\n";
-          fo_by_range         << "pause -1 \"Press Return\" \n";
-
-        }  
-        fo.close();
-        fo_count.close();
-        fo_by_atom.close();
-        fo_by_range.close();
-      }  
+  char tempStr[10000];
+  std::ifstream fi(filename.c_str());
+  while(fi.getline(tempStr, 10000-1, '\n')) {fo << tempStr << "\n";}
+  fi.close();
 }
-/*
-      if (accountBackScattered) break;
-      accountBackScattered = true;
-    }while (1);
-    if (accountSputtered) break;
-    accountSputtered = true;
-  }while (1);
-*/
-//  system("cd ""..");
-  chdir("..");
-}  
 
+void
+StatPostProcess::buildAngular(FProcessClassicMolecule fpm) const
+{
+  std::string subdir = "_angular";
+
+  yaatk::mkdir(subdir.c_str());
+  yaatk::chdir(subdir.c_str());
+
+  {
+    std::string datFileName;
+    char pltFileName[1000];
+    sprintf(pltFileName,"!!!AtomByEnergy.plt");
+    std::ofstream fo(pltFileName);
+    fo << "\
+reset\n\
+set xrange [0:10]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+//        for(Float energyStep = 0.05; energyStep <= 10.0; energyStep += 0.05)
+    for(Float energyStep = 0.1; energyStep <= 10.0; energyStep += 0.1)
+    {
+      datFileName = "-";
+      fo << "\
+reset\n\
+set xrange [0:10]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildAtomByEnergy(energyStep,fpm);
+      fo << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo, datFileName);
+      std::remove(datFileName.c_str());
+      std::remove((datFileName+".plt").c_str());
+      fo << "e\n";
+      fo << "pause -1 \"Press Return\" \n";
+    }
+    fo.close();
+  }
+
+  {
+    std::string datFileName;
+    char pltFileName[1000];
+    sprintf(pltFileName,"!!!EnergyByPolar.plt");
+    std::ofstream fo(pltFileName);
+    sprintf(pltFileName,"!!!AtomsCountByPolar.plt");
+    std::ofstream fo_count(pltFileName);
+    sprintf(pltFileName,"!!!EnergyByPolarByAtom.plt");
+    std::ofstream fo_by_atom(pltFileName);
+    sprintf(pltFileName,"!!!EnergyByPolarByAtomsInRange.plt");
+    std::ofstream fo_by_range(pltFileName);
+    fo << "\
+reset\n\
+set xrange [0:90]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+    fo_count << "\
+reset\n\
+set xrange [0:90]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+    fo_by_atom << "\
+reset\n\
+set xrange [0:90]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+    fo_by_range << "\
+reset\n\
+set xrange [0:90]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+//        for(int n = 1; n <= 180; n++)
+    for(int n = 1; n <= 90; n++)
+    {
+      datFileName = "-";
+      fo         << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildEnergyByPolar(n,false,fpm);
+      fo << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo, datFileName);
+      if (n!=9)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo << "e\n";
+      fo         << "pause -1 \"Press Return\" \n";
+
+      datFileName = "-";
+      fo_count         << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildAtomsCountByPolar(n,fpm);
+      fo_count << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo_count, datFileName);
+      if (n!=9)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo_count << "e\n";
+      fo_count         << "pause -1 \"Press Return\" \n";
+
+      datFileName = "-";
+      fo_by_atom         << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildEnergyByPolar(n,true,fpm);
+      fo_by_atom << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo_by_atom, datFileName);
+      if (n!=9)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo_by_atom << "e\n";
+      fo_by_atom         << "pause -1 \"Press Return\" \n";
+
+      datFileName = "-";
+      fo_by_range         << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildEnergyByPolarByAtomsInRange(n,fpm);
+      fo_by_range << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo_by_range, datFileName);
+      if (n!=9)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo_by_range << "e\n";
+      fo_by_range         << "pause -1 \"Press Return\" \n";
+    }
+    fo.close();
+    fo_count.close();
+    fo_by_atom.close();
+    fo_by_range.close();
+  }
+
+  {
+    std::string datFileName;
+    char pltFileName[1000];
+    sprintf(pltFileName,"!!!EnergyByAzimuth.plt");
+    std::ofstream fo(pltFileName);
+    sprintf(pltFileName,"!!!AtomsCountByAzimuth.plt");
+    std::ofstream fo_count(pltFileName);
+    sprintf(pltFileName,"!!!EnergyByAzimuthByAtom.plt");
+    std::ofstream fo_by_atom(pltFileName);
+    sprintf(pltFileName,"!!!EnergyByAzimuthByAtomsInRange.plt");
+    std::ofstream fo_by_range(pltFileName);
+    fo << "\
+reset\n\
+set xrange [-180:180]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+    fo_count << "\
+reset\n\
+set xrange [-180:180]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+    fo_by_atom << "\
+reset\n\
+set xrange [-180:180]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+    fo_by_range << "\
+reset\n\
+set xrange [-180:180]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+//        for(int n = 1; n <= 180; n++)
+    for(int n = 1; n <= 360; n++)
+//        for(int n = 1; n <= 360*2; n++)
+    {
+      datFileName = "-";
+      fo         << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildEnergyByAzimuth(n,false,fpm);
+      fo << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo, datFileName);
+      if (n!=36)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo << "e\n";
+      fo         << "pause -1 \"Press Return\" \n";
+
+      datFileName = "-";
+      fo_count         << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildAtomsCountByAzimuth(n,fpm);
+      fo_count << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo_count, datFileName);
+      if (n!=36)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo_count << "e\n";
+      fo_count         << "pause -1 \"Press Return\" \n";
+
+      datFileName = "-";
+      fo_by_atom         << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildEnergyByAzimuth(n,true,fpm);
+      fo_by_atom << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo_by_atom, datFileName);
+      if (n!=36)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo_by_atom << "e\n";
+      fo_by_atom         << "pause -1 \"Press Return\" \n";
+
+      datFileName = "-";
+      fo_by_range         << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildEnergyByAzimuthByAtomsInRange(n,fpm);
+      fo_by_range << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo_by_range, datFileName);
+      if (n!=36)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo_by_range << "e\n";
+      fo_by_range         << "pause -1 \"Press Return\" \n";
+    }
+
+    fo.close();
+    fo_count.close();
+    fo_by_atom.close();
+    fo_by_range.close();
+  }
+
+  yaatk::chdir("..");
+}
 
 #define MDEPP_BYTIME_DIR "_by_time"
 

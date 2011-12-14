@@ -142,7 +142,7 @@ BatchPostProcess::printResults()
       yaatk::mkdir(s.c_str());\
       yaatk::chdir(s.c_str());\
       pp->buildMassSpectrum(mdepp::StatPostProcess::Process##FPM);\
-      pp->buildAngular2(mdepp::StatPostProcess::Process##FPM);\
+      pp->buildAngular(mdepp::StatPostProcess::Process##FPM);\
       yaatk::chdir("..");\
     }
 
