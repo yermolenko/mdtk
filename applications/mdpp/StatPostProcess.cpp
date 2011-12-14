@@ -1499,7 +1499,7 @@ saveHistogram(gsl_histogram *h, const char *datFileName)
     foByEscapeHist << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i) << std::endl;
   }  
   foByEscapeHist.close();
-  foByEscapeHistPlt << "#reset\nset yrange [0:*]\nplot \'" << byEscapeTimeDatHist << "\' with histeps\n";
+  foByEscapeHistPlt << "#reset\nset yrange [0:*]\nplot \'" << byEscapeTimeDatHist << "\' with boxes fs solid 1.0\n";
   foByEscapeHistPlt.close();
 }  
 
