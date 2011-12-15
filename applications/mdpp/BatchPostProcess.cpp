@@ -175,14 +175,19 @@ BatchPostProcess::printResults()
                                "yields-Substrate", elements[i]);
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
                                "yields-All", elements[i]);
-    plotAngular(mdepp::StatPostProcess::ProcessCluster,
-                "Cluster", elements[i]);
-    plotAngular(mdepp::StatPostProcess::ProcessProjectile,
-                "Projectile", elements[i]);
-    plotAngular(mdepp::StatPostProcess::ProcessSubstrate,
-                "Substrate", elements[i]);
-    plotAngular(mdepp::StatPostProcess::ProcessAll,
+
+#define PLOT_ANGULAR_ION_TYPE(angleType)\
+    plotAngular(angleType,mdepp::StatPostProcess::ProcessCluster,\
+                "Cluster", elements[i]);\
+    plotAngular(angleType,mdepp::StatPostProcess::ProcessProjectile,\
+                "Projectile", elements[i]);\
+    plotAngular(angleType,mdepp::StatPostProcess::ProcessSubstrate,\
+                "Substrate", elements[i]);\
+    plotAngular(angleType,mdepp::StatPostProcess::ProcessAll,\
                 "All", elements[i]);
+
+    PLOT_ANGULAR_ION_TYPE(true);
+    PLOT_ANGULAR_ION_TYPE(false);
   }
 
   std::vector<size_t> clusterSizes;
@@ -200,14 +205,19 @@ BatchPostProcess::printResults()
                                "yields-Substrate", DUMMY_EL, clusterSizes[i]);
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
                                "yields-All", DUMMY_EL, clusterSizes[i]);
-    plotAngular(mdepp::StatPostProcess::ProcessCluster,
-                "Cluster", DUMMY_EL, clusterSizes[i]);
-    plotAngular(mdepp::StatPostProcess::ProcessProjectile,
-                "Projectile", DUMMY_EL, clusterSizes[i]);
-    plotAngular(mdepp::StatPostProcess::ProcessSubstrate,
-                "Substrate", DUMMY_EL, clusterSizes[i]);
-    plotAngular(mdepp::StatPostProcess::ProcessAll,
+
+#define PLOT_ANGULAR_CLUSTER_SIZE(angleType)\
+    plotAngular(angleType,mdepp::StatPostProcess::ProcessCluster, \
+                "Cluster", DUMMY_EL, clusterSizes[i]);\
+    plotAngular(angleType,mdepp::StatPostProcess::ProcessProjectile,\
+                "Projectile", DUMMY_EL, clusterSizes[i]);\
+    plotAngular(angleType,mdepp::StatPostProcess::ProcessSubstrate,\
+                "Substrate", DUMMY_EL, clusterSizes[i]);\
+    plotAngular(angleType,mdepp::StatPostProcess::ProcessAll,\
                 "All", DUMMY_EL, clusterSizes[i]);
+
+    PLOT_ANGULAR_CLUSTER_SIZE(true);
+    PLOT_ANGULAR_CLUSTER_SIZE(false);
   }
 
   yaatk::chdir("..");
@@ -319,7 +329,8 @@ plot \\\n\
 }
 
 void
-BatchPostProcess::plotAngular(StatPostProcess::FProcessClassicMolecule fpm,
+BatchPostProcess::plotAngular(bool plotPolar,
+                              StatPostProcess::FProcessClassicMolecule fpm,
                               std::string idStr,
                               ElementID specIonElement,
                               size_t specClusterSize) const
@@ -333,10 +344,12 @@ BatchPostProcess::plotAngular(StatPostProcess::FProcessClassicMolecule fpm,
   if (specClusterSize > 0)
     fnb << "_" << specClusterSize;
 
-  fnb << "-polar";
+  fnb << (plotPolar?"-polar":"-azimuthal");
 
   ofstream fplt((fnb.str()+".plt").c_str());
-  fplt << "\
+
+  if (plotPolar)
+    fplt << "\
 reset\n\
 set xrange [0:90]\n\
 set xtics 0,15,90\n\
@@ -346,6 +359,23 @@ set pointsize 1.5\n\
 #set key right top\n\
 set key spacing 1.5\n\
 set xlabel \"Полярний кут, градуси\"\n\
+set ylabel \"Диференціальний коефіцієнт розпилення, атом/іон\"\n\
+set encoding koi8u\n\
+set output  \"" << fnb.str() << ".eps\"\n\
+set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
+plot \\\n\
+";
+  else
+    fplt << "\
+reset\n\
+set xrange [-180:180]\n\
+set xtics -180,45,180\n\
+set pointsize 1.5\n\
+#set grid ytics\n\
+#set key left top\n\
+#set key right top\n\
+set key spacing 1.5\n\
+set xlabel \"Азимутальний кут, градуси\"\n\
 set ylabel \"Диференціальний коефіцієнт розпилення, атом/іон\"\n\
 set encoding koi8u\n\
 set output  \"" << fnb.str() << ".eps\"\n\
@@ -373,11 +403,11 @@ plot \\\n\
     }
 
     {
-      size_t n = 9;
+      size_t n = plotPolar?9:36;
       ostringstream sfname;
       sfname << pp->id.str << "/" << "Process" << idStr << "/"
              << "_angular" << "/"
-             << "atomsCount_by_polar_00009.dat";
+             << (plotPolar?"atomsCount_by_polar_00009.dat":"atomsCount_by_azimuth_00036.dat");
       TRACE(sfname.str());
       std::ifstream fiSingle(sfname.str().c_str());
       REQUIRE(fiSingle);
