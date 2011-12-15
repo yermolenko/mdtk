@@ -175,6 +175,14 @@ BatchPostProcess::printResults()
                                "yields-Substrate", elements[i]);
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
                                "yields-All", elements[i]);
+    plotAngular(mdepp::StatPostProcess::ProcessCluster,
+                "Cluster", elements[i]);
+    plotAngular(mdepp::StatPostProcess::ProcessProjectile,
+                "Projectile", elements[i]);
+    plotAngular(mdepp::StatPostProcess::ProcessSubstrate,
+                "Substrate", elements[i]);
+    plotAngular(mdepp::StatPostProcess::ProcessAll,
+                "All", elements[i]);
   }
 
   std::vector<size_t> clusterSizes;
@@ -192,6 +200,14 @@ BatchPostProcess::printResults()
                                "yields-Substrate", DUMMY_EL, clusterSizes[i]);
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
                                "yields-All", DUMMY_EL, clusterSizes[i]);
+    plotAngular(mdepp::StatPostProcess::ProcessCluster,
+                "Cluster", DUMMY_EL, clusterSizes[i]);
+    plotAngular(mdepp::StatPostProcess::ProcessProjectile,
+                "Projectile", DUMMY_EL, clusterSizes[i]);
+    plotAngular(mdepp::StatPostProcess::ProcessSubstrate,
+                "Substrate", DUMMY_EL, clusterSizes[i]);
+    plotAngular(mdepp::StatPostProcess::ProcessAll,
+                "All", DUMMY_EL, clusterSizes[i]);
   }
 
   yaatk::chdir("..");
@@ -277,6 +293,107 @@ plot \\\n\
     {
       std::ostringstream cmd;
       cmd << "'-' title \"{/Italic "
+          << ElementIDtoString(pp->id.ionElement) << " "
+          << ElementIDtoString(pp->id.clusterElement)
+          << "_{" << pp->id.clusterSize << "}"
+          << "}\" "
+          << "with linespoints";
+      plotCmds.push_back(cmd.str());
+
+      data << "e\n";
+    }
+  }
+
+  REQUIRE(plotCmds.size() > 0);
+  for(size_t i = 0; i < plotCmds.size(); ++i)
+  {
+    if (i != plotCmds.size()-1)
+      fplt << plotCmds[i] << ",\\\n";
+    else
+      fplt << plotCmds[i] << "\n";
+  }
+
+  fplt << data.str();
+
+  fplt.close();
+}
+
+void
+BatchPostProcess::plotAngular(StatPostProcess::FProcessClassicMolecule fpm,
+                              std::string idStr,
+                              ElementID specIonElement,
+                              size_t specClusterSize) const
+{
+  std::stringstream fnb;
+  fnb << idStr;
+
+  if (specIonElement != DUMMY_EL)
+    fnb << "_" << ElementIDtoString(specIonElement);
+
+  if (specClusterSize > 0)
+    fnb << "_" << specClusterSize;
+
+  fnb << "-polar";
+
+  ofstream fplt((fnb.str()+".plt").c_str());
+  fplt << "\
+reset\n\
+set xrange [0:90]\n\
+set xtics 0,15,90\n\
+set pointsize 1.5\n\
+#set grid ytics\n\
+#set key left top\n\
+#set key right top\n\
+set key spacing 1.5\n\
+set xlabel \"Полярний кут, градуси\"\n\
+set ylabel \"Диференціальний коефіцієнт розпилення, атом/іон\"\n\
+set encoding koi8u\n\
+set output  \"" << fnb.str() << ".eps\"\n\
+set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
+plot \\\n\
+";
+
+  std::vector<std::string> plotCmds;
+  std::ostringstream data;
+
+  for(size_t i = 0; i < pps.size(); ++i)
+  {
+    mdepp::StatPostProcess* pp = pps[i];
+
+    if (specIonElement != DUMMY_EL)
+    {
+      if (pp->id.ionElement != specIonElement)
+        continue;
+    }
+
+    if (specClusterSize > 0)
+    {
+      if (pp->id.clusterSize != specClusterSize)
+        continue;
+    }
+
+    {
+      size_t n = 9;
+      ostringstream sfname;
+      sfname << pp->id.str << "/" << "Process" << idStr << "/"
+             << "_angular" << "/"
+             << "atomsCount_by_polar_00009.dat";
+      TRACE(sfname.str());
+      std::ifstream fiSingle(sfname.str().c_str());
+      REQUIRE(fiSingle);
+      for(size_t i = 0; i < n; ++i)
+      {
+        Float x,y;
+        fiSingle >> x >> y;
+        data << x << " " << y << "\n";
+      }
+      fiSingle.close();
+    }
+
+    {
+      std::ostringstream cmd;
+      cmd << "'-' title \"{/Italic "
+          << pp->id.ionEnergy << "еВ "
           << ElementIDtoString(pp->id.ionElement) << " "
           << ElementIDtoString(pp->id.clusterElement)
           << "_{" << pp->id.clusterSize << "}"

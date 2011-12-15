@@ -49,6 +49,10 @@ public:
                                   std::string idStr = "yields",
                                   ElementID specIonElement = DUMMY_EL,
                                   size_t specClusterSize = 0) const;
+  void plotAngular(StatPostProcess::FProcessClassicMolecule fpm,
+                   std::string idStr = "undefined",
+                   ElementID specIonElement = DUMMY_EL,
+                   size_t specClusterSize = 0) const;
 };
 
 }
