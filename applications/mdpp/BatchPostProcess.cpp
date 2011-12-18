@@ -26,6 +26,7 @@
 
 #include <fstream>
 #include <mdtk/tools.hpp>
+#include <mdtk/SnapshotList.hpp>
 
 namespace mdepp
 {
@@ -167,6 +168,8 @@ BatchPostProcess::printResults()
   elements.push_back(Xe_EL);
   for(size_t i = 0; i < elements.size(); i++)
   {
+    plotEnergyLoss(elements[i]);
+
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,
                                "yields-Cluster", elements[i]);
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,
@@ -197,6 +200,8 @@ BatchPostProcess::printResults()
   clusterSizes.push_back(39);
   for(size_t i = 0; i < clusterSizes.size(); i++)
   {
+    plotEnergyLoss(DUMMY_EL, clusterSizes[i]);
+
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,
                                "yields-Cluster", DUMMY_EL, clusterSizes[i]);
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,
@@ -429,6 +434,154 @@ plot \\\n\
           << "_{" << pp->id.clusterSize << "}"
           << "}\" "
           << "with linespoints";
+      plotCmds.push_back(cmd.str());
+
+      data << "e\n";
+    }
+  }
+
+  REQUIRE(plotCmds.size() > 0);
+  for(size_t i = 0; i < plotCmds.size(); ++i)
+  {
+    if (i != plotCmds.size()-1)
+      fplt << plotCmds[i] << ",\\\n";
+    else
+      fplt << plotCmds[i] << "\n";
+  }
+
+  fplt << data.str();
+
+  fplt.close();
+}
+
+void
+BatchPostProcess::plotEnergyLoss(ElementID specIonElement,
+                                 size_t specClusterSize) const
+{
+  std::stringstream fnb;
+  fnb << "energy-loss";
+
+  if (specIonElement != DUMMY_EL)
+    fnb << "_" << ElementIDtoString(specIonElement);
+
+  if (specClusterSize > 0)
+    fnb << "_" << specClusterSize;
+
+  ofstream fplt((fnb.str()+".plt").c_str());
+
+  // PE
+  const Float c = 2.547;
+  const Float minDepth_desired   = -100.0;
+  const Float maxDepth_desired   =  100.0;
+  const Float matchPoint         =    0.0;
+  const Float histStep           =      c;
+
+  REQUIRE(minDepth_desired < matchPoint);
+  REQUIRE(maxDepth_desired > matchPoint);
+  const int n_below_matchPoint = int( (matchPoint       - minDepth_desired)/histStep ) +1;
+  const int n_above_matchPoint = int( (maxDepth_desired - matchPoint      )/histStep ) +1;
+
+  const int n = n_above_matchPoint + n_below_matchPoint;
+  const Float minDepth   = matchPoint - n_below_matchPoint*histStep;
+  const Float maxDepth   = matchPoint + n_above_matchPoint*histStep;
+
+  fplt << "# min depth = " << minDepth << " Ao" << "\n"
+       << "# max depth = " << maxDepth << " Ao" << "\n"
+       << "# number of bins = " << n << std::endl;
+
+  fplt << "\
+reset\n\
+#set xrange [0:90]\n\
+set xtics 0,15,90\n\
+set format x \"%.1f\"\n\
+set xtics " << c/2.0 << "\nset grid xtics\n\
+set pointsize 1.5\n\
+#set grid ytics\n\
+#set key left top\n\
+#set key right top\n\
+set key spacing 1.5\n\
+set xlabel \"Глибина, ангстрем\"\n\
+set ylabel \"Втрати енергії, еВ\"\n\
+set encoding koi8u\n\
+set output  \"" << fnb.str() << ".eps\"\n\
+set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
+plot \\\n\
+";
+
+  std::vector<std::string> plotCmds;
+  std::ostringstream data;
+
+  for(size_t i = 0; i < pps.size(); ++i)
+  {
+    mdepp::StatPostProcess* pp = pps[i];
+
+    if (specIonElement != DUMMY_EL)
+    {
+      if (pp->id.ionElement != specIonElement)
+        continue;
+    }
+
+    if (specClusterSize > 0)
+    {
+      if (pp->id.clusterSize != specClusterSize)
+        continue;
+    }
+
+    {
+      gsl_histogram * h = gsl_histogram_alloc (n);
+      gsl_histogram_set_ranges_uniform (h, minDepth, maxDepth);
+
+      std::vector<std::pair<Float,Float> > ed;
+
+      SnapshotList sn;
+      sn.loadstate();
+
+      double lower, upper;
+      gsl_histogram_get_range (h, 0, &lower, &upper);
+      Float midLayerDepth = (upper-lower)/2+matchPoint;
+      for(size_t shotIndex = 0; shotIndex < sn.snapshots.size(); ++shotIndex)
+      {
+        Float t = sn.snapshots[shotIndex].first;
+        SnapshotList::SelectedAtomSnapshotList& asl
+          = sn.snapshots[shotIndex].second;
+        size_t ionIndex = asl.size()-1;
+        REQUIRE(asl.size() > 0);
+        if (shotIndex == 0)
+          REQUIRE(sn.snapshots[shotIndex].second[0].pos[2] < -5.0*mdtk::Ao);
+      }
+
+      for(size_t i = 0; i < ed.size(); i++)
+        gsl_histogram_accumulate(h,
+                                 ed[i].first,
+                                 ed[i].second);
+
+      REQUIRE(ed.size() == n);
+
+      for(int i = 0; i < n; i++)
+      {
+        double lower, upper;
+        gsl_histogram_get_range (h, i, &lower, &upper);
+        data << (lower+upper)/2.0 << " "
+             << gsl_histogram_get(h,i) << "\n";
+
+        if (i > 0 && i < n-1)
+        {
+          REQUIRE(fabs(ed[i].second - gsl_histogram_get(h,i)) < 1e-50);
+        }
+      }
+
+      gsl_histogram_free (h);
+    }
+
+    {
+      std::ostringstream cmd;
+      cmd << "'-' title \"{/Italic "
+          << pp->id.ionEnergy << "еВ "
+          << ElementIDtoString(pp->id.ionElement) << " "
+          << ElementIDtoString(pp->id.clusterElement)
+          << "_{" << pp->id.clusterSize << "}"
+          << "}\" "
+          << "with boxes";
       plotCmds.push_back(cmd.str());
 
       data << "e\n";
