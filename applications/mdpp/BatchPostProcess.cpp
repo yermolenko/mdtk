@@ -455,6 +455,14 @@ plot \\\n\
   fplt.close();
 }
 
+Float Ek(ElementID id, SnapshotList::AtomSnapshot as)
+{
+  Atom a(id);
+//  a.setAttributesByElementID();
+  as.restoreToAtom(a);
+  return a.M*SQR(a.V.module())/2.0;
+}
+
 void
 BatchPostProcess::plotEnergyLoss(ElementID specIonElement,
                                  size_t specClusterSize) const
@@ -470,32 +478,25 @@ BatchPostProcess::plotEnergyLoss(ElementID specIonElement,
 
   ofstream fplt((fnb.str()+".plt").c_str());
 
-  // PE
-  const Float c = 2.547;
-  const Float minDepth_desired   = -100.0;
-  const Float maxDepth_desired   =  100.0;
-  const Float matchPoint         =    0.0;
-  const Float histStep           =      c;
+  std::vector<Float> bounds;
 
-  REQUIRE(minDepth_desired < matchPoint);
-  REQUIRE(maxDepth_desired > matchPoint);
-  const int n_below_matchPoint = int( (matchPoint       - minDepth_desired)/histStep ) +1;
-  const int n_above_matchPoint = int( (maxDepth_desired - matchPoint      )/histStep ) +1;
+  const Float c = 2.547*Ao;
+  for(size_t i = 0; i < 15; ++i)
+    bounds.push_back(c*i);
 
-  const int n = n_above_matchPoint + n_below_matchPoint;
-  const Float minDepth   = matchPoint - n_below_matchPoint*histStep;
-  const Float maxDepth   = matchPoint + n_above_matchPoint*histStep;
+  std::vector<Float> dEs;
+  dEs.resize(bounds.size()+1);
 
-  fplt << "# min depth = " << minDepth << " Ao" << "\n"
-       << "# max depth = " << maxDepth << " Ao" << "\n"
-       << "# number of bins = " << n << std::endl;
+  fplt << "# 1st bound = " << bounds[0]/Ao << " Ao" << "\n"
+       << "# last depth = " << *(bounds.end()-1)/Ao << " Ao" << "\n"
+       << "# number of bounds = " << bounds.size() << "\n"
+       << "# number of bins = " << dEs.size() << "\n";
 
   fplt << "\
 reset\n\
 #set xrange [0:90]\n\
-set xtics 0,15,90\n\
 set format x \"%.1f\"\n\
-set xtics " << c/2.0 << "\nset grid xtics\n\
+set xtics 0," << c/2.0/Ao << "\nset grid xtics\n\
 set pointsize 1.5\n\
 #set grid ytics\n\
 #set key left top\n\
@@ -528,50 +529,70 @@ plot \\\n\
         continue;
     }
 
+    for(size_t ti = 0; ti < pp->trajData.size(); ti++)
     {
-      gsl_histogram * h = gsl_histogram_alloc (n);
-      gsl_histogram_set_ranges_uniform (h, minDepth, maxDepth);
-
-      std::vector<std::pair<Float,Float> > ed;
+      StatPostProcess::TrajData& td = pp->trajData[ti];
 
       SnapshotList sn;
-      sn.loadstate();
+      {
+        std::string cwd = yaatk::getcwd();
+        yaatk::chdir("..");
+        yaatk::chdir(td.trajDir.c_str());
+        sn.loadstate();
+        yaatk::chdir(cwd.c_str());
+      }
 
-      double lower, upper;
-      gsl_histogram_get_range (h, 0, &lower, &upper);
-      Float midLayerDepth = (upper-lower)/2+matchPoint;
+      size_t dEindex = 0;
+      Float prevEk;
       for(size_t shotIndex = 0; shotIndex < sn.snapshots.size(); ++shotIndex)
       {
         Float t = sn.snapshots[shotIndex].first;
         SnapshotList::SelectedAtomSnapshotList& asl
           = sn.snapshots[shotIndex].second;
         size_t ionIndex = asl.size()-1;
+
+        Float depth = asl[ionIndex].pos[2];
+
         REQUIRE(asl.size() > 0);
+        REQUIRE(shotIndex != 0 || depth < -3.0*mdtk::Ao);
+
+        REQUIRE(dEindex < dEs.size());
+
         if (shotIndex == 0)
-          REQUIRE(sn.snapshots[shotIndex].second[0].pos[2] < -5.0*mdtk::Ao);
-      }
+          prevEk = Ek(pp->id.ionElement,asl[ionIndex]);
 
-      for(size_t i = 0; i < ed.size(); i++)
-        gsl_histogram_accumulate(h,
-                                 ed[i].first,
-                                 ed[i].second);
-
-      REQUIRE(ed.size() == n);
-
-      for(int i = 0; i < n; i++)
-      {
-        double lower, upper;
-        gsl_histogram_get_range (h, i, &lower, &upper);
-        data << (lower+upper)/2.0 << " "
-             << gsl_histogram_get(h,i) << "\n";
-
-        if (i > 0 && i < n-1)
+        if (depth > bounds[dEindex])
         {
-          REQUIRE(fabs(ed[i].second - gsl_histogram_get(h,i)) < 1e-50);
+          Float curEk;
+          if (dEindex != dEs.size()-1)
+            curEk = Ek(pp->id.ionElement,
+                       asl[ionIndex]);
+          else
+            curEk = Ek(pp->id.ionElement,
+                       sn.snapshots[sn.snapshots.size()-1].second[ionIndex]);
+          dEs[dEindex] = curEk - prevEk;
+          prevEk = curEk;
+
+          TRACE(shotIndex);
+          TRACE(t/fs);
+          TRACE(dEindex);
+          TRACE(dEs[dEindex]/eV);
+
+          if (dEindex != dEs.size()-1)
+            dEindex++;
+          else
+            break;
         }
       }
+    }
 
-      gsl_histogram_free (h);
+    for(int i = 0; i < bounds.size(); i++)
+    {
+      double x = (i == 0)?
+        (bounds[0]-c/2.0):
+        ((bounds[i]-bounds[i-1])/2.0+bounds[i-1]);
+      data << x/Ao << " "
+           << dEs[i]/pp->trajData.size()/eV << "\n";
     }
 
     {
