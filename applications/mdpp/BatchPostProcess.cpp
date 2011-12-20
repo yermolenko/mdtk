@@ -555,16 +555,6 @@ plot \\\n\
 
         Float depth = asl[ionIndex].pos[2];
 
-        REQUIRE(bounds[1] < 0.1*Ao);
-        REQUIRE(bounds[1] > -1000.0*Ao);
-        if (depth >= bounds[1] && depth < 0.0*Ao &&
-            shotIndex == sn.snapshots.size()-1)
-        {
-          depth = bounds[0]/2.0;
-          TRACE("*** Ion is probably moving along the surface. Assuming it will be sputtered. ***");
-          TRACE(depth);
-        }
-
         REQUIRE(asl.size() > 0);
         REQUIRE(shotIndex != 0 || depth < -3.0*mdtk::Ao);
 
