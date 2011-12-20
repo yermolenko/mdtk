@@ -566,22 +566,31 @@ plot \\\n\
           TRACE(prevEk/eV);
         }
 
-        if (depth > bounds[dEindex+1] || shotIndex == sn.snapshots.size()-1)
+        size_t dEindex_next = dEindex;
+
+        if (depth >= bounds[dEindex+1])
+          dEindex_next = dEindex+1;
+        if (depth < bounds[dEindex])
+          dEindex_next = dEindex-1;
+
+        bool transitionDetected = (dEindex != dEindex_next);
+
+        if (transitionDetected || shotIndex == sn.snapshots.size()-1)
         {
           Float curEk = Ek(pp->id.ionElement,
                            asl[ionIndex]);
 
-          REQUIRE(dEindex < dEs.size());
-
-          dEs[dEindex] = curEk - prevEk;
+          dEs[dEindex] += curEk - prevEk;
           prevEk = curEk;
-/*
+
           TRACE(shotIndex);
           TRACE(t/fs);
           TRACE(dEindex);
+          TRACE((curEk - prevEk)/eV);
           TRACE(dEs[dEindex]/eV);
-*/
-          dEindex++;
+
+          dEindex = dEindex_next;
+          REQUIRE(/*dEindex >= 0 &&*/ dEindex < dEs.size());
         }
       }
       {
