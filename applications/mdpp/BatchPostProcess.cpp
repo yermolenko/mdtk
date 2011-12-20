@@ -480,12 +480,14 @@ BatchPostProcess::plotEnergyLoss(ElementID specIonElement,
 
   std::vector<Float> bounds;
 
+  bounds.push_back(-1000000.0*Ao);
   const Float c = 2.547*Ao;
-  for(size_t i = 0; i < 15; ++i)
+  for(int i = -10; i < 15; ++i)
     bounds.push_back(c*i);
+  bounds.push_back(+1000000.0*Ao);
 
   std::vector<Float> dEs;
-  dEs.resize(bounds.size()+1);
+  dEs.resize(bounds.size()-1);
 
   fplt << "# 1st bound = " << bounds[0]/Ao << " Ao" << "\n"
        << "# last depth = " << *(bounds.end()-1)/Ao << " Ao" << "\n"
@@ -559,38 +561,60 @@ plot \\\n\
         REQUIRE(dEindex < dEs.size());
 
         if (shotIndex == 0)
-          prevEk = Ek(pp->id.ionElement,asl[ionIndex]);
-
-        if (depth > bounds[dEindex])
         {
-          Float curEk;
-          if (dEindex != dEs.size()-1)
-            curEk = Ek(pp->id.ionElement,
-                       asl[ionIndex]);
-          else
-            curEk = Ek(pp->id.ionElement,
-                       sn.snapshots[sn.snapshots.size()-1].second[ionIndex]);
+          prevEk = Ek(pp->id.ionElement,asl[ionIndex]);
+          TRACE(prevEk/eV);
+        }
+
+        if (depth > bounds[dEindex+1] || shotIndex == sn.snapshots.size()-1)
+        {
+          Float curEk = Ek(pp->id.ionElement,
+                           asl[ionIndex]);
+
+          REQUIRE(dEindex < dEs.size());
+
           dEs[dEindex] = curEk - prevEk;
           prevEk = curEk;
-
+/*
           TRACE(shotIndex);
           TRACE(t/fs);
           TRACE(dEindex);
           TRACE(dEs[dEindex]/eV);
-
-          if (dEindex != dEs.size()-1)
-            dEindex++;
-          else
-            break;
+*/
+          dEindex++;
         }
+      }
+      {
+        Float dEsum = 0;
+        for(int i = 0; i < dEs.size(); i++)
+          dEsum += dEs[i];
+
+        SnapshotList::SelectedAtomSnapshotList& asl_start
+          = sn.snapshots[0].second;
+        SnapshotList::SelectedAtomSnapshotList& asl_end
+          = sn.snapshots[sn.snapshots.size()-1].second;
+
+        size_t ionIndex = asl_start.size()-1;
+
+        Float Ek_start = Ek(pp->id.ionElement,asl_start[ionIndex]);
+        Float Ek_end   = Ek(pp->id.ionElement,asl_end[ionIndex]);
+
+        TRACE(td.trajDir);
+
+        TRACE(Ek_start/eV);
+        TRACE(Ek_end/eV);
+        TRACE((Ek_end-Ek_start)/eV);
+        TRACE(dEsum/eV);
       }
     }
 
-    for(int i = 0; i < bounds.size(); i++)
+    for(int i = 0; i < dEs.size(); i++)
     {
-      double x = (i == 0)?
-        (bounds[0]-c/2.0):
-        ((bounds[i]-bounds[i-1])/2.0+bounds[i-1]);
+      double x = ((bounds[i+1]-bounds[i])/2.0+bounds[i]);
+      if (i == 0)
+        x = (bounds[i+1]-c/2.0);
+      if (i == dEs.size()-1)
+        x = (bounds[i]  +c/2.0);
       data << x/Ao << " "
            << dEs[i]/pp->trajData.size()/eV << "\n";
     }
