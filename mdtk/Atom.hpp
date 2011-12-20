@@ -332,8 +332,6 @@ Atom::Atom(ElementID id,
    ,fixed(false)
    ,container(NULL)
 {
-  TRACE(Z/e);
-  TRACE(M/amu);
   setAttributesByElementID();
 }
 
