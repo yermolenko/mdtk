@@ -581,7 +581,6 @@ plot \\\n\
                            asl[ionIndex]);
 
           dEs[dEindex] += curEk - prevEk;
-          prevEk = curEk;
 
           TRACE(shotIndex);
           TRACE(t/fs);
@@ -589,6 +588,7 @@ plot \\\n\
           TRACE((curEk - prevEk)/eV);
           TRACE(dEs[dEindex]/eV);
 
+          prevEk = curEk;
           dEindex = dEindex_next;
           REQUIRE(/*dEindex >= 0 &&*/ dEindex < dEs.size());
         }
