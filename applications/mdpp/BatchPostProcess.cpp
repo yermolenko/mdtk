@@ -497,6 +497,7 @@ BatchPostProcess::plotEnergyLoss(ElementID specIonElement,
   fplt << "\
 reset\n\
 #set xrange [0:90]\n\
+#set yrange [0:*]\n\
 set format x \"%.1f\"\n\
 set xtics 0," << c/2.0/Ao << "\nset grid xtics\n\
 set pointsize 1.5\n\
@@ -632,7 +633,7 @@ plot \\\n\
         x = (bounds[i]  +w/2);
       }
       data << x/Ao << " "
-           << dEs[i]/pp->trajData.size()/eV << " "
+           << -dEs[i]/pp->trajData.size()/eV << " "
            << w/Ao << "\n";
     }
 
