@@ -482,7 +482,7 @@ BatchPostProcess::plotEnergyLoss(ElementID specIonElement,
 
   bounds.push_back(-1000000.0*Ao);
   const Float c = 2.547*Ao;
-  for(int i = -10; i < 15; ++i)
+  for(int i = 0; i < 11; ++i)
     bounds.push_back(c*i);
   bounds.push_back(+1000000.0*Ao);
 
