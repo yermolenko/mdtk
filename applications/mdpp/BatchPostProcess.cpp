@@ -619,13 +619,21 @@ plot \\\n\
 
     for(int i = 0; i < dEs.size(); i++)
     {
-      double x = ((bounds[i+1]-bounds[i])/2.0+bounds[i]);
+      Float w = bounds[i+1]-bounds[i];
+      Float x = bounds[i]+w/2;
       if (i == 0)
-        x = (bounds[i+1]-c/2.0);
+      {
+        w = c;
+        x = (bounds[i+1]-w/2);
+      }
       if (i == dEs.size()-1)
-        x = (bounds[i]  +c/2.0);
+      {
+        w = c;
+        x = (bounds[i]  +w/2);
+      }
       data << x/Ao << " "
-           << dEs[i]/pp->trajData.size()/eV << "\n";
+           << dEs[i]/pp->trajData.size()/eV << " "
+           << w/Ao << "\n";
     }
 
     {
