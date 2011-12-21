@@ -623,12 +623,12 @@ plot \\\n\
       Float x = bounds[i]+w/2;
       if (i == 0)
       {
-        w = c;
+        w = c*4;
         x = (bounds[i+1]-w/2);
       }
       if (i == dEs.size()-1)
       {
-        w = c;
+        w = c*4;
         x = (bounds[i]  +w/2);
       }
       data << x/Ao << " "
