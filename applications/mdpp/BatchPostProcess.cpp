@@ -360,8 +360,8 @@ BatchPostProcess::plotAngular(bool plotPolar,
   if (plotPolar)
     fplt << "\
 reset\n\
-set xrange [-1:" << n << "]\n\
-set xtics 0,15,90\n\
+set xrange [-0.5:" << n-0.5 << "]\n\
+#set xtics 0,15,90\n\
 set pointsize 1.5\n\
 #set grid ytics\n\
 #set key left top\n\
@@ -380,8 +380,8 @@ plot \\\n\
   else
     fplt << "\
 reset\n\
-set xrange [-1:" << n << "]\n\
-set xtics -180,45,180\n\
+set xrange [-0.5:" << n-0.5 << "]\n\
+#set xtics -180,45,180\n\
 set pointsize 1.5\n\
 #set grid ytics\n\
 #set key left top\n\
