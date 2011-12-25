@@ -211,18 +211,27 @@ BatchPostProcess::printResults()
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
                                "yields-All", DUMMY_EL, clusterSizes[i]);
 
-#define PLOT_ANGULAR_CLUSTER_SIZE(angleType)\
+#define PLOT_ANGULAR(angleType,elementType,clusterSize)\
     plotAngular(angleType,mdepp::StatPostProcess::ProcessCluster, \
-                "Cluster", DUMMY_EL, clusterSizes[i]);\
+                "Cluster", elementType, clusterSizes[i]);\
     plotAngular(angleType,mdepp::StatPostProcess::ProcessProjectile,\
-                "Projectile", DUMMY_EL, clusterSizes[i]);\
+                "Projectile", elementType, clusterSizes[i]);\
     plotAngular(angleType,mdepp::StatPostProcess::ProcessSubstrate,\
-                "Substrate", DUMMY_EL, clusterSizes[i]);\
+                "Substrate", elementType, clusterSizes[i]);\
     plotAngular(angleType,mdepp::StatPostProcess::ProcessAll,\
-                "All", DUMMY_EL, clusterSizes[i]);
+                "All", elementType, clusterSizes[i]);
 
-    PLOT_ANGULAR_CLUSTER_SIZE(true);
-    PLOT_ANGULAR_CLUSTER_SIZE(false);
+    PLOT_ANGULAR(true,DUMMY_EL,clusterSizes[i]);
+    PLOT_ANGULAR(false,DUMMY_EL,clusterSizes[i]);
+
+    std::vector<ElementID> elements;
+    elements.push_back(Ar_EL);
+    elements.push_back(Xe_EL);
+    for(size_t j = 0; j < elements.size(); j++)
+    {
+      PLOT_ANGULAR(true,elements[j],clusterSizes[i]);
+      PLOT_ANGULAR(false,elements[j],clusterSizes[i]);
+    }
   }
 
   yaatk::chdir("..");
