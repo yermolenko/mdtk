@@ -353,10 +353,14 @@ BatchPostProcess::plotAngular(bool plotPolar,
 
   ofstream fplt((fnb.str()+".plt").c_str());
 
+  size_t n = plotPolar?9:36;
+  char n_str[1024];
+  sprintf(n_str,"%05lu",(long unsigned)n);
+
   if (plotPolar)
     fplt << "\
 reset\n\
-set xrange [-1:" << 9 << "]\n\
+set xrange [-1:" << n << "]\n\
 set xtics 0,15,90\n\
 set pointsize 1.5\n\
 #set grid ytics\n\
@@ -376,7 +380,7 @@ plot \\\n\
   else
     fplt << "\
 reset\n\
-set xrange [-1:" << 36 << "]\n\
+set xrange [-1:" << n << "]\n\
 set xtics -180,45,180\n\
 set pointsize 1.5\n\
 #set grid ytics\n\
@@ -414,11 +418,12 @@ plot \\\n\
     }
 
     {
-      size_t n = plotPolar?9:36;
       ostringstream sfname;
       sfname << pp->id.str << "/" << "Process" << idStr << "/"
              << "_angular" << "/"
-             << (plotPolar?"atomsCount_by_polar_00009.dat":"atomsCount_by_azimuth_00036.dat");
+             << (plotPolar?"atomsCount_by_polar_":"atomsCount_by_azimuth_")
+             << n_str
+             << ".dat";
       TRACE(sfname.str());
       std::ifstream fiSingle(sfname.str().c_str());
       REQUIRE(fiSingle);
