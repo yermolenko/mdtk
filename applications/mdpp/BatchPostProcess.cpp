@@ -353,7 +353,7 @@ BatchPostProcess::plotAngular(bool plotPolar,
 
   ofstream fplt((fnb.str()+".plt").c_str());
 
-  size_t n = plotPolar?9:36;
+  size_t n = plotPolar?3:12;
   char n_str[1024];
   sprintf(n_str,"%05lu",(long unsigned)n);
 

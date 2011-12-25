@@ -3382,6 +3382,8 @@ appendFileToStream(std::ofstream& fo, std::string& filename)
 void
 StatPostProcess::buildAngular(FProcessClassicMolecule fpm) const
 {
+  int n_to_leave_pol = 3;
+  int n_to_leave_az  = 12;
   std::string subdir = "_angular";
 
   yaatk::mkdir(subdir.c_str());
@@ -3464,7 +3466,7 @@ set format y \"%10g\"\n\
         buildEnergyByPolar(n,false,fpm);
       fo << " title \"" << datFileName << "\"\n";
       appendFileToStream(fo, datFileName);
-      if (n!=9)
+      if (n!=n_to_leave_pol)
       {
         std::remove(datFileName.c_str());
         std::remove((datFileName+".plt").c_str());
@@ -3478,7 +3480,7 @@ set format y \"%10g\"\n\
         buildAtomsCountByPolar(n,fpm);
       fo_count << " title \"" << datFileName << "\"\n";
       appendFileToStream(fo_count, datFileName);
-      if (n!=9)
+      if (n!=n_to_leave_pol)
       {
         std::remove(datFileName.c_str());
         std::remove((datFileName+".plt").c_str());
@@ -3492,7 +3494,7 @@ set format y \"%10g\"\n\
         buildEnergyByPolar(n,true,fpm);
       fo_by_atom << " title \"" << datFileName << "\"\n";
       appendFileToStream(fo_by_atom, datFileName);
-      if (n!=9)
+      if (n!=n_to_leave_pol)
       {
         std::remove(datFileName.c_str());
         std::remove((datFileName+".plt").c_str());
@@ -3506,7 +3508,7 @@ set format y \"%10g\"\n\
         buildEnergyByPolarByAtomsInRange(n,fpm);
       fo_by_range << " title \"" << datFileName << "\"\n";
       appendFileToStream(fo_by_range, datFileName);
-      if (n!=9)
+      if (n!=n_to_leave_pol)
       {
         std::remove(datFileName.c_str());
         std::remove((datFileName+".plt").c_str());
@@ -3565,7 +3567,7 @@ set format y \"%10g\"\n\
         buildEnergyByAzimuth(n,false,fpm);
       fo << " title \"" << datFileName << "\"\n";
       appendFileToStream(fo, datFileName);
-      if (n!=36)
+      if (n!=n_to_leave_az)
       {
         std::remove(datFileName.c_str());
         std::remove((datFileName+".plt").c_str());
@@ -3579,7 +3581,7 @@ set format y \"%10g\"\n\
         buildAtomsCountByAzimuth(n,fpm);
       fo_count << " title \"" << datFileName << "\"\n";
       appendFileToStream(fo_count, datFileName);
-      if (n!=36)
+      if (n!=n_to_leave_az)
       {
         std::remove(datFileName.c_str());
         std::remove((datFileName+".plt").c_str());
@@ -3593,7 +3595,7 @@ set format y \"%10g\"\n\
         buildEnergyByAzimuth(n,true,fpm);
       fo_by_atom << " title \"" << datFileName << "\"\n";
       appendFileToStream(fo_by_atom, datFileName);
-      if (n!=36)
+      if (n!=n_to_leave_az)
       {
         std::remove(datFileName.c_str());
         std::remove((datFileName+".plt").c_str());
@@ -3607,7 +3609,7 @@ set format y \"%10g\"\n\
         buildEnergyByAzimuthByAtomsInRange(n,fpm);
       fo_by_range << " title \"" << datFileName << "\"\n";
       appendFileToStream(fo_by_range, datFileName);
-      if (n!=36)
+      if (n!=n_to_leave_az)
       {
         std::remove(datFileName.c_str());
         std::remove((datFileName+".plt").c_str());
