@@ -155,7 +155,6 @@ BatchPostProcess::printResults()
     yaatk::chdir("..");
   }
 
-  if (0)
   {
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,"yields-Cluster");
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,"yields-Projectile");
@@ -170,7 +169,7 @@ BatchPostProcess::printResults()
   for(size_t i = 0; i < elements.size(); i++)
   {
     plotEnergyLoss(elements[i]);
-    continue;
+
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,
                                "yields-Cluster", elements[i]);
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,
@@ -202,7 +201,7 @@ BatchPostProcess::printResults()
   for(size_t i = 0; i < clusterSizes.size(); i++)
   {
     plotEnergyLoss(DUMMY_EL, clusterSizes[i]);
-    continue;
+
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,
                                "yields-Cluster", DUMMY_EL, clusterSizes[i]);
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,
