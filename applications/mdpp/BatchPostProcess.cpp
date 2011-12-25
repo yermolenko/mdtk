@@ -189,8 +189,8 @@ BatchPostProcess::printResults()
     plotAngular(angleType,mdepp::StatPostProcess::ProcessAll,\
                 "All", elements[i]);
 
-    PLOT_ANGULAR_ION_TYPE(true);
-    PLOT_ANGULAR_ION_TYPE(false);
+//    PLOT_ANGULAR_ION_TYPE(true);
+//    PLOT_ANGULAR_ION_TYPE(false);
   }
 
   std::vector<size_t> clusterSizes;
@@ -221,8 +221,8 @@ BatchPostProcess::printResults()
     plotAngular(angleType,mdepp::StatPostProcess::ProcessAll,\
                 "All", elementType, clusterSizes[i]);
 
-    PLOT_ANGULAR(true,DUMMY_EL,clusterSizes[i]);
-    PLOT_ANGULAR(false,DUMMY_EL,clusterSizes[i]);
+//    PLOT_ANGULAR(true,DUMMY_EL,clusterSizes[i]);
+//    PLOT_ANGULAR(false,DUMMY_EL,clusterSizes[i]);
 
     std::vector<ElementID> elements;
     elements.push_back(Ar_EL);
