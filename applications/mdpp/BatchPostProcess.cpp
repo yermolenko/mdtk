@@ -356,7 +356,7 @@ BatchPostProcess::plotAngular(bool plotPolar,
   if (plotPolar)
     fplt << "\
 reset\n\
-set xrange [0:90]\n\
+set xrange [-1:" << 9 << "]\n\
 set xtics 0,15,90\n\
 set pointsize 1.5\n\
 #set grid ytics\n\
@@ -368,12 +368,15 @@ set ylabel \"Диференціальний коефіцієнт розпиле�
 set encoding koi8u\n\
 set output  \"" << fnb.str() << ".eps\"\n\
 set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
+set style data histogram\n\
+set boxwidth 0.8\n\
+set style histogram cluster gap 1\n\
 plot \\\n\
 ";
   else
     fplt << "\
 reset\n\
-set xrange [-180:180]\n\
+set xrange [-1:" << 36 << "]\n\
 set xtics -180,45,180\n\
 set pointsize 1.5\n\
 #set grid ytics\n\
@@ -385,6 +388,9 @@ set ylabel \"Диференціальний коефіцієнт розпиле�
 set encoding koi8u\n\
 set output  \"" << fnb.str() << ".eps\"\n\
 set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
+set style data histogram\n\
+set boxwidth 0.8\n\
+set style histogram cluster gap 1\n\
 plot \\\n\
 ";
 
@@ -427,13 +433,13 @@ plot \\\n\
 
     {
       std::ostringstream cmd;
-      cmd << "'-' title \"{/Italic "
+      cmd << "'-' using 2:xticlabels(1) title \"{/Italic "
           << pp->id.ionEnergy << "еВ "
           << ElementIDtoString(pp->id.ionElement) << " "
           << ElementIDtoString(pp->id.clusterElement)
           << "_{" << pp->id.clusterSize << "}"
           << "}\" "
-          << "with linespoints";
+          << "";
       plotCmds.push_back(cmd.str());
 
       data << "e\n";
