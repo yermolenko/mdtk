@@ -534,7 +534,7 @@ BatchPostProcess::plotEnergyLoss(ElementID specIonElement,
 
   fplt << "\
 reset\n\
-#set xrange [0:90]\n\
+set xrange [" << -c*1/Ao << ":" << c*9/Ao << "]\n\
 #set yrange [0:*]\n\
 set format x \"%.1f\"\n\
 set xtics 0," << c*2/Ao << "\n\
