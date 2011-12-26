@@ -55,7 +55,8 @@ public:
                    ElementID specIonElement = DUMMY_EL,
                    size_t specClusterSize = 0) const;
   void plotEnergyLoss(ElementID specIonElement = DUMMY_EL,
-                      size_t specClusterSize = 0) const;
+                      size_t specClusterSize = 0,
+                      Float specIonEnergy = -100*eV) const;
 };
 
 }

@@ -229,6 +229,17 @@ BatchPostProcess::printResults()
     elements.push_back(Xe_EL);
     for(size_t j = 0; j < elements.size(); j++)
     {
+      plotEnergyLoss(elements[j], clusterSizes[i]);
+
+      std::vector<Float> energies;
+      energies.push_back(100*eV);
+      energies.push_back(200*eV);
+      energies.push_back(400*eV);
+      for(size_t k = 0; k < energies.size(); k++)
+      {
+        plotEnergyLoss(elements[j], clusterSizes[i], energies[k]);
+      }
+
       PLOT_ANGULAR(true,elements[j],clusterSizes[i]);
       PLOT_ANGULAR(false,elements[j],clusterSizes[i]);
     }
@@ -484,7 +495,8 @@ Float Ek(ElementID id, SnapshotList::AtomSnapshot as)
 
 void
 BatchPostProcess::plotEnergyLoss(ElementID specIonElement,
-                                 size_t specClusterSize) const
+                                 size_t specClusterSize,
+                                 Float specIonEnergy) const
 {
   std::stringstream fnb;
   fnb << "energy-loss";
@@ -494,6 +506,9 @@ BatchPostProcess::plotEnergyLoss(ElementID specIonElement,
 
   if (specClusterSize > 0)
     fnb << "_" << specClusterSize;
+
+  if (specIonEnergy > 0)
+    fnb << "_" << int(specIonEnergy/eV) << "eV";
 
   ofstream fplt((fnb.str()+".plt").c_str());
 
@@ -548,6 +563,12 @@ plot \\\n\
     if (specClusterSize > 0)
     {
       if (pp->id.clusterSize != specClusterSize)
+        continue;
+    }
+
+    if (specIonEnergy > 0)
+    {
+      if (fabs(pp->id.ionEnergy*eV - specIonEnergy) > 0.05*eV)
         continue;
     }
 
