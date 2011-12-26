@@ -537,17 +537,19 @@ reset\n\
 #set xrange [0:90]\n\
 #set yrange [0:*]\n\
 set format x \"%.1f\"\n\
-set xtics 0," << c/2.0/Ao << "\nset grid xtics\n\
+set xtics 0," << c*2/Ao << "\n\
+#set grid xtics\n\
 set pointsize 1.5\n\
 #set grid ytics\n\
 #set key left top\n\
 #set key right top\n\
 set key spacing 1.5\n\
 set xlabel \"Глибина, ангстрем\"\n\
-set ylabel \"Втрати енергії, еВ\"\n\
+set ylabel \"Втрати енергії у шарі, еВ\"\n\
 set encoding koi8u\n\
 set output  \"" << fnb.str() << ".eps\"\n\
 set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
+set style fill solid 0.5 border -1\n\
 plot \\\n\
 ";
 
@@ -668,12 +670,12 @@ plot \\\n\
       Float x = bounds[i]+w/2;
       if (i == 0)
       {
-        w = c*4;
+        w = c;
         x = (bounds[i+1]-w/2);
       }
       if (i == dEs.size()-1)
       {
-        w = c*4;
+        w = c;
         x = (bounds[i]  +w/2);
       }
       data << x/Ao << " "
@@ -685,7 +687,7 @@ plot \\\n\
       std::ostringstream cmd;
       cmd << "'-' title \"{/Italic "
           << pp->id.ionEnergy << "еВ "
-          << ElementIDtoString(pp->id.ionElement) << " "
+          << ElementIDtoString(pp->id.ionElement) << " -> "
           << ElementIDtoString(pp->id.clusterElement)
           << "_{" << pp->id.clusterSize << "}"
           << "}\" "
