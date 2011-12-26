@@ -278,6 +278,19 @@ BatchPostProcess::plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMol
   std::stringstream fnb;
   fnb << idStr;
 
+  bool pCluster = (fpm==mdepp::StatPostProcess::ProcessCluster);
+  bool pProjectile = (fpm==mdepp::StatPostProcess::ProcessProjectile);
+  bool pSubstrate = (fpm==mdepp::StatPostProcess::ProcessSubstrate);
+  bool pAll = (fpm==mdepp::StatPostProcess::ProcessAll);
+
+  string yieldOfWhat = "розпилення";
+  if (pCluster)
+    yieldOfWhat = "розпилення кластера";
+  if (pSubstrate)
+    yieldOfWhat = "розпилення підкладинки";
+  if (pProjectile)
+    yieldOfWhat = "зворотного розсіювання";
+
   if (specIonElement != DUMMY_EL)
     fnb << "_" << ElementIDtoString(specIonElement);
 
@@ -292,11 +305,11 @@ set yrange [0:*]\n\
 set xtics (100,200,400)\n\
 set pointsize 1.5\n\
 #set grid ytics\n\
-#set key left top\n\
+" << (pProjectile?"#":"") << "set key left top\n\
 #set key right top\n\
 set key spacing 1.5\n\
 set xlabel \"Енергія іона, еВ\"\n\
-set ylabel \"Коефіцієнт зворотного розсіювання, атом/іон\"\n\
+set ylabel \"Коефіцієнт " << yieldOfWhat << ", атом/іон\"\n  \
 set encoding koi8u\n\
 set output  \"" << fnb.str() << ".eps\"\n\
 set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
