@@ -194,7 +194,7 @@ BatchPostProcess::printResults()
   }
 
   std::vector<size_t> clusterSizes;
-  clusterSizes.push_back(1);
+//  clusterSizes.push_back(1);
   clusterSizes.push_back(13);
   clusterSizes.push_back(27);
   clusterSizes.push_back(39);
