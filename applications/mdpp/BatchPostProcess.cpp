@@ -381,26 +381,29 @@ BatchPostProcess::plotAngular(bool plotPolar,
     fplt << "\
 reset\n\
 set xrange [-0.5:" << n-0.5 << "]\n\
+set yrange [0:*]\n\
 #set xtics 0,15,90\n\
 set pointsize 1.5\n\
 #set grid ytics\n\
-#set key left top\n\
+set key left top\n\
 #set key right top\n\
 set key spacing 1.5\n\
 set xlabel \"Полярний кут, градуси\"\n\
-set ylabel \"Диференціальний коефіцієнт розпилення, атом/іон\"\n\
+set ylabel \"{/Italic dY}_{x}, атом/іон\"\n\
 set encoding koi8u\n\
 set output  \"" << fnb.str() << ".eps\"\n\
 set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
 set style data histogram\n\
 set boxwidth 0.8\n\
 set style histogram cluster gap 1\n\
+set style fill pattern border\n\
 plot \\\n\
 ";
   else
     fplt << "\
 reset\n\
 set xrange [-0.5:" << n-0.5 << "]\n\
+set yrange [0:*]\n\
 #set xtics -180,45,180\n\
 set pointsize 1.5\n\
 #set grid ytics\n\
@@ -408,13 +411,14 @@ set pointsize 1.5\n\
 #set key right top\n\
 set key spacing 1.5\n\
 set xlabel \"Азимутальний кут, градуси\"\n\
-set ylabel \"Диференціальний коефіцієнт розпилення, атом/іон\"\n\
+set ylabel \"{/Italic dY}_{x}, атом/іон\"\n\
 set encoding koi8u\n\
 set output  \"" << fnb.str() << ".eps\"\n\
 set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
 set style data histogram\n\
 set boxwidth 0.8\n\
 set style histogram cluster gap 1\n\
+set style fill pattern border\n\
 plot \\\n\
 ";
 
@@ -458,9 +462,9 @@ plot \\\n\
 
     {
       std::ostringstream cmd;
-      cmd << "'-' using 2:xticlabels(1) title \"{/Italic "
+      cmd << "'-' using 2:xticlabels(1) lt -1 title \"{/Italic "
           << pp->id.ionEnergy << "еВ "
-          << ElementIDtoString(pp->id.ionElement) << " "
+          << ElementIDtoString(pp->id.ionElement) << " -> "
           << ElementIDtoString(pp->id.clusterElement)
           << "_{" << pp->id.clusterSize << "}"
           << "}\" "
