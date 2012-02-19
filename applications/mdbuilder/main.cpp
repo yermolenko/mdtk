@@ -1,7 +1,7 @@
 /*
    mdbuilder (molecular dynamics experiments preparation tool)
 
-   Copyright (C) 2010, 2011 Oleksandr Yermolenko
+   Copyright (C) 2010, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -37,6 +37,7 @@
 #include "experiments/Graphite.hpp"
 #include "experiments/Polyethylene.hpp"
 #include "experiments/Clusters.hpp"
+#include "experiments/Fullerite.hpp"
 
 class MDBuilderWindow : public Fl_Gl_Window
 {
@@ -281,7 +282,7 @@ MDBuilderWindow::draw()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-//    if (0)
+    if (0)
     {
       glLoadIdentity();
       std::vector<int> clusterSizes;
@@ -307,6 +308,15 @@ MDBuilderWindow::draw()
                                                              clusterElements,
                                                              ionElements,
                                                              ionEnergies);
+    }
+//    if (0)
+    {
+      glLoadIdentity();
+      mdtk::SimLoop sl = mdbuilder::build_Fullerite_C60(2,2,3);
+
+      yaatk::text_ofstream fomde("Fullerite.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
     }
   }
   exit(0);
