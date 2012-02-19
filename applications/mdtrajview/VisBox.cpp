@@ -1,8 +1,8 @@
 /*
    The VisBox class for the molecular dynamics trajectory viewer
 
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
+   2012 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -199,7 +199,10 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
   if (xvas.size() > 0 && xvas[0] != "shot")
     MDTrajectory_read(mdt,base_state_filename,xvas);
   else
-    MDTrajectory_read_from_SnapshotList(mdt,base_state_filename);
+  {
+    if (yaatk::exists("snapshots.conf"))
+      MDTrajectory_read_from_SnapshotList(mdt,base_state_filename);
+  }
 //    ctree = new CollisionTree(*(ml_->atoms.back()),mdt.begin(),mdt);
   }
   size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
