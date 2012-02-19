@@ -1,7 +1,7 @@
 /*
    Common routines for mdbuilder (header)
 
-   Copyright (C) 2008, 2010, 2011 Oleksandr Yermolenko
+   Copyright (C) 2008, 2010, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -308,6 +308,24 @@ unfixAtoms(mdtk::AtomsContainer& atoms,
   std::vector<size_t> fixated;
   for(size_t i = 0; i < fixedAtoms.size(); i++)
     atoms[fixedAtoms[i]]->unfix();
+}
+
+inline
+void
+place_Cluster(
+  mdtk::SimLoop& sl,
+  const mdtk::SimLoop sl_element
+  )
+{
+  glPushMatrix();
+
+  for(size_t i = 0; i < sl_element.atoms.size(); i++)
+  {
+    Atom& a = *(sl_element.atoms[i]);
+    place_and_inherit(sl,a,getPosition()+a.coords);
+  }
+
+  glPopMatrix();
 }
 
 }
