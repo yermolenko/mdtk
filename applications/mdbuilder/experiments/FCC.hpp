@@ -1,7 +1,7 @@
 /*
    Building of FCC stuctures
 
-   Copyright (C) 2008, 2011 Oleksandr Yermolenko
+   Copyright (C) 2008, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -148,6 +148,104 @@ build_FCC_lattice(int a_num = 14,
   removeMomentum(sl.atoms);
 
   return sl;
+}
+
+inline
+void
+place_Generic_FCC_cell(
+  mdtk::SimLoop& sl,
+  const mdtk::SimLoop sl_element,
+  Vector3D va,
+  Vector3D vb,
+  Vector3D vc
+  )
+{
+  glPushMatrix();
+
+  {
+    glPushMatrix();
+    glTranslated(0,0,0);
+    place_Cluster(sl,sl_element);
+    glPopMatrix();
+  }
+
+  {
+    glPushMatrix();
+    glTranslated(((va+vb)/2.0).x,((va+vb)/2.0).y,0.0);
+    place_Cluster(sl,sl_element);
+    glPopMatrix();
+  }
+
+  {
+    glPushMatrix();
+    glTranslated(0.0,((vb+vc)/2.0).y,((vb+vc)/2.0).z);
+    place_Cluster(sl,sl_element);
+    glPopMatrix();
+  }
+
+  {
+    glPushMatrix();
+    glTranslated(((va+vc)/2.0).x,0.0,((va+vc)/2.0).z);
+    place_Cluster(sl,sl_element);
+    glPopMatrix();
+  }
+
+  glPopMatrix();
+}
+
+inline
+void
+place_Generic_FCC_lattice(
+  mdtk::SimLoop& sl,
+  const mdtk::SimLoop sl_element,
+  int a_num = 8,
+  int b_num = 12,
+  int c_num = 10,
+  bool fixBottomCellLayer = true,
+  int cellsFromXYPlane = 0,
+  double a = 1.0*Ao,
+  double b = 1.0*Ao,
+  double c = 1.0*Ao
+  )
+{
+  glPushMatrix();
+
+  Vector3D va = Vector3D(a,0,0);
+  Vector3D vb = Vector3D(0,b,0);
+  Vector3D vc = Vector3D(0,0,c);
+
+  for(int ia = 0; ia < a_num; ia++)
+    for(int ib = 0; ib < b_num; ib++)
+      for(int ic = cellsFromXYPlane; ic < c_num; ic++)
+      {
+        glPushMatrix();
+
+        glTranslated(
+          (va*ia+vb*ib+vc*ic).x,
+          (va*ia+vb*ib+vc*ic).y,
+          (va*ia+vb*ib+vc*ic).z
+          );
+
+        glPushMatrix();
+        place_Generic_FCC_cell(sl,sl_element,va,vb,vc);
+        glPopMatrix();
+
+        if (fixBottomCellLayer)
+        {
+          if (ic == c_num-1)
+          {
+            for(size_t i = 1; i <= 4*sl_element.atoms.size(); i++)
+            {
+              Atom& a = *(sl.atoms[sl.atoms.size()-i]);
+              a.fix();
+            }
+          }
+        }
+
+        glPopMatrix();
+      }
+
+  glPopMatrix();
 }
 
 }
