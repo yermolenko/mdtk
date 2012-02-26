@@ -195,6 +195,49 @@ place_Generic_FCC_cell(
 
 inline
 void
+place_Generic_NegFCC_cell(
+  mdtk::SimLoop& sl,
+  const mdtk::SimLoop sl_element,
+  Vector3D va,
+  Vector3D vb,
+  Vector3D vc
+  )
+{
+  glPushMatrix();
+
+  {
+    glPushMatrix();
+    glTranslated(((va+vb+vc)/2.0).x,((va+vb+vc)/2.0).y,((va+vb+vc)/2.0).z);
+    place_Cluster(sl,sl_element);
+    glPopMatrix();
+  }
+
+  {
+    glPushMatrix();
+    glTranslated((va/2.0).x,0.0,0.0);
+    place_Cluster(sl,sl_element);
+    glPopMatrix();
+  }
+
+  {
+    glPushMatrix();
+    glTranslated(0.0,(vb/2.0).y,0.0);
+    place_Cluster(sl,sl_element);
+    glPopMatrix();
+  }
+
+  {
+    glPushMatrix();
+    glTranslated(0.0,0.0,(vc/2.0).z);
+    place_Cluster(sl,sl_element);
+    glPopMatrix();
+  }
+
+  glPopMatrix();
+}
+
+inline
+void
 place_Generic_FCC_lattice(
   mdtk::SimLoop& sl,
   const mdtk::SimLoop sl_element,
@@ -205,7 +248,8 @@ place_Generic_FCC_lattice(
   int cellsFromXYPlane = 0,
   double a = 1.0*Ao,
   double b = 1.0*Ao,
-  double c = 1.0*Ao
+  double c = 1.0*Ao,
+  bool negative = false
   )
 {
   glPushMatrix();
@@ -227,7 +271,10 @@ place_Generic_FCC_lattice(
           );
 
         glPushMatrix();
-        place_Generic_FCC_cell(sl,sl_element,va,vb,vc);
+        if (negative)
+          place_Generic_NegFCC_cell(sl,sl_element,va,vb,vc);
+        else
+          place_Generic_FCC_cell(sl,sl_element,va,vb,vc);
         glPopMatrix();
 
         if (fixBottomCellLayer)
