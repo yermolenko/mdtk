@@ -38,6 +38,7 @@
 #include "experiments/Polyethylene.hpp"
 #include "experiments/Clusters.hpp"
 #include "experiments/Fullerite.hpp"
+#include "experiments/Fulleride.hpp"
 
 class MDBuilderWindow : public Fl_Gl_Window
 {
@@ -309,12 +310,21 @@ MDBuilderWindow::draw()
                                                              ionElements,
                                                              ionEnergies);
     }
-//    if (0)
+    if (0)
     {
       glLoadIdentity();
       mdtk::SimLoop sl = mdbuilder::build_Fullerite_C60(2,2,3);
 
       yaatk::text_ofstream fomde("Fullerite.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
+    }
+//    if (0)
+    {
+      glLoadIdentity();
+      mdtk::SimLoop sl = mdbuilder::build_Fulleride_C60(2,2,3,Cu_EL,3);
+
+      yaatk::text_ofstream fomde("Fulleride.mde");
       sl.saveToMDE(fomde);
       fomde.close();
     }
