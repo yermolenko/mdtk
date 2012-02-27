@@ -1,7 +1,7 @@
 /*
    Building of various clusters
 
-   Copyright (C) 2007, 2008, 2010, 2011 Oleksandr Yermolenko
+   Copyright (C) 2007, 2008, 2010, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -63,6 +63,8 @@ build_C60_optimized()
   mdbuilder::place_C60(sl);
   
   quench(sl,1.0*K);
+
+  shiftToOrigin(sl.atoms);
 
   return sl;
 }
@@ -323,6 +325,8 @@ build_cluster(ElementID id, int clusterSize)
   yaatk::chdir("..");
 
   gsl_rng_free (r);
+
+  shiftToOrigin(sl.atoms);
 
   return sl;
 }
