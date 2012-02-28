@@ -90,6 +90,7 @@ quench(mdtk::SimLoop& sl,
   while (1)
   {
     sl.simTimeFinal += checkTime;
+    sl.writestate();
     sl.execute();
     Float Temp = sl.energyKin()/(3.0/2.0*kb*sl.atoms.size());
     if (Temp < forTemp) break;
@@ -126,6 +127,7 @@ relax_flush(mdtk::SimLoop& sl,
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = forTime;
   sl.simTimeSaveTrajInterval = 0.001*ps;
+  sl.writestate();
   sl.execute();
   yaatk::chdir("..");
 }
