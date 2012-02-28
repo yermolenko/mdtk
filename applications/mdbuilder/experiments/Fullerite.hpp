@@ -75,6 +75,8 @@ build_Fullerite_C60(
 
     sl.disableDump();
 
+    relax_flush(sl,0.05*ps,"_tmp-X-relax100");
+
     quench(sl,0.01*K,100000*ps,0.01*ps,"_tmp-X-quenchall");
 
     fixAtoms(sl.atoms,fixedAtoms);
