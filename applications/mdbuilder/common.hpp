@@ -288,6 +288,21 @@ fixNotFixedAtoms(mdtk::AtomsContainer& atoms,
 
 inline
 std::vector<size_t>
+unfixFixedAtoms(mdtk::AtomsContainer& atoms,
+                const size_t begin, const size_t end)
+{
+  std::vector<size_t> unfixated;
+  for(size_t i = 0; i < end; i++)
+    if (atoms[i]->isFixed())
+    {
+      atoms[i]->unfix();
+      unfixated.push_back(i);
+    }
+  return unfixated;
+}
+
+inline
+std::vector<size_t>
 fixUnfixedCHAtoms(mdtk::AtomsContainer& atoms,
            const size_t begin, const size_t end)
 {
@@ -309,6 +324,15 @@ unfixAtoms(mdtk::AtomsContainer& atoms,
 {
   for(size_t i = 0; i < fixedAtoms.size(); i++)
     atoms[fixedAtoms[i]]->unfix();
+}
+
+inline
+void
+fixAtoms(mdtk::AtomsContainer& atoms,
+         const std::vector<size_t> atomsToFix)
+{
+  for(size_t i = 0; i < atomsToFix.size(); i++)
+    atoms[atomsToFix[i]]->fix();
 }
 
 inline
