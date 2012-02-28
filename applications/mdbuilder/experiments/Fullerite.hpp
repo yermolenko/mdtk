@@ -44,7 +44,7 @@ build_Fullerite_C60(
   double b = a;
   double c = a;
 
-  mdtk::SimLoop sl;
+  SimLoopDump sl;
   initialize_simloop(sl);
 
   mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
@@ -55,6 +55,30 @@ build_Fullerite_C60(
                             a_num,b_num,c_num,
                             fixBottomCellLayer,0,
                             a,a,a);
+
+  sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
+
+  {
+    std::vector<size_t> fixedAtoms =
+      unfixFixedAtoms(sl.atoms,0,sl.atoms.size());
+
+    sl.enableDump();
+
+    sl.dumpConst(0.95);
+    relax_flush(sl,0.05*ps,"_tmp-X-relax095");
+
+    sl.dumpConst(0.97);
+    relax_flush(sl,0.05*ps,"_tmp-X-relax097");
+
+    sl.dumpConst(0.99);
+    relax_flush(sl,0.05*ps,"_tmp-X-relax099");
+
+    sl.disableDump();
+
+    quench(sl,0.01*K,100000*ps,0.01*ps,"_tmp-X-quenchall");
+
+    fixAtoms(sl.atoms,fixedAtoms);
+  }
 
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
   sl.thermalBath.zMin = (c_num > 2)?(c*(c_num-2)-0.5*Ao):(0.0);
