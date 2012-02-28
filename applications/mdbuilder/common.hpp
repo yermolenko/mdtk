@@ -307,7 +307,6 @@ void
 unfixAtoms(mdtk::AtomsContainer& atoms,
               const std::vector<size_t> fixedAtoms)
 {
-  std::vector<size_t> fixated;
   for(size_t i = 0; i < fixedAtoms.size(); i++)
     atoms[fixedAtoms[i]]->unfix();
 }
