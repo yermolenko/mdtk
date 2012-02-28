@@ -243,24 +243,15 @@ maxDistanceFrom(AtomsContainer& atoms, Vector3D point)
 }
 
 inline
-Float
+void
 shiftToOrigin(AtomsContainer& atoms)
 {
-  Float clusterRadius = 0.0;
-  Vector3D clusterCenter(0,0,0);
-  
-  for(size_t i = 0; i < atoms.size(); i++)
-    clusterCenter += atoms[i]->coords;
-  clusterCenter /= atoms.size();
-  for(size_t i = 0; i < atoms.size(); i++)
-    atoms[i]->coords -= clusterCenter;
-  for(size_t i = 0; i < atoms.size(); i++)
-  {
-    Float currentDist = atoms[i]->coords.module();
-    clusterRadius = (currentDist>clusterRadius)?currentDist:clusterRadius;
-  }
+  if (atoms.size() == 0) return;
 
-  return clusterRadius;
+  Vector3D clusterCenter = massCenter(atoms);
+
+  for(size_t i = 0; i < atoms.size(); i++)
+     atoms[i]->coords -= clusterCenter;
 }
 
 inline
