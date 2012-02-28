@@ -447,7 +447,7 @@ VisBox::listThermalBath()
   cb[0][1] = ml_->getPBC().x;
   cb[1][1] = ml_->getPBC().y;
   cb[2][0] = tb[2][0];
-  cb[2][1] = tb[2][1]+10*Ao;
+  cb[2][1] = tb[2][1]+30*Ao;
 
   GLubyte tbc[4]={0,227,127,127};
 
@@ -504,7 +504,7 @@ VisBox::listThermalBathSketch()
   cb[0][1] = ml_->getPBC().x;
   cb[1][1] = ml_->getPBC().y;
   cb[2][0] = tb[2][0];
-  cb[2][1] = tb[2][1]+10*Ao;
+  cb[2][1] = tb[2][1]+30*Ao;
 
   GLubyte tbc[4]={0,227,127,127};
 
