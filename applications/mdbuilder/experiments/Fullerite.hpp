@@ -56,7 +56,8 @@ build_Fullerite_C60(
                             fixBottomCellLayer,0,
                             a,a,a);
 
-  sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
+//  sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
+  sl.setPBC(Vector3D(a*a_num, b*b_num, c*c_num));
 
   {
     std::vector<size_t> fixedAtoms =
@@ -78,6 +79,8 @@ build_Fullerite_C60(
     relax_flush(sl,0.05*ps,"_tmp-X-relax100");
 
     quench(sl,0.01*K,100000*ps,0.01*ps,"_tmp-X-quenchall");
+
+    heatUp(sl,300.0*K);
 
     fixAtoms(sl.atoms,fixedAtoms);
   }
