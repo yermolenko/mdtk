@@ -1,8 +1,8 @@
 /*
    Yet another auxiliary toolkit (header file).
 
-   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -82,7 +82,8 @@ namespace yaatk
 { \
   if (!(cond)) \
   { \
-    std::cerr << (msg) << std::endl << std::flush; \
+    std::cerr << __FILE__ << "(" << __LINE__ << "): "  \
+              << (msg) << std::endl << std::flush;     \
     throw mdtk::Exception(msg); \
   }  \
 }
@@ -91,7 +92,9 @@ namespace yaatk
 { \
   if (!(cond)) \
   { \
-    std::cerr<< "Assertion "  << (#cond) << " FAILED !!!" << std::endl << std::flush; \
+    std::cerr << __FILE__ << "(" << __LINE__ << "): "      \
+              << "Assertion "  << (#cond) << " FAILED !!!" \
+              << std::endl << std::flush;                  \
     throw mdtk::Exception((#cond)); \
   }  \
 }
