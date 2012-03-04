@@ -56,30 +56,35 @@ build_Fullerite_C60(
                             fixBottomCellLayer,0,
                             a,a,a);
 
-  sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
-//  sl.setPBC(Vector3D(a*a_num, b*b_num, c*c_num));
+  sl.setPBC(Vector3D(a*a_num, b*b_num, c*c_num));
+
+  std::vector<size_t> fixedAtoms =
+    unfixFixedAtoms(sl.atoms,0,sl.atoms.size());
 
   {
-    {
-      sl.enableDump();
+    sl.enableDump();
 
-      sl.dumpConst(0.95);
-      relax_flush(sl,0.05*ps,"_tmp-W-relax095");
+    sl.dumpConst(0.95);
+    relax_flush(sl,0.05*ps,"_tmp-W-relax095");
 
-      sl.dumpConst(0.97);
-      relax_flush(sl,0.05*ps,"_tmp-W-relax097");
+    sl.dumpConst(0.97);
+    relax_flush(sl,0.05*ps,"_tmp-W-relax097");
 
-      sl.dumpConst(0.99);
-      relax_flush(sl,0.05*ps,"_tmp-W-relax099");
+    sl.dumpConst(0.99);
+    relax_flush(sl,0.05*ps,"_tmp-W-relax099");
 
-      sl.disableDump();
+    sl.disableDump();
 
-      relax_flush(sl,0.05*ps,"_tmp-W-relax100");
-    }
+    relax_flush(sl,0.50*ps,"_tmp-W-relax100");
+  }
 
-    std::vector<size_t> fixedAtoms =
-      unfixFixedAtoms(sl.atoms,0,sl.atoms.size());
+  quench(sl,0.01*K,100000*ps,0.01*ps,"_tmp-X-quenchall");
 
+  fixAtoms(sl.atoms,fixedAtoms);
+
+  sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
+
+  {
     sl.enableDump();
 
     sl.dumpConst(0.95);
@@ -93,14 +98,10 @@ build_Fullerite_C60(
 
     sl.disableDump();
 
-    relax_flush(sl,0.05*ps,"_tmp-X-relax100");
-
-    quench(sl,0.01*K,100000*ps,0.01*ps,"_tmp-X-quenchall");
-
-    heatUp(sl,300.0*K);
-
-    fixAtoms(sl.atoms,fixedAtoms);
+    relax_flush(sl,0.50*ps,"_tmp-X-relax100");
   }
+
+  heatUp(sl,300.0*K);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
   sl.thermalBath.zMin = (c_num > 2)?(c*(c_num-2)-0.5*Ao):(0.0);
