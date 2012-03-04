@@ -556,6 +556,7 @@ SimLoop::actualTemperatureOfThermalBath()
   for(j = 0; j < atoms_count; j++)
   {
     Atom& atom = *atoms_[j];
+    if (atom.isFixed()) continue;
     if (isWithinThermalBath(atom.coords) && atom.apply_ThermalBath)
     {
       energyKinCur += atom.M*SQR(atom.V.module())/2.0;
