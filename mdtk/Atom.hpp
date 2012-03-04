@@ -1,8 +1,8 @@
 /*
    The Atom class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -204,7 +204,28 @@ class AtomsContainer:public std::vector<Atom*>
 {
   Vector3D PBC;
 public:
-  void setPBC(Vector3D PBC_){  PBC = PBC_;}
+  void setPBC(Vector3D newPBC)
+    {
+      for (size_t i = 0; i < size(); i++)
+      {
+        Atom& a = *(at(i));
+
+        if (PBC.x == NO_PBC.x)
+          REQUIRE(a.PBC_count.x == 0);
+        if (PBC.y == NO_PBC.y)
+          REQUIRE(a.PBC_count.y == 0);
+        if (PBC.z == NO_PBC.z)
+          REQUIRE(a.PBC_count.z == 0);
+
+        if (newPBC.x == NO_PBC.x)
+          a.coords.x += PBC.x*a.PBC_count.x;
+        if (newPBC.y == NO_PBC.y)
+          a.coords.y += PBC.y*a.PBC_count.y;
+        if (newPBC.z == NO_PBC.z)
+          a.coords.z += PBC.z*a.PBC_count.z;
+      }
+      PBC = newPBC;
+    }
   Vector3D getPBC()const {return PBC;}
   bool usePBC()const{return PBC != NO_PBC;};
   AtomsContainer():std::vector<Atom*>(),PBC(NO_PBC){}
