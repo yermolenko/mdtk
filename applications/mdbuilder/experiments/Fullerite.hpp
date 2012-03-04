@@ -56,10 +56,27 @@ build_Fullerite_C60(
                             fixBottomCellLayer,0,
                             a,a,a);
 
-//  sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
-  sl.setPBC(Vector3D(a*a_num, b*b_num, c*c_num));
+  sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
+//  sl.setPBC(Vector3D(a*a_num, b*b_num, c*c_num));
 
   {
+    {
+      sl.enableDump();
+
+      sl.dumpConst(0.95);
+      relax_flush(sl,0.05*ps,"_tmp-W-relax095");
+
+      sl.dumpConst(0.97);
+      relax_flush(sl,0.05*ps,"_tmp-W-relax097");
+
+      sl.dumpConst(0.99);
+      relax_flush(sl,0.05*ps,"_tmp-W-relax099");
+
+      sl.disableDump();
+
+      relax_flush(sl,0.05*ps,"_tmp-W-relax100");
+    }
+
     std::vector<size_t> fixedAtoms =
       unfixFixedAtoms(sl.atoms,0,sl.atoms.size());
 
