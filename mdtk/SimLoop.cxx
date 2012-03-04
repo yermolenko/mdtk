@@ -1,7 +1,7 @@
 /*
    The molecular dynamics simulation loop class.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -366,6 +366,17 @@ SimLoop::execute_wo_checks()
     for(j = 0; j < atoms_count; j++)
     {
       Atom& atom = *(atoms_[j]); 
+
+      if (atom.isFixed())
+      {
+        REQUIRE(atom.M == INFINITE_MASS);
+        REQUIRE(atom.an == Vector3D(0.0,0.0,0.0));
+        REQUIRE(atom.an_no_tb == Vector3D(0.0,0.0,0.0));
+        REQUIRE(atom.V == Vector3D(0.0,0.0,0.0));
+        new_coords[j] = atom.coords;
+        continue;
+      }
+
       Vector3D force;
 
       force = (-fpot.grad(atom,this->atoms_));
