@@ -81,6 +81,9 @@ quench(mdtk::SimLoop& sl,
 {
   yaatk::mkdir(tmpDir.c_str());
   yaatk::chdir(tmpDir.c_str());
+  yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
+  yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
+
   sl.initialize();
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = 0.0;
@@ -159,6 +162,9 @@ relax_flush(mdtk::SimLoop& sl,
 {
   yaatk::mkdir(tmpDir.c_str());
   yaatk::chdir(tmpDir.c_str());
+  yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
+  yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
+
   sl.initialize();
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = forTime;
