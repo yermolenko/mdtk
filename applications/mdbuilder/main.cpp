@@ -101,7 +101,7 @@ MDBuilderWindow::draw()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-    if (0)
+//    if (0)
     {
       glLoadIdentity();
       mdtk::SimLoop sl;
@@ -310,7 +310,7 @@ MDBuilderWindow::draw()
                                                              ionElements,
                                                              ionEnergies);
     }
-//    if (0)
+    if (0)
     {
       glLoadIdentity();
       mdtk::SimLoop sl = mdbuilder::build_Fullerite_C60(2,2,3);
