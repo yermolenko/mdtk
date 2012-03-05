@@ -1,8 +1,7 @@
 #  Top-level CMakeLists.txt file for MDTK
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
-#  <oleksandr.yermolenko@gmail.com>
-#
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr
+#  Yermolenko <oleksandr.yermolenko@gmail.com>
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
 #
 #  MDTK is free software: you can redistribute it and/or modify it
@@ -64,6 +63,8 @@ IF(MSVC)
 ELSE(MSVC)
   SET(GSL_LIBRARIES gsl gslcblas)
   SET(GSL_FOUND true)
+  SET(OSMesa_FOUND true)
+  SET(OSMesa_LIBRARIES OSMesa)
 ENDIF(MSVC)
 
 IF(WIN32 AND CMAKE_COMPILER_IS_GNUCXX) # for that combination cmake fails to detect zlib :(
