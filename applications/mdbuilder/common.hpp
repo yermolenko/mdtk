@@ -106,6 +106,7 @@ inline
 void
 heatUp(mdtk::SimLoop& sl,
        Float forTemp = 300.0*K,
+       bool uniformHeatUp = true,
        Float forTime = 200*ps,
        Float checkTime = 1.0*ps,
        std::string tmpDir = "_tmp-heatUp")
@@ -121,7 +122,8 @@ heatUp(mdtk::SimLoop& sl,
   sl.simTimeFinal = 0.0;
   sl.simTimeSaveTrajInterval = 0.05*ps;
   Float tb_zMin_bak = sl.thermalBath.zMin;
-  sl.thermalBath.zMin = -100000.0*Ao;
+  if (uniformHeatUp)
+    sl.thermalBath.zMin = -100000.0*Ao;
   const int steps = 10;
   sl.thermalBath.To = 0.0;
   while (1)
