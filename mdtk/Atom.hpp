@@ -118,7 +118,7 @@ public:
   void setAttributesByElementID();
 
 #define ATOMTAG_FIXED 1<<0
-  bool isFixed()
+  bool isFixed() const
     {
       return (tag & ATOMTAG_FIXED);
     }
