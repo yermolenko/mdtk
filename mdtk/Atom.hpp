@@ -218,11 +218,20 @@ public:
           REQUIRE(a.PBC_count.z == 0);
 
         if (newPBC.x == NO_PBC.x)
+        {
           a.coords.x += PBC.x*a.PBC_count.x;
+          a.PBC_count.x = 0;
+        }
         if (newPBC.y == NO_PBC.y)
+        {
           a.coords.y += PBC.y*a.PBC_count.y;
+          a.PBC_count.y = 0;
+        }
         if (newPBC.z == NO_PBC.z)
+        {
           a.coords.z += PBC.z*a.PBC_count.z;
+          a.PBC_count.z = 0;
+        }
       }
       PBC = newPBC;
     }
@@ -270,11 +279,20 @@ normalize()
       {
         Atom& a = *(at(i));
         if (PBC.x != NO_PBC.x)
+        {
           a.coords.x += PBC.x*a.PBC_count.x;
+          a.PBC_count.x = 0;
+        }
         if (PBC.y != NO_PBC.y)
+        {
           a.coords.y += PBC.y*a.PBC_count.y;
+          a.PBC_count.y = 0;
+        }
         if (PBC.z != NO_PBC.z)
+        {
           a.coords.z += PBC.z*a.PBC_count.z;
+          a.PBC_count.z = 0;
+        }
       }
     }
 };
