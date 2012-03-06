@@ -310,7 +310,7 @@ MDBuilderWindow::draw()
                                                              ionElements,
                                                              ionEnergies);
     }
-//    if (0)
+    if (0)
     {
       glLoadIdentity();
       mdtk::SimLoop sl = mdbuilder::build_Fullerite_C60(2,2,3);
@@ -325,6 +325,25 @@ MDBuilderWindow::draw()
       mdtk::SimLoop sl = mdbuilder::build_Fulleride_C60(2,2,3,Cu_EL,3);
 
       yaatk::text_ofstream fomde("Fulleride.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
+    }
+//    if (0)
+    {
+      glLoadIdentity();
+
+      mdtk::SimLoop sl;
+      mdbuilder::initialize_simloop(sl);
+
+//    sl = mdbuilder::build_Fullerite_C60(2,2,3);
+//    sl = mdbuilder::build_FCC_lattice(10,10,10,Cu_EL);
+//    sl = mdbuilder::build_Graphite_lattice(12,14,3);
+      sl = mdbuilder::build_Polyethylene_lattice_with_folds(4,6,10);
+
+      mdbuilder::quench(sl,1.0*K,200*ps,0.01*ps,"_tmp-quench-to-1K");
+      mdbuilder::heatUp(sl,300.0*K,false,200*ps,2.0*ps,"_tmp-heatup-to-300K");
+
+      yaatk::text_ofstream fomde("300K.mde");
       sl.saveToMDE(fomde);
       fomde.close();
     }
