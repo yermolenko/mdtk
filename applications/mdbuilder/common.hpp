@@ -223,6 +223,7 @@ velocity(const AtomsContainer& atoms)
   for(size_t ai = 0; ai < atoms.size(); ai++)
   {
     const mdtk::Atom& atom = *atoms[ai];
+    if (atom.isFixed()) continue;
     sumOfM += atom.M;
     sumOfP += atom.V*atom.M;
   };
@@ -253,6 +254,7 @@ removeMomentum(AtomsContainer& atoms)
   for(size_t ai = 0; ai < atoms.size(); ai++)
   {
     mdtk::Atom& atom = *atoms[ai];
+    if (atom.isFixed()) continue;
     atom.V -= v;
   };
 }
