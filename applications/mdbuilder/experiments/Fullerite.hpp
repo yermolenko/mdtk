@@ -101,11 +101,11 @@ build_Fullerite_C60(
     relax_flush(sl,0.50*ps,"_tmp-X-relax100");
   }
 
+  heatUp(sl,300.0*K);
+
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
   sl.thermalBath.zMin = (c_num > 2)?(c*(c_num-2)-0.5*Ao):(0.0);
   sl.thermalBath.dBoundary = 3.0*Ao;
-
-  heatUp(sl,300.0*K,false);
 
   relax(sl,0.01*ps);
   quench(sl,1.0*K);
