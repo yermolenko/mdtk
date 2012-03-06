@@ -108,7 +108,7 @@ heatUp(mdtk::SimLoop& sl,
        Float forTemp = 300.0*K,
        bool uniformHeatUp = true,
        Float forTime = 200*ps,
-       Float checkTime = 1.0*ps,
+       Float checkTime = 2.0*ps,
        std::string tmpDir = "_tmp-heatUp")
 {
   yaatk::mkdir(tmpDir.c_str());
@@ -124,7 +124,7 @@ heatUp(mdtk::SimLoop& sl,
   Float tb_zMin_bak = sl.thermalBath.zMin;
   if (uniformHeatUp)
     sl.thermalBath.zMin = -100000.0*Ao;
-  const int steps = 10;
+  const int steps = 20;
   sl.thermalBath.To = 0.0;
   while (1)
   {
