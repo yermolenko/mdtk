@@ -1,8 +1,7 @@
 #  Top-level CMakeLists.txt file for MDTK
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
-#  <oleksandr.yermolenko@gmail.com>
-#
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr
+#  Yermolenko <oleksandr.yermolenko@gmail.com>
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
 #
 #  MDTK is free software: you can redistribute it and/or modify it
@@ -56,6 +55,9 @@ ENDIF(MDTK_HEAVY_OPTIMZE)
 
 #SET(CMAKE_BUILD_TYPE Debug)
 #SET(CMAKE_BUILD_TYPE Release)
+
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+FIND_PACKAGE(OSMesa)
 
 #FIND_PACKAGE(GSL REQUIRED) # no such macro in cmake yet
 IF(MSVC)

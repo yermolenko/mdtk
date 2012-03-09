@@ -20,9 +20,14 @@
    along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifdef MDBUILDER_OSMESA
+#include "GL/osmesa.h"
+#include "GL/glu.h"
+#else
 #include <FL/Fl.H>
 #include <FL/Fl_Gl_Window.H>
 #include <FL/gl.h>
+#endif
 
 #include <cstring>
 
@@ -40,45 +45,10 @@
 #include "experiments/Fullerite.hpp"
 #include "experiments/Fulleride.hpp"
 
-class MDBuilderWindow : public Fl_Gl_Window
-{
-  void draw();
-  void resize(int X,int Y,int W,int H)
-    {
-      Fl_Gl_Window::resize(X,Y,W,H);
-      glLoadIdentity();
-      glViewport(0,0,W,H);
-      glOrtho(-W,W,-H,H,-1,1);
-      redraw();
-    }
-public:
-  MDBuilderWindow(int X,int Y,int W,int H,const char*L=0) : Fl_Gl_Window(X,Y,W,H,L)
-    {
-    }
-};
-
 void
-MDBuilderWindow::draw()
+buildCommands()
 {
   using namespace mdtk;
-  if (!valid())
-  {
-    valid(1);
-    glLoadIdentity();
-    glViewport(0,0,w(),h());
-    glOrtho(-w(),w(),-h(),h(),-1,1);
-  }
-  glClear(GL_COLOR_BUFFER_BIT);
-  glColor3f(1.0, 1.0, 1.0);
-  glBegin(GL_LINE_STRIP); 
-  glVertex2f(w(), h()); 
-  glVertex2f(-w(),-h()); 
-  glEnd();
-  glBegin(GL_LINE_STRIP); 
-  glVertex2f(w(),-h()); 
-  glVertex2f(-w(), h());
-  glEnd();
-
   glLoadIdentity();
   {
     if (0)
@@ -351,6 +321,123 @@ MDBuilderWindow::draw()
   exit(0);
 }
 
+#ifdef MDBUILDER_OSMESA
+
+int
+buildWithOSMesa()
+{
+  int w = 500;
+  int h = 500;
+
+  OSMesaContext ctx;
+  void *buffer;
+
+  buffer = malloc(w*h*4*sizeof(GLubyte));
+  if (!buffer)
+  {
+    printf("Alloc image buffer failed!\n");
+    return -1;
+  }
+
+#if OSMESA_MAJOR_VERSION * 100 + OSMESA_MINOR_VERSION >= 305
+  /* specify Z, stencil, accum sizes */
+  ctx = OSMesaCreateContextExt(OSMESA_RGBA,16,0,0,NULL);
+#else
+  ctx = OSMesaCreateContext(OSMESA_RGBA,NULL);
+#endif
+  if (!ctx)
+  {
+    printf("OSMesaCreateContext failed!\n");
+    return -1;
+  }
+
+  if (!OSMesaMakeCurrent(ctx,buffer,GL_UNSIGNED_BYTE,w,h))
+  {
+    printf("OSMesaMakeCurrent failed!\n");
+    return -1;
+  }
+
+  {
+    int z, s, a;
+    glGetIntegerv(GL_DEPTH_BITS, &z);
+    glGetIntegerv(GL_STENCIL_BITS, &s);
+    glGetIntegerv(GL_ACCUM_RED_BITS, &a);
+    printf("Depth=%d Stencil=%d Accum=%d\n", z, s, a);
+  }
+
+
+  using namespace mdtk;
+  {
+    glLoadIdentity();
+    glViewport(0,0,w,h);
+    glOrtho(-w,w,-h,h,-1,1);
+  }
+  glClear(GL_COLOR_BUFFER_BIT);
+  glColor3f(1.0, 1.0, 1.0);
+  glBegin(GL_LINE_STRIP);
+  glVertex2f(w, h);
+  glVertex2f(-w,-h);
+  glEnd();
+  glBegin(GL_LINE_STRIP);
+  glVertex2f(w,-h);
+  glVertex2f(-w, h);
+  glEnd();
+
+  buildCommands();
+
+  glFinish();
+
+  OSMesaDestroyContext( ctx );
+
+  return 0;
+}
+
+#else // MDBUILDER_OSMESA
+
+class MDBuilderWindow : public Fl_Gl_Window
+{
+  void draw();
+  void resize(int X,int Y,int W,int H)
+    {
+      Fl_Gl_Window::resize(X,Y,W,H);
+      glLoadIdentity();
+      glViewport(0,0,W,H);
+      glOrtho(-W,W,-H,H,-1,1);
+      redraw();
+    }
+public:
+  MDBuilderWindow(int X,int Y,int W,int H,const char*L=0) : Fl_Gl_Window(X,Y,W,H,L)
+    {
+    }
+};
+
+void
+MDBuilderWindow::draw()
+{
+  using namespace mdtk;
+  if (!valid())
+  {
+    valid(1);
+    glLoadIdentity();
+    glViewport(0,0,w(),h());
+    glOrtho(-w(),w(),-h(),h(),-1,1);
+  }
+  glClear(GL_COLOR_BUFFER_BIT);
+  glColor3f(1.0, 1.0, 1.0);
+  glBegin(GL_LINE_STRIP);
+  glVertex2f(w(), h());
+  glVertex2f(-w(),-h());
+  glEnd();
+  glBegin(GL_LINE_STRIP);
+  glVertex2f(w(),-h());
+  glVertex2f(-w(), h());
+  glEnd();
+
+  buildCommands();
+}
+
+#endif // MDBUILDER_OSMESA
+
 int main(int argc, char *argv[])
 {
   if (argc > 1 && !strcmp(argv[1],"--version"))
@@ -376,10 +463,17 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
   srand(12345);
 
+#ifdef MDBUILDER_OSMESA
+  TRACE("Using OSMesa");
+  buildWithOSMesa();
+  return 0;
+#else
+  TRACE("Using FLTK OpenGL");
   Fl_Window win(500, 300, "MDBuilder");
   MDBuilderWindow mygl(10, 10, win.w()-20, win.h()-20);
   win.end();
   win.resizable(mygl);
   win.show();
   return(Fl::run());
+#endif
 }

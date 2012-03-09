@@ -1,6 +1,6 @@
 #  CMakeLists.txt file for the Molecular Dynamics Experiments Builder
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr Yermolenko
 #  <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -27,10 +27,10 @@ link_directories (${MDTK_BINARY_DIR})
 
 add_executable (${MDTK_CurrentTarget} main.cpp common.cxx)
 
+target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
+
 IF(WIN32)
-  target_link_libraries (${MDTK_CurrentTarget} mdtk ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES} ${ZLIB_LIBRARIES} ${GSL_LIBRARIES} ole32 uuid comctl32 wsock32 gdi32)
-ELSE(WIN32)
-  target_link_libraries (${MDTK_CurrentTarget} mdtk ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES} ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
+  target_link_libraries (${MDTK_CurrentTarget} ole32 uuid comctl32 wsock32 gdi32)
 ENDIF(WIN32)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
@@ -40,6 +40,15 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     SET_TARGET_PROPERTIES(${MDTK_CurrentTarget} PROPERTIES LINK_FLAGS "-s")
   ENDIF(WIN32)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
+IF(OSMESA_FOUND)
+  MESSAGE("OSMesa found. Using OSMesa in mdbuilder.")
+  target_link_libraries (${MDTK_CurrentTarget} ${OSMESA_LIBRARIES} GLU)
+  SET_TARGET_PROPERTIES(${MDTK_CurrentTarget} PROPERTIES COMPILE_FLAGS "-DMDBUILDER_OSMESA")
+ELSE(OSMESA_FOUND)
+  MESSAGE("OSMesa not found. MDBuilder will require a graphics environment.")
+  target_link_libraries (${MDTK_CurrentTarget} ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES})
+ENDIF(OSMESA_FOUND)
 
 install(TARGETS ${MDTK_CurrentTarget}
             RUNTIME DESTINATION bin
