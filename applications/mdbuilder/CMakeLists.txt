@@ -41,13 +41,14 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   ENDIF(WIN32)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-IF(OSMesa_FOUND)
-  MESSAGE("OSMesa found!")
-  target_link_libraries (${MDTK_CurrentTarget} ${OSMesa_LIBRARIES} GLU)
+IF(OSMESA_FOUND)
+  MESSAGE("OSMesa found. Using OSMesa in mdbuilder.")
+  target_link_libraries (${MDTK_CurrentTarget} ${OSMESA_LIBRARIES} GLU)
   SET_TARGET_PROPERTIES(${MDTK_CurrentTarget} PROPERTIES COMPILE_FLAGS "-DMDBUILDER_OSMESA")
-ELSE(OSMesa_FOUND)
+ELSE(OSMESA_FOUND)
+  MESSAGE("OSMesa not found. MDBuilder will require a graphics environment.")
   target_link_libraries (${MDTK_CurrentTarget} ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES})
-ENDIF(OSMesa_FOUND)
+ENDIF(OSMESA_FOUND)
 
 install(TARGETS ${MDTK_CurrentTarget}
             RUNTIME DESTINATION bin

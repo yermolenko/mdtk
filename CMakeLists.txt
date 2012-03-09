@@ -56,6 +56,9 @@ ENDIF(MDTK_HEAVY_OPTIMZE)
 #SET(CMAKE_BUILD_TYPE Debug)
 #SET(CMAKE_BUILD_TYPE Release)
 
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+FIND_PACKAGE(OSMesa)
+
 #FIND_PACKAGE(GSL REQUIRED) # no such macro in cmake yet
 IF(MSVC)
   SET(GSL_LIBRARIES gsl cblas)
@@ -63,8 +66,6 @@ IF(MSVC)
 ELSE(MSVC)
   SET(GSL_LIBRARIES gsl gslcblas)
   SET(GSL_FOUND true)
-  SET(OSMesa_FOUND true)
-  SET(OSMesa_LIBRARIES OSMesa)
 ENDIF(MSVC)
 
 IF(WIN32 AND CMAKE_COMPILER_IS_GNUCXX) # for that combination cmake fails to detect zlib :(
