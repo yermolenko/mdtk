@@ -1,7 +1,7 @@
 /*
    Building of polyethylene stuctures
 
-   Copyright (C) 2007, 2008, 2009, 2011 Oleksandr Yermolenko
+   Copyright (C) 2007, 2008, 2009, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -390,6 +390,8 @@ void
 initialize_simloop_REBO_only(mdtk::SimLoop& sl) 
 {
   using namespace mdtk;
+
+  REQUIRE(sl.fpot.potentials.size()==0);
 
   mdtk::FGeneral* pot = NULL;
 

@@ -1,8 +1,8 @@
 /*
    Common configuration for mdtrajsim and mdtrajview.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -37,6 +37,8 @@ void
 setupPotentials(mdtk::SimLoop& simloop)
 {
   using namespace mdtk;
+
+  REQUIRE(simloop.fpot.potentials.size()==0);
 
   mdtk::FGeneral* pot = NULL;
 
