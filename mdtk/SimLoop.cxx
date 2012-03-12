@@ -296,37 +296,34 @@ SimLoop::execute_wo_checks()
 
   procmon::ProcmonTimer pmtTotal;
 
-  if (usePBC() && !checkMIC()) 
+  if (usePBC() && !checkMIC())
   {
     cerr << "Rcutoff is too large for given PBC !" << endl << flush;
     throw Exception("Rcutoff is too large for given PBC !");
-  }  
+  }
 
   if (usePBC()) initPBC();
 
-  if (usePBC() && !fitInCell()) 
+  if (usePBC() && !fitInCell())
   {
     cerr << "Atoms do not fit given PBC cell !" << endl << flush;
     throw Exception("Atoms do not fit given PBC cell !");
-  }  
+  }
 
-  int j,atoms_count;
-  Float new_v_max,tmp_v;
+  Float& dt = dt_; // just "sugar". dt_ should be renamed globally
 
-  dt_prev = dt_;
-  
-  atoms_count = atoms_.size();
-  Vector3D *new_coords = new Vector3D[atoms_count]; REQUIRE(new_coords != 0);
+  dt_prev = dt;
 
   while (simTime < simTimeFinal && !breakSimLoop)
   {
-     doBeforeIteration();
-      if (verboseTrace)
-      {
-        cout << "---------" << endl;
-        cout << "t : " << simTime << endl;
-        cout << "dt : " << dt_ << endl;
-      }
+    doBeforeIteration();
+
+    if (verboseTrace)
+    {
+      cout << "---------" << endl;
+      cout << "t : " << simTime << endl;
+      cout << "dt : " << dt << endl;
+    }
 
     if (iteration%iterationFlushStateInterval == 0/* && iteration != 0*/)
     {
@@ -343,12 +340,12 @@ SimLoop::execute_wo_checks()
       cout << "done. " << endl;
     };
 
-    fpot.NL_UpdateIfNeeded(atoms_);
+    fpot.NL_UpdateIfNeeded(atoms);
 
-      if (iteration == 0)
-        init_check_energy();
-      else
-        do_check_energy();  
+    if (iteration == 0)
+      init_check_energy();
+    else
+      do_check_energy();
 
     Float actualThermalBathTemp = actualTemperatureOfThermalBath();
     {
@@ -357,34 +354,56 @@ SimLoop::execute_wo_checks()
     }
 
     if (check.checkForce)
-    {
       check.fullForce = 0;
-    }    
 
-    new_v_max = 0.0;
+    Float v_max = 0.0;
 
-    for(j = 0; j < atoms_count; j++)
+    for(size_t j = 0; j < atoms.size(); j++)
     {
-      Atom& atom = *(atoms_[j]); 
+      Atom& atom = *(atoms[j]);
 
       if (atom.isFixed())
       {
+        // in presence of fixed atoms net force check does not work
+        // because forces for fixed atoms are not calculated
+        check.checkForce = false;
         REQUIRE(atom.M == INFINITE_MASS);
         REQUIRE(atom.an == Vector3D(0.0,0.0,0.0));
         REQUIRE(atom.an_no_tb == Vector3D(0.0,0.0,0.0));
         REQUIRE(atom.V == Vector3D(0.0,0.0,0.0));
-        new_coords[j] = atom.coords;
-        continue;
+      }
+    }
+
+    for(size_t j = 0; j < atoms.size(); j++)
+    {
+      Atom& atom = *(atoms[j]);
+
+      if (atom.isFixed()) continue;
+
+      if (iteration == 0)
+      {
+        Vector3D  force = -fpot.grad(atom,this->atoms);
+        atom.an = force/atom.M;
+        atom.an_no_tb = force/atom.M;
       }
 
-      Vector3D force;
+      Vector3D dr = atom.V*dt + atom.an*dt*dt/2.0; // eq 1
+      atom.coords += dr;
+      fpot.incDisplacement(*(atoms_[j]),dr);
+    }
 
-      force = (-fpot.grad(atom,this->atoms_));
+    for(size_t j = 0; j < atoms.size(); j++)
+    {
+      Atom& atom = *(atoms[j]);
+
+      if (atom.isFixed()) continue;
+
+      Vector3D  vdt2 = atom.V + atom.an*dt/2.0; // eq 2
+
+      Vector3D  force = -fpot.grad(atom,this->atoms);
 
       if (check.checkForce)
-      {
         check.fullForce += force;
-      }  
 
       if (isWithinThermalBath(atom.coords) && atom.apply_ThermalBath)
       {
@@ -396,56 +415,70 @@ SimLoop::execute_wo_checks()
         if (To_by_T > +max_To_by_T) To_by_T = +max_To_by_T;
 
         Float gamma = 1.0e13;
-//        Float gamma = 1.0/(1000.0*dt_);
+//        Float gamma = 1.0/(1000.0*dt);
 
         Vector3D dforce = -atom.V*atom.M*gamma*(1.0-sqrt(To_by_T));
 
+        // try to account energy transfered to thermalbath
+        // only required to perform energy conservation check
         {
           Vector3D dv_no_tb,dv;
 
-          Vector3D an_new_no_tb(force         /atom.M);
-          if (iteration == 0) atom.an_no_tb = an_new_no_tb;
-          dv_no_tb = (an_new_no_tb+atom.an_no_tb)*dt_/2.0;
-          atom.an_no_tb = an_new_no_tb;
+          {
+            Vector3D an_no_tb_new = force/atom.M;
+            // from eq 2 and eq 4
+            dv_no_tb = atom.an_no_tb*dt/2.0 + an_no_tb_new*dt/2.0;
+            atom.an_no_tb = an_no_tb_new;
+          }
 
-          Vector3D an_new(      (force+dforce)/atom.M);
-          dv       = (an_new      +      atom.an)*dt_/2.0;
-          
-          Float dEkin = atom.M*SQR((atom.V+dv)      .module())/2.0                      - atom.M*SQR((atom.V+dv_no_tb).module())/2.0;
-          check.energyStart += dEkin;        }          force += dforce;
-      }  
+          {
+            Vector3D an_new = (force + dforce)/atom.M;
+            // from eq 2 and eq 4
+            dv = atom.an*dt/2.0 + an_new*dt/2.0;
+            atom.an = an_new;
+          }
 
-      {
-        Vector3D an_new(force/atom.M);
-        if (iteration == 0) atom.an = an_new;
-        
-        atom.V += (an_new+atom.an)*dt_/2.0;
-        new_coords[j] = atom.coords + atom.V*dt_+an_new*dt_*dt_/2.0;
-        atom.an = an_new;
+          Float dEkin = atom.M*SQR((atom.V+dv)      .module())/2.0
+                      - atom.M*SQR((atom.V+dv_no_tb).module())/2.0;
+          check.energyStart += dEkin;
+        }
+
+        force += dforce;
       }
-        
-      tmp_v = atom.V.module();
-      if (tmp_v > new_v_max  && fpot.hasNB(atom) && atom.coords.module() < 500.0*Ao)  new_v_max = tmp_v;
-    };
 
-    for(j = 0; j < atoms_count; j++)
-    {
-      fpot.incDisplacement(*(atoms_[j]),new_coords[j]-atoms_[j]->coords);
-    }  
+      atom.an = force/atom.M; //eq 3
 
-    for(j = 0; j < atoms_count; j++)
+      atom.V  = vdt2 + atom.an*dt/2.0; //eq 4
+
+      Float v = atom.V.module();
+      if (v > v_max &&
+          fpot.hasNB(atom) &&
+          atom.coords.module() < 500.0*Ao)
+        v_max = v;
+    }
+
+    for(size_t j = 0; j < atoms.size(); j++)
     {
-      atoms_[j]->coords = new_coords[j];
- 
       applyPBC(*(atoms_[j]));
       checkOnSpot(*(atoms_[j])); // obsolete
     }
 
     doAfterIteration();
-    
-    fpot.NL_checkRequestUpdate(atoms_);
 
-    simTime += dt_;
+    fpot.NL_checkRequestUpdate(atoms);
+
+    simTime += dt;
+
+    dt_prev = dt;
+
+    const Float dt_max = 5e-16;
+    const Float dt_min = 1e-20;
+    if (v_max != 0.0)
+      dt = 0.05*timeaccel_/v_max;
+    else
+      dt = dt_max;
+    if (dt > dt_max) dt = dt_max;
+    if (dt < dt_min) dt = dt_min;
 
     if (check.checkForce)
     {
@@ -455,54 +488,40 @@ SimLoop::execute_wo_checks()
         PTRACE(ffmod);
       }
 
-      if (check.fullForce.module() > 1e-8) 
+      if (check.fullForce.module() > 1e-8)
       {
         cerr << "FullForce != 0" << endl << flush;
         cout << "FullForce != 0" << endl << flush;
-      }  
-    }    
-
-    dt_prev = dt_;
-
-    const Float dt_max = 5e-16;
-    const Float dt_min = 1e-20;
-    if (new_v_max != 0.0)
-      dt_ = 0.05*timeaccel_/new_v_max;
-    else
-      dt_ = dt_max;    
-    if (dt_ > dt_max) dt_ = dt_max;
-    if (dt_ < dt_min) dt_ = dt_min;
-
+      }
+    }
 
     if (verboseTrace)
-    {
       cout << "it : " << iteration << endl;
-    }
+
     curWallTime = time(NULL);
     if (verboseTrace) cout << "tw : " << (curWallTime-startWallTime) << endl;
 
     CPUTimeUsed_total = CPUTimeUsed_prev + pmtTotal.getTimeInSeconds();
 
-    if (verboseTrace) 
+    if (verboseTrace)
       cout << "tc : " << CPUTimeUsed_total << endl;
 
     iteration = (iteration+1)%2000000000L;
-    
   };
+
   cout << "Final Modeling time = " << simTime << endl;
-  cout << "Final Time step = " << dt_ << endl;
+  cout << "Final Time step = " << dt << endl;
   cout << "Modeling cycle complete " << endl;
 
   cout << "--------------------------------------------------------- " << endl;
-    {
-      cout << "Writing trajectory ... " ;
-      writetrajXVA();
-      cout << "done. " << endl;
-    };
+  {
+    cout << "Writing trajectory ... " ;
+    writetrajXVA();
+    cout << "done. " << endl;
+  };
+
   curWallTime = time(NULL);
   cout << "Wall TIME used = " << (curWallTime-startWallTime) << endl;
-  
-  delete [] new_coords;
 
   gsl_rng_free (r);
 
