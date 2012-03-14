@@ -877,6 +877,277 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
   }
 }
 
+inline
+void
+bomb_orthorhombic_with_clusters(
+  std::string dirname,
+  mdtk::SimLoop cluster,
+  const mdtk::SimLoop target,
+  int a_num,
+  int b_num,
+  double a,
+  double b,
+  size_t numberOfImpacts = 1024
+  )
+{
+  yaatk::mkdir(dirname.c_str());
+  yaatk::chdir(dirname.c_str());
+
+  std::ofstream rngSelected("rng.selected.log");
+  REQUIRE(rngSelected != NULL);
+  std::ofstream rngExcluded("rng.excluded.log");
+  REQUIRE(rngExcluded != NULL);
+  std::ofstream bombXY("bombXY.log");
+  REQUIRE(bombXY != NULL);
+
+  {
+    bombXY << 0 << " " << 0 << "\n"
+           << 0 << " " << b*b_num/Ao << "\n"
+           << a*a_num/Ao << " " << b*b_num/Ao << "\n"
+           << a*a_num/Ao << " " << 0 << "\n";
+  }
+
+  Float bombX0 = a*(a_num/2.0)-a/2.0;
+  Float bombY0 = b*(b_num/2.0)-b/2.0;
+
+  gsl_qrng* qrng_2d_pos = gsl_qrng_alloc(gsl_qrng_niederreiter_2, 2);
+  REQUIRE(qrng_2d_pos != NULL);
+
+  yaatk::mkdir("dataset");
+  yaatk::chdir("dataset");
+
+  Float allowToBomb = false;
+
+  for(int trajIndex = 0; trajIndex < numberOfImpacts; trajIndex++)
+  {
+    Float bombX = 0.0;
+    Float bombY = 0.0;
+    Float cell_part_x;
+    Float cell_part_y;
+    bool positionNotFound = true;
+
+    while (positionNotFound)
+    {
+      double v[2];
+      gsl_qrng_get(qrng_2d_pos, v);
+      cell_part_x = v[0];
+      cell_part_y = v[1];
+
+      bombX = bombX0 + cell_part_x*(a+b);
+      bombY = bombY0 + cell_part_y*(a+b);
+
+      allowToBomb = true;
+
+      positionNotFound =
+        (cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) || !allowToBomb;
+
+      if (positionNotFound)
+        rngExcluded << cell_part_x << " " << cell_part_y << "\n";
+    }
+
+    rngSelected << cell_part_x << " " << cell_part_y << "\n";
+
+    Vector3D initialClusterPosition
+      (bombX,
+       bombY,
+       dimensions(target.atoms).z_min - (5.5*Ao + radius(cluster.atoms)));
+
+    shiftToPosition(cluster.atoms,initialClusterPosition);
+
+    bombXY << massCenter(cluster.atoms).x/Ao << " "
+           << massCenter(cluster.atoms).y/Ao << "\n";
+
+    mdtk::SimLoop sl(target);
+    sl.add_simloop(cluster);
+
+    for(size_t i = 0; i < sl.atoms.size(); i++)
+    {
+      sl.atoms[i]->apply_PBC=true;
+      sl.atoms[i]->apply_ThermalBath=true;
+    }
+
+    char trajDirName[1024];
+    sprintf(trajDirName,"%08d",trajIndex);
+    yaatk::mkdir(trajDirName);
+    yaatk::chdir(trajDirName);
+    {
+      sl.simTime = 0.0*ps;
+      sl.simTimeFinal = 10.0*ps;
+      sl.simTimeSaveTrajInterval = 0.1*ps;
+
+      yaatk::text_ofstream fomde("in.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
+    }
+    yaatk::chdir("..");
+  }
+
+  yaatk::chdir("..");
+
+  rngSelected.close();
+  rngExcluded.close();
+  bombXY.close();
+  gsl_qrng_free(qrng_2d_pos);
+
+  yaatk::chdir("..");
+}
+
+inline
+void
+build_FCC_metal_bombardment_with_ions(
+  std::vector<ElementID> ionElements,
+  std::vector<Float> ionEnergies,
+  int a_num = 7,
+  int b_num = 7,
+  int c_num = 7,
+  double a = 3.615*Ao,
+  double b = 3.615*Ao,
+  double c = 3.615*Ao,
+  ElementID metalElement = Cu_EL
+  )
+{
+  mdtk::SimLoop sl_target =
+    mdbuilder::build_FCC_lattice(a_num,b_num,c_num,metalElement,true,a,b,c);
+  {
+    for(size_t ionEnergyIndex = 0;
+        ionEnergyIndex < ionEnergies.size();
+        ++ionEnergyIndex)
+    {
+      Float ionEnergy = ionEnergies[ionEnergyIndex];
+      for(size_t ionElementIndex = 0;
+          ionElementIndex < ionElements.size();
+          ++ionElementIndex)
+      {
+        ElementID ionElement = ionElements[ionElementIndex];
+
+        char id_string[1000];
+        sprintf(id_string,
+                "bomb_%s_with_%s_%04deV",
+                ElementIDtoString(metalElement).c_str(),
+                ElementIDtoString(ionElement).c_str(),
+                int(ionEnergy/eV));
+        std::string dirname(id_string);
+
+        mdtk::SimLoop sl_ion;
+        Atom* atom = new Atom(ionElement);
+        atom->V = Vector3D(0,0,sqrt(2.0*ionEnergy/(atom->M)));
+        sl_ion.atoms.push_back(atom);
+
+        bomb_orthorhombic_with_clusters(dirname,
+                                        sl_ion,
+                                        sl_target,
+                                        a_num,b_num,
+                                        a,b,
+                                        100);
+      }
+    }
+  }
+}
+
+inline
+void
+build_FCC_metal_bombardment_with_C60(
+  std::vector<Float> fullereneEnergies,
+  int a_num = 7,
+  int b_num = 7,
+  int c_num = 7,
+  double a = 3.615*Ao,
+  double b = 3.615*Ao,
+  double c = 3.615*Ao,
+  ElementID metalElement = Cu_EL
+  )
+{
+  mdtk::SimLoop sl_target =
+    mdbuilder::build_FCC_lattice(a_num,b_num,c_num,metalElement,true,a,b,c);
+
+  mdtk::SimLoop sl_fullerene = mdbuilder::build_C60_optimized();
+  removeMomentum(sl_fullerene.atoms);
+  shiftToOrigin(sl_fullerene.atoms);
+
+  for(size_t energyIndex = 0;
+      energyIndex < fullereneEnergies.size();
+      ++energyIndex)
+  {
+    Float fullereneEnergy = fullereneEnergies[energyIndex];
+
+    char id_string[1000];
+    sprintf(id_string,
+            "bomb_%s_with_C60_%04deV",
+            ElementIDtoString(metalElement).c_str(),
+            int(fullereneEnergy/eV));
+    std::string dirname(id_string);
+
+    mdtk::SimLoop sl_energeticFullerene(sl_fullerene);
+    addTranslationalEnergy(sl_energeticFullerene.atoms,
+                           fullereneEnergy,
+                           Vector3D(0,0,1));
+
+    bomb_orthorhombic_with_clusters(dirname,
+                                    sl_energeticFullerene,
+                                    sl_target,
+                                    a_num,b_num,
+                                    a,b,
+                                    100);
+  }
+}
+
+}
+
+#include "Fullerite.hpp"
+
+namespace mdbuilder
+{
+
+inline
+void
+build_fullerite_bombardment_with_ions(
+  std::vector<ElementID> ionElements,
+  std::vector<Float> ionEnergies,
+  int a_num = 8,
+  int b_num = 8,
+  int c_num = 10,
+  double a = 14.17*Ao
+  )
+{
+  Float b = a;
+  mdtk::SimLoop sl_target =
+    mdbuilder::build_Fullerite_C60(a_num,b_num,c_num,true,a);
+  {
+    for(size_t ionEnergyIndex = 0;
+        ionEnergyIndex < ionEnergies.size();
+        ++ionEnergyIndex)
+    {
+      Float ionEnergy = ionEnergies[ionEnergyIndex];
+      for(size_t ionElementIndex = 0;
+          ionElementIndex < ionElements.size();
+          ++ionElementIndex)
+      {
+        ElementID ionElement = ionElements[ionElementIndex];
+
+        char id_string[1000];
+        sprintf(id_string,
+                "bomb_%s_with_%s_%04deV",
+                "Fullerite",
+                ElementIDtoString(ionElement).c_str(),
+                int(ionEnergy/eV));
+        std::string dirname(id_string);
+
+        mdtk::SimLoop sl_ion;
+        Atom* atom = new Atom(ionElement);
+        atom->V = Vector3D(0,0,sqrt(2.0*ionEnergy/(atom->M)));
+        sl_ion.atoms.push_back(atom);
+
+        bomb_orthorhombic_with_clusters(dirname,
+                                        sl_ion,
+                                        sl_target,
+                                        a_num,b_num,
+                                        a,b,
+                                        100);
+      }
+    }
+  }
+}
+
 }
 
 #endif
