@@ -1,7 +1,7 @@
 /* 
    mdtrajsim (molecular dynamics trajectory simulator)
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -90,6 +90,7 @@ CustomSimLoop::doBeforeIteration()
 void
 CustomSimLoop::doAfterIteration()
 {
+  return;
   for(size_t j = 0; j < atoms.size(); j++)
   {
     Atom& a = *atoms[j];
