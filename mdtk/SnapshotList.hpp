@@ -88,10 +88,13 @@ struct SnapshotList
     {
       atomsSelectedForSaving.clear();
       for(size_t ai = 0; ai < sl.atoms.size(); ++ai)
+        if (sl.atoms[ai]->coords.z < 3.0*Ao)
+/*
         if (sl.atoms[ai]->ID == Cu_EL ||
             sl.atoms[ai]->ID == Au_EL ||
             sl.atoms[ai]->ID == Ar_EL ||
             sl.atoms[ai]->ID == Xe_EL)
+*/
           atomsSelectedForSaving.push_back(ai);
     }
   SnapshotList():
