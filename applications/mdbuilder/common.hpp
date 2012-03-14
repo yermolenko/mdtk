@@ -323,6 +323,72 @@ shiftToOrigin(AtomsContainer& atoms)
 
 inline
 void
+shiftToPosition(AtomsContainer& atoms, Vector3D v)
+{
+  shiftToOrigin(atoms);
+  for(size_t i = 0; i < atoms.size(); i++)
+     atoms[i]->coords += v;
+}
+
+struct Dimensions
+{
+  Float x_max;
+  Float x_min;
+  Float x_len;
+
+  Float y_max;
+  Float y_min;
+  Float y_len;
+
+  Float z_max;
+  Float z_min;
+  Float z_len;
+};
+
+inline
+Dimensions
+dimensions(AtomsContainer& atoms)
+{
+  Dimensions d;
+
+  const Atom& a = *atoms[0];
+
+  Float x_max = a.coords.x;
+  Float x_min = a.coords.x;
+  Float y_max = a.coords.y;
+  Float y_min = a.coords.y;
+  Float z_max = a.coords.z;
+  Float z_min = a.coords.z;
+
+  for(size_t i = 0; i < atoms.size(); i++)
+  {
+    const Atom& a = *atoms[i];
+
+    if (a.coords.x > d.x_max)
+      d.x_max = a.coords.x;
+    if (a.coords.x < d.x_min)
+      d.x_min = a.coords.x;
+
+    if (a.coords.y > d.y_max)
+      d.y_max = a.coords.y;
+    if (a.coords.y < d.y_min)
+      d.y_min = a.coords.y;
+
+    if (a.coords.z > d.z_max)
+      d.z_max = a.coords.z;
+    if (a.coords.z < d.z_min)
+      d.z_min = a.coords.z;
+  }
+
+  d.x_len = d.x_max - d.x_min;
+  d.y_len = d.y_max - d.y_min;
+  d.z_len = d.z_max - d.z_min;
+
+  return d;
+}
+
+inline
+void
 initialize_simloop(mdtk::SimLoop& sl) 
 {
   setupPotentials(sl);
