@@ -1,7 +1,7 @@
 /*
    SnapshotList class header file.
 
-   Copyright (C) 2011 Oleksandr Yermolenko
+   Copyright (C) 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -82,6 +82,7 @@ struct SnapshotList
   typedef std::vector<AtomSnapshot> SelectedAtomSnapshotList;
   typedef std::pair<Float,SelectedAtomSnapshotList> TimeSnapshot;
   std::vector<size_t> atomsSelectedForSaving;
+  bool initialized;
   std::vector<TimeSnapshot> snapshots;
   void initSelectedAtomList(const SimLoop& sl)
     {
@@ -95,14 +96,19 @@ struct SnapshotList
     }
   SnapshotList():
     atomsSelectedForSaving(),
+    initialized(false),
     snapshots()
     {
     }
   void getSnapshot(const SimLoop& sl)
     {
-      size_t prevCount = atomsSelectedForSaving.size();
-      initSelectedAtomList(sl);
-      REQUIRE(prevCount == 0 || prevCount == atomsSelectedForSaving.size());
+      if (!initialized)
+      {
+        size_t prevCount = atomsSelectedForSaving.size();
+        initSelectedAtomList(sl);
+        REQUIRE(prevCount == 0 || prevCount == atomsSelectedForSaving.size());
+        initialized = true;
+      }
       SelectedAtomSnapshotList alist;
       for(size_t i = 0; i < atomsSelectedForSaving.size(); ++i)
       {
