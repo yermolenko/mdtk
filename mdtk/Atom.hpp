@@ -210,13 +210,6 @@ public:
       {
         Atom& a = *(at(i));
 
-        if (PBC.x == NO_PBC.x)
-          REQUIRE(a.PBC_count.x == 0);
-        if (PBC.y == NO_PBC.y)
-          REQUIRE(a.PBC_count.y == 0);
-        if (PBC.z == NO_PBC.z)
-          REQUIRE(a.PBC_count.z == 0);
-
         if (newPBC.x == NO_PBC.x)
         {
           a.coords.x += PBC.x*a.PBC_count.x;
