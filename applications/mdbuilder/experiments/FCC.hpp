@@ -106,11 +106,7 @@ place_FCC_lattice(mdtk::SimLoop& sl,
             for(size_t i = 1; i <= 4; i++)
             {
               Atom& a = *(sl.atoms[sl.atoms.size()-i]);
-              a.tag |= ATOMTAG_FIXED;
-              if (a.tag & ATOMTAG_FIXED)
-              {
-                a.M = INFINITE_MASS;a.V=0.0;a.an=0.0;a.an_no_tb=0.0;
-              }
+              a.fix();
             }
           }
         }

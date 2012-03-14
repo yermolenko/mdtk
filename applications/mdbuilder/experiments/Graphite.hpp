@@ -1,7 +1,7 @@
 /*
    Building of graphite stuctures
 
-   Copyright (C) 2008, 2009, 2011 Oleksandr Yermolenko
+   Copyright (C) 2008, 2009, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -112,11 +112,7 @@ place_Graphite_lattice(
             for(size_t i = 1; i <= 4; i++)
             {
               Atom& a = *(sl.atoms[sl.atoms.size()-i]);
-              a.tag |= ATOMTAG_FIXED;
-              if (a.tag & ATOMTAG_FIXED)
-              {
-                a.M = INFINITE_MASS;a.V=0.0;a.an=0.0;a.an_no_tb=0.0;
-              }
+              a.fix();
             }
           }
         }
