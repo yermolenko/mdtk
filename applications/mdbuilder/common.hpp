@@ -260,6 +260,20 @@ removeMomentum(AtomsContainer& atoms)
 }
 
 inline
+void
+addTranslationalEnergy(AtomsContainer& atoms, Float energy, Vector3D direction)
+{
+  direction.normalize();
+  Vector3D v = velocity(atoms);
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    mdtk::Atom& a = *atoms[ai];
+    if (a.isFixed()) continue;
+    a.V += sqrt(2.0*energy/(mass(atoms)))*direction;
+  };
+}
+
+inline
 Vector3D
 geomCenter(AtomsContainer& atoms)
 {
