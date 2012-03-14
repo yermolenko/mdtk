@@ -997,6 +997,7 @@ void
 build_FCC_metal_bombardment_with_ions(
   std::vector<ElementID> ionElements,
   std::vector<Float> ionEnergies,
+  size_t numberOfImpacts = 1024,
   int a_num = 7,
   int b_num = 7,
   int c_num = 7,
@@ -1038,7 +1039,7 @@ build_FCC_metal_bombardment_with_ions(
                                         sl_target,
                                         a_num,b_num,
                                         a,b,
-                                        100);
+                                        numberOfImpacts);
       }
     }
   }
@@ -1048,6 +1049,7 @@ inline
 void
 build_FCC_metal_bombardment_with_C60(
   std::vector<Float> fullereneEnergies,
+  size_t numberOfImpacts = 1024,
   int a_num = 7,
   int b_num = 7,
   int c_num = 7,
@@ -1087,7 +1089,7 @@ build_FCC_metal_bombardment_with_C60(
                                     sl_target,
                                     a_num,b_num,
                                     a,b,
-                                    100);
+                                    numberOfImpacts);
   }
 }
 
@@ -1103,6 +1105,7 @@ void
 build_fullerite_bombardment_with_ions(
   std::vector<ElementID> ionElements,
   std::vector<Float> ionEnergies,
+  size_t numberOfImpacts = 1024,
   int a_num = 8,
   int b_num = 8,
   int c_num = 10,
@@ -1142,7 +1145,7 @@ build_fullerite_bombardment_with_ions(
                                         sl_target,
                                         a_num,b_num,
                                         a,b,
-                                        100);
+                                        numberOfImpacts);
       }
     }
   }
