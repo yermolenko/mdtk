@@ -367,7 +367,7 @@ SimLoop::execute_wo_checks()
         // in presence of fixed atoms net force check does not work
         // because forces for fixed atoms are not calculated
         check.checkForce = false;
-        REQUIRE(atom.M == INFINITE_MASS);
+        REQUIRE(atom.M > INFINITE_MASS/2.0);
         REQUIRE(atom.an == Vector3D(0.0,0.0,0.0));
         REQUIRE(atom.an_no_tb == Vector3D(0.0,0.0,0.0));
         REQUIRE(atom.V == Vector3D(0.0,0.0,0.0));
