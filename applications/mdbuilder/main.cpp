@@ -298,7 +298,7 @@ buildCommands()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-//    if (0)
+    if (0)
     {
       glLoadIdentity();
 
@@ -316,6 +316,51 @@ buildCommands()
       yaatk::text_ofstream fomde("300K.mde");
       sl.saveToMDE(fomde);
       fomde.close();
+    }
+    if (0)
+    {
+      glLoadIdentity();
+      std::vector<ElementID> ionElements;
+      ionElements.push_back(Ar_EL);
+      ionElements.push_back(Xe_EL);
+      std::vector<Float> ionEnergies;
+      ionEnergies.push_back(100*eV);
+//      ionEnergies.push_back(200*eV);
+//      ionEnergies.push_back(300*eV);
+      ionEnergies.push_back(400*eV);
+      mdbuilder::build_FCC_metal_bombardment_with_ions(ionElements,
+                                                       ionEnergies,
+                                                       128);
+    }
+//    if (0)
+    {
+      glLoadIdentity();
+      {
+        std::vector<Float> fullereneEnergies;
+        fullereneEnergies.push_back(100*eV);
+        fullereneEnergies.push_back(200*eV);
+        fullereneEnergies.push_back(300*eV);
+        fullereneEnergies.push_back(400*eV);
+        mdbuilder::build_FCC_metal_bombardment_with_C60(fullereneEnergies,
+                                                        128,
+                                                        12,12,12);
+      }
+      glLoadIdentity();
+      {
+        std::vector<ElementID> ionElements;
+        ionElements.push_back(Ar_EL);
+        ionElements.push_back(Xe_EL);
+        ionElements.push_back(Cu_EL);
+        std::vector<Float> ionEnergies;
+        ionEnergies.push_back(100*eV);
+        ionEnergies.push_back(200*eV);
+        ionEnergies.push_back(300*eV);
+        ionEnergies.push_back(400*eV);
+        mdbuilder::build_fullerite_bombardment_with_ions(ionElements,
+                                                         ionEnergies,
+                                                         128,
+                                                         3,3,3);
+      }
     }
   }
   exit(0);
