@@ -289,6 +289,13 @@ maxDistanceFrom(AtomsContainer& atoms, Vector3D point)
 }
 
 inline
+Float
+radius(AtomsContainer& atoms)
+{
+  return maxDistanceFrom(atoms,geomCenter(atoms));
+}
+
+inline
 void
 shiftToOrigin(AtomsContainer& atoms)
 {
