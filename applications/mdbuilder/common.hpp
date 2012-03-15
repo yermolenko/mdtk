@@ -30,6 +30,9 @@
 
 #include "../common.h"
 
+//#define MDBUILDER_DRY_RUN_HOOK return;
+#define MDBUILDER_DRY_RUN_HOOK ;
+
 namespace mdbuilder
 {
 
@@ -79,6 +82,7 @@ quench(mdtk::SimLoop& sl,
        Float checkTime = 0.01*ps,
        std::string tmpDir = "_tmp-X")
 {
+  MDBUILDER_DRY_RUN_HOOK;
   yaatk::mkdir(tmpDir.c_str());
   yaatk::chdir(tmpDir.c_str());
   yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
@@ -111,6 +115,7 @@ heatUp(mdtk::SimLoop& sl,
        Float checkTime = 2.0*ps,
        std::string tmpDir = "_tmp-heatUp")
 {
+  MDBUILDER_DRY_RUN_HOOK;
   yaatk::mkdir(tmpDir.c_str());
   yaatk::chdir(tmpDir.c_str());
 
@@ -146,6 +151,7 @@ relax(mdtk::SimLoop& sl,
       Float forTime = 0.2*ps,
       std::string tmpDir = "_tmp-X")
 {
+  MDBUILDER_DRY_RUN_HOOK;
   yaatk::mkdir(tmpDir.c_str());
   yaatk::chdir(tmpDir.c_str());
   sl.initialize();
@@ -162,6 +168,7 @@ relax_flush(mdtk::SimLoop& sl,
       Float forTime = 0.2*ps,
       std::string tmpDir = "_tmp-X")
 {
+  MDBUILDER_DRY_RUN_HOOK;
   yaatk::mkdir(tmpDir.c_str());
   yaatk::chdir(tmpDir.c_str());
   yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
