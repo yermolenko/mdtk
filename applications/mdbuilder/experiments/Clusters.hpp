@@ -1151,6 +1151,185 @@ build_fullerite_bombardment_with_ions(
   }
 }
 
+
+inline
+std::string
+metal_C60_mixing_id(std::string what,
+                    std::string withWhat,
+                    Float energy)
+{
+  char id_string[1000];
+  sprintf(id_string,
+          "bomb_%s_with_%s_%04deV",
+          what.c_str(),
+          withWhat.c_str(),
+          int(energy/eV));
+  return id_string;
+}
+
+inline
+void
+build_metal_C60_mixing(
+  std::vector<Float> impactEnergies,
+  ElementID metalElement = Cu_EL
+  )
+{
+  size_t numberOfImpacts = 16;
+
+  mdtk::SimLoop sl_fullerene = mdbuilder::build_C60_optimized();
+  removeMomentum(sl_fullerene.atoms);
+  shiftToOrigin(sl_fullerene.atoms);
+
+  mdtk::SimLoop sl_metalAtom;
+  sl_metalAtom.atoms.push_back(new Atom(metalElement));
+  removeMomentum(sl_metalAtom.atoms);
+  shiftToOrigin(sl_metalAtom.atoms);
+
+  int a_num_metal;
+  int b_num_metal;
+  int c_num_metal;
+  Float a_metal;
+  Float b_metal;
+  Float c_metal;
+  mdtk::SimLoop sl_metalCrystal;
+  switch (metalElement)
+  {
+  case Cu_EL :
+    a_num_metal = 12;
+    b_num_metal = 12;
+    c_num_metal = 12;
+    a_metal = 3.615*Ao;
+    b_metal = 3.615*Ao;
+    c_metal = 3.615*Ao;
+    sl_metalCrystal = mdbuilder::build_FCC_lattice(
+      a_num_metal,b_num_metal,c_num_metal,
+      metalElement,
+      true,
+      a_metal,
+      b_metal,
+      c_metal);
+    break;
+  case Ag_EL :
+    a_num_metal = 12;
+    b_num_metal = 12;
+    c_num_metal = 12;
+    a_metal = 4.086*Ao;
+    b_metal = 4.086*Ao;
+    c_metal = 4.086*Ao;
+    sl_metalCrystal = mdbuilder::build_FCC_lattice(
+      a_num_metal,b_num_metal,c_num_metal,
+      metalElement,
+      true,
+      a_metal,
+      b_metal,
+      c_metal);
+    break;
+  case Au_EL :
+    a_num_metal = 12;
+    b_num_metal = 12;
+    c_num_metal = 12;
+    a_metal = 4.078*Ao;
+    b_metal = 4.078*Ao;
+    c_metal = 4.078*Ao;
+    sl_metalCrystal = mdbuilder::build_FCC_lattice(
+      a_num_metal,b_num_metal,c_num_metal,
+      metalElement,
+      true,
+      a_metal,
+      b_metal,
+      c_metal);
+    break;
+  default:
+    throw Exception("Unknow metal!");
+  }
+
+  int a_num_fullerite = 3;
+  int b_num_fullerite = 3;
+  int c_num_fullerite = 3;
+  Float a_fullerite = 14.17*Ao;
+  Float b_fullerite = 14.17*Ao;
+  Float c_fullerite = 14.17*Ao;
+  mdtk::SimLoop sl_fulleriteCrystal =
+    mdbuilder::build_Fullerite_C60(
+      a_num_fullerite,
+      b_num_fullerite,
+      c_num_fullerite,
+      true,
+      a_fullerite);
+
+  for(size_t energyIndex = 0;
+      energyIndex < impactEnergies.size();
+      ++energyIndex)
+  {
+    Float impactEnergy = impactEnergies[energyIndex];
+
+    mdtk::SimLoop sl_energeticFullerene(sl_fullerene);
+    addTranslationalEnergy(
+      sl_energeticFullerene.atoms,
+      impactEnergy,
+      Vector3D(0,0,1));
+
+    mdtk::SimLoop sl_energeticMetalAtom(sl_metalAtom);
+    addTranslationalEnergy(
+      sl_energeticMetalAtom.atoms,
+      impactEnergy,
+      Vector3D(0,0,1));
+
+    {
+      std::string id = metal_C60_mixing_id(
+        ElementIDtoString(metalElement),
+        ElementIDtoString(metalElement),
+        impactEnergy);
+      bomb_orthorhombic_with_clusters(
+        id,
+        sl_energeticMetalAtom,
+        sl_metalCrystal,
+        a_num_metal,b_num_metal,
+        a_metal,b_metal,
+        numberOfImpacts);
+    }
+    {
+      std::string id = metal_C60_mixing_id(
+        ElementIDtoString(metalElement),
+        "C60",
+        impactEnergy);
+      bomb_orthorhombic_with_clusters(
+        id,
+        sl_energeticFullerene,
+        sl_metalCrystal,
+        a_num_metal,b_num_metal,
+        a_metal,b_metal,
+        numberOfImpacts);
+    }
+    {
+      std::string id = metal_C60_mixing_id(
+        "Fullerite",
+        ElementIDtoString(metalElement),
+        impactEnergy);
+      bomb_orthorhombic_with_clusters(
+        id,
+        sl_energeticMetalAtom,
+        sl_fulleriteCrystal,
+        a_num_fullerite,b_num_fullerite,
+        a_fullerite,b_fullerite,
+        numberOfImpacts);
+    }
+    {
+      std::string id = metal_C60_mixing_id(
+        "Fullerite",
+        "C60",
+        impactEnergy);
+      bomb_orthorhombic_with_clusters(
+        id,
+        sl_energeticFullerene,
+        sl_fulleriteCrystal,
+        a_num_fullerite,b_num_fullerite,
+        a_fullerite,b_fullerite,
+        numberOfImpacts);
+    }
+  }
+}
+
 }
 
 #endif
