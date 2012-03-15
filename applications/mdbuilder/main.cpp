@@ -332,7 +332,7 @@ buildCommands()
                                                        ionEnergies,
                                                        128);
     }
-//    if (0)
+    if (0)
     {
       glLoadIdentity();
       {
@@ -360,6 +360,22 @@ buildCommands()
                                                          ionEnergies,
                                                          128,
                                                          3,3,3);
+      }
+    }
+//    if (0)
+    {
+      glLoadIdentity();
+      {
+        std::vector<Float> impactEnergies;
+        impactEnergies.push_back(5*eV);
+        impactEnergies.push_back(10*eV);
+        impactEnergies.push_back(50*eV);
+        impactEnergies.push_back(100*eV);
+        impactEnergies.push_back(150*eV);
+        impactEnergies.push_back(200*eV);
+        impactEnergies.push_back(250*eV);
+        impactEnergies.push_back(300*eV);
+        mdbuilder::build_metal_C60_mixing(impactEnergies);
       }
     }
   }
