@@ -211,7 +211,7 @@ geomCenter(AtomsContainer& atoms)
 {
   Float clusterRadius = 0.0;
   Vector3D clusterCenter(0,0,0);
-  
+
   for(size_t i = 0; i < atoms.size(); i++)
     clusterCenter += atoms[i]->coords;
   clusterCenter /= atoms.size();
@@ -223,7 +223,7 @@ Float
 maxDistanceFrom(AtomsContainer& atoms, Vector3D point)
 {
   Float clusterRadius = 0.0;
-  
+
   for(size_t i = 0; i < atoms.size(); i++)
   {
     Float currentDist = (atoms[i]->coords-point).module();
@@ -300,7 +300,7 @@ dimensions(AtomsContainer& atoms)
 }
 
 void
-initialize_simloop(mdtk::SimLoop& sl) 
+initialize_simloop(mdtk::SimLoop& sl)
 {
   setupPotentials(sl);
   sl.initialize();

@@ -190,14 +190,14 @@ place_Polyethylene_cell(
   )
 {
   glPushMatrix();
-  
+
   {
     glPushMatrix();
     glRotated(45.0,0.0,0.0,1.0);
     place_Ethylene(sl);
     glPopMatrix();
   }
-    
+
   {
     glPushMatrix();
     glTranslated(((va+vb)/2.0).x,((va+vb)/2.0).y,0.0);
@@ -234,19 +234,19 @@ place_Polyethylene_lattice(
       for(int ic = cellsFromXYPlane; ic < c_num; ic++)
       {
         glPushMatrix();
-        
+
         glTranslated(
           (va*ia+vb*ib+vc*ic).x,
           (va*ia+vb*ib+vc*ic).y,
           (va*ia+vb*ib+vc*ic).z
           );
-        
+
         glPushMatrix();
         place_Polyethylene_cell(sl,va,vb,vc);
         glPopMatrix();
-        
+
         if (fixBottomCellLayer)
-        {     
+        {
           if (ic == c_num-1)
           {
             for(size_t i = 1; i <= 12; i++)
@@ -258,7 +258,7 @@ place_Polyethylene_lattice(
         }
 
         glPopMatrix();
-      }        
+      }
 
   glPopMatrix();
 }
@@ -322,7 +322,7 @@ place_Polyethylene_folded_chains(
     for(int ib = 0; ib < b_num; ib++)
     {
       glPushMatrix();
-      
+
       glTranslated(
         (va*ia+vb*ib).x,
         (va*ia+vb*ib).y,
@@ -330,7 +330,7 @@ place_Polyethylene_folded_chains(
         );
 
       glPushMatrix();
-      
+
       for(size_t ai = 0; ai < sl_with_chain.atoms.size(); ai++)
       {
         const mdtk::Atom& atom = *sl_with_chain.atoms[ai];
@@ -339,10 +339,10 @@ place_Polyethylene_folded_chains(
       };
 
       glPopMatrix();
-      
+
       glPopMatrix();
     }
-  
+
   glPopMatrix();
 }
 

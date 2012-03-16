@@ -85,7 +85,7 @@ place_FCC_lattice(
       for(int ic = 0; ic < c_num; ic++)
       {
         glPushMatrix();
-        
+
         glTranslated(
           (va*ia+vb*ib+vc*ic).x,
           (va*ia+vb*ib+vc*ic).y,
@@ -97,7 +97,7 @@ place_FCC_lattice(
         glPopMatrix();
 
         if (fixBottomLayer)
-        {     
+        {
           if (ic == c_num-1)
           {
             for(size_t i = 1; i <= 4; i++)

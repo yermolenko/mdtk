@@ -49,7 +49,7 @@ place_C60(SimLoop& sl)
     fcoords >> index >> tmp1 >> tmp2 >> x >> y >> z;
     place(C_EL,sl,Vector3D(x*Ao,y*Ao,z*Ao));
   }
-  
+
   fcoords.close();
 }
 
@@ -61,7 +61,7 @@ build_C60_optimized()
 
   glLoadIdentity();
   mdbuilder::place_C60(sl);
-  
+
   quench(sl,1.0*K);
 
   shiftToOrigin(sl.atoms);
@@ -79,16 +79,16 @@ checkOnEnergyPotMin(SimLoop& simloop, Float& minPotEnergy)
     minPotEnergy = currentPotEnergy;
     TRACE(minPotEnergy/mdtk::eV);
     TRACE(minPotEnergy/mdtk::eV/simloop.atoms_.size());
-    { 
-      std::ofstream fo("in.mde.min"); 
-      simloop.saveToMDE(fo); 
-      fo.close(); 
+    {
+      std::ofstream fo("in.mde.min");
+      simloop.saveToMDE(fo);
+      fo.close();
     }
-    { 
-      std::ofstream fo("energy.min",std::ios::app); 
+    {
+      std::ofstream fo("energy.min",std::ios::app);
       fo << minPotEnergy/mdtk::eV/simloop.atoms_.size() << " "
          << minPotEnergy/mdtk::eV/simloop.atoms_.size() << std::endl;
-      fo.close(); 
+      fo.close();
     }
     ERRTRACE(minPotEnergy/mdtk::eV/simloop.atoms_.size());
   }
@@ -101,18 +101,18 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
 
   Float minPotEnergy = ENERGYINF;
   TRACE(minPotEnergy/mdtk::eV);
-  
+
   Float freezingEnergy = 0.0001*2.5*mdtk::eV*modloop->atoms_.size();
   TRACE(freezingEnergy/mdtk::eV);
   ERRTRACE(freezingEnergy/mdtk::eV);
-  
+
   for(Float maxHeatUpEnergy = 0.0001*eV;
       maxHeatUpEnergy <= 0.75*eV;
       maxHeatUpEnergy += 0.05*eV)
   {
     modloop->simTimeSaveTrajInterval = 1000.0*ps;
     modloop->iterationFlushStateInterval = 1000000;
-    
+
     modloop->thermalBath.zMin = +100000.0*Ao;
     modloop->simTime = 0.0*ps;
     modloop->simTimeFinal = 1.0*ps;
@@ -127,9 +127,9 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     if (retval) return ENERGYINF;
     ERRTRACE(modloop->simTime/ps);
     checkOnEnergyPotMin(*modloop,minPotEnergy);
-    
+
     cerr << "Cooling..." << std::endl;
-    
+
     modloop->thermalBath.zMin = -100000.0*Ao;
     modloop->simTime = 0.0*ps;
     modloop->simTimeFinal = 0.0*ps;
@@ -149,12 +149,12 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
   TRACE(minPotEnergy/mdtk::eV);
   TRACE(minPotEnergy/mdtk::eV/modloop->atoms_.size());
 
-  { 
+  {
     yaatk::text_ifstream fi("in.mde.min");
-    modloop->loadFromMDE(fi); 
-    fi.close(); 
+    modloop->loadFromMDE(fi);
+    fi.close();
   }
-  
+
   return minPotEnergy;
 }
 
@@ -171,7 +171,7 @@ void
 findMinMax(mdtk::AtomsContainer& atoms, Float xm[3][2], size_t xmi[3][2])
 {
   size_t xi, xs;
-  
+
   for(xi = 0; xi < 3; xi++)
   {
     for(xs = 0; xs < 2; xs++)
@@ -203,10 +203,10 @@ add1atom(mdtk::AtomsContainer& atoms, ElementID id, gsl_rng* r)
   Float  xm[3][2];
   size_t xmi[3][2];
 
-  findMinMax(atoms, xm, xmi);  
+  findMinMax(atoms, xm, xmi);
 
   size_t xi, xs;
-  
+
   for(size_t i = 0; i < atoms.size(); i++)
   {
     atoms[i]->coords.x -= (xm[0][0]+xm[0][1])/2.0;
@@ -214,7 +214,7 @@ add1atom(mdtk::AtomsContainer& atoms, ElementID id, gsl_rng* r)
     atoms[i]->coords.z -= (xm[2][0]+xm[2][1])/2.0;
   }
 
-  findMinMax(atoms, xm, xmi);  
+  findMinMax(atoms, xm, xmi);
 
   for(xi = 0; xi < 3; xi++)
   {
@@ -245,17 +245,17 @@ add1atom(mdtk::AtomsContainer& atoms, ElementID id, gsl_rng* r)
               gsl_rng_uniform(r),
               gsl_rng_uniform(r));
   vn.normalize();
-  
+
   Vector3D dv(0,0,0);
   dv.X(xi) = 2.29*Ao*sign;
   ERRTRACE(dv);
   dv += 0.03*Ao*vn;
   ERRTRACE(dv);
-  
+
   newAtom->coords = atoms[xMIndex]->coords + dv;
-  
+
   ERRTRACE(newAtom->coords/mdtk::Ao);
-  
+
   atoms.push_back(newAtom);
 }
 
@@ -282,17 +282,17 @@ build_cluster(ElementID id, int clusterSize)
   yaatk::mkdir("_tmp-Cu-clusters");
   yaatk::chdir("_tmp-Cu-clusters");
 
-  std::ofstream foGlobal("energy.min.all",std::ios::app); 
+  std::ofstream foGlobal("energy.min.all",std::ios::app);
 
   if (sl.atoms.size() > 0)
     add1atom(sl.atoms_,id,r);
   else
     add1atomInit(sl.atoms_, id);
 
-  for(int atomsCount = sl.atoms_.size(); 
-      atomsCount <= clusterSize; 
+  for(int atomsCount = sl.atoms_.size();
+      atomsCount <= clusterSize;
       atomsCount++)
-  {    
+  {
     ERRTRACE(sl.atoms_.size());
 
     sl.initialize();
@@ -314,7 +314,7 @@ build_cluster(ElementID id, int clusterSize)
       add1atom(sl.atoms_, id, r);
   }
 
-  foGlobal.close(); 
+  foGlobal.close();
 
   yaatk::chdir("..");
 
@@ -334,7 +334,7 @@ build_embed(const SimLoop& sl_cluster,
 
   shiftToOrigin(sl_cluster.atoms);
   shiftToOrigin(sl_shell.atoms);
-  
+
   sl = sl_cluster;
 
 //shrinking
@@ -402,7 +402,7 @@ build_target_by_cluster_bombardment(
 {
   shiftToOrigin(sl_cluster.atoms);
 
-  Float clusterRadius 
+  Float clusterRadius
     = maxDistanceFrom(sl_cluster.atoms,geomCenter(sl_cluster.atoms));
   TRACE(clusterRadius/mdtk::Ao);
 
@@ -508,7 +508,7 @@ prepare_Cu_by_Cu_at_C60_bobardment()
         {
           Float& trans_energy = trans_energies[i_trans_energy];
           mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Cu,sl_endo,trans_energy);
-          
+
           TRACE(sl.energyKin()/eV);
 
           sl.iteration = 0;
@@ -526,7 +526,7 @@ prepare_Cu_by_Cu_at_C60_bobardment()
                   int(trans_energy/eV),
                   int(rot_axis.x),int(rot_axis.y),int(rot_axis.z),
                   int(rot_energy/eV));
-          
+
           yaatk::mkdir(id_string);
           yaatk::chdir(id_string);
           yaatk::text_ofstream fomde("in.mde");
@@ -583,7 +583,7 @@ prepare_Graphite_by_Cu_at_C60_bombardment()
         {
           Float& trans_energy = trans_energies[i_trans_energy];
           mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Graphite,sl_endo,trans_energy);
-          
+
           TRACE(sl.energyKin()/eV);
 
           sl.iteration = 0;
@@ -601,7 +601,7 @@ prepare_Graphite_by_Cu_at_C60_bombardment()
                   int(trans_energy/eV),
                   int(rot_axis.x),int(rot_axis.y),int(rot_axis.z),
                   int(rot_energy/eV));
-          
+
           yaatk::mkdir(id_string);
           yaatk::chdir(id_string);
           yaatk::text_ofstream fomde("in.mde");

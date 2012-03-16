@@ -37,7 +37,7 @@ place_Graphite_cell(
   )
 {
   glPushMatrix();
-  
+
   {
     glPushMatrix();
     glTranslated(0,0,0);
@@ -83,25 +83,25 @@ place_Graphite_lattice(
   Vector3D va = Vector3D(a, 0, 0);
   Vector3D vb = Vector3D(b*cos(gamma), b*sin(gamma), 0);
   Vector3D vc = Vector3D(0, 0, c);
-  
+
   for(int ia = 0; ia < a_num; ia++)
     for(int ib = 0; ib < b_num; ib++)
       for(int ic = 0; ic < c_num; ic++)
       {
         glPushMatrix();
-        
+
         glTranslated(
           (va*ia+vb*ib+vc*ic).x,
           (va*ia+vb*ib+vc*ic).y,
           (va*ia+vb*ib+vc*ic).z
           );
-        
+
         glPushMatrix();
         place_Graphite_cell(sl,a,b,c,gamma);
         glPopMatrix();
-        
+
         if (fixBottomCellLayer)
-        {     
+        {
           if (ic == c_num-1)
           {
             for(size_t i = 1; i <= 4; i++)
@@ -113,7 +113,7 @@ place_Graphite_lattice(
         }
 
         glPopMatrix();
-      }        
+      }
 
   glPopMatrix();
 }
