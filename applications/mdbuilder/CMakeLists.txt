@@ -25,7 +25,17 @@ include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
 
 link_directories (${MDTK_BINARY_DIR})
 
-add_executable (${MDTK_CurrentTarget} main.cpp common.cxx)
+add_executable (${MDTK_CurrentTarget}
+  main.cpp
+  common.cxx
+  experiments/H2.cpp
+  experiments/FCC.cpp
+  experiments/Clusters.cpp
+  experiments/Polyethylene.cpp
+  experiments/Graphite.cpp
+  experiments/Fullerite.cpp
+  experiments/Fulleride.cpp
+  )
 
 target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
 

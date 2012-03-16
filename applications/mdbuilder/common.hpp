@@ -74,114 +74,38 @@ place_and_inherit(mdtk::SimLoop& sl, const Atom& base,
   return a;
 }
 
-inline
 void
-quench(mdtk::SimLoop& sl, 
-       Float forTemp = 1.0*K,
-       Float forTime = 200*ps,
-       Float checkTime = 0.01*ps,
-       std::string tmpDir = "_tmp-X")
-{
-  MDBUILDER_DRY_RUN_HOOK;
-  yaatk::mkdir(tmpDir.c_str());
-  yaatk::chdir(tmpDir.c_str());
-  yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
-  yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
+quench(
+  mdtk::SimLoop& sl,
+  Float forTemp = 1.0*K,
+  Float forTime = 200*ps,
+  Float checkTime = 0.01*ps,
+  std::string tmpDir = "_tmp-X"
+  );
 
-  sl.initialize();
-  sl.simTime = 0.0*ps;
-  sl.simTimeFinal = 0.0;
-  sl.simTimeSaveTrajInterval = 0.05*ps;
-  Float tb_zMin_bak = sl.thermalBath.zMin;
-  sl.thermalBath.zMin = -100000.0*Ao;
-  while (1)
-  {
-    sl.simTimeFinal += checkTime;
-    sl.writestate();
-    sl.execute();
-    Float Temp = sl.energyKin()/(3.0/2.0*kb*sl.atoms.size());
-    if (Temp < forTemp) break;
-  }
-  sl.thermalBath.zMin = tb_zMin_bak;
-  yaatk::chdir("..");
-}
-
-inline
 void
-heatUp(mdtk::SimLoop& sl,
-       Float forTemp = 300.0*K,
-       bool uniformHeatUp = true,
-       Float forTime = 200*ps,
-       Float checkTime = 2.0*ps,
-       std::string tmpDir = "_tmp-heatUp")
-{
-  MDBUILDER_DRY_RUN_HOOK;
-  yaatk::mkdir(tmpDir.c_str());
-  yaatk::chdir(tmpDir.c_str());
+heatUp(
+  mdtk::SimLoop& sl,
+  Float forTemp = 300.0*K,
+  bool uniformHeatUp = true,
+  Float forTime = 200*ps,
+  Float checkTime = 2.0*ps,
+  std::string tmpDir = "_tmp-heatUp"
+  );
 
-  yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
-  yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
-
-  sl.initialize();
-  sl.simTime = 0.0*ps;
-  sl.simTimeFinal = 0.0;
-  sl.simTimeSaveTrajInterval = 0.05*ps;
-  Float tb_zMin_bak = sl.thermalBath.zMin;
-  if (uniformHeatUp)
-    sl.thermalBath.zMin = -100000.0*Ao;
-  const int steps = 20;
-  sl.thermalBath.To = 0.0;
-  while (1)
-  {
-    if (sl.thermalBath.To < forTemp)
-      sl.thermalBath.To += forTemp/steps;
-
-    sl.simTimeFinal += checkTime;
-    sl.writestate();
-    sl.execute();
-    if (sl.simTimeFinal > checkTime*(steps+3)) break;
-  }
-  sl.thermalBath.zMin = tb_zMin_bak;
-  yaatk::chdir("..");
-}
-
-inline
 void
-relax(mdtk::SimLoop& sl, 
-      Float forTime = 0.2*ps,
-      std::string tmpDir = "_tmp-X")
-{
-  MDBUILDER_DRY_RUN_HOOK;
-  yaatk::mkdir(tmpDir.c_str());
-  yaatk::chdir(tmpDir.c_str());
-  sl.initialize();
-  sl.simTime = 0.0*ps;
-  sl.simTimeFinal = forTime;
-  sl.simTimeSaveTrajInterval = 0.05*ps;
-  sl.execute();
-  yaatk::chdir("..");
-}
+relax(
+  mdtk::SimLoop& sl,
+  Float forTime = 0.2*ps,
+  std::string tmpDir = "_tmp-X"
+  );
 
-inline
 void
-relax_flush(mdtk::SimLoop& sl, 
-      Float forTime = 0.2*ps,
-      std::string tmpDir = "_tmp-X")
-{
-  MDBUILDER_DRY_RUN_HOOK;
-  yaatk::mkdir(tmpDir.c_str());
-  yaatk::chdir(tmpDir.c_str());
-  yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
-  yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
-
-  sl.initialize();
-  sl.simTime = 0.0*ps;
-  sl.simTimeFinal = forTime;
-  sl.simTimeSaveTrajInterval = 0.001*ps;
-  sl.writestate();
-  sl.execute();
-  yaatk::chdir("..");
-}
+relax_flush(
+  mdtk::SimLoop& sl,
+  Float forTime = 0.2*ps,
+  std::string tmpDir = "_tmp-X"
+);
 
 class SimLoopDump : public SimLoop
 {
@@ -207,135 +131,38 @@ public:
     };
 };
 
-inline
 Float
-mass(const AtomsContainer& atoms)
-{
-  Float moleculeMass = 0;
-  for(size_t ai = 0; ai < atoms.size(); ai++)
-  {
-    const mdtk::Atom& atom = *atoms[ai];
-    moleculeMass += atom.M;
-  }
-  return moleculeMass;
-}
+mass(const AtomsContainer& atoms);
 
-inline
 Vector3D
-velocity(const AtomsContainer& atoms)
-{
-  REQUIRE(atoms.size() > 0);
-  mdtk::Vector3D sumOfP = 0.0;
-  Float sumOfM = 0.0;
-  for(size_t ai = 0; ai < atoms.size(); ai++)
-  {
-    const mdtk::Atom& atom = *atoms[ai];
-    if (atom.isFixed()) continue;
-    sumOfM += atom.M;
-    sumOfP += atom.V*atom.M;
-  };
-  return sumOfP/sumOfM;
-}
+velocity(const AtomsContainer& atoms);
 
-inline
 Vector3D
-massCenter(const AtomsContainer& atoms)
-{
-  REQUIRE(atoms.size() > 0);
-  mdtk::Vector3D sumOfP = 0.0;
-  Float sumOfM = 0.0;
-  for(size_t ai = 0; ai < atoms.size(); ai++)
-  {
-    const mdtk::Atom& atom = *atoms[ai];
-    sumOfM += atom.M;
-    sumOfP += atom.coords*atom.M;
-  };
-  return sumOfP/sumOfM;
-}
+massCenter(const AtomsContainer& atoms);
 
-inline
 void
-removeMomentum(AtomsContainer& atoms)
-{
-  Vector3D v = velocity(atoms);
-  for(size_t ai = 0; ai < atoms.size(); ai++)
-  {
-    mdtk::Atom& atom = *atoms[ai];
-    if (atom.isFixed()) continue;
-    atom.V -= v;
-  };
-}
+removeMomentum(AtomsContainer& atoms);
 
-inline
 void
-addTranslationalEnergy(AtomsContainer& atoms, Float energy, Vector3D direction)
-{
-  direction.normalize();
-  Vector3D v = velocity(atoms);
-  for(size_t ai = 0; ai < atoms.size(); ai++)
-  {
-    mdtk::Atom& a = *atoms[ai];
-    if (a.isFixed()) continue;
-    a.V += sqrt(2.0*energy/(mass(atoms)))*direction;
-  };
-}
+addTranslationalEnergy(
+  AtomsContainer& atoms,
+  Float energy, Vector3D direction
+  );
 
-inline
 Vector3D
-geomCenter(AtomsContainer& atoms)
-{
-  Float clusterRadius = 0.0;
-  Vector3D clusterCenter(0,0,0);
-  
-  for(size_t i = 0; i < atoms.size(); i++)
-    clusterCenter += atoms[i]->coords;
-  clusterCenter /= atoms.size();
+geomCenter(AtomsContainer& atoms);
 
-  return clusterCenter;
-}
-
-inline
 Float
-maxDistanceFrom(AtomsContainer& atoms, Vector3D point)
-{
-  Float clusterRadius = 0.0;
-  
-  for(size_t i = 0; i < atoms.size(); i++)
-  {
-    Float currentDist = (atoms[i]->coords-point).module();
-    clusterRadius = (currentDist>clusterRadius)?currentDist:clusterRadius;
-  }
+maxDistanceFrom(AtomsContainer& atoms, Vector3D point);
 
-  return clusterRadius;
-}
-
-inline
 Float
-radius(AtomsContainer& atoms)
-{
-  return maxDistanceFrom(atoms,geomCenter(atoms));
-}
+radius(AtomsContainer& atoms);
 
-inline
 void
-shiftToOrigin(AtomsContainer& atoms)
-{
-  if (atoms.size() == 0) return;
+shiftToOrigin(AtomsContainer& atoms);
 
-  Vector3D clusterCenter = massCenter(atoms);
-
-  for(size_t i = 0; i < atoms.size(); i++)
-     atoms[i]->coords -= clusterCenter;
-}
-
-inline
 void
-shiftToPosition(AtomsContainer& atoms, Vector3D v)
-{
-  shiftToOrigin(atoms);
-  for(size_t i = 0; i < atoms.size(); i++)
-     atoms[i]->coords += v;
-}
+shiftToPosition(AtomsContainer& atoms, Vector3D v);
 
 struct Dimensions
 {
@@ -352,137 +179,47 @@ struct Dimensions
   Float z_len;
 };
 
-inline
 Dimensions
-dimensions(AtomsContainer& atoms)
-{
-  Dimensions d;
+dimensions(AtomsContainer& atoms);
 
-  const Atom& a = *atoms[0];
-
-  Float x_max = a.coords.x;
-  Float x_min = a.coords.x;
-  Float y_max = a.coords.y;
-  Float y_min = a.coords.y;
-  Float z_max = a.coords.z;
-  Float z_min = a.coords.z;
-
-  for(size_t i = 0; i < atoms.size(); i++)
-  {
-    const Atom& a = *atoms[i];
-
-    if (a.coords.x > d.x_max)
-      d.x_max = a.coords.x;
-    if (a.coords.x < d.x_min)
-      d.x_min = a.coords.x;
-
-    if (a.coords.y > d.y_max)
-      d.y_max = a.coords.y;
-    if (a.coords.y < d.y_min)
-      d.y_min = a.coords.y;
-
-    if (a.coords.z > d.z_max)
-      d.z_max = a.coords.z;
-    if (a.coords.z < d.z_min)
-      d.z_min = a.coords.z;
-  }
-
-  d.x_len = d.x_max - d.x_min;
-  d.y_len = d.y_max - d.y_min;
-  d.z_len = d.z_max - d.z_min;
-
-  return d;
-}
-
-inline
 void
-initialize_simloop(mdtk::SimLoop& sl) 
-{
-  setupPotentials(sl);
-  sl.initialize();
-}
+initialize_simloop(mdtk::SimLoop& sl);
 
-inline
 std::vector<size_t>
-fixNotFixedAtoms(mdtk::AtomsContainer& atoms,
-                    const size_t begin, const size_t end)
-{
-  std::vector<size_t> fixated;
-  for(size_t i = 0; i < end; i++)
-    if (!atoms[i]->isFixed())
-    {
-      atoms[i]->fix();
-      fixated.push_back(i);
-    }
-  return fixated;
-}
+fixNotFixedAtoms(
+  mdtk::AtomsContainer& atoms,
+  const size_t begin, const size_t end
+  );
 
-inline
 std::vector<size_t>
-unfixFixedAtoms(mdtk::AtomsContainer& atoms,
-                const size_t begin, const size_t end)
-{
-  std::vector<size_t> unfixated;
-  for(size_t i = 0; i < end; i++)
-    if (atoms[i]->isFixed())
-    {
-      atoms[i]->unfix();
-      unfixated.push_back(i);
-    }
-  return unfixated;
-}
+unfixFixedAtoms(
+  mdtk::AtomsContainer& atoms,
+  const size_t begin, const size_t end
+  );
 
-inline
 std::vector<size_t>
-fixUnfixedCHAtoms(mdtk::AtomsContainer& atoms,
-           const size_t begin, const size_t end)
-{
-  std::vector<size_t> fixated;
-  for(size_t i = 0; i < end; i++)
-    if (!atoms[i]->isFixed())
-      if (atoms[i]->ID == C_EL || atoms[i]->ID == H_EL)
-      {
-        atoms[i]->fix();
-        fixated.push_back(i);
-      }
-  return fixated;
-}
+fixUnfixedCHAtoms(
+  mdtk::AtomsContainer& atoms,
+  const size_t begin, const size_t end
+  );
 
-inline
 void
-unfixAtoms(mdtk::AtomsContainer& atoms,
-              const std::vector<size_t> fixedAtoms)
-{
-  for(size_t i = 0; i < fixedAtoms.size(); i++)
-    atoms[fixedAtoms[i]]->unfix();
-}
+unfixAtoms(
+  mdtk::AtomsContainer& atoms,
+  const std::vector<size_t> fixedAtoms
+  );
 
-inline
 void
-fixAtoms(mdtk::AtomsContainer& atoms,
-         const std::vector<size_t> atomsToFix)
-{
-  for(size_t i = 0; i < atomsToFix.size(); i++)
-    atoms[atomsToFix[i]]->fix();
-}
+fixAtoms(
+  mdtk::AtomsContainer& atoms,
+  const std::vector<size_t> atomsToFix
+  );
 
-inline
 void
 place_Cluster(
   mdtk::SimLoop& sl,
   const mdtk::SimLoop sl_element
-  )
-{
-  glPushMatrix();
-
-  for(size_t i = 0; i < sl_element.atoms.size(); i++)
-  {
-    Atom& a = *(sl_element.atoms[i]);
-    place_and_inherit(sl,a,getPosition()+a.coords);
-  }
-
-  glPopMatrix();
-}
+  );
 
 }
 

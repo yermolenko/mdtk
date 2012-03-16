@@ -1,5 +1,5 @@
 /*
-   Building of Fullerides
+   Building of Fullerides (header file)
 
    Copyright (C) 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
@@ -23,20 +23,14 @@
 #ifndef MDBUILDER_Fulleride_HPP
 #define MDBUILDER_Fulleride_HPP
 
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_qrng.h>
-
 #include "../common.hpp"
-#include "Clusters.hpp"
-#include "Fullerite.hpp"
 
 namespace mdbuilder
 {
 
 using namespace mdtk;
 
-inline
-mdtk::SimLoop
+SimLoop
 build_Fulleride_C60(
   int a_num = 8,
   int b_num = 12,
@@ -45,47 +39,7 @@ build_Fulleride_C60(
   size_t numberOfAtoms = 1,
   bool fixBottomCellLayer = true,
   double a = 14.17*Ao
-  )
-{
-  double b = a;
-  double c = a;
-
-  mdtk::SimLoop sl;
-  initialize_simloop(sl);
-
-  mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
-
-  place_Generic_FCC_lattice(sl,sl_C60,
-                            a_num,b_num,c_num,
-                            fixBottomCellLayer,0,
-                            a,a,a);
-
-  mdtk::SimLoop sl_intercal = mdbuilder::build_cluster(id, numberOfAtoms);
-
-  // endo
-  place_Generic_FCC_lattice(sl,sl_intercal,
-                            a_num,b_num,c_num,
-                            fixBottomCellLayer,0,
-                            a,a,a);
-
-  // interstitial
-  place_Generic_FCC_lattice(sl,sl_intercal,
-                            a_num,b_num,c_num,
-                            fixBottomCellLayer,0,
-                            a,a,a,
-                            true);
-
-  sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
-  sl.thermalBath.zMin = (c_num > 2)?(c*(c_num-2)-0.5*Ao):(0.0);
-  sl.thermalBath.dBoundary = 3.0*Ao;
-
-  relax(sl,0.01*ps);
-  quench(sl,1.0*K);
-
-  removeMomentum(sl.atoms);
-
-  return sl;
-}
+  );
 
 }
 

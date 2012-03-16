@@ -1,7 +1,7 @@
 /*
-   Building of H2 molecule
+   Building of H2 molecule (header file)
 
-   Copyright (C) 2010, 2011 Oleksandr Yermolenko
+   Copyright (C) 2010, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -30,24 +30,9 @@ namespace mdbuilder
 
 using namespace mdtk;
 
-inline
-void
-place_H2_simple(mdtk::SimLoop& sl)
-{
-  place(H_EL,sl,Vector3D(0,0,0));
-  place(H_EL,sl,Vector3D(1.0*mdtk::Ao,0,0));
-}
+void place_H2_simple(SimLoop& sl);
 
-inline
-void
-place_H2(mdtk::SimLoop& sl)
-{
-  glPushMatrix();
-  place(H_EL,sl);
-  glTranslated(1.0*mdtk::Ao,0,0);
-  place(H_EL,sl);
-  glPopMatrix();
-}
+void place_H2(SimLoop& sl);
 
 }
 
