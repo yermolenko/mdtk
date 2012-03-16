@@ -1,8 +1,8 @@
 /*
    The NeighbourList class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -25,17 +25,19 @@
 
 #include <vector>
 #include <mdtk/Atom.hpp>
+#include <mdtk/AtomsContainer.hpp>
 #include <mdtk/Vector3D.hpp>
 #include <mdtk/config.hpp>
 #include <mdtk/tools.hpp>
 
 
-class FGeneral;
-
 #define MDTK_NB_RESERVE_ADD 5
 
 namespace mdtk
 {
+
+class FGeneral;
+
 class NeighbourList
 {
   const FGeneral* fpot;

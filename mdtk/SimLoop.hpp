@@ -1,7 +1,7 @@
 /*
    The molecular dynamics simulation loop class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -145,25 +145,6 @@ protected:
 public:
   void initPBC();
 public:
-  struct Bar // obsolete, will be removed soon
-  {
-    Float z;
-    Float dE;
-    Bar(Float z_, Float dE_): z(z_), dE(dE_)
-    {
-    }
-    void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
-    {
-      YAATK_FSTREAM_WRITE(os,z,smode);
-      YAATK_FSTREAM_WRITE(os,dE,smode);
-    }  
-    void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
-    {
-      YAATK_FSTREAM_READ(is,z,smode);
-      YAATK_FSTREAM_READ(is,dE,smode);
-    }  
-  }barrier;                
-  void checkOnSpot(Atom&);
   struct ThermalBath
   {
     Float zMin;
@@ -191,18 +172,17 @@ public:
     }  
   }thermalBath;                
   Float actualTemperatureOfThermalBath();
-  bool isWithinThermalBath(Vector3D& c)
+  bool isWithinThermalBath(const Atom& a)
   {
-    return (c.z > thermalBath.zMin) ||
-           ( usePBC() &&
-             (
-               (c.x < 0.0 + thermalBath.dBoundary) ||
-               (c.x > getPBC().x - thermalBath.dBoundary) ||
-               (c.y < 0.0 + thermalBath.dBoundary) ||
-               (c.y > getPBC().y - thermalBath.dBoundary)
-             ) && c.z > thermalBath.zMinOfFreeZone
-           )
-           ;
+    return (a.coords.z > thermalBath.zMin) ||
+      (a.usePBC() &&
+       (
+         (a.coords.x < 0.0 + thermalBath.dBoundary) ||
+         (a.coords.x > a.getPBC().x - thermalBath.dBoundary) ||
+         (a.coords.y < 0.0 + thermalBath.dBoundary) ||
+         (a.coords.y > a.getPBC().y - thermalBath.dBoundary)
+         ) && a.coords.z > thermalBath.zMinOfFreeZone
+        );
   }
 
 public:
@@ -253,8 +233,6 @@ private:
   double CPUTimeUsed_total;
 public:
   void setPBC(Vector3D PBC_){atoms_.setPBC(PBC_);}
-  Vector3D getPBC() const {return atoms_.getPBC();}
-  bool usePBC()const{return atoms_.usePBC();};
 };
 
 #define MDTK_MAX_PBC 1e-5

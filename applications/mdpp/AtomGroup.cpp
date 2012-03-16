@@ -73,7 +73,7 @@ void
 AtomGroup::addAtom(const mdtk::Atom& a)
 {
   atoms.push_back(a);
-  atoms.back().container = NULL;
+//  atoms.back().container = NULL;
 }
 
 void

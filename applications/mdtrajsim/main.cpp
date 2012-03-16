@@ -95,12 +95,12 @@ CustomSimLoop::doAfterIteration()
   {
     Atom& a = *atoms[j];
     Vector3D c = a.coords;
-    if (c.z < thermalBath.zMinOfFreeZone && usePBC() &&
+    if (a.coords.z < thermalBath.zMinOfFreeZone && a.usePBC() &&
         (
-          (c.x < 0.0 + thermalBath.dBoundary) ||
-          (c.x > getPBC().x - thermalBath.dBoundary) ||
-          (c.y < 0.0 + thermalBath.dBoundary) ||
-          (c.y > getPBC().y - thermalBath.dBoundary)
+          (a.coords.x < 0.0 + thermalBath.dBoundary) ||
+          (a.coords.x > a.getPBC().x - thermalBath.dBoundary) ||
+          (a.coords.y < 0.0 + thermalBath.dBoundary) ||
+          (a.coords.y > a.getPBC().y - thermalBath.dBoundary)
           )
       ) 
     {

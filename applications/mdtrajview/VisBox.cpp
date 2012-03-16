@@ -303,7 +303,6 @@ VisBox::setData(mdtk::SimLoop &ml)
   if (unfoldPBC)
     ml.atoms.unfoldPBC();
 
-  zbar = ml.barrier.z;
   Ro = ml.atoms_;
 
   int VC = Ro.size();
@@ -437,15 +436,15 @@ VisBox::listThermalBath()
   Float tb[3][2];
 
   tb[0][0] = ml_->thermalBath.dBoundary;
-  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->getPBC().x;
+  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->getPBC().x;
   tb[1][0] = ml_->thermalBath.dBoundary;
-  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->getPBC().y;
+  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->getPBC().y;
   tb[2][0] = ml_->thermalBath.zMinOfFreeZone;
   tb[2][1] = ml_->thermalBath.zMin;
 
   Float cb[3][2] = {{0,0},{0,0},{0,0}};
-  cb[0][1] = ml_->getPBC().x;
-  cb[1][1] = ml_->getPBC().y;
+  cb[0][1] = ml_->atoms.front()->getPBC().x;
+  cb[1][1] = ml_->atoms.front()->getPBC().y;
   cb[2][0] = tb[2][0];
   cb[2][1] = tb[2][1]+30*Ao;
 
@@ -494,15 +493,15 @@ VisBox::listThermalBathSketch()
   Float tb[3][2];
 
   tb[0][0] = ml_->thermalBath.dBoundary;
-  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->getPBC().x;
+  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->getPBC().x;
   tb[1][0] = ml_->thermalBath.dBoundary;
-  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->getPBC().y;
+  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->getPBC().y;
   tb[2][0] = ml_->thermalBath.zMinOfFreeZone;
   tb[2][1] = ml_->thermalBath.zMin;
 
   Float cb[3][2] = {{0,0},{0,0},{0,0}};
-  cb[0][1] = ml_->getPBC().x;
-  cb[1][1] = ml_->getPBC().y;
+  cb[0][1] = ml_->atoms.front()->getPBC().x;
+  cb[1][1] = ml_->atoms.front()->getPBC().y;
   cb[2][0] = tb[2][0];
   cb[2][1] = tb[2][1]+30*Ao;
 

@@ -120,7 +120,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->iteration = 0;
     cerr << "Heating up every atom to " << maxHeatUpEnergy/mdtk::eV << " eV" << std::endl;
     modloop->heatUpEveryAtom(maxHeatUpEnergy, rng);
-    TRACE(modloop->getPBC());
+    TRACE(modloop->atoms.front()->getPBC());
     int retval;
     cerr << "Releasing..." << std::endl;
     retval = modloop->execute();
@@ -135,7 +135,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->simTimeFinal = 0.0*ps;
     modloop->dt_ = 1e-20;
     modloop->iteration = 0;
-    TRACE(modloop->getPBC());
+    TRACE(modloop->atoms.front()->getPBC());
     while (modloop->simTimeFinal < 4.0*ps)
     {
       modloop->simTimeFinal += 0.05*ps;
@@ -406,7 +406,7 @@ build_target_by_cluster_bombardment(
     = maxDistanceFrom(sl_cluster.atoms,geomCenter(sl_cluster.atoms));
   TRACE(clusterRadius/mdtk::Ao);
 
-  Vector3D dCluster = sl_target.getPBC()/2.0;
+  Vector3D dCluster = sl_target.atoms.front()->getPBC()/2.0;
   dCluster.z = -(10.0*Ao+clusterRadius);
   TRACE(dCluster/mdtk::Ao);
 

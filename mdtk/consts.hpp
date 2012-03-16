@@ -1,7 +1,7 @@
 /*
    Some physical constants (header file).
 
-   Copyright (C) 2004, 2005, 2009 Oleksandr Yermolenko
+   Copyright (C) 2004, 2005, 2009, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -24,6 +24,9 @@
 #define mdtk_consts_hpp
 
 #include <mdtk/config.hpp>
+#include <mdtk/Exception.hpp>
+#include <mdtk/Vector3D.hpp>
+#include <string>
 
 namespace mdtk
 {
@@ -40,6 +43,44 @@ extern const Float ps;
 
 extern const Float Deg;
 
+enum ElementID
+{
+  H_EL = 1,
+  C_EL = 12,
+  Cu_EL = 64,
+  Ag_EL = 108,
+  Au_EL = 197,
+  Ar_EL = 40,
+  Xe_EL = 131,
+  DUMMY_EL = -1
+};
+
+#define EL_ID_size 200
+//extern const int EL_ID_size;
+
+inline
+std::string
+ElementIDtoString(ElementID id)
+{
+  std::string str;
+  switch (id)
+  {
+  case H_EL  : str = "H"; break;
+  case C_EL  : str = "C"; break;
+  case Cu_EL : str = "Cu"; break;
+  case Ag_EL : str = "Ag"; break;
+  case Au_EL : str = "Au"; break;
+  case Ar_EL : str = "Ar"; break;
+  case Xe_EL : str = "Xe"; break;
+  case DUMMY_EL :
+  default : Exception("Unknown element");
+  }
+  return str;
 }
+
+extern const Vector3D NO_PBC;
+
+}
+
 
 #endif

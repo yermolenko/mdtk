@@ -46,7 +46,6 @@ SimLoop::SimLoop()
     simTime(0.0), 
     breakSimLoop(false),
     iteration(0) ,
-    barrier(100,0.0),
     thermalBath(),
     initNLafterLoading(true),
     allowPartialLoading(false),
@@ -81,7 +80,6 @@ SimLoop::SimLoop(const SimLoop &c)
     simTime(0.0), 
     breakSimLoop(false),
     iteration(0) ,
-    barrier(100,0.0),
     thermalBath(),
     initNLafterLoading(true),
     allowPartialLoading(false),
@@ -106,7 +104,6 @@ SimLoop::SimLoop(const SimLoop &c)
   check.checkForce = true;
   check.checkEnergyAfter = 1; // dummy, will be removed soon
 
-  setPBC(c.getPBC());
   thermalBath = c.thermalBath;
   for(size_t i = 0; i < c.atoms_.size(); i++)
   {
@@ -122,7 +119,6 @@ SimLoop::operator =(const SimLoop &c)
 
   atoms_.clear();
 
-  setPBC(c.getPBC());
   thermalBath = c.thermalBath;
   for(size_t i = 0; i < c.atoms_.size(); i++)
   {
@@ -149,44 +145,16 @@ SimLoop::~SimLoop()
   freeAtoms();
 }
 
-void
-SimLoop::checkOnSpot(Atom& atom) // obsolete
-{
-  if (!atom.apply_barrier) return;
-  if (
-      ! (atom.ejected) &&
-      atom.coords.z > barrier.z &&
-      atom.V.z > 0.0)
-  {
-    Float Vn;
-    Float En;
-    Vn = atom.V.z;
-    En = atom.M*SQR(Vn)/2.0;
-    En += barrier.dE;
-    cout << "***Attempt to eject ";
-    if (En>0)
-    {
-      atom.V.z = sqrt(2.0*En/atom.M);
-      cout << "is successfull ***" << endl;
-      atom.ejected = true;
-    }
-    else
-    {
-      atom.V.z = -(atom.V.z);
-      atom.coords.z = barrier.z;
-      cout << endl;
-    }
-  }
-}  
-
 int
 SimLoop::execute()
 {
   try
   {
     fpot.diagnose();
-    PTRACE(usePBC());
-    PTRACE(getPBC()/Ao);
+    PTRACE(atoms.front()->usePBC());
+    PTRACE(atoms.back()->usePBC());
+    PTRACE(atoms.front()->getPBC()/Ao);
+    PTRACE(atoms.back()->getPBC()/Ao);
     PTRACE(thermalBath.zMin/Ao);
     PTRACE(thermalBath.dBoundary/Ao);
     PTRACE(thermalBath.zMinOfFreeZone/Ao);
@@ -220,7 +188,8 @@ bool
 SimLoop::checkMIC()
 {
   Vector3D PBC;
-  PBC = getPBC();
+  REQUIRE(atoms.size() > 0);
+  PBC = atoms.front()->getPBC();
   if (PBC.x <= fpot.getRcutoff()*2.0 || PBC.y <= fpot.getRcutoff()*2.0)
   {
     return false;
@@ -235,7 +204,8 @@ bool
 SimLoop::fitInCell()
 {
   Vector3D PBC;
-  PBC = getPBC();
+  REQUIRE(atoms.size() > 0);
+  PBC = atoms.front()->getPBC();
   size_t i;
   for(i = 0; i < atoms_.size(); i++)
   {
@@ -252,9 +222,9 @@ void
 SimLoop::applyPBC(Atom& a)
 {
   Vector3D& ac = a.coords;
-  if (!usePBC()) return;
+  if (!a.usePBC()) return;
   if (!(a.apply_PBC)) return;
-  Vector3D PBC(getPBC());
+  Vector3D PBC(a.getPBC());
 
   if (PBC.x < MDTK_MAX_PBC)
   {
@@ -296,15 +266,16 @@ SimLoop::execute_wo_checks()
 
   procmon::ProcmonTimer pmtTotal;
 
-  if (usePBC() && !checkMIC())
+  REQUIRE(atoms.size() > 0);
+  if (atoms.front()->usePBC() && !checkMIC())
   {
     cerr << "Rcutoff is too large for given PBC !" << endl << flush;
     throw Exception("Rcutoff is too large for given PBC !");
   }
 
-  if (usePBC()) initPBC();
+  if (atoms.front()->usePBC()) initPBC();
 
-  if (usePBC() && !fitInCell())
+  if (atoms.front()->usePBC() && !fitInCell())
   {
     cerr << "Atoms do not fit given PBC cell !" << endl << flush;
     throw Exception("Atoms do not fit given PBC cell !");
@@ -367,7 +338,6 @@ SimLoop::execute_wo_checks()
         // in presence of fixed atoms net force check does not work
         // because forces for fixed atoms are not calculated
         check.checkForce = false;
-        REQUIRE(atom.M > INFINITE_MASS/2.0);
         REQUIRE(atom.an == Vector3D(0.0,0.0,0.0));
         REQUIRE(atom.an_no_tb == Vector3D(0.0,0.0,0.0));
         REQUIRE(atom.V == Vector3D(0.0,0.0,0.0));
@@ -405,7 +375,7 @@ SimLoop::execute_wo_checks()
       if (check.checkForce)
         check.fullForce += force;
 
-      if (isWithinThermalBath(atom.coords) && atom.apply_ThermalBath)
+      if (isWithinThermalBath(atom) && atom.apply_ThermalBath)
       {
 //        Float T = check.temperatureCur;
         Float T = actualThermalBathTemp;
@@ -460,7 +430,6 @@ SimLoop::execute_wo_checks()
     for(size_t j = 0; j < atoms.size(); j++)
     {
       applyPBC(*(atoms_[j]));
-      checkOnSpot(*(atoms_[j])); // obsolete
     }
 
     doAfterIteration();
@@ -587,7 +556,7 @@ SimLoop::actualTemperatureOfThermalBath()
   {
     Atom& atom = *atoms_[j];
     if (atom.isFixed()) continue;
-    if (isWithinThermalBath(atom.coords) && atom.apply_ThermalBath)
+    if (isWithinThermalBath(atom) && atom.apply_ThermalBath)
     {
       energyKinCur += atom.M*SQR(atom.V.module())/2.0;
       atoms_accounted++;
@@ -656,8 +625,6 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_READ(is,dt_,smode);
   YAATK_FSTREAM_READ(is,iteration,smode); //iteration++;
   YAATK_FSTREAM_READ(is,iterationFlushStateInterval,smode);
-
-  barrier.LoadFromStream(is,smode);
   
   thermalBath.LoadFromStream(is,smode);
 
@@ -701,8 +668,6 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_WRITE(os,iteration,smode);
   YAATK_FSTREAM_WRITE(os,iterationFlushStateInterval,smode);
 
-  barrier.SaveToStream(os,smode);
-  
   thermalBath.SaveToStream(os,smode);
 
   fpot.SaveToStream(os,smode);
@@ -1266,7 +1231,6 @@ void SimLoop::updateGlobalIndexes()
   for(size_t i = 0; i < atoms_.size(); i++)
   {
     atoms_[i]->globalIndex = i;
-    atoms_[i]->container = &atoms_;
   }
 }  
 
@@ -1300,9 +1264,8 @@ SimLoop::saveToMDE(std::ostream& fo)
   YAATK_FSTREAM_WRITE(fo,simTimeSaveTrajInterval,YAATK_FSTREAM_TEXT);
   YAATK_FSTREAM_WRITE(fo,simTimeFinal,YAATK_FSTREAM_TEXT);
 
-  barrier.SaveToStream(fo,YAATK_FSTREAM_TEXT);
-
-  fo << getPBC() << std::endl;
+  REQUIRE(atoms.size() > 0);
+  fo << atoms.front()->getPBC() << std::endl;
   thermalBath.SaveToStream(fo,YAATK_FSTREAM_TEXT);
 }
 
@@ -1354,57 +1317,10 @@ SimLoop::loadFromMDE(std::istream& fi)
   YAATK_FSTREAM_READ(fi,simTimeSaveTrajInterval,YAATK_FSTREAM_TEXT);
   YAATK_FSTREAM_READ(fi,simTimeFinal,YAATK_FSTREAM_TEXT);
 
-  barrier.LoadFromStream(fi,YAATK_FSTREAM_TEXT);
-
   Vector3D PBC;
   fi >> PBC;
   setPBC(PBC);
   thermalBath.LoadFromStream(fi,YAATK_FSTREAM_TEXT);
-
-  initialize();
-}
-
-
-void
-SimLoop::loadFromMDE_OLD(std::istream& fi)
-{
-  freeAtoms();
-  AtomsContainer& Ro = atoms_;
-
-  Ro.clear();
-
-  int atoms_count;
-
-  Float x,y,z;
-  Float vx,vy,vz;
-  Float Z,M;
-  int id;
-  int tag;
-  bool fixed;
-  int  thermostat;
-
-  fi >> atoms_count;
-  cout << "Reading " << atoms_count << " atoms...\n";
-  for(int i = 0; i < atoms_count; i++)
-  {
-
-    fi >> Z >> M >> id >> tag >> fixed >> thermostat;
-    fi >> vx >> vy >> vz;
-    fi >> x >> y >> z;
-
-   Atom *new_atom;
-   new_atom = new Atom(e*Z,amu*M,Vector3D(vx,vy,vz),Vector3D(x,y,z)); REQUIRE(new_atom != 0);
-   new_atom->ID  = ElementID(id); //!!!
-   new_atom->tag  = tag;
-   new_atom->fixed  = fixed;
-   Ro.push_back(new_atom);
-    
-  }  
-
-  Vector3D PBC;
-  fi >> PBC;
-  setPBC(PBC);
-  fi >> thermalBath.zMin >> thermalBath.dBoundary;
 
   initialize();
 }

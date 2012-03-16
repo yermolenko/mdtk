@@ -1,7 +1,7 @@
 /*
    Collision Tree class (implementation)
 
-   Copyright (C) 2010, 2011 Oleksandr Yermolenko
+   Copyright (C) 2010, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -192,8 +192,6 @@ CollisionTree::CollisionTree(const Atom& atom,
     ++t;
 //    TRACE(an.globalIndex);
 //    TRACE(distance/Ao);
-    REQUIRE(a.container == NULL);
-    REQUIRE(an.container == NULL);
 //    TRACE(t->first/ps);
 //    TRACE(depos(a,an).module()/Ao);
 //    TRACE(distance/Ao);
