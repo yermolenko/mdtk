@@ -306,6 +306,31 @@ initialize_simloop(mdtk::SimLoop& sl)
   sl.initialize();
 }
 
+void
+initialize_simloop_REBO_only(SimLoop& sl)
+{
+  using namespace mdtk;
+
+  REQUIRE(sl.fpot.potentials.size()==0);
+
+  mdtk::FGeneral* pot = NULL;
+
+  pot = new mdtk::REBO();
+  sl.fpot.addPotential(pot);
+/*
+  pot = new mdtk::AIREBO((CREBO*)pot);
+  simloop.fpot.addPotential(pot);
+
+  pot = new mdtk::ETors();
+  simloop.fpot.addPotential(pot);
+*/
+/*
+  pot = new mdtk::Brenner(Brenner::POTENTIAL2);
+  simloop.fpot.addPotential(pot);
+*/
+  sl.initialize();
+}
+
 std::vector<size_t>
 fixNotFixedAtoms(mdtk::AtomsContainer& atoms,
                     const size_t begin, const size_t end)

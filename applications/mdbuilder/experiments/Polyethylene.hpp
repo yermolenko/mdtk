@@ -95,9 +95,6 @@ build_Polyethylene_lattice_without_folds(
   double c = 2.547*Ao
   );
 
-void
-initialize_simloop_REBO_only(SimLoop& sl);
-
 SimLoop
 build_Polyethylene_lattice_with_folds(
   int a_num = 8,

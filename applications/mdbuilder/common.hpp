@@ -185,6 +185,9 @@ dimensions(AtomsContainer& atoms);
 void
 initialize_simloop(mdtk::SimLoop& sl);
 
+void
+initialize_simloop_REBO_only(SimLoop& sl);
+
 std::vector<size_t>
 fixNotFixedAtoms(
   mdtk::AtomsContainer& atoms,
