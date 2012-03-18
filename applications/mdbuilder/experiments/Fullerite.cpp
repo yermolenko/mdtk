@@ -44,11 +44,11 @@ build_Fullerite_C60(
   SimLoopDump sl;
   initialize_simloop(sl);
 
-  mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
+  mdtk::AtomsArray C60 = mdbuilder::C60();
 
-  sl_C60.atoms.shiftToOrigin();
+  C60.shiftToOrigin();
 
-  place_Generic_FCC_lattice(sl.atoms,sl_C60.atoms,
+  place_Generic_FCC_lattice(sl.atoms,C60,
                             a_num,b_num,c_num,
                             fixBottomCellLayer,0,
                             a,a,a);

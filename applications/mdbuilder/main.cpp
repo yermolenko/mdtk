@@ -93,7 +93,8 @@ buildCommands()
     }
     if (0)
     {
-      mdtk::SimLoop sl = mdbuilder::build_C60_optimized();
+      mdtk::SimLoop sl;
+      sl.atoms = mdbuilder::C60();
 
       yaatk::text_ofstream fomde("C60-optimized.mde");
       sl.saveToMDE(fomde);
@@ -101,7 +102,8 @@ buildCommands()
     }
     if (0)
     {
-      mdtk::SimLoop sl = mdbuilder::build_cluster(Cu_EL,13);
+      mdtk::SimLoop sl;
+      sl.atoms = mdbuilder::cluster(Cu_EL,13);
 
       yaatk::text_ofstream fomde("Cu13.mde");
       sl.saveToMDE(fomde);
@@ -109,30 +111,33 @@ buildCommands()
     }
     if (0)
     {
-      mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
+      mdtk::AtomsArray C60 = mdbuilder::C60();
 
       {
-        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,1);
+        mdtk::AtomsArray cluster = mdbuilder::cluster(Cu_EL,1);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
+        mdtk::SimLoop sl;
+        sl.atoms = mdbuilder::embed(cluster,C60);
 
         yaatk::text_ofstream fomde("Cu001_in_C60.mde");
         sl.saveToMDE(fomde);
         fomde.close();
       }
       {
-        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,5);
+        mdtk::AtomsArray cluster = mdbuilder::cluster(Cu_EL,5);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
+        mdtk::SimLoop sl;
+        sl.atoms = mdbuilder::embed(cluster,C60);
 
         yaatk::text_ofstream fomde("Cu005_in_C60.mde");
         sl.saveToMDE(fomde);
         fomde.close();
       }
       {
-        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,13);
+        mdtk::AtomsArray cluster = mdbuilder::cluster(Cu_EL,13);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
+        mdtk::SimLoop sl;
+        sl.atoms = mdbuilder::embed(cluster,C60);
 
         yaatk::text_ofstream fomde("Cu013_in_C60.mde");
         sl.saveToMDE(fomde);
@@ -141,43 +146,51 @@ buildCommands()
     }
     if (0)
     {
-      mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
+      mdtk::AtomsArray C60 = mdbuilder::C60();
 
       {
-        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,0);
+        mdtk::AtomsArray cluster = mdbuilder::cluster(Cu_EL,0);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
-        mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
+        mdtk::AtomsArray atoms = mdbuilder::embed(cluster,C60);
+        mdbuilder::add_rotational_motion(atoms,200*eV,Vector3D(0,0,1));
+        mdtk::SimLoop sl;
+        sl.atoms = atoms;
 
         yaatk::text_ofstream fomde("Cu000_in_C60-rot.mde");
         sl.saveToMDE(fomde);
         fomde.close();
       }
       {
-        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,1);
+        mdtk::AtomsArray cluster = mdbuilder::cluster(Cu_EL,1);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
-        mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
+        mdtk::AtomsArray atoms = mdbuilder::embed(cluster,C60);
+        mdbuilder::add_rotational_motion(atoms,200*eV,Vector3D(0,0,1));
+        mdtk::SimLoop sl;
+        sl.atoms = atoms;
 
         yaatk::text_ofstream fomde("Cu001_in_C60-rot.mde");
         sl.saveToMDE(fomde);
         fomde.close();
       }
       {
-        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,6);
+        mdtk::AtomsArray cluster = mdbuilder::cluster(Cu_EL,6);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
-        mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
+        mdtk::AtomsArray atoms = mdbuilder::embed(cluster,C60);
+        mdbuilder::add_rotational_motion(atoms,200*eV,Vector3D(0,0,1));
+        mdtk::SimLoop sl;
+        sl.atoms = atoms;
 
         yaatk::text_ofstream fomde("Cu006_in_C60-rot.mde");
         sl.saveToMDE(fomde);
         fomde.close();
       }
       {
-        mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,13);
+        mdtk::AtomsArray cluster = mdbuilder::cluster(Cu_EL,13);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
-        mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
+        mdtk::AtomsArray atoms = mdbuilder::embed(cluster,C60);
+        mdbuilder::add_rotational_motion(atoms,200*eV,Vector3D(0,0,1));
+        mdtk::SimLoop sl;
+        sl.atoms = atoms;
 
         yaatk::text_ofstream fomde("Cu013_in_C60-rot.mde");
         sl.saveToMDE(fomde);
@@ -188,14 +201,14 @@ buildCommands()
     {
       mdtk::SimLoop sl_Cu = mdbuilder::build_FCC_lattice(14,14,7,Cu_EL);
 
-      mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
+      mdtk::AtomsArray C60 = mdbuilder::C60();
 
-      mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,6);
+      mdtk::AtomsArray cluster = mdbuilder::cluster(Cu_EL,6);
 
-      mdtk::SimLoop sl_endo = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
-      mdbuilder::add_rotational_motion(sl_endo,50*eV,Vector3D(0,0,1));
+      mdtk::AtomsArray endo = mdbuilder::embed(cluster,C60);
+      mdbuilder::add_rotational_motion(endo,50*eV,Vector3D(0,0,1));
 
-      mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Cu,sl_endo.atoms,200*eV);
+      mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Cu,endo,200*eV);
 
       TRACE(sl.energyKin()/eV);
 

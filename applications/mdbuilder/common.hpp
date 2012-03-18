@@ -83,8 +83,27 @@ quench(
   );
 
 void
+quench(
+  mdtk::AtomsArray& atoms,
+  Float forTemp = 1.0*K,
+  Float forTime = 200*ps,
+  Float checkTime = 0.01*ps,
+  std::string tmpDir = "_tmp-X"
+  );
+
+void
 heatUp(
   mdtk::SimLoop& sl,
+  Float forTemp = 300.0*K,
+  bool uniformHeatUp = true,
+  Float forTime = 200*ps,
+  Float checkTime = 2.0*ps,
+  std::string tmpDir = "_tmp-heatUp"
+  );
+
+void
+heatUp(
+  AtomsArray& atoms,
   Float forTemp = 300.0*K,
   bool uniformHeatUp = true,
   Float forTime = 200*ps,
@@ -100,8 +119,22 @@ relax(
   );
 
 void
+relax(
+  AtomsArray& atoms,
+  Float forTime = 0.2*ps,
+  std::string tmpDir = "_tmp-X"
+  );
+
+void
 relax_flush(
   mdtk::SimLoop& sl,
+  Float forTime = 0.2*ps,
+  std::string tmpDir = "_tmp-X"
+);
+
+void
+relax_flush(
+  AtomsArray& atoms,
   Float forTime = 0.2*ps,
   std::string tmpDir = "_tmp-X"
 );

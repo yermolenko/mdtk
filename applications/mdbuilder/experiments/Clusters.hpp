@@ -36,19 +36,18 @@ using namespace mdtk;
 void
 place_C60(AtomsArray& sl);
 
-SimLoop
-build_C60_optimized();
+AtomsArray
+C60();
 
-SimLoop
-build_cluster(ElementID id, int clusterSize);
+AtomsArray
+cluster(ElementID id, int clusterSize);
 
-SimLoop
-build_embed(AtomsArray sl_cluster,
-            AtomsArray sl_shell);
+AtomsArray
+embed(AtomsArray cluster, AtomsArray shell);
 
 void
 add_rotational_motion(
-  SimLoop& sl,
+  AtomsArray& atoms,
   Float totalRotEnergy = 100.0*eV,
   Vector3D rotAxis = Vector3D(0.0,1.0,0.0)
   );

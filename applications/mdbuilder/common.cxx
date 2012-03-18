@@ -59,6 +59,25 @@ quench(
 }
 
 void
+quench(
+  AtomsArray& atoms,
+  Float forTemp,
+  Float forTime,
+  Float checkTime,
+  std::string tmpDir
+  )
+{
+  mdtk::SimLoop sl;
+  initialize_simloop(sl);
+
+  sl.atoms = atoms;
+
+  quench(sl,forTemp,forTime,checkTime,tmpDir);
+
+  atoms = sl.atoms;
+}
+
+void
 heatUp(
   SimLoop& sl,
   Float forTemp,
@@ -99,6 +118,26 @@ heatUp(
 }
 
 void
+heatUp(
+  AtomsArray& atoms,
+  Float forTemp,
+  bool uniformHeatUp,
+  Float forTime,
+  Float checkTime,
+  std::string tmpDir
+  )
+{
+  mdtk::SimLoop sl;
+  initialize_simloop(sl);
+
+  sl.atoms = atoms;
+
+  heatUp(sl, forTemp, uniformHeatUp, forTime, checkTime, tmpDir);
+
+  atoms = sl.atoms;
+}
+
+void
 relax(
   SimLoop& sl,
   Float forTime,
@@ -114,6 +153,23 @@ relax(
   sl.simTimeSaveTrajInterval = 0.05*ps;
   sl.execute();
   yaatk::chdir("..");
+}
+
+void
+relax(
+  AtomsArray& atoms,
+  Float forTime,
+  std::string tmpDir
+  )
+{
+  mdtk::SimLoop sl;
+  initialize_simloop(sl);
+
+  sl.atoms = atoms;
+
+  relax(sl, forTime, tmpDir);
+
+  atoms = sl.atoms;
 }
 
 void
@@ -136,6 +192,23 @@ relax_flush(
   sl.writestate();
   sl.execute();
   yaatk::chdir("..");
+}
+
+void
+relax_flush(
+  AtomsArray& atoms,
+  Float forTime,
+  std::string tmpDir
+  )
+{
+  mdtk::SimLoop sl;
+  initialize_simloop(sl);
+
+  sl.atoms = atoms;
+
+  relax_flush(sl, forTime, tmpDir);
+
+  atoms = sl.atoms;
 }
 
 void
