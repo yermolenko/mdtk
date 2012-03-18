@@ -2,8 +2,8 @@
    The VisBox class for the molecular dynamics trajectory viewer
    (header file)
 
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
+   2012 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -82,11 +82,11 @@ public:
   GLfloat  light0_dir[4];
 
 public:
-  mdtk::AtomsContainer* getAtoms(){return &Ro;};
+  mdtk::AtomsArray* getAtoms(){return &Ro;};
   size_t getAtomsCount(){return ml_->atoms_.size();};
   void loadNewSnapshot(std::string base_state_filename,std::string);
 private:
-  mdtk::AtomsContainer R,Ro;
+  mdtk::AtomsArray R,Ro;
 public:
   mdtk::SimLoop* ml_;
 private:
@@ -137,9 +137,9 @@ public:
 
   void  rollAround(double,double,double,double);
 
-  double RX(int i) {return R[i]->coords.x;}
-  double RY(int i) {return R[i]->coords.y;}
-  double RZ(int i) {return R[i]->coords.z;}
+  double RX(int i) {return R[i].coords.x;}
+  double RY(int i) {return R[i].coords.y;}
+  double RZ(int i) {return R[i].coords.z;}
 	
 public:
   VisBox(int x,int y,int w,int h,std::string base_state_filename,

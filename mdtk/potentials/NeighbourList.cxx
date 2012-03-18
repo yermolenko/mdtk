@@ -1,8 +1,8 @@
 /*
    The NeighbourList class.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -29,7 +29,7 @@ namespace mdtk
 #define NLSKIN_FACTOR 0.44
 
 void
-NeighbourList::Update(AtomsContainer& atoms_)
+NeighbourList::Update(AtomsArray& atoms_)
 {
   REQUIRE(Rcutoff > 0.0);
   PVLOG("NL update\n");
@@ -41,10 +41,10 @@ NeighbourList::Update(AtomsContainer& atoms_)
   {
     displacements[i] = Vector3D(0,0,0);
 
-    AtomsContainer& nl_ = nl[i];
-    AtomsContainer& nl_with_self_ = nl_with_self[i];
+    AtomRefsContainer& nl_ = nl[i];
+    AtomRefsContainer& nl_with_self_ = nl_with_self[i];
     
-    Atom& atom_i = *(atoms_[i]);
+    Atom& atom_i = atoms_[i];
 
     size_t nl_size_prev = nl_.size();
     nl_.clear();
@@ -58,7 +58,7 @@ NeighbourList::Update(AtomsContainer& atoms_)
 
     for(j = 0; j < N; j++)
     {
-      Atom& atom_j = *(atoms_[j]);
+      Atom& atom_j = atoms_[j];
 
       if (!fpot->isHandled(atom_j)) continue;
 
@@ -80,7 +80,7 @@ NeighbourList::Update(AtomsContainer& atoms_)
 }
 
 bool
-NeighbourList::MovedTooMuch(AtomsContainer& atoms_)
+NeighbourList::MovedTooMuch(AtomsArray& atoms_)
 {
   REQUIRE(Rcutoff > 0.0);
 

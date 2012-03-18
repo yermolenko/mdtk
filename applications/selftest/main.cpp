@@ -1,7 +1,7 @@
 /*
    selftest - program for the Molecular Dynamics Toolkit (MDTK) selftesting.
 
-   Copyright (C) 2009, 2011 Oleksandr Yermolenko
+   Copyright (C) 2009, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -40,22 +40,22 @@ pairtest()
   pot = new mdtk::TightBinding();
   mdloop.fpot.addPotential(pot);
 
-  mdloop.atoms.push_back(new Atom(Cu_EL,Vector3D(0.0*Ao,0.0*Ao,0.0*Ao)));
-  mdloop.atoms.push_back(new Atom(Cu_EL,Vector3D(0.5*Ao,0.0*Ao,0.0*Ao)));
+  mdloop.atoms.push_back(Atom(Cu_EL,Vector3D(0.0*Ao,0.0*Ao,0.0*Ao)));
+  mdloop.atoms.push_back(Atom(Cu_EL,Vector3D(0.5*Ao,0.0*Ao,0.0*Ao)));
 
   mdloop.initialize();
 
   ofstream foe("e.dat");
   ofstream fof("f.dat");
-  while (mdloop.atoms.back()->coords.x < 6.0*Ao)
+  while (mdloop.atoms.back().coords.x < 6.0*Ao)
   {
-    foe << mdloop.atoms.back()->coords.x/Ao 
+    foe << mdloop.atoms.back().coords.x/Ao 
         << " " << (*pot)(mdloop.atoms)/eV
         << "\n";
-    fof << mdloop.atoms.back()->coords.x/Ao 
-        << " " << (*pot).grad(*mdloop.atoms.back(),mdloop.atoms).module() 
+    fof << mdloop.atoms.back().coords.x/Ao 
+        << " " << (*pot).grad(mdloop.atoms.back(),mdloop.atoms).module() 
         << "\n";
-    mdloop.atoms.back()->coords.x += 0.001*Ao;
+    mdloop.atoms.back().coords.x += 0.001*Ao;
   }
   foe.close();
   fof.close();

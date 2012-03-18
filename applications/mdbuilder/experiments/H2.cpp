@@ -28,14 +28,14 @@ namespace mdbuilder
 using namespace mdtk;
 
 void
-place_H2_simple(mdtk::SimLoop& sl)
+place_H2_simple(mdtk::AtomsArray& sl)
 {
   place(H_EL,sl,Vector3D(0,0,0));
   place(H_EL,sl,Vector3D(1.0*mdtk::Ao,0,0));
 }
 
 void
-place_H2(mdtk::SimLoop& sl)
+place_H2(mdtk::AtomsArray& sl)
 {
   glPushMatrix();
   place(H_EL,sl);

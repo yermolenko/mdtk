@@ -28,9 +28,9 @@
 namespace mdtk
 {
 
-class AtomsContainer:public std::vector<Atom*>
+class AtomsArray:public std::vector<Atom>
 {
-  std::vector<Atom*> createdAtoms;
+  Vector3D arrayPBC;
 public:
   void applyPBC();
   void unfoldPBC();
@@ -45,31 +45,67 @@ public:
   void prepareForSimulatation();
   void setAttributesByElementID();
 
-  AtomsContainer();
-  AtomsContainer(const AtomsContainer &c);
-  AtomsContainer& operator =(const AtomsContainer &c);
-  void addAtoms(const AtomsContainer &ac);
-  virtual ~AtomsContainer();
+  AtomsArray(size_t size = 0);
+  AtomsArray(const AtomsArray &c);
+  AtomsArray& operator =(const AtomsArray &c);
+  void addAtoms(const AtomsArray &ac);
+  virtual ~AtomsArray();
+//  AtomRefsContainer refs() {return AtomRefsContainer(*this);};
 
   void saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode);
   void loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode);
 
-  void normalize();
+  Float mass() const;
+  Vector3D velocity() const;
+  Vector3D massCenter() const;
+  Vector3D geomCenter() const;
+  Float radius() const;
+  Float maxDistanceFrom(Vector3D point) const;
 
-  Atom* createAtom()
-    {
-      Atom *pa = new Atom;
-      REQUIRE(pa != NULL);
-      createdAtoms.push_back(pa);
-      return pa;
-    };
-  Atom* createAtom(const Atom& a)
-    {
-      Atom *pa = new Atom(a);
-      REQUIRE(pa != NULL);
-      createdAtoms.push_back(pa);
-      return pa;
-    };
+  void removeMomentum();
+  void addTranslationalEnergy(Float energy, Vector3D direction);
+  void shiftToOrigin();
+  void shiftToPosition(Vector3D v);
+
+  struct Dimensions
+  {
+    Float x_max;
+    Float x_min;
+    Float x_len;
+
+    Float y_max;
+    Float y_min;
+    Float y_len;
+
+    Float z_max;
+    Float z_min;
+    Float z_len;
+  };
+
+  Dimensions dimensions() const;
+
+  std::vector<size_t> fixNotFixedAtoms(const size_t begin, const size_t end);
+  std::vector<size_t> unfixFixedAtoms(const size_t begin, const size_t end);
+  std::vector<size_t> fixUnfixedCHAtoms(const size_t begin, const size_t end);
+  void unfixAtoms(const std::vector<size_t> fixedAtoms);
+  void fixAtoms(const std::vector<size_t> atomsToFix);
+};
+
+class AtomRefsContainer:public std::vector<Atom*>
+{
+public:
+  AtomRefsContainer();
+  AtomRefsContainer(const AtomRefsContainer &c);
+  AtomRefsContainer(AtomsArray &c);
+  AtomsArray genAtomsArray();
+  AtomRefsContainer& operator =(const AtomRefsContainer &c);
+  void addAtoms(const AtomRefsContainer &ac);
+  virtual ~AtomRefsContainer();
+
+  void saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode);
+  void loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode);
+
+  void normalize() const;
 };
 
 }  // namespace mdtk

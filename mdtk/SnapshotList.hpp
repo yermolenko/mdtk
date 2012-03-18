@@ -88,7 +88,7 @@ struct SnapshotList
     {
       atomsSelectedForSaving.clear();
       for(size_t ai = 0; ai < sl.atoms.size(); ++ai)
-        if (sl.atoms[ai]->coords.z < 3.0*Ao)
+        if (sl.atoms[ai].coords.z < 3.0*Ao)
 /*
         if (sl.atoms[ai]->ID == Cu_EL ||
             sl.atoms[ai]->ID == Au_EL ||
@@ -116,7 +116,7 @@ struct SnapshotList
       for(size_t i = 0; i < atomsSelectedForSaving.size(); ++i)
       {
         REQUIRE(atomsSelectedForSaving[i] < sl.atoms.size());
-        alist.push_back(AtomSnapshot(*sl.atoms[atomsSelectedForSaving[i]]));
+        alist.push_back(AtomSnapshot(sl.atoms[atomsSelectedForSaving[i]]));
       }
       bool alreadyAccounted = false;
       for(size_t i = 0; i < snapshots.size(); ++i)

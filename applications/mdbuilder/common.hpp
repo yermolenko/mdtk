@@ -52,25 +52,24 @@ mdtk::Vector3D getPosition()
 }
 
 inline
-Atom*
-place(ElementID id, mdtk::SimLoop& sl, Vector3D pos = getPosition())
+Atom
+place(ElementID id, mdtk::AtomsArray& atoms, Vector3D pos = getPosition())
 {
-  Atom* a = new Atom;
-  a->ID = id;
-  a->setAttributesByElementID();
-  a->coords = pos;
-  sl.atoms.push_back(a);
+  Atom a;
+  a.ID = id;
+  a.setAttributesByElementID();
+  a.coords = pos;
+  atoms.push_back(a);
   return a;
 }
 
 inline
-Atom*
-place_and_inherit(mdtk::SimLoop& sl, const Atom& base,
-             Vector3D pos = getPosition())
+Atom
+place_and_inherit(mdtk::AtomsArray& atoms, const Atom& base, Vector3D pos = getPosition())
 {
-  Atom* a = new Atom(base);
-  a->coords = pos;
-  sl.atoms.push_back(a);
+  Atom a(base);
+  a.coords = pos;
+  atoms.push_back(a);
   return a;
 }
 
@@ -127,60 +126,9 @@ public:
     {
       if (dumpEnabled)
         for(size_t i = 0; i < atoms.size(); ++i)
-          atoms[i]->V *= dumpConstant;
+          atoms[i].V *= dumpConstant;
     };
 };
-
-Float
-mass(const AtomsContainer& atoms);
-
-Vector3D
-velocity(const AtomsContainer& atoms);
-
-Vector3D
-massCenter(const AtomsContainer& atoms);
-
-void
-removeMomentum(AtomsContainer& atoms);
-
-void
-addTranslationalEnergy(
-  AtomsContainer& atoms,
-  Float energy, Vector3D direction
-  );
-
-Vector3D
-geomCenter(AtomsContainer& atoms);
-
-Float
-maxDistanceFrom(AtomsContainer& atoms, Vector3D point);
-
-Float
-radius(AtomsContainer& atoms);
-
-void
-shiftToOrigin(AtomsContainer& atoms);
-
-void
-shiftToPosition(AtomsContainer& atoms, Vector3D v);
-
-struct Dimensions
-{
-  Float x_max;
-  Float x_min;
-  Float x_len;
-
-  Float y_max;
-  Float y_min;
-  Float y_len;
-
-  Float z_max;
-  Float z_min;
-  Float z_len;
-};
-
-Dimensions
-dimensions(AtomsContainer& atoms);
 
 void
 initialize_simloop(mdtk::SimLoop& sl);
@@ -188,40 +136,10 @@ initialize_simloop(mdtk::SimLoop& sl);
 void
 initialize_simloop_REBO_only(SimLoop& sl);
 
-std::vector<size_t>
-fixNotFixedAtoms(
-  mdtk::AtomsContainer& atoms,
-  const size_t begin, const size_t end
-  );
-
-std::vector<size_t>
-unfixFixedAtoms(
-  mdtk::AtomsContainer& atoms,
-  const size_t begin, const size_t end
-  );
-
-std::vector<size_t>
-fixUnfixedCHAtoms(
-  mdtk::AtomsContainer& atoms,
-  const size_t begin, const size_t end
-  );
-
-void
-unfixAtoms(
-  mdtk::AtomsContainer& atoms,
-  const std::vector<size_t> fixedAtoms
-  );
-
-void
-fixAtoms(
-  mdtk::AtomsContainer& atoms,
-  const std::vector<size_t> atomsToFix
-  );
-
 void
 place_Cluster(
-  mdtk::SimLoop& sl,
-  const mdtk::SimLoop sl_element
+  mdtk::AtomsArray& sl,
+  const mdtk::AtomsArray sl_element
   );
 
 }

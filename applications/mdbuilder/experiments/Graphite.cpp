@@ -29,7 +29,7 @@ using namespace mdtk;
 
 void
 place_Graphite_cell(
-  SimLoop& sl,
+  AtomsArray& sl,
   double a,
   double b,
   double c,
@@ -67,7 +67,7 @@ place_Graphite_cell(
 
 void
 place_Graphite_lattice(
-  SimLoop& sl,
+  AtomsArray& sl,
   int a_num,
   int b_num,
   int c_num,
@@ -106,7 +106,7 @@ place_Graphite_lattice(
           {
             for(size_t i = 1; i <= 4; i++)
             {
-              Atom& a = *(sl.atoms[sl.atoms.size()-i]);
+              Atom& a = sl[sl.size()-i];
               a.fix();
             }
           }
@@ -133,7 +133,7 @@ build_Graphite_lattice(
   mdtk::SimLoop sl;
   initialize_simloop(sl);
 
-  place_Graphite_lattice(sl,a_num,b_num,c_num,fixBottomCellLayer,a,b,c);
+  place_Graphite_lattice(sl.atoms,a_num,b_num,c_num,fixBottomCellLayer,a,b,c);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num*sin(gamma), NO_PBC.z));
   sl.thermalBath.zMin = c*c_num-c*3-c/4.0;
@@ -142,7 +142,7 @@ build_Graphite_lattice(
   relax(sl,0.01*ps);
   quench(sl,1.0*K);
 
-  removeMomentum(sl.atoms);
+  sl.atoms.removeMomentum();
 
   return sl;
 }

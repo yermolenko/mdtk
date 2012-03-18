@@ -34,7 +34,7 @@ namespace mdbuilder
 using namespace mdtk;
 
 void
-place_C60(SimLoop& sl);
+place_C60(AtomsArray& sl);
 
 SimLoop
 build_C60_optimized();
@@ -43,8 +43,8 @@ SimLoop
 build_cluster(ElementID id, int clusterSize);
 
 SimLoop
-build_embed(const SimLoop& sl_cluster,
-            const SimLoop& sl_shell);
+build_embed(AtomsArray sl_cluster,
+            AtomsArray sl_shell);
 
 void
 add_rotational_motion(
@@ -56,7 +56,7 @@ add_rotational_motion(
 SimLoop
 build_target_by_cluster_bombardment(
   const SimLoop& sl_target,
-  const SimLoop sl_cluster,
+  AtomsArray sl_cluster,
   Float clusterEnergy = 100*eV
   );
 

@@ -32,7 +32,7 @@ using namespace mdtk;
 
 void
 place_FCC_cell(
-  SimLoop& sl,
+  AtomsArray& sl,
   ElementID el = Cu_EL,
   double a = 3.615*Ao,
   double b = 3.615*Ao,
@@ -41,7 +41,7 @@ place_FCC_cell(
 
 void
 place_FCC_lattice(
-  SimLoop& sl,
+  AtomsArray& sl,
   int a_num = 14,
   int b_num = 14,
   int c_num = 7,
@@ -66,8 +66,8 @@ build_FCC_lattice(
 
 void
 place_Generic_FCC_cell(
-  SimLoop& sl,
-  const SimLoop sl_element,
+  AtomsArray& sl,
+  const AtomsArray sl_element,
   Vector3D va,
   Vector3D vb,
   Vector3D vc
@@ -75,8 +75,8 @@ place_Generic_FCC_cell(
 
 void
 place_Generic_NegFCC_cell(
-  SimLoop& sl,
-  const SimLoop sl_element,
+  AtomsArray& sl,
+  const AtomsArray sl_element,
   Vector3D va,
   Vector3D vb,
   Vector3D vc
@@ -84,8 +84,8 @@ place_Generic_NegFCC_cell(
 
 void
 place_Generic_FCC_lattice(
-  SimLoop& sl,
-  const SimLoop sl_element,
+  AtomsArray& sl,
+  const AtomsArray sl_element,
   int a_num = 8,
   int b_num = 12,
   int c_num = 10,

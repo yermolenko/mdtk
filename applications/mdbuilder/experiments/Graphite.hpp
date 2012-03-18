@@ -41,7 +41,7 @@ place_Graphite_cell(
 
 void
 place_Graphite_lattice(
-  SimLoop& sl,
+  AtomsArray& sl,
   int a_num = 12,
   int b_num = 14,
   int c_num = 3,

@@ -38,8 +38,8 @@ public:
   Float F11(Atom& a1, Atom& a2);
   Vector3D dF11(Atom& a1, Atom& a2, Atom& da);
 public:
-  virtual Float operator()(AtomsContainer&);
-  virtual Vector3D grad(Atom &,AtomsContainer&);
+  virtual Float operator()(AtomsArray&);
+  virtual Vector3D grad(Atom &,AtomsArray&);
   FBM(Rcutoff = Rcutoff());
 
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)

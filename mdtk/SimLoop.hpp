@@ -49,20 +49,14 @@ public:
   virtual void doBeforeIteration() {};
   virtual void doAfterIteration() {};
   bool allowToFreePotentials;
-  bool allowToFreeAtoms;
   void freePotentials()
   {
     if (!allowToFreePotentials) return;
     fpot.freePotentials();
   }
-  void freeAtoms()
-  {
-    if (!allowToFreeAtoms) return;
-    for ( size_t it = 0; it < atoms_.size(); it++ )
-      delete (atoms_[it]);
-  }
-  AtomsContainer atoms_;
-  AtomsContainer& atoms; // added for compatibility
+  AtomsArray atoms_;
+  AtomsArray& atoms; // added for compatibility
+//  AtomRefsContainer atomRefs() {return AtomRefsContainer(atoms);};
   void initialize();
 public:
   struct Check

@@ -1,8 +1,8 @@
 /*
    The generalized interatomic potential class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -62,21 +62,21 @@ public:
 protected:
   NeighbourList nl;
 public:
-  AtomsContainer& NL(Atom& atom)
+  AtomRefsContainer& NL(Atom& atom)
   {
     return nl.nl[atom.globalIndex];
   }  
-  AtomsContainer& NL_with_self(Atom& atom)
+  AtomRefsContainer& NL_with_self(Atom& atom)
   {
     return nl.nl_with_self[atom.globalIndex];
   }  
 
   virtual
-  void NL_checkRequestUpdate(AtomsContainer& atoms) {nl.checkRequestUpdate(atoms);}
+  void NL_checkRequestUpdate(AtomsArray& atoms) {nl.checkRequestUpdate(atoms);}
   virtual
-  void NL_UpdateIfNeeded(AtomsContainer& atoms) {nl.UpdateIfNeeded(atoms);}
+  void NL_UpdateIfNeeded(AtomsArray& atoms) {nl.UpdateIfNeeded(atoms);}
   virtual
-  void NL_init(AtomsContainer& atoms) {nl.init(atoms);}
+  void NL_init(AtomsArray& atoms) {nl.init(atoms);}
 
   virtual
   void incDisplacement(Atom& atom, Vector3D inc)
@@ -87,8 +87,8 @@ public:
   FGeneral();
   virtual ~FGeneral(){;}
 
-  virtual Float operator()(AtomsContainer&) = 0;
-  virtual Vector3D grad(Atom &a1,AtomsContainer&) = 0;
+  virtual Float operator()(AtomsArray&) = 0;
+  virtual Vector3D grad(Atom &a1,AtomsArray&) = 0;
 private:
 public:
   bool ontouch_enabled;

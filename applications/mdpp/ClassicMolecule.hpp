@@ -28,7 +28,7 @@ setTags(mdtk::SimLoop* ml)
 {
   for(size_t i = 0; i < ml->atoms_.size(); i++)
   {
-    mdtk::Atom& atom = *(ml->atoms_[i]);
+    mdtk::Atom& atom = ml->atoms_[i];
     atom.tag = 0;
 //    if (atom.M > 1000.0*mdtk::amu) atom.tag |= ATOMTAG_FIXED;
     if (atom.ID == mdtk::C_EL || atom.ID == mdtk::H_EL)

@@ -1,8 +1,8 @@
 /*
    The Ziegler-Biersack-Littmark interatomic potential implementation.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -109,13 +109,13 @@ FBZL::dF11(Atom& a1, Atom& a2, Atom& da)
 }
 
 Float
-FBZL::operator()(AtomsContainer& gl)
+FBZL::operator()(AtomsArray& gl)
 {
   Float Ei = 0;
 for(size_t i = 0; i < gl.size(); i++)
 {
-  Atom& atom = *(gl[i]);
-  AtomsContainer& nl = NL(atom);
+  Atom& atom = gl[i];
+  AtomRefsContainer& nl = NL(atom);
   Index j;
   for(j = 0; j < nl.size(); j++)
   {
@@ -132,7 +132,7 @@ for(size_t i = 0; i < gl.size(); i++)
 }
 
 Vector3D
-FBZL::grad(Atom &atom,AtomsContainer&)
+FBZL::grad(Atom &atom,AtomsArray&)
 {
   Index j;
   Vector3D dEi(0.0,0.0,0.0);

@@ -4,7 +4,7 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -43,14 +43,14 @@ namespace mdtk
 class ETors : public EREBO
 {
 public:
-  virtual Float operator()(AtomsContainer& nl);
-  virtual Vector3D grad(Atom &atom,AtomsContainer&);
+  virtual Float operator()(AtomsArray& nl);
+  virtual Vector3D grad(Atom &atom,AtomsArray&);
 
   Float Vtors(Atom &ai,Atom &aj,Atom &ak,Atom &al);
   Vector3D dVtors(Atom &ai,Atom &aj,Atom &ak,Atom &al, Atom &da);
 
-  Float ETor(AtomsContainer&);
-  Vector3D dETor(Atom &,AtomsContainer&);
+  Float ETor(AtomsArray&);
+  Vector3D dETor(Atom &,AtomsArray&);
 
   ETors();
 //  bool probablyAreNeighbours(Atom& atom1, Atom& atom2) const; not needed because of the same R[][][] values
@@ -76,7 +76,7 @@ public:
   {
     EREBO::LoadFromStream(is,smode);
   }  
-  Float  buildPairs(AtomsContainer& gl);
+  Float  buildPairs(AtomsArray& gl);
 };
 
 }

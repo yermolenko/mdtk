@@ -102,7 +102,7 @@ StatPostProcess::buildSputteredClassicMolecules(mdtk::SimLoop& state,size_t traj
     cout << "Building molecules for state ..." << std::endl;
     for(size_t atomIndex = 0; atomIndex < state.atoms_.size(); atomIndex++)
     {
-      mdtk::Atom &atom = *(state.atoms_[atomIndex]);
+      mdtk::Atom &atom = state.atoms_[atomIndex];
       if (atom.coords.z < SPOTTED_DISTANCE)
       {
 	bool account_atom = true;
@@ -135,7 +135,7 @@ StatPostProcess::buildSputteredClassicMolecules(mdtk::SimLoop& state,size_t traj
       for(size_t ai = 0; ai < td.molecules[mi].atoms.size(); ai++)
       {
         const mdtk::Atom& atom = td.molecules[mi].atoms[ai];
-        const mdtk::Atom& atom_init = *(mde_init->atoms_[atom.globalIndex]);
+        const mdtk::Atom& atom_init = mde_init->atoms_[atom.globalIndex];
         td.molecules[mi].atoms_init.push_back(atom_init); 
         REQUIRE(td.molecules[mi].atoms[ai].globalIndex == 
 		td.molecules[mi].atoms_init[ai].globalIndex);
@@ -155,12 +155,12 @@ StatPostProcess::buildSputteredClassicMolecules(mdtk::SimLoop& state,size_t traj
       for(size_t ai = 0; ai < molecule.atoms.size(); ai++)
       {
 	mdtk::Atom& atom_i = molecule.atoms[ai];
-	mdtk::Atom& atom_i_inter = *(mde_inter->atoms_[atom_i.globalIndex]);
+	mdtk::Atom& atom_i_inter = mde_inter->atoms_[atom_i.globalIndex];
 	for(size_t aj = 0; aj < molecule.atoms.size(); aj++)
 	  if (ai != aj)
 	  {
 	    mdtk::Atom& atom_j = molecule.atoms[aj];
-	    mdtk::Atom& atom_j_inter = *(mde_inter->atoms_[atom_j.globalIndex]);
+	    mdtk::Atom& atom_j_inter = mde_inter->atoms_[atom_j.globalIndex];
 	    Float distance_ij = 
 	      depos(atom_i,atom_j).module();
 	    Float distance_ij_inter = 
@@ -189,7 +189,7 @@ StatPostProcess::buildSputteredClassicMolecules(mdtk::SimLoop& state,size_t traj
 	const mdtk::Atom& atom_i = molecule.atoms[ai];
 	ClassicMolecule molecule_inter;
 	molecule_inter.
-	  buildFromAtom(*(mde_inter->atoms_[atom_i.globalIndex]),
+	  buildFromAtom(mde_inter->atoms_[atom_i.globalIndex],
 			nl,SPOTTED_DISTANCE);
 
 	if (molecule_inter.atoms.size() == 0)
@@ -235,7 +235,7 @@ StatPostProcess::buildClusterDynamics(mdtk::SimLoop& state,size_t trajIndex,
     TRACE(trajData[trajIndex].clusterDynamics.PBC);
     for(size_t atomIndex = 0; atomIndex < state.atoms_.size(); atomIndex++)
     {
-      mdtk::Atom &atom = *(state.atoms_[atomIndex]);
+      mdtk::Atom &atom = state.atoms_[atomIndex];
       if (!(atom.tag & ATOMTAG_CLUSTER)) continue;
       trajData[trajIndex].clusterDynamics.atomTrajectories.
 	push_back(AtomTrajectory(atom));
@@ -251,7 +251,7 @@ StatPostProcess::buildClusterDynamics(mdtk::SimLoop& state,size_t trajIndex,
       const mdtk::Atom &atom = 
 	td.clusterDynamics.atomTrajectories[clusterAtomIndex].endCheckPoint;
       const mdtk::Atom &atom_init = 
-	*(mde_init->atoms_[atom.globalIndex]);
+	mde_init->atoms_[atom.globalIndex];
       td.clusterDynamics.atomTrajectories[clusterAtomIndex].
 	beginCheckPoint = atom_init;
     }
@@ -265,7 +265,7 @@ StatPostProcess::buildClusterDynamics(mdtk::SimLoop& state,size_t trajIndex,
     {
       const mdtk::Atom &atom = 
 	td.clusterDynamics.atomTrajectories[clusterAtomIndex].endCheckPoint;
-      const mdtk::Atom &atom_inter = *(mde_inter->atoms_[atom.globalIndex]);
+      const mdtk::Atom &atom_inter = mde_inter->atoms_[atom.globalIndex];
       td.clusterDynamics.
 	atomTrajectories[clusterAtomIndex].checkPoints.push_back(atom_inter);
     }
@@ -284,7 +284,7 @@ StatPostProcess::buildProjectileDynamics(mdtk::SimLoop& state,size_t trajIndex,
     trajData[trajIndex].projectileDynamics.PBC = td.PBC;//state.getPBC();
     for(size_t atomIndex = 0; atomIndex < state.atoms_.size(); atomIndex++)
     {
-      mdtk::Atom &atom = *(state.atoms_[atomIndex]);
+      mdtk::Atom &atom = state.atoms_[atomIndex];
       if (atom.ID != mdtk::Ar_EL) continue;
       trajData[trajIndex].projectileDynamics.atomTrajectories.
 	push_back(AtomTrajectory(atom));
@@ -302,7 +302,7 @@ StatPostProcess::buildProjectileDynamics(mdtk::SimLoop& state,size_t trajIndex,
 	td.projectileDynamics.atomTrajectories[projectileAtomIndex].
 	endCheckPoint;
       const mdtk::Atom &atom_init = 
-	*(mde_init->atoms_[atom.globalIndex]);
+	mde_init->atoms_[atom.globalIndex];
       td.projectileDynamics.atomTrajectories[projectileAtomIndex].
 	beginCheckPoint = atom_init;
     }
@@ -319,7 +319,7 @@ StatPostProcess::buildProjectileDynamics(mdtk::SimLoop& state,size_t trajIndex,
 	td.projectileDynamics.atomTrajectories[projectileAtomIndex].
 	endCheckPoint;
       const mdtk::Atom &atom_inter = 
-	*(mde_inter->atoms_[atom.globalIndex]);
+	mde_inter->atoms_[atom.globalIndex];
       td.projectileDynamics.atomTrajectories[projectileAtomIndex].
 	checkPoints.push_back(atom_inter);
     }
@@ -374,7 +374,7 @@ StatPostProcess::removeBadTrajectories()
 
     mdtk::SimLoop* state = new mdtk::SimLoop();
     state->allowToFreePotentials = true;
-    state->allowToFreeAtoms = true;
+//    state->allowToFreeAtoms = true;
     setupPotentials(*state);
 
     std::string trajFinalName = trajData[trajIndex].trajDir+"mde_final";
@@ -429,7 +429,7 @@ StatPostProcess::execute()
 
     mdtk::SimLoop* state = new mdtk::SimLoop();
     state->allowToFreePotentials = true;
-    state->allowToFreeAtoms = true;
+//    state->allowToFreeAtoms = true;
     setupPotentials(*state);
 
     std::string trajFinalName = trajData[trajIndex].trajDir+"mde_final";
@@ -467,7 +467,7 @@ StatPostProcess::execute()
     {
       mdtk::SimLoop* mde_init = new mdtk::SimLoop();    
       mde_init->allowToFreePotentials = true;
-      mde_init->allowToFreeAtoms = true;
+//      mde_init->allowToFreeAtoms = true;
       setupPotentials(*mde_init);
       std::string mde_init_filename = td.trajDir+"mde_init";
       cout << "Loading state " << mde_init_filename << std::endl;
@@ -505,7 +505,7 @@ StatPostProcess::execute()
 
       mdtk::SimLoop* mde_inter = new mdtk::SimLoop();    
       mde_inter->allowToFreePotentials = true;
-      mde_inter->allowToFreeAtoms = true;
+//      mde_inter->allowToFreeAtoms = true;
       setupPotentials(*mde_inter);
 
       std::string trajFinalName = td.trajDir+"mde_init";
@@ -1310,7 +1310,7 @@ StatPostProcess::getAboveSpottedHeight(mdtk::SimLoop& state) const
     spotted = 0;
     for(size_t atomIndex = 0; atomIndex < state.atoms_.size(); atomIndex++)
     {
-      mdtk::Atom &atom = *(state.atoms_[atomIndex]);
+      mdtk::Atom &atom = state.atoms_[atomIndex];
       if (atom.coords.z < SPOTTED_DISTANCE)
       {
         spotted++;
@@ -3001,7 +3001,7 @@ StatPostProcess::setSpottedDistanceFromInit()// const
 
   mdtk::SimLoop* mde_init = new mdtk::SimLoop();    
   mde_init->allowToFreePotentials = true;
-  mde_init->allowToFreeAtoms = true;
+//  mde_init->allowToFreeAtoms = true;
   setupPotentials(*mde_init);
   yaatk::text_ifstream fi(mde_init_filename.c_str()); 
 mde_init->initNLafterLoading = false;
@@ -3009,11 +3009,11 @@ mde_init->initNLafterLoading = false;
   setTags(mde_init);
 mde_init->initNLafterLoading = true;
   fi.close(); 
-  mdtk::AtomsContainer& mde_init_atoms = mde_init->atoms_;
+  mdtk::AtomsArray& mde_init_atoms = mde_init->atoms_;
   Float minInitZ = 1000000.0*mdtk::Ao;
   for(size_t ai = 0; ai < mde_init_atoms.size(); ai++)
   {
-    const mdtk::Atom& init_atom = *(mde_init_atoms[ai]);
+    const mdtk::Atom& init_atom = mde_init_atoms[ai];
     if (init_atom.coords.z < minInitZ && !isProjectileAtom(init_atom))
       minInitZ = init_atom.coords.z;
   }  

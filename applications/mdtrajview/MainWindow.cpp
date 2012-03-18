@@ -100,7 +100,7 @@ MainWindow::setAtomViewIndex(int index)
   std::ostringstream os;
   os << "Atom " << index << ":" << std::endl; 
   
-  mdtk::Atom &atom = *(renderBox->getAtoms()->operator[](index));
+  mdtk::Atom &atom = renderBox->getAtoms()->operator[](index);
   
   os TRACESS(int(atom.ID));
   os TRACESS(atom.Z/mdtk::e);

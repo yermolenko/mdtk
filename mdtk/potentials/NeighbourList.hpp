@@ -44,8 +44,8 @@ class NeighbourList
   bool ListUpdateRequested;
 public:
   Float Rcutoff;
-  std::vector<AtomsContainer> nl;
-  std::vector<AtomsContainer> nl_with_self;
+  std::vector<AtomRefsContainer> nl;
+  std::vector<AtomRefsContainer> nl_with_self;
   std::vector<Vector3D> displacements;
   NeighbourList(const FGeneral* pot)
    : fpot(pot), ListUpdateRequested(true),
@@ -54,7 +54,7 @@ public:
   {
   }  
 
-  void init(AtomsContainer& atoms)
+  void init(AtomsArray& atoms)
   {
     nl.clear();
     nl_with_self.clear();
@@ -67,13 +67,13 @@ public:
   }  
 
   void requestUpdate() {ListUpdateRequested = true;};
-  void checkRequestUpdate(AtomsContainer& atoms)
+  void checkRequestUpdate(AtomsArray& atoms)
   {
     ListUpdateRequested = MovedTooMuch(atoms);
   };
-  bool MovedTooMuch(AtomsContainer&);
-  void Update(AtomsContainer&);
-  void UpdateIfNeeded(AtomsContainer& atoms)
+  bool MovedTooMuch(AtomsArray&);
+  void Update(AtomsArray&);
+  void UpdateIfNeeded(AtomsArray& atoms)
   {
     if (ListUpdateRequested)
     {

@@ -2,7 +2,7 @@
    Implementation of the many-body interatomic potential for copper.
    See [G. Betz, W. Husinsky, Nucl. Instr. and Meth. B 102, 281 (1995)]
 
-   Copyright (C) 2006, 2007, 2008, 2009 Oleksandr Yermolenko
+   Copyright (C) 2006, 2007, 2008, 2009, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -27,7 +27,7 @@
 namespace mdtk
 {
 
-  Float  TightBinding::buildPairs(AtomsContainer& gl)
+  Float  TightBinding::buildPairs(AtomsArray& gl)
   {
     Float Ei = 0;
     if (gl.size() != pairs.size()) pairs.resize(gl.size());    
@@ -40,7 +40,7 @@ namespace mdtk
     }  
     for(ii = 0; ii < gl.size(); ii++)
     {
-      Atom &atom_i = *(gl[ii]);
+      Atom &atom_i = gl[ii];
       if (isHandled(atom_i))
       {
       std::pair<int,int> sample_pair(atom_i.globalIndex,DUMMY_EL);
@@ -81,7 +81,7 @@ return Ei;
   }  
 
 Vector3D
-TightBinding::grad(Atom &atom,AtomsContainer&gl)
+TightBinding::grad(Atom &atom,AtomsArray&gl)
 {
   Index i;
   
@@ -94,7 +94,7 @@ TightBinding::grad(Atom &atom,AtomsContainer&gl)
 
     for(i = 0; i < acnt.size(); i++)
     {
-      Atom &atom_i = *(gl[acnt[i].first]);
+      Atom &atom_i = gl[acnt[i].first];
       
       if (acnt[i].second == DUMMY_EL)
       {
@@ -108,7 +108,7 @@ TRACE(dF(atom_i,atom));
       }  
       
       {
-        Atom &atom_j = *(gl[acnt[i].second]);
+        Atom &atom_j = gl[acnt[i].second];
 
         REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
         {
@@ -300,7 +300,7 @@ TightBinding::drho(Atom &atom_i, Atom &datom)
 }
 
 Float
-TightBinding::operator()(AtomsContainer& gl)
+TightBinding::operator()(AtomsArray& gl)
 {
   return buildPairs(gl);
 }  

@@ -1,7 +1,7 @@
 /*
    The MDPP NeighbourList class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -36,14 +36,14 @@ class NeighbourList
 {
 public:
   mdtk::Float Rc;
-  std::vector<mdtk::AtomsContainer> nl;
-  NeighbourList(mdtk::AtomsContainer& atoms, const mdtk::Float Rc_ = 5.0*mdtk::Ao)
+  std::vector<mdtk::AtomRefsContainer> nl;
+  NeighbourList(mdtk::AtomsArray& atoms, const mdtk::Float Rc_ = 5.0*mdtk::Ao)
     : Rc(Rc_), nl(atoms.size())
   {
     update(atoms);
   }  
 
-  void update(mdtk::AtomsContainer&);
+  void update(mdtk::AtomsArray&);
 };
 
 }

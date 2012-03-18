@@ -26,47 +26,47 @@ namespace mdtk
 {
 
 void
-AtomsContainer::applyPBC()
+AtomsArray::applyPBC()
 {
   for(size_t i = 0; i < size(); i++)
-    at(i)->applyPBC();
+    at(i).applyPBC();
 }
 
 void
-AtomsContainer::unfoldPBC()
+AtomsArray::unfoldPBC()
 {
   for (size_t i = 0; i < size(); i++)
-    at(i)->unfoldPBC();
+    at(i).unfoldPBC();
 }
 
 void
-AtomsContainer::PBC(Vector3D newPBC)
+AtomsArray::PBC(Vector3D newPBC)
 {
+  arrayPBC = newPBC;
   for (size_t i = 0; i < size(); i++)
   {
-    Atom& a = *(at(i));
+    Atom& a = at(i);
 
     a.unfoldPBC();
-    a.PBC = newPBC;
+    a.PBC = arrayPBC;
     a.applyPBC();
   }
 }
 
 Vector3D
-AtomsContainer::PBC() const
+AtomsArray::PBC() const
 {
-  REQUIRE(size() > 0);
-  return front()->PBC;
+  return arrayPBC;
 }
 
 bool
-AtomsContainer::PBCEnabled() const
+AtomsArray::PBCEnabled() const
 {
   return PBC() != NO_PBC;
 }
 
 bool
-AtomsContainer::checkMIC(Float Rc) const
+AtomsArray::checkMIC(Float Rc) const
 {
   if (PBC().x <= Rc)
     return false;
@@ -78,12 +78,12 @@ AtomsContainer::checkMIC(Float Rc) const
 }
 
 bool
-AtomsContainer::fitInPBC() const
+AtomsArray::fitInPBC() const
 {
   for(size_t i = 0; i < size(); i++)
   {
-    Vector3D PBC(at(i)->PBC);
-    Vector3D aci = at(i)->coords;
+    Vector3D PBC(at(i).PBC);
+    Vector3D aci = at(i).coords;
     if (PBC.x != NO_PBC.x)
       if (aci.x < 0 || aci.x>=PBC.x)
       {
@@ -104,13 +104,14 @@ AtomsContainer::fitInPBC() const
 }
 
 void
-AtomsContainer::prepareForSimulatation()
+AtomsArray::prepareForSimulatation()
 {
   REQUIRE(size() > 0);
   for(size_t i = 0; i < size(); i++)
   {
-    at(i)->applyPBC();
-    at(i)->globalIndex = i;
+    at(i).PBC = arrayPBC;
+    at(i).applyPBC();
+    at(i).globalIndex = i;
   }
 
   if (!fitInPBC())
@@ -121,75 +122,333 @@ AtomsContainer::prepareForSimulatation()
 }
 
 void
-AtomsContainer::setAttributesByElementID()
+AtomsArray::setAttributesByElementID()
 {
   for(size_t i = 0; i < size(); i++)
-    at(i)->setAttributesByElementID();
+    at(i).setAttributesByElementID();
 }
 
-AtomsContainer::AtomsContainer()
-  :std::vector<Atom*>(),
-   createdAtoms()
+AtomsArray::AtomsArray(size_t size)
+  :std::vector<Atom>(size),
+   arrayPBC(NO_PBC)
 {
 }
 
-AtomsContainer::AtomsContainer(const AtomsContainer &c)
-  :std::vector<Atom*>(),
-   createdAtoms()
+AtomsArray::AtomsArray(const AtomsArray &c)
+  :std::vector<Atom>(c),
+   arrayPBC(c.arrayPBC)
 {
-  for(size_t i = 0; i < c.size(); i++)
-  {
-    Atom& a = *(c[i]);
-    push_back(createAtom(a));
-  }
 }
 
-AtomsContainer&
-AtomsContainer::operator =(const AtomsContainer &c)
+AtomsArray&
+AtomsArray::operator =(const AtomsArray &c)
 {
   if (this == &c) return *this;
 
-  clear();
-
-  for(size_t i = 0; i < c.size(); i++)
-  {
-    Atom& a = *(c[i]);
-    push_back(createAtom(a));
-  }
+  std::vector<Atom>::operator =(c);
+  arrayPBC = c.arrayPBC;
 
   return *this;
 }
 
 void
-AtomsContainer::addAtoms(const AtomsContainer &ac)
+AtomsArray::addAtoms(const AtomsArray &ac)
 {
   for(size_t i = 0; i < ac.size(); i++)
+    push_back(ac[i]);
+
+  PBC(arrayPBC);
+}
+
+AtomsArray::~AtomsArray()
+{
+}
+
+void
+AtomsArray::saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
+{
+  YAATK_FSTREAM_WRITE(os,arrayPBC,smode);
+}
+
+void
+AtomsArray::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
+{
+  YAATK_FSTREAM_READ(is,arrayPBC,smode);
+}
+
+Float
+AtomsArray::mass() const
+{
+  Float moleculeMass = 0;
+  for(size_t ai = 0; ai < size(); ai++)
   {
-    Atom& a = *(ac[i]);
-    push_back(createAtom(a));
+    const mdtk::Atom& atom = at(ai);
+    moleculeMass += atom.M;
   }
+  return moleculeMass;
 }
 
-AtomsContainer::~AtomsContainer()
+Vector3D
+AtomsArray::velocity() const
 {
-  for(size_t i = 0; i < createdAtoms.size(); i++)
-    delete createdAtoms[i];
+  REQUIRE(size() > 0);
+  mdtk::Vector3D sumOfP = 0.0;
+  Float sumOfM = 0.0;
+  for(size_t ai = 0; ai < size(); ai++)
+  {
+    const mdtk::Atom& atom = at(ai);
+    if (atom.isFixed()) continue;
+    sumOfM += atom.M;
+    sumOfP += atom.V*atom.M;
+  };
+  return sumOfP/sumOfM;
+}
+
+Vector3D
+AtomsArray::massCenter() const
+{
+  REQUIRE(size() > 0);
+  mdtk::Vector3D sumOfP = 0.0;
+  Float sumOfM = 0.0;
+  for(size_t ai = 0; ai < size(); ai++)
+  {
+    const mdtk::Atom& atom = at(ai);
+    sumOfM += atom.M;
+    sumOfP += atom.coords*atom.M;
+  };
+  return sumOfP/sumOfM;
+}
+
+Vector3D
+AtomsArray::geomCenter() const
+{
+  Float clusterRadius = 0.0;
+  Vector3D clusterCenter(0,0,0);
+
+  for(size_t i = 0; i < size(); i++)
+    clusterCenter += at(i).coords;
+  clusterCenter /= size();
+
+  return clusterCenter;
+}
+
+Float
+AtomsArray::maxDistanceFrom(Vector3D point) const
+{
+  Float clusterRadius = 0.0;
+
+  for(size_t i = 0; i < size(); i++)
+  {
+    Float currentDist = (at(i).coords-point).module();
+    clusterRadius = (currentDist>clusterRadius)?currentDist:clusterRadius;
+  }
+
+  return clusterRadius;
+}
+
+Float
+AtomsArray::radius() const
+{
+  return maxDistanceFrom(geomCenter());
 }
 
 void
-AtomsContainer::saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
+AtomsArray::removeMomentum()
 {
-//      YAATK_FSTREAM_WRITE(os,PBC,smode);
+  Vector3D v = velocity();
+  for(size_t ai = 0; ai < size(); ai++)
+  {
+    mdtk::Atom& atom = at(ai);
+    if (atom.isFixed()) continue;
+    atom.V -= v;
+  };
 }
 
 void
-AtomsContainer::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
+AtomsArray::addTranslationalEnergy(Float energy, Vector3D direction)
 {
-//      YAATK_FSTREAM_READ(is,PBC,smode);
+  direction.normalize();
+  Vector3D v = velocity();
+  for(size_t ai = 0; ai < size(); ai++)
+  {
+    mdtk::Atom& a = at(ai);
+    if (a.isFixed()) continue;
+    a.V += sqrt(2.0*energy/(mass()))*direction;
+  };
 }
 
 void
-AtomsContainer::normalize()
+AtomsArray::shiftToOrigin()
+{
+  if (size() == 0) return;
+
+  Vector3D clusterCenter = massCenter();
+
+  for(size_t i = 0; i < size(); i++)
+    at(i).coords -= clusterCenter;
+}
+
+void
+AtomsArray::shiftToPosition(Vector3D v)
+{
+  shiftToOrigin();
+  for(size_t i = 0; i < size(); i++)
+    at(i).coords += v;
+}
+
+AtomsArray::Dimensions
+AtomsArray::dimensions() const
+{
+  Dimensions d;
+
+  const Atom& a = at(0);
+
+  Float x_max = a.coords.x;
+  Float x_min = a.coords.x;
+  Float y_max = a.coords.y;
+  Float y_min = a.coords.y;
+  Float z_max = a.coords.z;
+  Float z_min = a.coords.z;
+
+  for(size_t i = 0; i < size(); i++)
+  {
+    const Atom& a = at(i);
+
+    if (a.coords.x > d.x_max)
+      d.x_max = a.coords.x;
+    if (a.coords.x < d.x_min)
+      d.x_min = a.coords.x;
+
+    if (a.coords.y > d.y_max)
+      d.y_max = a.coords.y;
+    if (a.coords.y < d.y_min)
+      d.y_min = a.coords.y;
+
+    if (a.coords.z > d.z_max)
+      d.z_max = a.coords.z;
+    if (a.coords.z < d.z_min)
+      d.z_min = a.coords.z;
+  }
+
+  d.x_len = d.x_max - d.x_min;
+  d.y_len = d.y_max - d.y_min;
+  d.z_len = d.z_max - d.z_min;
+
+  return d;
+}
+
+std::vector<size_t>
+AtomsArray::fixNotFixedAtoms(const size_t begin, const size_t end)
+{
+  std::vector<size_t> fixated;
+  for(size_t i = 0; i < end; i++)
+    if (!at(i).isFixed())
+    {
+      at(i).fix();
+      fixated.push_back(i);
+    }
+  return fixated;
+}
+
+std::vector<size_t>
+AtomsArray::unfixFixedAtoms(const size_t begin, const size_t end)
+{
+  std::vector<size_t> unfixated;
+  for(size_t i = 0; i < end; i++)
+    if (at(i).isFixed())
+    {
+      at(i).unfix();
+      unfixated.push_back(i);
+    }
+  return unfixated;
+}
+
+std::vector<size_t>
+AtomsArray::fixUnfixedCHAtoms(const size_t begin, const size_t end)
+{
+  std::vector<size_t> fixated;
+  for(size_t i = 0; i < end; i++)
+    if (!at(i).isFixed())
+      if (at(i).ID == C_EL || at(i).ID == H_EL)
+      {
+        at(i).fix();
+        fixated.push_back(i);
+      }
+  return fixated;
+}
+
+void
+AtomsArray::unfixAtoms(const std::vector<size_t> fixedAtoms)
+{
+  for(size_t i = 0; i < fixedAtoms.size(); i++)
+    at(fixedAtoms[i]).unfix();
+}
+
+void
+AtomsArray::fixAtoms(const std::vector<size_t> atomsToFix)
+{
+  for(size_t i = 0; i < atomsToFix.size(); i++)
+    at(atomsToFix[i]).fix();
+}
+
+AtomRefsContainer::AtomRefsContainer()
+  :std::vector<Atom*>()
+{
+}
+
+AtomRefsContainer::AtomRefsContainer(const AtomRefsContainer &c)
+  :std::vector<Atom*>(c)
+{
+}
+
+AtomRefsContainer::AtomRefsContainer(AtomsArray& c)
+  :std::vector<Atom*>()
+{
+  for(size_t i = 0; i < c.size(); i++)
+    push_back(&(c[i]));
+}
+
+AtomsArray
+AtomRefsContainer::genAtomsArray()
+{
+  AtomsArray ar;
+  for(size_t i = 0; i < size(); i++)
+    ar.push_back(*at(i));
+}
+
+AtomRefsContainer&
+AtomRefsContainer::operator =(const AtomRefsContainer &c)
+{
+  if (this == &c) return *this;
+
+  std::vector<Atom*>::operator =(c);
+
+  return *this;
+}
+
+void
+AtomRefsContainer::addAtoms(const AtomRefsContainer &ac)
+{
+  for(size_t i = 0; i < ac.size(); i++)
+    push_back(ac[i]);
+}
+
+AtomRefsContainer::~AtomRefsContainer()
+{
+}
+
+void
+AtomRefsContainer::saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
+{
+}
+
+void
+AtomRefsContainer::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
+{
+}
+
+void
+AtomRefsContainer::normalize() const
 {
   size_t i;
 
@@ -210,6 +469,221 @@ AtomsContainer::normalize()
   }
 }
 
+/*
+Float
+AtomRefsContainer::mass() const
+{
+  Float moleculeMass = 0;
+  for(size_t ai = 0; ai < size(); ai++)
+  {
+    const mdtk::Atom& atom = *at(ai);
+    moleculeMass += atom.M;
+  }
+  return moleculeMass;
 }
 
+Vector3D
+AtomRefsContainer::velocity() const
+{
+  REQUIRE(size() > 0);
+  mdtk::Vector3D sumOfP = 0.0;
+  Float sumOfM = 0.0;
+  for(size_t ai = 0; ai < size(); ai++)
+  {
+    const mdtk::Atom& atom = *at(ai);
+    if (atom.isFixed()) continue;
+    sumOfM += atom.M;
+    sumOfP += atom.V*atom.M;
+  };
+  return sumOfP/sumOfM;
+}
+
+Vector3D
+AtomRefsContainer::massCenter() const
+{
+  REQUIRE(size() > 0);
+  mdtk::Vector3D sumOfP = 0.0;
+  Float sumOfM = 0.0;
+  for(size_t ai = 0; ai < size(); ai++)
+  {
+    const mdtk::Atom& atom = *at(ai);
+    sumOfM += atom.M;
+    sumOfP += atom.coords*atom.M;
+  };
+  return sumOfP/sumOfM;
+}
+
+Vector3D
+AtomRefsContainer::geomCenter() const
+{
+  Float clusterRadius = 0.0;
+  Vector3D clusterCenter(0,0,0);
+
+  for(size_t i = 0; i < size(); i++)
+    clusterCenter += at(i)->coords;
+  clusterCenter /= size();
+
+  return clusterCenter;
+}
+
+Float
+AtomRefsContainer::maxDistanceFrom(Vector3D point) const
+{
+  Float clusterRadius = 0.0;
+
+  for(size_t i = 0; i < size(); i++)
+  {
+    Float currentDist = (at(i)->coords-point).module();
+    clusterRadius = (currentDist>clusterRadius)?currentDist:clusterRadius;
+  }
+
+  return clusterRadius;
+}
+
+Float
+AtomRefsContainer::radius() const
+{
+  return maxDistanceFrom(geomCenter());
+}
+
+void
+AtomRefsContainer::removeMomentum()
+{
+  Vector3D v = velocity();
+  for(size_t ai = 0; ai < size(); ai++)
+  {
+    mdtk::Atom& atom = *at(ai);
+    if (atom.isFixed()) continue;
+    atom.V -= v;
+  };
+}
+
+void
+AtomRefsContainer::addTranslationalEnergy(Float energy, Vector3D direction)
+{
+  direction.normalize();
+  Vector3D v = velocity();
+  for(size_t ai = 0; ai < size(); ai++)
+  {
+    mdtk::Atom& a = *at(ai);
+    if (a.isFixed()) continue;
+    a.V += sqrt(2.0*energy/(mass()))*direction;
+  };
+}
+
+void
+AtomRefsContainer::shiftToOrigin()
+{
+  if (size() == 0) return;
+
+  Vector3D clusterCenter = massCenter();
+
+  for(size_t i = 0; i < size(); i++)
+    at(i)->coords -= clusterCenter;
+}
+
+void
+AtomRefsContainer::shiftToPosition(Vector3D v)
+{
+  shiftToOrigin();
+  for(size_t i = 0; i < size(); i++)
+    at(i)->coords += v;
+}
+
+AtomRefsContainer::Dimensions
+AtomRefsContainer::dimensions() const
+{
+  Dimensions d;
+
+  const Atom& a = *at(0);
+
+  Float x_max = a.coords.x;
+  Float x_min = a.coords.x;
+  Float y_max = a.coords.y;
+  Float y_min = a.coords.y;
+  Float z_max = a.coords.z;
+  Float z_min = a.coords.z;
+
+  for(size_t i = 0; i < size(); i++)
+  {
+    const Atom& a = *at(i);
+
+    if (a.coords.x > d.x_max)
+      d.x_max = a.coords.x;
+    if (a.coords.x < d.x_min)
+      d.x_min = a.coords.x;
+
+    if (a.coords.y > d.y_max)
+      d.y_max = a.coords.y;
+    if (a.coords.y < d.y_min)
+      d.y_min = a.coords.y;
+
+    if (a.coords.z > d.z_max)
+      d.z_max = a.coords.z;
+    if (a.coords.z < d.z_min)
+      d.z_min = a.coords.z;
+  }
+
+  d.x_len = d.x_max - d.x_min;
+  d.y_len = d.y_max - d.y_min;
+  d.z_len = d.z_max - d.z_min;
+
+  return d;
+}
+
+std::vector<size_t>
+AtomRefsContainer::fixNotFixedAtoms(const size_t begin, const size_t end)
+{
+  std::vector<size_t> fixated;
+  for(size_t i = 0; i < end; i++)
+    if (!at(i)->isFixed())
+    {
+      at(i)->fix();
+      fixated.push_back(i);
+    }
+  return fixated;
+}
+
+std::vector<size_t>
+AtomRefsContainer::unfixFixedAtoms(const size_t begin, const size_t end)
+{
+  std::vector<size_t> unfixated;
+  for(size_t i = 0; i < end; i++)
+    if (at(i)->isFixed())
+    {
+      at(i)->unfix();
+      unfixated.push_back(i);
+    }
+  return unfixated;
+}
+
+std::vector<size_t>
+AtomRefsContainer::fixUnfixedCHAtoms(const size_t begin, const size_t end)
+{
+  std::vector<size_t> fixated;
+  for(size_t i = 0; i < end; i++)
+    if (!at(i)->isFixed())
+      if (at(i)->ID == C_EL || at(i)->ID == H_EL)
+      {
+        at(i)->fix();
+        fixated.push_back(i);
+      }
+  return fixated;
+}
+
+void
+AtomRefsContainer::unfixAtoms(const std::vector<size_t> fixedAtoms)
+{
+  for(size_t i = 0; i < fixedAtoms.size(); i++)
+    at(fixedAtoms[i])->unfix();
+}
+
+void
+AtomRefsContainer::fixAtoms(const std::vector<size_t> atomsToFix)
+{
+  for(size_t i = 0; i < atomsToFix.size(); i++)
+    at(atomsToFix[i])->fix();
+}
+*/
+}
 

@@ -33,7 +33,7 @@ namespace mdbuilder
 using namespace mdtk;
 
 void
-place_C60(SimLoop& sl)
+place_C60(AtomsArray& sl)
 {
   yaatk::text_ifstream fcoords("C60.coords");
   if (!fcoords.isOpened())
@@ -60,11 +60,11 @@ build_C60_optimized()
   initialize_simloop(sl);
 
   glLoadIdentity();
-  mdbuilder::place_C60(sl);
+  mdbuilder::place_C60(sl.atoms);
 
   quench(sl,1.0*K);
 
-  shiftToOrigin(sl.atoms);
+  sl.atoms.shiftToOrigin();
 
   return sl;
 }
@@ -120,7 +120,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->iteration = 0;
     cerr << "Heating up every atom to " << maxHeatUpEnergy/mdtk::eV << " eV" << std::endl;
     modloop->heatUpEveryAtom(maxHeatUpEnergy, rng);
-    TRACE(modloop->atoms.front()->PBC);
+    TRACE(modloop->atoms.PBC());
     int retval;
     cerr << "Releasing..." << std::endl;
     retval = modloop->execute();
@@ -135,7 +135,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->simTimeFinal = 0.0*ps;
     modloop->dt_ = 1e-20;
     modloop->iteration = 0;
-    TRACE(modloop->atoms.front()->PBC);
+    TRACE(modloop->atoms.PBC());
     while (modloop->simTimeFinal < 4.0*ps)
     {
       modloop->simTimeFinal += 0.05*ps;
@@ -159,16 +159,16 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
 }
 
 void
-add1atomInit(mdtk::AtomsContainer& atoms, ElementID id)
+add1atomInit(mdtk::AtomsArray& atoms, ElementID id)
 {
-  mdtk::Atom* newAtom = new Atom;
-  newAtom->ID = id;
-  newAtom->setAttributesByElementID();
+  mdtk::Atom newAtom;
+  newAtom.ID = id;
+  newAtom.setAttributesByElementID();
   atoms.push_back(newAtom);
 }
 
 void
-findMinMax(mdtk::AtomsContainer& atoms, Float xm[3][2], size_t xmi[3][2])
+findMinMax(mdtk::AtomsArray& atoms, Float xm[3][2], size_t xmi[3][2])
 {
   size_t xi, xs;
 
@@ -178,19 +178,19 @@ findMinMax(mdtk::AtomsContainer& atoms, Float xm[3][2], size_t xmi[3][2])
     {
       Float& xM = xm[xi][xs];
       size_t& xMIndex = xmi[xi][xs];
-      xM = atoms[0]->coords.X(xi);
+      xM = atoms[0].coords.X(xi);
       xMIndex = 0;
       for(size_t i = 0; i < atoms.size(); i++)
       {
         if (xs == 0)
-          if (atoms[i]->coords.X(xi) < xM)
+          if (atoms[i].coords.X(xi) < xM)
           {
-            xM = atoms[i]->coords.X(xi);xMIndex = i;
+            xM = atoms[i].coords.X(xi);xMIndex = i;
           }
         if (xs == 1)
-          if (atoms[i]->coords.X(xi) > xM)
+          if (atoms[i].coords.X(xi) > xM)
           {
-            xM = atoms[i]->coords.X(xi);xMIndex = i;
+            xM = atoms[i].coords.X(xi);xMIndex = i;
           }
       }
     }
@@ -198,7 +198,7 @@ findMinMax(mdtk::AtomsContainer& atoms, Float xm[3][2], size_t xmi[3][2])
 }
 
 void
-add1atom(mdtk::AtomsContainer& atoms, ElementID id, gsl_rng* r)
+add1atom(mdtk::AtomsArray& atoms, ElementID id, gsl_rng* r)
 {
   Float  xm[3][2];
   size_t xmi[3][2];
@@ -209,9 +209,9 @@ add1atom(mdtk::AtomsContainer& atoms, ElementID id, gsl_rng* r)
 
   for(size_t i = 0; i < atoms.size(); i++)
   {
-    atoms[i]->coords.x -= (xm[0][0]+xm[0][1])/2.0;
-    atoms[i]->coords.y -= (xm[1][0]+xm[1][1])/2.0;
-    atoms[i]->coords.z -= (xm[2][0]+xm[2][1])/2.0;
+    atoms[i].coords.x -= (xm[0][0]+xm[0][1])/2.0;
+    atoms[i].coords.y -= (xm[1][0]+xm[1][1])/2.0;
+    atoms[i].coords.z -= (xm[2][0]+xm[2][1])/2.0;
   }
 
   findMinMax(atoms, xm, xmi);
@@ -238,9 +238,9 @@ add1atom(mdtk::AtomsContainer& atoms, ElementID id, gsl_rng* r)
   ERRTRACE(xM/mdtk::Ao);
   ERRTRACE(xMIndex);
 
-  mdtk::Atom* newAtom = new Atom;
-  newAtom->ID  = id;
-  newAtom->setAttributesByElementID();
+  mdtk::Atom newAtom;
+  newAtom.ID  = id;
+  newAtom.setAttributesByElementID();
   Vector3D vn(gsl_rng_uniform(r),
               gsl_rng_uniform(r),
               gsl_rng_uniform(r));
@@ -252,9 +252,9 @@ add1atom(mdtk::AtomsContainer& atoms, ElementID id, gsl_rng* r)
   dv += 0.03*Ao*vn;
   ERRTRACE(dv);
 
-  newAtom->coords = atoms[xMIndex]->coords + dv;
+  newAtom.coords = atoms[xMIndex].coords + dv;
 
-  ERRTRACE(newAtom->coords/mdtk::Ao);
+  ERRTRACE(newAtom.coords/mdtk::Ao);
 
   atoms.push_back(newAtom);
 }
@@ -320,42 +320,42 @@ build_cluster(ElementID id, int clusterSize)
 
   gsl_rng_free (r);
 
-  shiftToOrigin(sl.atoms);
+  sl.atoms.shiftToOrigin();
 
   return sl;
 }
 
 SimLoop
-build_embed(const SimLoop& sl_cluster,
-            const SimLoop& sl_shell)
+build_embed(AtomsArray cluster,
+            AtomsArray shell)
 {
   mdtk::SimLoop sl;
   initialize_simloop(sl);
 
-  shiftToOrigin(sl_cluster.atoms);
-  shiftToOrigin(sl_shell.atoms);
+  cluster.shiftToOrigin();
+  shell.shiftToOrigin();
 
-  sl = sl_cluster;
+  sl.atoms = cluster;
 
 //shrinking
   for(size_t i = 0; i < sl.atoms.size(); i++)
   {
-    Atom& a = *(sl.atoms[i]);
+    Atom& a = sl.atoms[i];
     a.coords *= 0.8;
   }
 //~shrinking
 
-  sl.add_simloop(sl_shell);
+  sl.atoms.addAtoms(shell);
 
   for(size_t i = 0; i < sl.atoms.size(); i++)
   {
-    Atom& a = *(sl.atoms[i]);
+    Atom& a = sl.atoms[i];
     a.V = 0.0;
   }
 
   quench(sl,1.0*K);
 
-  removeMomentum(sl.atoms);
+  sl.atoms.removeMomentum();
 
   return sl;
 }
@@ -367,12 +367,12 @@ add_rotational_motion(
   Vector3D rotAxis
   )
 {
-  Vector3D clusterCenterOfM = massCenter(sl.atoms);
+  Vector3D clusterCenterOfM = sl.atoms.massCenter();
 
   Float sumMVSQR = 0.0;
   for(size_t i = 0; i < sl.atoms.size(); i++)
   {
-    Atom& a = *(sl.atoms[i]);
+    Atom& a = sl.atoms[i];
     Vector3D r = a.coords - clusterCenterOfM;
     sumMVSQR += a.M*SQR(vectormul(r,rotAxis).module());
   }
@@ -380,7 +380,7 @@ add_rotational_motion(
   Float maxVrot = sqrt(2.0*totalRotEnergy/sumMVSQR);
   for(size_t i = 0; i < sl.atoms.size(); i++)
   {
-    Atom& a = *(sl.atoms[i]);
+    Atom& a = sl.atoms[i];
     Vector3D r = a.coords - clusterCenterOfM;
     a.V = vectormul(r,rotAxis)*maxVrot;
   }
@@ -389,30 +389,30 @@ add_rotational_motion(
   sl.thermalBath.zMin = +100000.0*Ao;
   relax/*_flush*/(sl,0.2*ps);
   TRACE(sl.energyKin()/eV);
-  removeMomentum(sl.atoms);
+  sl.atoms.removeMomentum();
   TRACE(sl.energyKin()/eV);
 }
 
 SimLoop
 build_target_by_cluster_bombardment(
   const SimLoop& sl_target,
-  const SimLoop sl_cluster,
+  AtomsArray cluster,
   Float clusterEnergy
   )
 {
-  shiftToOrigin(sl_cluster.atoms);
+  cluster.shiftToOrigin();
 
   Float clusterRadius
-    = maxDistanceFrom(sl_cluster.atoms,geomCenter(sl_cluster.atoms));
+    = cluster.maxDistanceFrom(cluster.geomCenter());
   TRACE(clusterRadius/mdtk::Ao);
 
-  Vector3D dCluster = sl_target.atoms.front()->PBC/2.0;
+  Vector3D dCluster = sl_target.atoms.PBC()/2.0;
   dCluster.z = -(10.0*Ao+clusterRadius);
   TRACE(dCluster/mdtk::Ao);
 
-  for(size_t i = 0; i < sl_cluster.atoms.size(); i++)
+  for(size_t i = 0; i < cluster.size(); i++)
   {
-    Atom& a = *(sl_cluster.atoms_[i]);
+    Atom& a = cluster[i];
     a.coords += dCluster;
   }
 
@@ -420,11 +420,11 @@ build_target_by_cluster_bombardment(
   {
     TRACE("Landing fullerene ...");
     bool areInteracting = false;
-    for(size_t cli = 0; !areInteracting && cli < sl_cluster.atoms.size(); cli++)
+    for(size_t cli = 0; !areInteracting && cli < cluster.size(); cli++)
       for(size_t surfi = 0; !areInteracting && surfi < sl_target.atoms.size(); surfi++)
       {
-        Atom& clusterAtom = *(sl_cluster.atoms[cli]);
-        Atom& surfaceAtom = *(sl_target.atoms[surfi]);
+        Atom& clusterAtom = cluster[cli];
+        Atom& surfaceAtom = sl_target.atoms[surfi];
         if (depos(clusterAtom,surfaceAtom).module() < (/*(clusterEnergy==0.0)?3.0*Ao:*/6.0*Ao))
         {
           areInteracting = true;
@@ -438,26 +438,26 @@ build_target_by_cluster_bombardment(
       }
       break;
     }
-    for(size_t i = 0; i < sl_cluster.atoms.size(); i++)
+    for(size_t i = 0; i < cluster.size(); i++)
     {
-      Atom& a = *(sl_cluster.atoms[i]);
+      Atom& a = cluster[i];
       a.coords.z += 0.05*Ao;
     }
-    TRACE(sl_cluster.atoms[0]->coords.z/mdtk::Ao);
+    TRACE(cluster[0].coords.z/mdtk::Ao);
   };
   TRACE("Fullerene landed ok.");
 
-  for(size_t i = 0; i < sl_cluster.atoms.size(); i++)
+  for(size_t i = 0; i < cluster.size(); i++)
   {
-    Atom& a = *(sl_cluster.atoms[i]);
-    a.V += Vector3D(0,0,sqrt(2.0*clusterEnergy/(mass(sl_cluster.atoms))));
+    Atom& a = cluster[i];
+    a.V += Vector3D(0,0,sqrt(2.0*clusterEnergy/(cluster.mass())));
   }
 
   mdtk::SimLoop sl;
   initialize_simloop(sl);
 
   sl = sl_target;
-  sl.add_simloop(sl_cluster);
+  sl.atoms.addAtoms(cluster);
 
 //  removeMomentum(sl.atoms);
 
@@ -499,7 +499,7 @@ prepare_Cu_by_Cu_at_C60_bobardment()
     {
       for(size_t i_rot_energy = 0; i_rot_energy < rot_energies.size(); i_rot_energy++)
       {
-        mdtk::SimLoop sl_endo = mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl_endo = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
         Vector3D& rot_axis = rot_axes[i_rot_axis];
         Float& rot_energy = rot_energies[i_rot_energy];
         mdbuilder::add_rotational_motion(sl_endo,rot_energy,rot_axis);
@@ -507,7 +507,7 @@ prepare_Cu_by_Cu_at_C60_bobardment()
         for(size_t i_trans_energy = 0; i_trans_energy < trans_energies.size(); i_trans_energy++)
         {
           Float& trans_energy = trans_energies[i_trans_energy];
-          mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Cu,sl_endo,trans_energy);
+          mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Cu,sl_endo.atoms,trans_energy);
 
           TRACE(sl.energyKin()/eV);
 
@@ -574,7 +574,7 @@ prepare_Graphite_by_Cu_at_C60_bombardment()
     {
       for(size_t i_rot_energy = 0; i_rot_energy < rot_energies.size(); i_rot_energy++)
       {
-        mdtk::SimLoop sl_endo = mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl_endo = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
         Vector3D& rot_axis = rot_axes[i_rot_axis];
         Float& rot_energy = rot_energies[i_rot_energy];
         mdbuilder::add_rotational_motion(sl_endo,rot_energy,rot_axis);
@@ -582,7 +582,7 @@ prepare_Graphite_by_Cu_at_C60_bombardment()
         for(size_t i_trans_energy = 0; i_trans_energy < trans_energies.size(); i_trans_energy++)
         {
           Float& trans_energy = trans_energies[i_trans_energy];
-          mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Graphite,sl_endo,trans_energy);
+          mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Graphite,sl_endo.atoms,trans_energy);
 
           TRACE(sl.energyKin()/eV);
 
@@ -622,11 +622,11 @@ build_Cluster_Landed_on_Substrate(
   )
 {
   mdtk::SimLoop sl_Cluster = mdbuilder::build_cluster(id,clusterSize);
-  removeMomentum(sl_Cluster.atoms);
+  sl_Cluster.atoms.removeMomentum();
 
   mdtk::SimLoop sl;
   initialize_simloop(sl);
-  sl = mdbuilder::build_target_by_cluster_bombardment(sl_Substrate,sl_Cluster,0.2*eV*clusterSize);
+  sl = mdbuilder::build_target_by_cluster_bombardment(sl_Substrate,sl_Cluster.atoms,0.2*eV*clusterSize);
 
   TRACE(sl.energyKin()/eV);
 
@@ -637,7 +637,7 @@ build_Cluster_Landed_on_Substrate(
   }
 
 
-  std::vector<size_t> fixedAtoms = fixUnfixedCHAtoms(sl.atoms,0,sl.atoms.size());
+  std::vector<size_t> fixedAtoms = sl.atoms.fixUnfixedCHAtoms(0,sl.atoms.size());
   {
     Float tb_zMin_bak = sl.thermalBath.zMin;
     sl.thermalBath.zMin = -1.0*Ao;
@@ -646,7 +646,7 @@ build_Cluster_Landed_on_Substrate(
 
     sl.thermalBath.zMin = tb_zMin_bak;
   }
-  unfixAtoms(sl.atoms,fixedAtoms);
+  sl.atoms.unfixAtoms(fixedAtoms);
 
   relax/*_flush*/(sl,5.0*ps,"_tmp-X-landing-unfixed-CH-relax_flush");
 
@@ -682,13 +682,13 @@ bomb_Cluster_with_Ions(
   for(size_t i = 0; i < clusterAtomIndices.size(); i++)
   {
     TRACE(i);
-    Atom& clusterAtom = *sl.atoms[clusterAtomIndices[i]];
+    Atom& clusterAtom = sl.atoms[clusterAtomIndices[i]];
 
 //    clusterAtom.apply_PBC = false;
     clusterAtom.apply_ThermalBath = false;
   }
 
-  const Atom& clusterAtom = *target.atoms[clusterAtomIndices[0]];
+  const Atom& clusterAtom = target.atoms[clusterAtomIndices[0]];
 
   Float clusterXMax = clusterAtom.coords.x;
   Float clusterXMin = clusterAtom.coords.x;
@@ -700,7 +700,7 @@ bomb_Cluster_with_Ions(
   for(size_t i = 0; i < clusterAtomIndices.size(); i++)
   {
     TRACE(i);
-    const Atom& clusterAtom = *target.atoms[clusterAtomIndices[i]];
+    const Atom& clusterAtom = target.atoms[clusterAtomIndices[i]];
 
     if (clusterAtom.coords.x > clusterXMax)
       clusterXMax = clusterAtom.coords.x;
@@ -746,7 +746,7 @@ bomb_Cluster_with_Ions(
       allowBomb = false;
       for(size_t i = 0; i < clusterAtomIndices.size(); i++)
       {
-        const Atom& clusterAtom = *target.atoms[clusterAtomIndices[i]];
+        const Atom& clusterAtom = target.atoms[clusterAtomIndices[i]];
 
         bombX = clusterXMin + cell_part_x*(a+b);
         bombY = clusterYMin + cell_part_y*(a+b);
@@ -765,13 +765,11 @@ bomb_Cluster_with_Ions(
     }while ( (cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) || !allowBomb);
     rngout << cell_part_x << " " << cell_part_y << "\n";
 
-    Atom* projectile
-      = new Atom(ionElement,
-                 Vector3D(bombX,bombY,clusterZMin-5.5*Ao));
+    Atom projectile(ionElement,Vector3D(bombX,bombY,clusterZMin-5.5*Ao));
 
-    projectile->V = Vector3D(0,0,sqrt(2.0*ionEnergy/(projectile->M)));
+    projectile.V = Vector3D(0,0,sqrt(2.0*ionEnergy/(projectile.M)));
 //    projectile->apply_PBC=false;
-    projectile->apply_ThermalBath=false;
+    projectile.apply_ThermalBath=false;
     sl.atoms.push_back(projectile);
 
     char trajDirName[1024];
@@ -789,7 +787,6 @@ bomb_Cluster_with_Ions(
     yaatk::chdir("..");
 
     sl.atoms.resize(sl.atoms.size()-1);
-    delete projectile;
   }
 
   yaatk::chdir("..");
@@ -852,7 +849,7 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
 
           std::vector<size_t> clusterAtomIndices;
           for(size_t ai = 0; ai < sl_Landed.atoms.size(); ++ai)
-            if (sl_Landed.atoms[ai]->ID == clusterElement)
+            if (sl_Landed.atoms[ai].ID == clusterElement)
               clusterAtomIndices.push_back(ai);
 
           bomb_Cluster_with_Ions(dirname,
@@ -938,12 +935,12 @@ bomb_orthorhombic_with_clusters(
     Vector3D initialClusterPosition
       (bombX,
        bombY,
-       dimensions(target.atoms).z_min - (5.5*Ao + radius(cluster.atoms)));
+       target.atoms.dimensions().z_min - (5.5*Ao + cluster.atoms.radius()));
 
-    shiftToPosition(cluster.atoms,initialClusterPosition);
+    cluster.atoms.shiftToPosition(initialClusterPosition);
 
-    bombXY << massCenter(cluster.atoms).x/Ao << " "
-           << massCenter(cluster.atoms).y/Ao << "\n";
+    bombXY << cluster.atoms.massCenter().x/Ao << " "
+           << cluster.atoms.massCenter().y/Ao << "\n";
 
     mdtk::SimLoop sl(target);
     sl.add_simloop(cluster);
@@ -951,7 +948,7 @@ bomb_orthorhombic_with_clusters(
     for(size_t i = 0; i < sl.atoms.size(); i++)
     {
 //      sl.atoms[i]->apply_PBC=true;
-      sl.atoms[i]->apply_ThermalBath=true;
+      sl.atoms[i].apply_ThermalBath=true;
     }
 
     char trajDirName[1024];
@@ -1017,8 +1014,8 @@ build_FCC_metal_bombardment_with_ions(
         std::string dirname(id_string);
 
         mdtk::SimLoop sl_ion;
-        Atom* atom = new Atom(ionElement);
-        atom->V = Vector3D(0,0,sqrt(2.0*ionEnergy/(atom->M)));
+        Atom atom(ionElement);
+        atom.V = Vector3D(0,0,sqrt(2.0*ionEnergy/(atom.M)));
         sl_ion.atoms.push_back(atom);
 
         bomb_orthorhombic_with_clusters(dirname,
@@ -1049,8 +1046,8 @@ build_FCC_metal_bombardment_with_C60(
     mdbuilder::build_FCC_lattice(a_num,b_num,c_num,metalElement,true,a,b,c);
 
   mdtk::SimLoop sl_fullerene = mdbuilder::build_C60_optimized();
-  removeMomentum(sl_fullerene.atoms);
-  shiftToOrigin(sl_fullerene.atoms);
+  sl_fullerene.atoms.removeMomentum();
+  sl_fullerene.atoms.shiftToOrigin();
 
   for(size_t energyIndex = 0;
       energyIndex < fullereneEnergies.size();
@@ -1066,9 +1063,9 @@ build_FCC_metal_bombardment_with_C60(
     std::string dirname(id_string);
 
     mdtk::SimLoop sl_energeticFullerene(sl_fullerene);
-    addTranslationalEnergy(sl_energeticFullerene.atoms,
-                           fullereneEnergy,
-                           Vector3D(0,0,1));
+    sl_energeticFullerene.atoms.addTranslationalEnergy(
+      fullereneEnergy,
+      Vector3D(0,0,1));
 
     bomb_orthorhombic_with_clusters(dirname,
                                     sl_energeticFullerene,
@@ -1114,8 +1111,8 @@ build_fullerite_bombardment_with_ions(
         std::string dirname(id_string);
 
         mdtk::SimLoop sl_ion;
-        Atom* atom = new Atom(ionElement);
-        atom->V = Vector3D(0,0,sqrt(2.0*ionEnergy/(atom->M)));
+        Atom atom(ionElement);
+        atom.V = Vector3D(0,0,sqrt(2.0*ionEnergy/(atom.M)));
         sl_ion.atoms.push_back(atom);
 
         bomb_orthorhombic_with_clusters(dirname,
@@ -1152,13 +1149,13 @@ build_metal_C60_mixing(
   size_t numberOfImpacts = 16;
 
   mdtk::SimLoop sl_fullerene = mdbuilder::build_C60_optimized();
-  removeMomentum(sl_fullerene.atoms);
-  shiftToOrigin(sl_fullerene.atoms);
+  sl_fullerene.atoms.removeMomentum();
+  sl_fullerene.atoms.shiftToOrigin();
 
   mdtk::SimLoop sl_metalAtom;
-  sl_metalAtom.atoms.push_back(new Atom(metalElement));
-  removeMomentum(sl_metalAtom.atoms);
-  shiftToOrigin(sl_metalAtom.atoms);
+  sl_metalAtom.atoms.push_back(Atom(metalElement));
+  sl_metalAtom.atoms.removeMomentum();
+  sl_metalAtom.atoms.shiftToOrigin();
 
   int a_num_metal;
   int b_num_metal;
@@ -1239,14 +1236,11 @@ build_metal_C60_mixing(
     Float impactEnergy = impactEnergies[energyIndex];
 
     mdtk::SimLoop sl_energeticFullerene(sl_fullerene);
-    addTranslationalEnergy(
-      sl_energeticFullerene.atoms,
-      impactEnergy,
-      Vector3D(0,0,1));
+    sl_energeticFullerene.atoms.addTranslationalEnergy(
+      impactEnergy,Vector3D(0,0,1));
 
     mdtk::SimLoop sl_energeticMetalAtom(sl_metalAtom);
-    addTranslationalEnergy(
-      sl_energeticMetalAtom.atoms,
+    sl_energeticMetalAtom.atoms.addTranslationalEnergy(
       impactEnergy,
       Vector3D(0,0,1));
 

@@ -39,7 +39,6 @@ using namespace std;
 
 SimLoop::SimLoop()
   : allowToFreePotentials(true),
-    allowToFreeAtoms(true),
     atoms_(),
     atoms(atoms_),
     check(),
@@ -73,7 +72,6 @@ SimLoop::SimLoop()
 
 SimLoop::SimLoop(const SimLoop &c)
   : allowToFreePotentials(true),
-    allowToFreeAtoms(true),
     atoms_(c.atoms),
     atoms(atoms_),
     check(),
@@ -129,7 +127,6 @@ SimLoop::add_simloop(const SimLoop &sl_addon)
 SimLoop::~SimLoop()
 {
   freePotentials();
-  freeAtoms();
 }
 
 int
@@ -138,12 +135,12 @@ SimLoop::execute()
   try
   {
     fpot.diagnose();
-    PTRACE(atoms.front()->PBCEnabled());
-    PTRACE(atoms.front()->lateralPBCEnabled());
-    PTRACE(atoms.back()->PBCEnabled());
-    PTRACE(atoms.back()->lateralPBCEnabled());
-    PTRACE(atoms.front()->PBC/Ao);
-    PTRACE(atoms.back()->PBC/Ao);
+    PTRACE(atoms.front().PBCEnabled());
+    PTRACE(atoms.front().lateralPBCEnabled());
+    PTRACE(atoms.back().PBCEnabled());
+    PTRACE(atoms.back().lateralPBCEnabled());
+    PTRACE(atoms.front().PBC/Ao);
+    PTRACE(atoms.back().PBC/Ao);
     PTRACE(thermalBath.zMin/Ao);
     PTRACE(thermalBath.dBoundary/Ao);
     PTRACE(thermalBath.zMinOfFreeZone/Ao);
@@ -189,6 +186,8 @@ SimLoop::execute_wo_checks()
   atoms.prepareForSimulatation();
   if (!atoms.checkMIC(fpot.getRcutoff()*2.0))
   {
+    TRACE(atoms.PBC()/Ao);
+    TRACE(fpot.getRcutoff()*2.0);
     cerr << "Rcutoff is too large for given PBC !" << endl << flush;
     throw Exception("Rcutoff is too large for given PBC !");
   }
@@ -243,7 +242,7 @@ SimLoop::execute_wo_checks()
 
     for(size_t j = 0; j < atoms.size(); j++)
     {
-      Atom& atom = *(atoms[j]);
+      Atom& atom = atoms[j];
 
       if (atom.isFixed())
       {
@@ -258,7 +257,7 @@ SimLoop::execute_wo_checks()
 
     for(size_t j = 0; j < atoms.size(); j++)
     {
-      Atom& atom = *(atoms[j]);
+      Atom& atom = atoms[j];
 
       if (atom.isFixed()) continue;
 
@@ -271,12 +270,12 @@ SimLoop::execute_wo_checks()
 
       Vector3D dr = atom.V*dt + atom.an*dt*dt/2.0; // eq 1
       atom.coords += dr;
-      fpot.incDisplacement(*(atoms_[j]),dr);
+      fpot.incDisplacement(atoms[j],dr);
     }
 
     for(size_t j = 0; j < atoms.size(); j++)
     {
-      Atom& atom = *(atoms[j]);
+      Atom& atom = atoms[j];
 
       if (atom.isFixed()) continue;
 
@@ -428,7 +427,7 @@ PTRACE(Et);
 Float
 SimLoop::energyPot()
 {
-  return fpot(atoms_);
+  return fpot(atoms);
 }
 
 Float
@@ -439,7 +438,7 @@ SimLoop::energyKin()
   atoms_count = atoms_.size();
   for(j = 0; j < atoms_count; j++)
   {
-    Atom& atom = *atoms_[j];
+    Atom& atom = atoms[j];
     energyKinCur += atom.M*SQR(atom.V.module())/2.0;
   };
 
@@ -463,7 +462,7 @@ SimLoop::actualTemperatureOfThermalBath()
   atoms_count = atoms_.size();
   for(j = 0; j < atoms_count; j++)
   {
-    Atom& atom = *atoms_[j];
+    Atom& atom = atoms[j];
     if (atom.isFixed()) continue;
     if (isWithinThermalBath(atom) && atom.apply_ThermalBath)
     {
@@ -486,7 +485,7 @@ SimLoop::temperatureWithoutFixed()
   atoms_count = atoms_.size();
   for(j = 0; j < atoms_count; j++)
   {
-    Atom& atom = *atoms_[j];
+    Atom& atom = atoms[j];
     if (!atom.isFixed())
     {
       energyKinCur += atom.M*SQR(atom.V.module())/2.0;
@@ -501,8 +500,6 @@ SimLoop::temperatureWithoutFixed()
 void
 SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
 {
-  freeAtoms();
-
   if (smode == YAATK_FSTREAM_TEXT) 
   {
     char s[1024];
@@ -518,8 +515,8 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   atoms_.resize(atoms_count);
   for(i = 0; i < atoms_count; i++)
   {
-    atoms[i] = atoms.createAtom();
-    YAATK_FSTREAM_READ(is,*(atoms_[i]),smode);
+    atoms[i] = Atom();
+    YAATK_FSTREAM_READ(is,atoms_[i],smode);
   }
   cout << endl;
 
@@ -564,7 +561,7 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_WRITE(os,atoms_count,smode);
   for(i = 0; i < atoms_count; i++)
   {
-    YAATK_FSTREAM_WRITE(os,*(atoms_[i]),smode);
+    YAATK_FSTREAM_WRITE(os,atoms_[i],smode);
   }
 
   check.SaveToStream(os,smode);
@@ -619,12 +616,12 @@ TRACE(XVA_DISTANCE_SCALE);
 
   for(i = 0; i < atoms_count; i++)
   {
-    is >> atoms_[i]->V;
-    is >> atoms_[i]->coords;
-    is >> atoms_[i]->PBC_count;
+    is >> atoms[i].V;
+    is >> atoms[i].coords;
+    is >> atoms[i].PBC_count;
 
-    atoms_[i]->V *= XVA_VELOCITY_SCALE;
-    atoms_[i]->coords *= XVA_DISTANCE_SCALE;
+    atoms[i].V *= XVA_VELOCITY_SCALE;
+    atoms[i].coords *= XVA_DISTANCE_SCALE;
   }
   cout << endl;
 
@@ -649,9 +646,9 @@ SimLoop::saveToStreamXVA(ostream& os)
 Float XVA_VELOCITY_SCALE = 0.0;//1.0e3;
   for(size_t i = 0; i < atoms_.size(); i++)
   {
-    XVA_VELOCITY_SCALE += fabs(atoms_[i]->V.x);
-    XVA_VELOCITY_SCALE += fabs(atoms_[i]->V.y);
-    XVA_VELOCITY_SCALE += fabs(atoms_[i]->V.z);
+    XVA_VELOCITY_SCALE += fabs(atoms[i].V.x);
+    XVA_VELOCITY_SCALE += fabs(atoms[i].V.y);
+    XVA_VELOCITY_SCALE += fabs(atoms[i].V.z);
   }
 
 XVA_VELOCITY_SCALE /= (3.0*atoms_.size());
@@ -683,21 +680,21 @@ os << XVA_DISTANCE_SCALE << "\n";
     os << fixed;
 #endif
     os.precision(2);
-    os << atoms_[i]->V.x/XVA_VELOCITY_SCALE  << " ";
-    os << atoms_[i]->V.y/XVA_VELOCITY_SCALE  << " ";
-    os << atoms_[i]->V.z/XVA_VELOCITY_SCALE  << "\n";
+    os << atoms[i].V.x/XVA_VELOCITY_SCALE  << " ";
+    os << atoms[i].V.y/XVA_VELOCITY_SCALE  << " ";
+    os << atoms[i].V.z/XVA_VELOCITY_SCALE  << "\n";
 
 #ifndef DONT_USE_XVASCALE
     os << fixed;
 #endif
     os.precision(2);
-    os << atoms_[i]->coords.x/XVA_DISTANCE_SCALE  << " ";
-    os << atoms_[i]->coords.y/XVA_DISTANCE_SCALE  << " ";
-    os << atoms_[i]->coords.z/XVA_DISTANCE_SCALE  << "\n";
+    os << atoms[i].coords.x/XVA_DISTANCE_SCALE  << " ";
+    os << atoms[i].coords.y/XVA_DISTANCE_SCALE  << " ";
+    os << atoms[i].coords.z/XVA_DISTANCE_SCALE  << "\n";
 
-    os << atoms_[i]->PBC_count.x << " ";
-    os << atoms_[i]->PBC_count.y << " ";
-    os << atoms_[i]->PBC_count.z << "\n";
+    os << atoms[i].PBC_count.x << " ";
+    os << atoms[i].PBC_count.y << " ";
+    os << atoms[i].PBC_count.z << "\n";
   }
   os << scientific;
 
@@ -728,8 +725,8 @@ SimLoop::loadFromStreamXVA_bin(istream& is)
 
   for(i = 0; i < atoms_count; i++)
   {
-    YAATK_BIN_READ(is,atoms_[i]->V);
-    YAATK_BIN_READ(is,atoms_[i]->coords);
+    YAATK_BIN_READ(is,atoms[i].V);
+    YAATK_BIN_READ(is,atoms[i].coords);
   }
   cout << endl;
 
@@ -756,8 +753,8 @@ SimLoop::saveToStreamXVA_bin(ostream& os)
   YAATK_BIN_WRITE(os,atoms_count);
   for(i = 0; i < atoms_count; i++)
   {
-    YAATK_BIN_WRITE(os,atoms_[i]->V);
-    YAATK_BIN_WRITE(os,atoms_[i]->coords);
+    YAATK_BIN_WRITE(os,atoms[i].V);
+    YAATK_BIN_WRITE(os,atoms[i].coords);
   }
 
   YAATK_BIN_WRITE(os,check);
@@ -813,12 +810,12 @@ SimLoop::writetrajXYZ()
   os << "Sample\n";
   for(size_t i = 0; i < atoms_.size(); i++)
   {
-    os << setw(10) << left << ElementString(*(atoms_[i])) << " ";
+    os << setw(10) << left << ElementString(atoms[i]) << " ";
     os << fixed << right;
     os.precision(3);
-    os << setw(10) << atoms_[i]->coords.x/Ao  << " ";
-    os << setw(10) << atoms_[i]->coords.y/Ao  << " ";
-    os << setw(10) << atoms_[i]->coords.z/Ao  << "\n";
+    os << setw(10) << atoms[i].coords.x/Ao  << " ";
+    os << setw(10) << atoms[i].coords.y/Ao  << " ";
+    os << setw(10) << atoms[i].coords.z/Ao  << "\n";
   }
 
   os.close();
@@ -832,9 +829,9 @@ SimLoop::writetrajAccumulated(const std::vector<size_t>& atomIndices)
   {
     for(size_t i = 0; i < atoms_.size(); i++)
     {
-      XVA_VELOCITY_SCALE += fabs(atoms_[i]->V.x);
-      XVA_VELOCITY_SCALE += fabs(atoms_[i]->V.y);
-      XVA_VELOCITY_SCALE += fabs(atoms_[i]->V.z);
+      XVA_VELOCITY_SCALE += fabs(atoms[i].V.x);
+      XVA_VELOCITY_SCALE += fabs(atoms[i].V.y);
+      XVA_VELOCITY_SCALE += fabs(atoms[i].V.z);
     }
 
     XVA_VELOCITY_SCALE /= (3.0*atoms_.size());
@@ -900,7 +897,7 @@ SimLoop::writetrajAccumulated(const std::vector<size_t>& atomIndices)
         accPrev >> tempInt;
         acc << tempInt << " ";
       }
-      acc << atoms[atomIndices[ai]]->PBC_count.X(ci) << "\n";
+      acc << atoms[atomIndices[ai]].PBC_count.X(ci) << "\n";
     }
   }
   for(size_t ai = 0; ai < atomIndices.size(); ai++)
@@ -912,7 +909,7 @@ SimLoop::writetrajAccumulated(const std::vector<size_t>& atomIndices)
         accPrev >> tempFloat;
         acc << fixed << setprecision(2) << tempFloat << " ";
       }
-      acc << fixed << setprecision(2) << atoms[atomIndices[ai]]->coords.X(ci)/XVA_DISTANCE_SCALE << "\n";
+      acc << fixed << setprecision(2) << atoms[atomIndices[ai]].coords.X(ci)/XVA_DISTANCE_SCALE << "\n";
     }
   }
   for(size_t ai = 0; ai < atomIndices.size(); ai++)
@@ -924,7 +921,7 @@ SimLoop::writetrajAccumulated(const std::vector<size_t>& atomIndices)
         accPrev >> tempFloat;
         acc << tempFloat << " ";
       }
-      acc << fixed << setprecision(2) << atoms[atomIndices[ai]]->V.X(ci)/XVA_VELOCITY_SCALE << "\n";
+      acc << fixed << setprecision(2) << atoms[atomIndices[ai]].V.X(ci)/XVA_VELOCITY_SCALE << "\n";
     }
   }
   cout << endl;
@@ -989,7 +986,7 @@ SimLoop::writetrajAccumulated_bin(const std::vector<size_t>& atomIndices)
         YAATK_BIN_READ(accPrev,tempInt);
         YAATK_BIN_WRITE(acc,tempInt);
       }
-      YAATK_BIN_WRITE(acc,atoms[atomIndices[ai]]->PBC_count.X(ci));
+      YAATK_BIN_WRITE(acc,atoms[atomIndices[ai]].PBC_count.X(ci));
     }
   }
   for(size_t ai = 0; ai < atomIndices.size(); ai++)
@@ -1001,7 +998,7 @@ SimLoop::writetrajAccumulated_bin(const std::vector<size_t>& atomIndices)
         YAATK_BIN_READ(accPrev,tempFloat);
         YAATK_BIN_WRITE(acc,tempFloat);
       }
-      YAATK_BIN_WRITE(acc,atoms[atomIndices[ai]]->coords.X(ci));
+      YAATK_BIN_WRITE(acc,atoms[atomIndices[ai]].coords.X(ci));
     }
   }
   for(size_t ai = 0; ai < atomIndices.size(); ai++)
@@ -1013,7 +1010,7 @@ SimLoop::writetrajAccumulated_bin(const std::vector<size_t>& atomIndices)
         YAATK_BIN_READ(accPrev,tempFloat);
         YAATK_BIN_WRITE(acc,tempFloat);
       }
-      YAATK_BIN_WRITE(acc,atoms[atomIndices[ai]]->V.X(ci));
+      YAATK_BIN_WRITE(acc,atoms[atomIndices[ai]].V.X(ci));
     }
   }
   cout << endl;
@@ -1137,7 +1134,7 @@ void SimLoop::do_check_energy()
 void SimLoop::initialize()
 {
 //  updateGlobalIndexes();
-  atoms.prepareForSimulatation();
+//  atoms.prepareForSimulatation();
   TRACE(initNLafterLoading);
   if (initNLafterLoading)
   {
@@ -1153,7 +1150,7 @@ SimLoop::saveToMDE(std::ostream& fo)
   fo << atoms_.size() << std::endl;
   for(size_t i = 0; i < atoms_.size(); i++)
   {
-    Atom& Ro_i = *(atoms_[i]);
+    Atom& Ro_i = atoms[i];
     YAATK_FSTREAM_WRITE(fo,Ro_i,YAATK_FSTREAM_TEXT);
 /*
     fo << Ro_i.Z/mdtk::e << " " << Ro_i.M/mdtk::amu << " " << Ro_i.ID << " " << Ro_i.tag << " " << Ro_i.fixed << " " << Ro_i.thermostat << std::endl;
@@ -1166,7 +1163,7 @@ SimLoop::saveToMDE(std::ostream& fo)
   YAATK_FSTREAM_WRITE(fo,simTimeFinal,YAATK_FSTREAM_TEXT);
 
   REQUIRE(atoms.size() > 0);
-  fo << atoms.front()->PBC << std::endl;
+  fo << atoms.PBC() << std::endl;
   thermalBath.SaveToStream(fo,YAATK_FSTREAM_TEXT);
 }
 
@@ -1176,7 +1173,7 @@ SimLoop::saveToNanoHive(std::ostream& fo)
 {
   for(size_t i = 0; i < atoms_.size(); i++)
   {
-    Atom& Ro_i = *(atoms_[i]);
+    Atom& Ro_i = atoms[i];
     char et = 'X';
     switch (Ro_i.ID)
     {
@@ -1196,23 +1193,19 @@ SimLoop::saveToNanoHive(std::ostream& fo)
 void
 SimLoop::loadFromMDE(std::istream& fi)
 {
-  freeAtoms();
-  AtomsContainer& Ro = atoms_;
-
-  Ro.clear();
+  atoms.clear();
 
   int atoms_count;
   fi >> atoms_count;
 
   cout << "Reading " << atoms_count << " atoms...\n";
+  atoms.resize(atoms_count);
 
   for(int i = 0; i < atoms_count; i++)
   {
-   Atom *new_atom;
-   new_atom = atoms.createAtom();
-   YAATK_FSTREAM_READ(fi,*new_atom,YAATK_FSTREAM_TEXT);
-   Ro.push_back(new_atom);
-  }  
+    atoms[i] = Atom();
+    YAATK_FSTREAM_READ(fi,atoms[i],YAATK_FSTREAM_TEXT);
+  }
 
   YAATK_FSTREAM_READ(fi,simTime,YAATK_FSTREAM_TEXT);
   YAATK_FSTREAM_READ(fi,simTimeSaveTrajInterval,YAATK_FSTREAM_TEXT);
@@ -1234,7 +1227,7 @@ SimLoop::heatUpEveryAtom(Float upEnergy, gsl_rng* rng)
     Vector3D vn(gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0);
     vn.normalize();
   
-    atoms_[i]->V = vn*sqrt(2.0*upEnergy/atoms_[i]->M);
+    atoms[i].V = vn*sqrt(2.0*upEnergy/atoms[i].M);
   } 	
 }  
 
@@ -1249,7 +1242,7 @@ SimLoop::displaceEveryAtom(Float dist, gsl_rng* rng)
     TRACE(vn*dist/Ao);
     TRACE((vn*dist).module()/Ao);
 
-    atoms_[i]->coords += vn*dist;
+    atoms[i].coords += vn*dist;
   } 	
 }  
 

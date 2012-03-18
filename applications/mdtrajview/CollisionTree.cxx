@@ -31,7 +31,7 @@ void getAtomsFromSimLoop(const SimLoop& ml, std::vector<Atom>& atoms)
   atoms.clear();
   for(size_t i = 0; i < ml.atoms.size(); ++i)
   {
-    atoms.push_back(*(ml.atoms[i]));
+    atoms.push_back(ml.atoms[i]);
 //    atoms.back().container = NULL;
   }
 }
@@ -41,7 +41,7 @@ void updateAtomsFromSimLoop(const SimLoop& ml, std::vector<Atom>& atoms)
   REQUIRE(atoms.size()==ml.atoms.size());
   for(size_t i = 0; i < ml.atoms.size(); ++i)
   {
-    atoms[i] = *(ml.atoms[i]);
+    atoms[i] = ml.atoms[i];
 //    atoms[i].container = NULL;
   }
 }
@@ -134,7 +134,7 @@ void MDTrajectory_read_from_SnapshotList(
     {
       const SnapshotList::AtomSnapshot& as =
         shots.snapshots[i].second[ai];
-      Atom& a = *ml.atoms[shots.atomsSelectedForSaving[ai]];
+      Atom& a = ml.atoms[shots.atomsSelectedForSaving[ai]];
       as.restoreToAtom(a);
     }
 

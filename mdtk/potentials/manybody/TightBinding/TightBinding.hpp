@@ -3,7 +3,7 @@
    (header file).
    See [G. Betz, W. Husinsky, Nucl. Instr. and Meth. B 102, 281 (1995)]
 
-   Copyright (C) 2006, 2007, 2008, 2009 Oleksandr Yermolenko
+   Copyright (C) 2006, 2007, 2008, 2009, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -52,8 +52,8 @@ private:
   Float g(Atom &atom1,Atom &atom2); 
     Vector3D dg(Atom &atom1,Atom &atom2, Atom &datom); 
 public:
-  virtual Float operator()(AtomsContainer&);
-  virtual Vector3D grad(Atom &,AtomsContainer&);
+  virtual Float operator()(AtomsArray&);
+  virtual Vector3D grad(Atom &,AtomsArray&);
   void setupPotential();
 
   TightBinding();
@@ -83,7 +83,7 @@ public:
     FManybody::LoadFromStream(is,smode);
   }  
 
-  Float  buildPairs(AtomsContainer& gl);
+  Float  buildPairs(AtomsArray& gl);
 
 Float
 f(Atom &atom1,Atom &atom2)

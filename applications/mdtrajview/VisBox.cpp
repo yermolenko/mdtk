@@ -106,7 +106,7 @@ VisBox::loadNewSnapshot(std::string base_state_filename,std::string file)
     REQUIRE(atoms.size() == ml_->atoms.size());
     for(size_t i = 0; i < ml_->atoms.size(); ++i)
     {
-      *(ml_->atoms[i]) = atoms[i];
+      ml_->atoms[i] = atoms[i];
     }
     ml_->simTime = t->first;
   }
@@ -230,9 +230,9 @@ VisBox::reArrange(double xmin, double xmax,
 	
   for(i=0;i<VC;i++)
   {
-    if (Ro[i]->coords.x >= xmin_ && Ro[i]->coords.x <= xmax_ &&
-	Ro[i]->coords.y >= ymin_ && Ro[i]->coords.y <= ymax_ &&
-	Ro[i]->coords.z >= zmin_ && Ro[i]->coords.z <= zmax_)
+    if (Ro[i].coords.x >= xmin_ && Ro[i].coords.x <= xmax_ &&
+	Ro[i].coords.y >= ymin_ && Ro[i].coords.y <= ymax_ &&
+	Ro[i].coords.z >= zmin_ && Ro[i].coords.z <= zmax_)
     {
       R.push_back(Ro[i]);
     }
@@ -242,40 +242,40 @@ VisBox::reArrange(double xmin, double xmax,
 	
   VC = R.size();
 	
-  XMin=R[0]->coords.x;
-  XMax=R[0]->coords.x;
-  YMin=R[0]->coords.y;
-  YMax=R[0]->coords.y;
-  ZMin=R[0]->coords.z;
-  ZMax=R[0]->coords.z;
+  XMin=R[0].coords.x;
+  XMax=R[0].coords.x;
+  YMin=R[0].coords.y;
+  YMax=R[0].coords.y;
+  ZMin=R[0].coords.z;
+  ZMax=R[0].coords.z;
   for(int i=0;i<VC;i++)
   {
-    if (R[i]->coords.x<XMin)
+    if (R[i].coords.x<XMin)
     {
-      XMin=R[i]->coords.x;
+      XMin=R[i].coords.x;
     }
     else
-      if (R[i]->coords.x>XMax)
+      if (R[i].coords.x>XMax)
       {
-	XMax=R[i]->coords.x;
+	XMax=R[i].coords.x;
       };
-    if (R[i]->coords.y<YMin)
+    if (R[i].coords.y<YMin)
     {
-      YMin=R[i]->coords.y;
+      YMin=R[i].coords.y;
     }
     else
-      if (R[i]->coords.y>YMax)
+      if (R[i].coords.y>YMax)
       {
-	YMax=R[i]->coords.y;
+	YMax=R[i].coords.y;
       };
-    if (R[i]->coords.z<ZMin)
+    if (R[i].coords.z<ZMin)
     {
-      ZMin=R[i]->coords.z;
+      ZMin=R[i].coords.z;
     }
     else
-      if (R[i]->coords.z>ZMax)
+      if (R[i].coords.z>ZMax)
       {
-	ZMax=R[i]->coords.z;
+	ZMax=R[i].coords.z;
       };
   };
 
@@ -307,40 +307,40 @@ VisBox::setData(mdtk::SimLoop &ml)
 
   int VC = Ro.size();
 	
-  XMin=Ro[0]->coords.x;
-  XMax=Ro[0]->coords.x;
-  YMin=Ro[0]->coords.y;
-  YMax=Ro[0]->coords.y;
-  ZMin=Ro[0]->coords.z;
-  ZMax=Ro[0]->coords.z;
+  XMin=Ro[0].coords.x;
+  XMax=Ro[0].coords.x;
+  YMin=Ro[0].coords.y;
+  YMax=Ro[0].coords.y;
+  ZMin=Ro[0].coords.z;
+  ZMax=Ro[0].coords.z;
   for(int i=0;i<VC;i++)
   {
-    if (Ro[i]->coords.x<XMin)
+    if (Ro[i].coords.x<XMin)
     {
-      XMin=Ro[i]->coords.x;
+      XMin=Ro[i].coords.x;
     }
     else
-      if (Ro[i]->coords.x>XMax)
+      if (Ro[i].coords.x>XMax)
       {
-	XMax=Ro[i]->coords.x;
+	XMax=Ro[i].coords.x;
       };
-    if (Ro[i]->coords.y<YMin)
+    if (Ro[i].coords.y<YMin)
     {
-      YMin=Ro[i]->coords.y;
+      YMin=Ro[i].coords.y;
     }
     else
-      if (Ro[i]->coords.y>YMax)
+      if (Ro[i].coords.y>YMax)
       {
-	YMax=Ro[i]->coords.y;
+	YMax=Ro[i].coords.y;
       };
-    if (Ro[i]->coords.z<ZMin)
+    if (Ro[i].coords.z<ZMin)
     {
-      ZMin=Ro[i]->coords.z;
+      ZMin=Ro[i].coords.z;
     }
     else
-      if (Ro[i]->coords.z>ZMax)
+      if (Ro[i].coords.z>ZMax)
       {
-	ZMax=Ro[i]->coords.z;
+	ZMax=Ro[i].coords.z;
       };
   };
 
@@ -436,15 +436,15 @@ VisBox::listThermalBath()
   Float tb[3][2];
 
   tb[0][0] = ml_->thermalBath.dBoundary;
-  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->PBC.x;
+  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->atoms.PBC().x;
   tb[1][0] = ml_->thermalBath.dBoundary;
-  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->PBC.y;
+  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->atoms.PBC().y;
   tb[2][0] = ml_->thermalBath.zMinOfFreeZone;
   tb[2][1] = ml_->thermalBath.zMin;
 
   Float cb[3][2] = {{0,0},{0,0},{0,0}};
-  cb[0][1] = ml_->atoms.front()->PBC.x;
-  cb[1][1] = ml_->atoms.front()->PBC.y;
+  cb[0][1] = ml_->atoms.PBC().x;
+  cb[1][1] = ml_->atoms.PBC().y;
   cb[2][0] = tb[2][0];
   cb[2][1] = tb[2][1]+30*Ao;
 
@@ -493,15 +493,15 @@ VisBox::listThermalBathSketch()
   Float tb[3][2];
 
   tb[0][0] = ml_->thermalBath.dBoundary;
-  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->PBC.x;
+  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->atoms.PBC().x;
   tb[1][0] = ml_->thermalBath.dBoundary;
-  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->PBC.y;
+  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->atoms.PBC().y;
   tb[2][0] = ml_->thermalBath.zMinOfFreeZone;
   tb[2][1] = ml_->thermalBath.zMin;
 
   Float cb[3][2] = {{0,0},{0,0},{0,0}};
-  cb[0][1] = ml_->atoms.front()->PBC.x;
-  cb[1][1] = ml_->atoms.front()->PBC.y;
+  cb[0][1] = ml_->atoms.PBC().x;
+  cb[1][1] = ml_->atoms.PBC().y;
   cb[2][0] = tb[2][0];
   cb[2][1] = tb[2][1]+30*Ao;
 
@@ -587,7 +587,7 @@ VisBox::listVertexes()
       c = vertexColor;
       break;
     case true:  
-      switch (R[i]->ID)
+      switch (R[i].ID)
       {
       case H_EL:  c = (0x00FF00); break; 
       case C_EL:  c = (0x0000FF); break; 
@@ -596,17 +596,17 @@ VisBox::listVertexes()
       case Cu_EL: c = (0x00FFFF); break; 
       case Ag_EL: c = (0x00FFFF); break; 
       case Au_EL: c = (0x00FFFF); break; 
-      default: c = R[i]->tag;
+      default: c = R[i].tag;
       };
 
       if (showSelected)
       {
 	if (i!=selectedAtomIndex)
 	{
-	  if ((R[i]->coords-R[selectedAtomIndex]->coords).module() < 5.5*mdtk::Ao)
+	  if ((R[i].coords-R[selectedAtomIndex].coords).module() < 5.5*mdtk::Ao)
 	  {
 	    c = (0x777777);
-	    if ((R[i]->coords-R[selectedAtomIndex]->coords).module() < 2.5*mdtk::Ao)
+	    if ((R[i].coords-R[selectedAtomIndex].coords).module() < 2.5*mdtk::Ao)
 	      c = (0xFFFF00);
 	  }  
 	}  
@@ -615,12 +615,12 @@ VisBox::listVertexes()
       }
     }
     myglColor(c);
-    if (R[i]->M > 1000.0*amu) myglColor(0x0);
+    if (R[i].M > 1000.0*amu) myglColor(0x0);
 
     if (atomsQuality > 2)
     {
-      glTranslated(R[i]->coords.x,R[i]->coords.y,R[i]->coords.z);
-      Atom a = *(R[i]); a.setAttributesByElementID();
+      glTranslated(R[i].coords.x,R[i].coords.y,R[i].coords.z);
+      Atom a = R[i]; a.setAttributesByElementID();
       Float scale = 1.0*vertexRadius*pow(a.M/mdtk::amu,1.0/3.0);
       if (tinyAtoms) scale /= 5;
       glScaled(scale,scale,scale);
@@ -630,7 +630,7 @@ VisBox::listVertexes()
     {
       glPointSize(vertexRadius*scale);
       glBegin(GL_POINTS);
-      glVertex3d(R[i]->coords.x,R[i]->coords.y,R[i]->coords.z);
+      glVertex3d(R[i].coords.x,R[i].coords.y,R[i].coords.z);
       glEnd();
     }
     glPopMatrix();
@@ -750,7 +750,7 @@ VisBox::listCTree()
 /*
   size_t i = 0;
   size_t j = 10695;
-  Draw_Edge(R[i]->coords,R[j]->coords,0xFF0000);
+  Draw_Edge(R[i].coords,R[j].coords,0xFF0000);
 */
   std::vector<bool> ignore(mdt.begin()->second.size());
   std::vector<bool> hadEnteredCollision(mdt.begin()->second.size());
@@ -776,7 +776,7 @@ VisBox::listCTree()
       {
 	hadEnteredCollision[i] = true;
 	Color c;
-	switch (R[i]->ID)
+	switch (R[i].ID)
 	{
 	case H_EL:  c = (0x00FF00); break; 
 	case C_EL:  c = (0x0000FF); break; 
@@ -784,7 +784,7 @@ VisBox::listCTree()
 	case Cu_EL: c = (0x00FFFF); break; 
 	case Ag_EL: c = (0x00FFFF); break; 
 	case Au_EL: c = (0x00FFFF); break; 
-	default: c = R[i]->tag;
+	default: c = R[i].tag;
 	}
 
 	if (showCTreeAtoms)
@@ -825,7 +825,7 @@ VisBox::listCustom1()
   std::vector<Atom> cluster;
   for(size_t i = 0; i < ml_->atoms.size(); i++)
   {
-    Atom& a = *(ml_->atoms[i]);
+    Atom& a = ml_->atoms[i];
     if (a.ID == Cu_EL) cluster.push_back(a);
   }
 
@@ -877,7 +877,7 @@ void
 VisBox::listCustom2()
 {
   {
-    const Atom& a = *R.back();
+    const Atom& a = R.back();
     Vector3D c1 = a.coords;
     Vector3D c2 = c1; c1.z += 5.0*Ao;
     drawArrow(c1,c2,0xFF0000,

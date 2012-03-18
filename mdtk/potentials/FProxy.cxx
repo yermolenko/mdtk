@@ -1,7 +1,7 @@
 /*
    The proxy class for interatomic potentials.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -43,7 +43,7 @@ FProxy::getRcutoff() const
 
 
 Float
-FProxy::operator()(AtomsContainer& gl)
+FProxy::operator()(AtomsArray& gl)
 {
   Float Ei = 0;
 
@@ -58,7 +58,7 @@ FProxy::operator()(AtomsContainer& gl)
 }
 
 Vector3D
-FProxy::grad(Atom &atom,AtomsContainer&gl)
+FProxy::grad(Atom &atom,AtomsArray&gl)
 {
   Vector3D dEi(0.0,0.0,0.0);
 

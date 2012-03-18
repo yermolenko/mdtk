@@ -48,7 +48,7 @@ build_Fulleride_C60(
 
   mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
 
-  place_Generic_FCC_lattice(sl,sl_C60,
+  place_Generic_FCC_lattice(sl.atoms,sl_C60.atoms,
                             a_num,b_num,c_num,
                             fixBottomCellLayer,0,
                             a,a,a);
@@ -56,13 +56,13 @@ build_Fulleride_C60(
   mdtk::SimLoop sl_intercal = mdbuilder::build_cluster(id, numberOfAtoms);
 
   // endo
-  place_Generic_FCC_lattice(sl,sl_intercal,
+  place_Generic_FCC_lattice(sl.atoms,sl_intercal.atoms,
                             a_num,b_num,c_num,
                             fixBottomCellLayer,0,
                             a,a,a);
 
   // interstitial
-  place_Generic_FCC_lattice(sl,sl_intercal,
+  place_Generic_FCC_lattice(sl.atoms,sl_intercal.atoms,
                             a_num,b_num,c_num,
                             fixBottomCellLayer,0,
                             a,a,a,
@@ -75,7 +75,7 @@ build_Fulleride_C60(
   relax(sl,0.01*ps);
   quench(sl,1.0*K);
 
-  removeMomentum(sl.atoms);
+  sl.atoms.removeMomentum();
 
   return sl;
 }

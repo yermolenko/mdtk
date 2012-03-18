@@ -46,9 +46,9 @@ build_Fullerite_C60(
 
   mdtk::SimLoop sl_C60 = mdbuilder::build_C60_optimized();
 
-  shiftToOrigin(sl_C60.atoms);
+  sl_C60.atoms.shiftToOrigin();
 
-  place_Generic_FCC_lattice(sl,sl_C60,
+  place_Generic_FCC_lattice(sl.atoms,sl_C60.atoms,
                             a_num,b_num,c_num,
                             fixBottomCellLayer,0,
                             a,a,a);
@@ -56,7 +56,7 @@ build_Fullerite_C60(
   sl.setPBC(Vector3D(a*a_num, b*b_num, c*c_num));
 
   std::vector<size_t> fixedAtoms =
-    unfixFixedAtoms(sl.atoms,0,sl.atoms.size());
+    sl.atoms.unfixFixedAtoms(0,sl.atoms.size());
 
   {
     sl.enableDump();
@@ -77,7 +77,7 @@ build_Fullerite_C60(
 
   quench(sl,0.01*K,100000*ps,0.01*ps,"_tmp-X-quenchall");
 
-  fixAtoms(sl.atoms,fixedAtoms);
+  sl.atoms.fixAtoms(fixedAtoms);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
 
@@ -105,7 +105,7 @@ build_Fullerite_C60(
   relax(sl,0.01*ps);
   quench(sl,1.0*K);
 
-  removeMomentum(sl.atoms);
+  sl.atoms.removeMomentum();
 
   return sl;
 }

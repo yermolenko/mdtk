@@ -31,11 +31,11 @@ namespace mdbuilder
 using namespace mdtk;
 
 void
-place_Ethylene(SimLoop& sl);
+place_Ethylene(AtomsArray& sl);
 
 void
 place_Polyethylene_fold(
-  SimLoop& sl,
+  AtomsArray& sl,
   Vector3D va,
   Vector3D vb,
   Vector3D vc
@@ -43,7 +43,7 @@ place_Polyethylene_fold(
 
 void
 place_Polyethylene_cell(
-  SimLoop& sl,
+  AtomsArray& sl,
   Vector3D va,
   Vector3D vb,
   Vector3D vc
@@ -51,7 +51,7 @@ place_Polyethylene_cell(
 
 void
 place_Polyethylene_lattice(
-  SimLoop& sl,
+  AtomsArray& sl,
   int a_num = 8,
   int b_num = 12,
   int c_num = 10,
@@ -64,7 +64,7 @@ place_Polyethylene_lattice(
 
 void
 place_Polyethylene_folds(
-  SimLoop& sl,
+  AtomsArray& sl,
   int a_num = 8,
   int b_num = 12,
   int c_num = 10,
@@ -76,7 +76,7 @@ place_Polyethylene_folds(
 
 void
 place_Polyethylene_folded_chains(
-  SimLoop& sl,
+  AtomsArray& sl,
   const mdtk::SimLoop& sl_with_chain,
   int a_num = 8,
   int b_num = 12,

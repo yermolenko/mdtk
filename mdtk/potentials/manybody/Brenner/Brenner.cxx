@@ -3,8 +3,8 @@
    hydrocarbons.
    See [D.W. Brenner, Phys. Rev. B 42, 9458 (1990)]
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2009 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2009, 2012 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -28,7 +28,7 @@
 namespace mdtk
 {
 
-  Float  Brenner::buildPairs(AtomsContainer& gl)
+  Float  Brenner::buildPairs(AtomsArray& gl)
   {
     Float Ei = 0;
     if (gl.size() != pairs.size()) pairs.resize(gl.size());    
@@ -41,7 +41,7 @@ namespace mdtk
     }  
     for(ii = 0; ii < gl.size(); ii++)
     {
-      Atom &atom_i = *(gl[ii]);
+      Atom &atom_i = gl[ii];
       if (isHandled(atom_i))
       for(size_t jj = 0; jj < NL(atom_i).size(); jj++)
       {
@@ -201,7 +201,7 @@ Brenner::dVA_Exp(Atom &atom1,Atom &atom2, Atom &datom)
 }
 
 Float
-Brenner::operator()(AtomsContainer& gl) 
+Brenner::operator()(AtomsArray& gl) 
 {
   return buildPairs(gl);
 }  
@@ -209,7 +209,7 @@ Brenner::operator()(AtomsContainer& gl)
 static size_t Bij_count = 0;
  
 Vector3D
-Brenner::grad(Atom &atom,AtomsContainer&gl) 
+Brenner::grad(Atom &atom,AtomsArray&gl) 
 {
   Bij_count = 0;
   
@@ -224,10 +224,10 @@ Brenner::grad(Atom &atom,AtomsContainer&gl)
 
     for(i = 0; i < acnt.size(); i++)
     {
-      Atom &atom_i = *(gl[acnt[i].first]);
+      Atom &atom_i = gl[acnt[i].first];
       if (isHandled(atom_i))
       {
-        Atom &atom_j = *(gl[acnt[i].second]);
+        Atom &atom_j = gl[acnt[i].second];
 
         REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
         if (isHandled(atom_j))

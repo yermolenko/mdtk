@@ -28,7 +28,7 @@ namespace mdbuilder
 using namespace mdtk;
 
 void
-place_Ethylene(SimLoop& sl)
+place_Ethylene(AtomsArray& sl)
 {
   Float CC_dist = 1.53*Ao;
   Float CH_dist = 1.07*Ao;
@@ -80,7 +80,7 @@ place_Ethylene(SimLoop& sl)
 
 void
 place_Polyethylene_fold(
-  SimLoop& sl,
+  AtomsArray& sl,
   Vector3D va,
   Vector3D vb,
   Vector3D vc
@@ -183,7 +183,7 @@ place_Polyethylene_fold(
 
 void
 place_Polyethylene_cell(
-  SimLoop& sl,
+  AtomsArray& sl,
   Vector3D va,
   Vector3D vb,
   Vector3D vc
@@ -212,7 +212,7 @@ place_Polyethylene_cell(
 
 void
 place_Polyethylene_lattice(
-  SimLoop& sl,
+  AtomsArray& sl,
   int a_num,
   int b_num,
   int c_num,
@@ -251,7 +251,7 @@ place_Polyethylene_lattice(
           {
             for(size_t i = 1; i <= 12; i++)
             {
-              Atom& a = *(sl.atoms[sl.atoms.size()-i]);
+              Atom& a = sl[sl.size()-i];
               a.fix();
             }
           }
@@ -265,7 +265,7 @@ place_Polyethylene_lattice(
 
 void
 place_Polyethylene_folds(
-  SimLoop& sl,
+  AtomsArray& sl,
   int a_num,
   int b_num,
   int c_num,
@@ -305,8 +305,8 @@ place_Polyethylene_folds(
 
 void
 place_Polyethylene_folded_chains(
-  SimLoop& sl,
-  const SimLoop& sl_with_chain,
+  AtomsArray& sl,
+  const AtomsArray& sl_with_chain,
   int a_num,
   int b_num,
   double a,
@@ -331,9 +331,9 @@ place_Polyethylene_folded_chains(
 
       glPushMatrix();
 
-      for(size_t ai = 0; ai < sl_with_chain.atoms.size(); ai++)
+      for(size_t ai = 0; ai < sl_with_chain.size(); ai++)
       {
-        const mdtk::Atom& atom = *sl_with_chain.atoms[ai];
+        const mdtk::Atom& atom = sl_with_chain[ai];
         REQUIRE(atom.ID == C_EL || atom.ID == H_EL);
         place_and_inherit(sl,atom,getPosition()+atom.coords);
       };
@@ -360,7 +360,7 @@ build_Polyethylene_lattice_without_folds(
   mdtk::SimLoop sl;
   initialize_simloop(sl);
 
-  place_Polyethylene_lattice(sl,a_num,b_num,c_num,fixBottomCellLayer,0,a,b,c);
+  place_Polyethylene_lattice(sl.atoms,a_num,b_num,c_num,fixBottomCellLayer,0,a,b,c);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
   sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
@@ -369,7 +369,7 @@ build_Polyethylene_lattice_without_folds(
   relax(sl,0.01*ps);
   quench(sl,1.0*K);
 
-  removeMomentum(sl.atoms);
+  sl.atoms.removeMomentum();
 
   return sl;
 }
@@ -392,12 +392,12 @@ build_Polyethylene_lattice_with_folds(
     SimLoopDump sl_rebo;
     initialize_simloop_REBO_only(sl_rebo);
 
-    place_Polyethylene_lattice(sl_rebo,1,1,c_num,fixBottomCellLayer,2,a,b,c);
+    place_Polyethylene_lattice(sl_rebo.atoms,1,1,c_num,fixBottomCellLayer,2,a,b,c);
 
     std::vector<size_t> fixedAtoms =
-      fixNotFixedAtoms(sl_rebo.atoms,0,sl_rebo.atoms.size());
+      sl_rebo.atoms.fixNotFixedAtoms(0,sl_rebo.atoms.size());
     {
-      place_Polyethylene_folds(sl_rebo,1,1,c_num,2,a,b,c);
+      place_Polyethylene_folds(sl_rebo.atoms,1,1,c_num,2,a,b,c);
 
       sl_rebo.enableDump();
 
@@ -436,7 +436,7 @@ build_Polyethylene_lattice_with_folds(
         sl_with_chain = sl_airebo;
       }
     }
-    unfixAtoms(sl_with_chain.atoms,fixedAtoms);
+    sl_with_chain.atoms.unfixAtoms(fixedAtoms);
 
     {
       yaatk::text_ofstream fomde("_tmp-X-relax_flush-folds-airebo-unfixed.mde");
@@ -460,12 +460,12 @@ build_Polyethylene_lattice_with_folds(
     quench(sl_with_chain,0.01*K);
   }
 
-  removeMomentum(sl_with_chain.atoms);
+  sl_with_chain.atoms.removeMomentum();
 
   SimLoopDump sl;
   initialize_simloop(sl);
 
-  place_Polyethylene_folded_chains(sl,sl_with_chain,a_num,b_num,a,b);
+  place_Polyethylene_folded_chains(sl.atoms,sl_with_chain.atoms,a_num,b_num,a,b);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
 
@@ -494,7 +494,7 @@ build_Polyethylene_lattice_with_folds(
   sl.thermalBath.dBoundary = 3.0*Ao;
   sl.thermalBath.zMinOfFreeZone = -2.0*Ao;
 
-  removeMomentum(sl.atoms);
+  sl.atoms.removeMomentum();
 
   return sl;
 }

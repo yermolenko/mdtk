@@ -43,10 +43,10 @@ Fullerene::get(std::istream& is)
 void
 Fullerene::build(const mdtk::SimLoop& ml)
 {
-  const AtomsContainer &ac = ml.atoms;
+  const AtomsArray &ac = ml.atoms;
   for(size_t i = 0; i < ac.size(); i++)
   {
-    const mdtk::Atom a = *ac[i];
+    const mdtk::Atom a = ac[i];
     if (a.ID == C_EL && a.coords.z < -3.615*Ao*1.5)
       addAtom(a);
   }

@@ -3,7 +3,7 @@
    gold, silver and their alloys (header file).
    See [G.J. Ackland and V. Vitek, Phys. Rev. B 41, 10324 (1990)]
 
-   Copyright (C) 2007, 2008, 2009 Oleksandr Yermolenko
+   Copyright (C) 2007, 2008, 2009, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -54,8 +54,8 @@ private:
   Float g(Atom &atom1,Atom &atom2); 
     Vector3D dg(Atom &atom1,Atom &atom2, Atom &datom); 
 public:
-  virtual Float operator()(AtomsContainer&);
-  virtual Vector3D grad(Atom &,AtomsContainer&);
+  virtual Float operator()(AtomsArray&);
+  virtual Vector3D grad(Atom &,AtomsArray&);
   void setupPotential();
 
   Ackland();
@@ -132,7 +132,7 @@ public:
     FManybody::LoadFromStream(is,smode);
   }  
 
-  Float  buildPairs(AtomsContainer& gl);
+  Float  buildPairs(AtomsArray& gl);
 /*
 Float
 f(Atom &atom1,Atom &atom2)

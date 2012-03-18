@@ -4,7 +4,7 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -77,11 +77,11 @@ class AIREBO : public FManybody
     Vector3D dBijAsterix(Atom &atom1,Atom &atom2, Atom &datom); 
 
 public:
-  virtual Float operator()(AtomsContainer& nl);
-  virtual Vector3D grad(Atom &atom,AtomsContainer&);
+  virtual Float operator()(AtomsArray& nl);
+  virtual Vector3D grad(Atom &atom,AtomsArray&);
 
-  Float ELJ(AtomsContainer&);
-  Vector3D dELJ(Atom &,AtomsContainer&);
+  Float ELJ(AtomsArray&);
+  Vector3D dELJ(Atom &,AtomsArray&);
 
   AIREBO(CREBO* crebo);
 //  virtual
@@ -140,7 +140,7 @@ public:
   {
     FManybody::LoadFromStream(is,smode);
   }  
-  Float  buildPairs(AtomsContainer& gl);
+  Float  buildPairs(AtomsArray& gl);
 
 Float
 f(Atom &atom1,Atom &atom2)

@@ -2,7 +2,7 @@
    The Ziegler-Biersack-Littmark interatomic potential implementation
    (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -37,8 +37,8 @@ public:
   Float F11(Atom& a1, Atom& a2);
   Vector3D dF11(Atom& a1, Atom& a2, Atom& da);
 public:
-  virtual Float operator()(AtomsContainer&);
-  virtual Vector3D grad(Atom &a1,AtomsContainer&);
+  virtual Float operator()(AtomsArray&);
+  virtual Vector3D grad(Atom &a1,AtomsArray&);
   FBZL(Rcutoff = Rcutoff());
 
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)

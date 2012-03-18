@@ -55,7 +55,7 @@ buildCommands()
     {
       glLoadIdentity();
       mdtk::SimLoop sl;
-      mdbuilder::place_H2(sl);
+      mdbuilder::place_H2(sl.atoms);
 
       yaatk::text_ofstream fomde("H2.mde");
       sl.saveToMDE(fomde);
@@ -65,7 +65,7 @@ buildCommands()
     {
       glLoadIdentity();
       mdtk::SimLoop sl;
-      mdbuilder::place_FCC_cell(sl);
+      mdbuilder::place_FCC_cell(sl.atoms);
 
       yaatk::text_ofstream fomde("CuCell.mde");
       sl.saveToMDE(fomde);
@@ -75,7 +75,7 @@ buildCommands()
     {
       glLoadIdentity();
       mdtk::SimLoop sl;
-      mdbuilder::place_FCC_lattice(sl);
+      mdbuilder::place_FCC_lattice(sl.atoms);
 
       yaatk::text_ofstream fomde("Cu.mde");
       sl.saveToMDE(fomde);
@@ -85,7 +85,7 @@ buildCommands()
     {
       glLoadIdentity();
       mdtk::SimLoop sl;
-      mdbuilder::place_C60(sl);
+      mdbuilder::place_C60(sl.atoms);
 
       yaatk::text_ofstream fomde("C60.mde");
       sl.saveToMDE(fomde);
@@ -114,7 +114,7 @@ buildCommands()
       {
         mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,1);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
 
         yaatk::text_ofstream fomde("Cu001_in_C60.mde");
         sl.saveToMDE(fomde);
@@ -123,7 +123,7 @@ buildCommands()
       {
         mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,5);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
 
         yaatk::text_ofstream fomde("Cu005_in_C60.mde");
         sl.saveToMDE(fomde);
@@ -132,7 +132,7 @@ buildCommands()
       {
         mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,13);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
 
         yaatk::text_ofstream fomde("Cu013_in_C60.mde");
         sl.saveToMDE(fomde);
@@ -146,7 +146,7 @@ buildCommands()
       {
         mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,0);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
         mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
 
         yaatk::text_ofstream fomde("Cu000_in_C60-rot.mde");
@@ -156,7 +156,7 @@ buildCommands()
       {
         mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,1);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
         mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
 
         yaatk::text_ofstream fomde("Cu001_in_C60-rot.mde");
@@ -166,7 +166,7 @@ buildCommands()
       {
         mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,6);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
         mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
 
         yaatk::text_ofstream fomde("Cu006_in_C60-rot.mde");
@@ -176,7 +176,7 @@ buildCommands()
       {
         mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,13);
 
-        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster,sl_C60);
+        mdtk::SimLoop sl = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
         mdbuilder::add_rotational_motion(sl,200*eV,Vector3D(0,0,1));
 
         yaatk::text_ofstream fomde("Cu013_in_C60-rot.mde");
@@ -192,10 +192,10 @@ buildCommands()
 
       mdtk::SimLoop sl_cluster = mdbuilder::build_cluster(Cu_EL,6);
 
-      mdtk::SimLoop sl_endo = mdbuilder::build_embed(sl_cluster,sl_C60);
+      mdtk::SimLoop sl_endo = mdbuilder::build_embed(sl_cluster.atoms,sl_C60.atoms);
       mdbuilder::add_rotational_motion(sl_endo,50*eV,Vector3D(0,0,1));
 
-      mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Cu,sl_endo,200*eV);
+      mdtk::SimLoop sl = mdbuilder::build_target_by_cluster_bombardment(sl_Cu,sl_endo.atoms,200*eV);
 
       TRACE(sl.energyKin()/eV);
 
@@ -216,7 +216,7 @@ buildCommands()
     {
       glLoadIdentity();
       mdtk::SimLoop sl;
-      mdbuilder::place_Graphite_lattice(sl);
+      mdbuilder::place_Graphite_lattice(sl.atoms);
 
       yaatk::text_ofstream fomde("Graphite.mde");
       sl.saveToMDE(fomde);

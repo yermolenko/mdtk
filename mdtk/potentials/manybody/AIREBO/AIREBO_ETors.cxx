@@ -4,8 +4,8 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -29,7 +29,7 @@
 namespace mdtk
 {
 
-  Float  ETors::buildPairs(AtomsContainer& gl)
+  Float  ETors::buildPairs(AtomsArray& gl)
   {
 
 #ifdef VERBOSE_LOG
@@ -46,7 +46,7 @@ namespace mdtk
     }  
     for(ii = 0; ii < gl.size(); ii++)
     {
-      Atom &atom_i = *(gl[ii]);
+      Atom &atom_i = gl[ii];
       if (isHandled(atom_i))
       for(size_t jj = 0; jj < NL(atom_i).size(); jj++)
       {
@@ -117,7 +117,7 @@ ETors::dVtors(Atom &ai,Atom &aj,Atom &ak,Atom &al, Atom &da)
  
 
 Float
-ETors::operator()(AtomsContainer& gl)
+ETors::operator()(AtomsArray& gl)
 {
   Float Ei = 0.0;
   Ei += ETor(gl);
@@ -125,7 +125,7 @@ ETors::operator()(AtomsContainer& gl)
 }  
 
 Vector3D
-ETors::grad(Atom &atom,AtomsContainer &gl)
+ETors::grad(Atom &atom,AtomsArray &gl)
 {
   Vector3D dEi = 0.0;
   dEi += dETor(atom, gl);
@@ -133,13 +133,13 @@ ETors::grad(Atom &atom,AtomsContainer &gl)
 }  
 
 Float
-ETors::ETor(AtomsContainer& gl)
+ETors::ETor(AtomsArray& gl)
 {
   return buildPairs(gl);
 }
 
 Vector3D
-ETors::dETor(Atom &atom,AtomsContainer &gl)
+ETors::dETor(Atom &atom,AtomsArray &gl)
 {
   Vector3D dEi = 0.0;
 
@@ -151,9 +151,9 @@ ETors::dETor(Atom &atom,AtomsContainer &gl)
     
     for(i = 0; i < acnt.size(); i++)
     {
-      Atom &atom_i = *(gl[acnt[i].first]);
+      Atom &atom_i = gl[acnt[i].first];
       {
-        Atom &atom_j = *(gl[acnt[i].second]);
+        Atom &atom_j = gl[acnt[i].second];
 
         REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
         {

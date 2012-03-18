@@ -4,8 +4,8 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -29,7 +29,7 @@
 namespace mdtk
 {
 
-  Float  REBO::buildPairs(AtomsContainer& gl)
+  Float  REBO::buildPairs(AtomsArray& gl)
   {
     Float Ei = 0;
     if (gl.size() != pairs.size()) pairs.resize(gl.size());    
@@ -42,7 +42,7 @@ namespace mdtk
     }  
     for(ii = 0; ii < gl.size(); ii++)
     {
-      Atom &atom_i = *(gl[ii]);
+      Atom &atom_i = gl[ii];
       if (isHandled(atom_i))
       for(size_t jj = 0; jj < NL(atom_i).size(); jj++)
       {
@@ -279,7 +279,7 @@ REBO::dVA(Atom &atom1,Atom &atom2, Atom &datom)
 }
 
 Float
-REBO::operator()(AtomsContainer& gl)
+REBO::operator()(AtomsArray& gl)
 {
   return buildPairs(gl);
 }  
@@ -287,7 +287,7 @@ REBO::operator()(AtomsContainer& gl)
  
  
 Vector3D
-REBO::grad(Atom &atom,AtomsContainer &gl)
+REBO::grad(Atom &atom,AtomsArray &gl)
 {
   Vector3D dEi(0.0,0.0,0.0);
 
@@ -299,9 +299,9 @@ REBO::grad(Atom &atom,AtomsContainer &gl)
 
     for(i = 0; i < acnt.size(); i++)
     {
-      Atom &atom_i = *(gl[acnt[i].first]);
+      Atom &atom_i = gl[acnt[i].first];
       {
-        Atom &atom_j = *(gl[acnt[i].second]);
+        Atom &atom_j = gl[acnt[i].second];
 
         REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
 #if defined(REBO_OPTIMIZED_EVEN_BETTER)

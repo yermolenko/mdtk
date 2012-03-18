@@ -4,7 +4,7 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -128,8 +128,8 @@ public:
 public:
   enum ParamSet{POTENTIAL1,POTENTIAL2} /*paramSet*/;  
 
-  virtual Float operator()(AtomsContainer&);
-  virtual Vector3D grad(Atom &,AtomsContainer&);
+  virtual Float operator()(AtomsArray&);
+  virtual Vector3D grad(Atom &,AtomsArray&);
 
   REBO(ParamSet /*parSet*/ = POTENTIAL1);
   Float getRcutoff() const {return      max3(R_[C][C][1],R_[C][H][1],R_[H][H][1]);}
@@ -232,7 +232,7 @@ public:
     FManybody::LoadFromStream(is,smode);
   }  
 
-  Float  buildPairs(AtomsContainer& gl);
+  Float  buildPairs(AtomsArray& gl);
 
 
 Float

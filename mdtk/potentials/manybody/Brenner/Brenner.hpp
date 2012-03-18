@@ -3,8 +3,8 @@
    hydrocarbons (header file).
    See [D.W. Brenner, Phys. Rev. B 42, 9458 (1990)]
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2009 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2009, 2012 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -104,8 +104,8 @@ private:
 public:
   enum ParamSet{POTENTIAL1,POTENTIAL2} paramSet;  
 
-  virtual Float operator()(AtomsContainer&);
-  virtual Vector3D grad(Atom &,AtomsContainer&);
+  virtual Float operator()(AtomsArray&);
+  virtual Vector3D grad(Atom &,AtomsArray&);
 
   Brenner(ParamSet parSet = POTENTIAL1);
 //  virtual 
@@ -192,7 +192,7 @@ public:
     FManybody::LoadFromStream(is,smode);
   }  
 
-  Float  buildPairs(AtomsContainer& gl);
+  Float  buildPairs(AtomsArray& gl);
 
 Float
 f(Atom &atom1,Atom &atom2)

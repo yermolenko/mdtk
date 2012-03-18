@@ -2,7 +2,7 @@
    mdC2H6 - example program for the Molecular Dynamics Toolkit (MDTK).
    Molecular dynamics simulation of the ethane molecule.
 
-   Copyright (C) 2009 Oleksandr Yermolenko
+   Copyright (C) 2009, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -35,14 +35,14 @@ main()
 
   mdloop.fpot.addPotential(new Brenner());
 
-  mdloop.atoms.push_back(new Atom(C_EL,Vector3D(0.0*Ao,0.0*Ao,0.0*Ao)));
-  mdloop.atoms.push_back(new Atom(C_EL,Vector3D(1.5*Ao,0.0*Ao,0.0*Ao)));
-  mdloop.atoms.push_back(new Atom(H_EL,Vector3D(1.9*Ao,0.0*Ao,1.0*Ao)));
-  mdloop.atoms.push_back(new Atom(H_EL,Vector3D(1.9*Ao,-0.9*Ao,-0.5*Ao)));
-  mdloop.atoms.push_back(new Atom(H_EL,Vector3D(1.9*Ao,0.9*Ao,-0.5*Ao)));
-  mdloop.atoms.push_back(new Atom(H_EL,Vector3D(-0.4*Ao,0.0*Ao,1.0*Ao)));
-  mdloop.atoms.push_back(new Atom(H_EL,Vector3D(-0.4*Ao,-0.9*Ao,-0.2*Ao)));
-  mdloop.atoms.push_back(new Atom(H_EL,Vector3D(-0.4*Ao,0.8*Ao,-0.2*Ao)));
+  mdloop.atoms.push_back(Atom(C_EL,Vector3D(0.0*Ao,0.0*Ao,0.0*Ao)));
+  mdloop.atoms.push_back(Atom(C_EL,Vector3D(1.5*Ao,0.0*Ao,0.0*Ao)));
+  mdloop.atoms.push_back(Atom(H_EL,Vector3D(1.9*Ao,0.0*Ao,1.0*Ao)));
+  mdloop.atoms.push_back(Atom(H_EL,Vector3D(1.9*Ao,-0.9*Ao,-0.5*Ao)));
+  mdloop.atoms.push_back(Atom(H_EL,Vector3D(1.9*Ao,0.9*Ao,-0.5*Ao)));
+  mdloop.atoms.push_back(Atom(H_EL,Vector3D(-0.4*Ao,0.0*Ao,1.0*Ao)));
+  mdloop.atoms.push_back(Atom(H_EL,Vector3D(-0.4*Ao,-0.9*Ao,-0.2*Ao)));
+  mdloop.atoms.push_back(Atom(H_EL,Vector3D(-0.4*Ao,0.8*Ao,-0.2*Ao)));
 
   mdloop.initialize();
   mdloop.simTimeSaveTrajInterval = 0.001*ps;

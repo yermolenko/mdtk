@@ -1,7 +1,7 @@
 /*
    The proxy class for interatomic potentials (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -39,8 +39,8 @@ public:
     potentials.push_back(p);
   }
 public:
-  Float operator()(AtomsContainer&);
-  Vector3D grad(Atom &,AtomsContainer&);
+  Float operator()(AtomsArray&);
+  Vector3D grad(Atom &,AtomsArray&);
   Float getRcutoff() const;
   FProxy();
   virtual
@@ -59,7 +59,7 @@ public:
       potentials[i]->incDisplacement(atom,inc);
   }  
 
-  void NL_init(AtomsContainer& atoms)
+  void NL_init(AtomsArray& atoms)
   {
     for(size_t i = 0; i < potentials.size(); i++)
     {
@@ -67,12 +67,12 @@ public:
     }
   };  
 
-  void NL_checkRequestUpdate(AtomsContainer& atoms)
+  void NL_checkRequestUpdate(AtomsArray& atoms)
   {
     for(size_t i = 0; i < potentials.size(); i++)
       potentials[i]->NL_checkRequestUpdate(atoms);
   }
-  void NL_UpdateIfNeeded(AtomsContainer& atoms)
+  void NL_UpdateIfNeeded(AtomsArray& atoms)
   {
     for(size_t i = 0; i < potentials.size(); i++)
       potentials[i]->NL_UpdateIfNeeded(atoms);

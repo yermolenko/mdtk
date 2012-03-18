@@ -1,8 +1,8 @@
 /*
    The Lennard-Jones interatomic potential implementation.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -75,20 +75,17 @@ FLJ::fillR_concat_()
 {
   Float r;
 
-  AtomsContainer atoms;
-  atoms.push_back(new Atom());
-  atoms.push_back(new Atom());
-  atoms.push_back(new Atom());
-  atoms[0]->ID = Cu_EL;
-  atoms[1]->ID = C_EL;
-  atoms[2]->ID = H_EL;
+  AtomsArray atoms(3);
+  atoms[0].ID = Cu_EL;
+  atoms[1].ID = C_EL;
+  atoms[2].ID = H_EL;
   atoms.setAttributesByElementID();
 
 for(size_t i = 0; i < atoms.size(); i++)
 for(size_t j = 0; j < atoms.size(); j++)
 {
-Atom& atom1 = *(atoms[i]);
-Atom& atom2 = *(atoms[j]);
+Atom& atom1 = atoms[i];
+Atom& atom2 = atoms[j];
 
          Float       x[2]; x[0] = 1.2*Ao; x[1] = 1.9*Ao;
          Float       v[2];
@@ -262,13 +259,13 @@ FLJ::dVLJ(Atom &atom1,Atom &atom2, Atom &datom)
 }  
 
 Float
-FLJ::operator()(AtomsContainer& gl)
+FLJ::operator()(AtomsArray& gl)
 {
   Float Ei = 0;
 for(size_t i = 0; i < gl.size(); i++)
 {
-  Atom& atom = *(gl[i]);
-  AtomsContainer& nl = NL(atom);
+  Atom& atom = gl[i];
+  AtomRefsContainer& nl = NL(atom);
   Index j;
   for(j = 0; j < nl.size(); j++)
   {
@@ -285,7 +282,7 @@ for(size_t i = 0; i < gl.size(); i++)
 }
 
 Vector3D
-FLJ::grad(Atom &atom,AtomsContainer&)
+FLJ::grad(Atom &atom,AtomsArray&)
 {
   Index j;
   Vector3D dEi(0.0,0.0,0.0);

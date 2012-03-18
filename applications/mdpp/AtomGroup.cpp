@@ -79,12 +79,12 @@ AtomGroup::addAtom(const mdtk::Atom& a)
 void
 AtomGroup::update(const mdtk::SimLoop& ml)
 {
-  const AtomsContainer &ac = ml.atoms;
+  const AtomsArray &ac = ml.atoms;
   for(size_t i = 0; i < atoms.size(); i++)
   {
     mdtk::Atom& a = atoms[i];
     REQUIRE(ac.size() > a.globalIndex);
-    const mdtk::Atom& aUpd = *ac[a.globalIndex];
+    const mdtk::Atom& aUpd = ac[a.globalIndex];
     a.V = aUpd.V;
     a.coords = aUpd.coords;
   }
@@ -94,10 +94,10 @@ void
 AtomGroup::build(const mdtk::SimLoop& ml, 
 		 const double SPOTTED_DISTANCE)
 {
-  const AtomsContainer &ac = ml.atoms;
+  const AtomsArray &ac = ml.atoms;
   for(size_t i = 0; i < ac.size(); i++)
   {
-    const mdtk::Atom a = *ac[i];
+    const mdtk::Atom a = ac[i];
     if (a.coords.z < SPOTTED_DISTANCE)
       addAtom(a);
   }

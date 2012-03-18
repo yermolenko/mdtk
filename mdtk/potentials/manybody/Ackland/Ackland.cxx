@@ -3,7 +3,7 @@
    gold, silver and their alloys.
    See [G.J. Ackland and V. Vitek, Phys. Rev. B 41, 10324 (1990)]
 
-   Copyright (C) 2007, 2008, 2009 Oleksandr Yermolenko
+   Copyright (C) 2007, 2008, 2009, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -31,7 +31,7 @@ namespace mdtk
 //#define ACKLAND_ZBL_CORRETION (-22.67812*eV)
 #define ACKLAND_ZBL_CORRETION (-40.0*eV)
 
-  Float  Ackland::buildPairs(AtomsContainer& gl)
+  Float  Ackland::buildPairs(AtomsArray& gl)
   {
     Float Ei = 0;
     if (gl.size() != pairs.size()) pairs.resize(gl.size());    
@@ -44,7 +44,7 @@ namespace mdtk
     }  
     for(ii = 0; ii < gl.size(); ii++)
     {
-      Atom &atom_i = *(gl[ii]);
+      Atom &atom_i = gl[ii];
       if (isHandled(atom_i))
       {
       std::pair<int,int> sample_pair(atom_i.globalIndex,DUMMY_EL);
@@ -88,7 +88,7 @@ return Ei;
   }  
 
 Vector3D
-Ackland::grad(Atom &atom,AtomsContainer&gl)
+Ackland::grad(Atom &atom,AtomsArray& gl)
 {
   Index i;
   
@@ -101,7 +101,7 @@ Ackland::grad(Atom &atom,AtomsContainer&gl)
 
     for(i = 0; i < acnt.size(); i++)
     {
-      Atom &atom_i = *(gl[acnt[i].first]);
+      Atom &atom_i = gl[acnt[i].first];
       
       if (isHandled(atom_i))
       {
@@ -119,7 +119,7 @@ TRACE(dF(atom_i,atom));
       
       if (isHandled(atom_i))
       {
-        Atom &atom_j = *(gl[acnt[i].second]);
+        Atom &atom_j = gl[acnt[i].second];
 
         REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
         if (isHandled(atom_j))
@@ -427,7 +427,7 @@ Ackland::drho(Atom &atom_i, Atom &datom)
 }
 
 Float
-Ackland::operator()(AtomsContainer& gl)
+Ackland::operator()(AtomsArray& gl)
 {
   return buildPairs(gl);
 }  
@@ -594,20 +594,17 @@ Ackland::fillR_concat_()
 {
   Float r;
 
-  AtomsContainer atoms;
-  atoms.push_back(new Atom());
-  atoms.push_back(new Atom());
-  atoms.push_back(new Atom());
-  atoms[0]->ID = Cu_EL;
-  atoms[1]->ID = Ag_EL;
-  atoms[2]->ID = Au_EL;
+  AtomsArray atoms(3);
+  atoms[0].ID = Cu_EL;
+  atoms[1].ID = Ag_EL;
+  atoms[2].ID = Au_EL;
   atoms.setAttributesByElementID();
 
 for(size_t i = 0; i < atoms.size(); i++)
 for(size_t j = 0; j < atoms.size(); j++)
 {
-Atom& atom1 = *(atoms[i]);
-Atom& atom2 = *(atoms[j]);
+Atom& atom1 = atoms[i];
+Atom& atom2 = atoms[j];
 
          Float       x[2]; x[0] = 1.0*Ao; x[1] = 1.4*Ao;
          Float       v[2];

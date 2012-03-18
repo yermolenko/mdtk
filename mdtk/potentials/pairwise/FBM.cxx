@@ -1,7 +1,7 @@
 /*
    The Born-Mayer interatomic potential implementation.
 
-   Copyright (C) 2004, 2005, 2009 Oleksandr Yermolenko
+   Copyright (C) 2004, 2005, 2009, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -76,13 +76,13 @@ FBM::dF11(Atom& a1, Atom& a2, Atom& da)
 }
 
 Float
-FBM::operator()(AtomsContainer& gl)
+FBM::operator()(AtomsArray& gl)
 {
   Float Ei = 0;
 for(size_t i = 0; i < gl.size(); i++)
 {
-  Atom& atom = *(gl[i]);
-  AtomsContainer& nl = NL(atom);
+  Atom& atom = gl[i];
+  AtomRefsContainer& nl = NL(atom);
   Index j;
   for(j = 0; j < nl.size(); j++)
   {
@@ -97,7 +97,7 @@ for(size_t i = 0; i < gl.size(); i++)
 }
 
 Vector3D
-FBM::grad(Atom &atom,AtomsContainer&)
+FBM::grad(Atom &atom,AtomsArray&)
 {
   Index j;
   Vector3D dEi(0.0,0.0,0.0);

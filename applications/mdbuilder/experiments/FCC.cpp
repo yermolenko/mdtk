@@ -29,7 +29,7 @@ using namespace mdtk;
 
 void
 place_FCC_cell(
-  SimLoop& sl,
+  AtomsArray& sl,
   ElementID el,
   double a,
   double b,
@@ -63,7 +63,7 @@ place_FCC_cell(
 
 void
 place_FCC_lattice(
-  SimLoop& sl,
+  AtomsArray& sl,
   int a_num,
   int b_num,
   int c_num,
@@ -102,7 +102,7 @@ place_FCC_lattice(
           {
             for(size_t i = 1; i <= 4; i++)
             {
-              Atom& a = *(sl.atoms[sl.atoms.size()-i]);
+              Atom& a = sl[sl.size()-i];
               a.fix();
             }
           }
@@ -129,7 +129,7 @@ build_FCC_lattice(
   mdtk::SimLoop sl;
   initialize_simloop(sl);
 
-  place_FCC_lattice(sl,a_num,b_num,c_num,el,fixBottomLayer,a,b,c);
+  place_FCC_lattice(sl.atoms,a_num,b_num,c_num,el,fixBottomLayer,a,b,c);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
   sl.thermalBath.zMin = c*c_num-c*3-c/4.0;
@@ -138,15 +138,15 @@ build_FCC_lattice(
   relax(sl,0.01*ps);
   quench(sl,1.0*K);
 
-  removeMomentum(sl.atoms);
+  sl.atoms.removeMomentum();
 
   return sl;
 }
 
 void
 place_Generic_FCC_cell(
-  SimLoop& sl,
-  const SimLoop sl_element,
+  AtomsArray& sl,
+  const AtomsArray sl_element,
   Vector3D va,
   Vector3D vb,
   Vector3D vc
@@ -187,8 +187,8 @@ place_Generic_FCC_cell(
 
 void
 place_Generic_NegFCC_cell(
-  SimLoop& sl,
-  const SimLoop sl_element,
+  AtomsArray& sl,
+  const AtomsArray sl_element,
   Vector3D va,
   Vector3D vb,
   Vector3D vc
@@ -229,8 +229,8 @@ place_Generic_NegFCC_cell(
 
 void
 place_Generic_FCC_lattice(
-  SimLoop& sl,
-  const SimLoop sl_element,
+  AtomsArray& sl,
+  const AtomsArray sl_element,
   int a_num,
   int b_num,
   int c_num,
@@ -271,9 +271,9 @@ place_Generic_FCC_lattice(
         {
           if (ic == c_num-1)
           {
-            for(size_t i = 1; i <= 4*sl_element.atoms.size(); i++)
+            for(size_t i = 1; i <= 4*sl_element.size(); i++)
             {
-              Atom& a = *(sl.atoms[sl.atoms.size()-i]);
+              Atom& a = sl[sl.size()-i];
               a.fix();
             }
           }

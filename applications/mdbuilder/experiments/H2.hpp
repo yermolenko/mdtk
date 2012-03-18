@@ -30,9 +30,9 @@ namespace mdbuilder
 
 using namespace mdtk;
 
-void place_H2_simple(SimLoop& sl);
+void place_H2_simple(AtomsArray& sl);
 
-void place_H2(SimLoop& sl);
+void place_H2(AtomsArray& sl);
 
 }
 
