@@ -120,7 +120,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->iteration = 0;
     cerr << "Heating up every atom to " << maxHeatUpEnergy/mdtk::eV << " eV" << std::endl;
     modloop->heatUpEveryAtom(maxHeatUpEnergy, rng);
-    TRACE(modloop->atoms.front()->getPBC());
+    TRACE(modloop->atoms.front()->PBC);
     int retval;
     cerr << "Releasing..." << std::endl;
     retval = modloop->execute();
@@ -135,7 +135,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->simTimeFinal = 0.0*ps;
     modloop->dt_ = 1e-20;
     modloop->iteration = 0;
-    TRACE(modloop->atoms.front()->getPBC());
+    TRACE(modloop->atoms.front()->PBC);
     while (modloop->simTimeFinal < 4.0*ps)
     {
       modloop->simTimeFinal += 0.05*ps;
@@ -406,7 +406,7 @@ build_target_by_cluster_bombardment(
     = maxDistanceFrom(sl_cluster.atoms,geomCenter(sl_cluster.atoms));
   TRACE(clusterRadius/mdtk::Ao);
 
-  Vector3D dCluster = sl_target.atoms.front()->getPBC()/2.0;
+  Vector3D dCluster = sl_target.atoms.front()->PBC/2.0;
   dCluster.z = -(10.0*Ao+clusterRadius);
   TRACE(dCluster/mdtk::Ao);
 
@@ -684,7 +684,7 @@ bomb_Cluster_with_Ions(
     TRACE(i);
     Atom& clusterAtom = *sl.atoms[clusterAtomIndices[i]];
 
-    clusterAtom.apply_PBC = false;
+//    clusterAtom.apply_PBC = false;
     clusterAtom.apply_ThermalBath = false;
   }
 
@@ -770,7 +770,7 @@ bomb_Cluster_with_Ions(
                  Vector3D(bombX,bombY,clusterZMin-5.5*Ao));
 
     projectile->V = Vector3D(0,0,sqrt(2.0*ionEnergy/(projectile->M)));
-    projectile->apply_PBC=false;
+//    projectile->apply_PBC=false;
     projectile->apply_ThermalBath=false;
     sl.atoms.push_back(projectile);
 
@@ -950,7 +950,7 @@ bomb_orthorhombic_with_clusters(
 
     for(size_t i = 0; i < sl.atoms.size(); i++)
     {
-      sl.atoms[i]->apply_PBC=true;
+//      sl.atoms[i]->apply_PBC=true;
       sl.atoms[i]->apply_ThermalBath=true;
     }
 

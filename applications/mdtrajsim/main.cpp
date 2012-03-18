@@ -95,16 +95,16 @@ CustomSimLoop::doAfterIteration()
   {
     Atom& a = *atoms[j];
     Vector3D c = a.coords;
-    if (a.coords.z < thermalBath.zMinOfFreeZone && a.usePBC() &&
+    if (a.coords.z < thermalBath.zMinOfFreeZone && a.lateralPBCEnabled() &&
         (
           (a.coords.x < 0.0 + thermalBath.dBoundary) ||
-          (a.coords.x > a.getPBC().x - thermalBath.dBoundary) ||
+          (a.coords.x > a.PBC.x - thermalBath.dBoundary) ||
           (a.coords.y < 0.0 + thermalBath.dBoundary) ||
-          (a.coords.y > a.getPBC().y - thermalBath.dBoundary)
+          (a.coords.y > a.PBC.y - thermalBath.dBoundary)
           )
       ) 
     {
-      if (a.apply_PBC)
+//      if (a.apply_PBC)
       {
         std::vector<size_t> bondedAtoms;
         if (!bondedToSubstrate(a, bondedAtoms))
@@ -113,7 +113,7 @@ CustomSimLoop::doAfterIteration()
                << bondedAtoms.size() << " atoms )." << endl;
           for(size_t i = 0; i < bondedAtoms.size(); ++i)
           {
-            atoms[bondedAtoms[i]]->apply_PBC = false;
+//            atoms[bondedAtoms[i]]->apply_PBC = false;
             atoms[bondedAtoms[i]]->apply_ThermalBath = false;
           }
         }

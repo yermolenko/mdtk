@@ -68,7 +68,7 @@ void MDTrajectory_read(MDTrajectory& mdt,
       ml.loadFromMDE(fi);
 //	  ml_->loadFromMDE_OLD(fi);
       ml.allowPartialLoading = true; // hack, disables essential checks
-      ml.updateGlobalIndexes();
+      ml.atoms.prepareForSimulatation();
     }
     fi.close(); 
   }
@@ -118,7 +118,7 @@ void MDTrajectory_read_from_SnapshotList(
       ml.loadFromMDE(fi);
 //	  ml_->loadFromMDE_OLD(fi);
       ml.allowPartialLoading = true; // hack, disables essential checks
-      ml.updateGlobalIndexes();
+      ml.atoms.prepareForSimulatation();
     }
     fi.close(); 
   }

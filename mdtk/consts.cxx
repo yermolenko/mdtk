@@ -37,7 +37,7 @@ const Float fs = 1e-15;
 
 const Float Deg  = M_PI/180.0;
 
-const Vector3D NO_PBC = Vector3D(10000.0*Ao, 10000.0*Ao, 10000.0*Ao);
+const Vector3D NO_PBC = Vector3D(NO_PBC_L, NO_PBC_L, NO_PBC_L);
 
 //const int EL_ID_size = 200;
 

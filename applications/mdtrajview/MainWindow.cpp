@@ -1,8 +1,8 @@
 /*
    The MainWindow class for the molecular dynamics trajectory viewer.
 
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
+   2012 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -109,7 +109,8 @@ MainWindow::setAtomViewIndex(int index)
   os TRACESS(atom.coords/mdtk::Ao);
 //    os TRACESS(atom.an);
 //    os TRACESS(atom.apply_barrier);
-  os TRACESS(atom.apply_PBC);
+  os TRACESS(atom.PBCEnabled());
+  os TRACESS(atom.lateralPBCEnabled());
   os TRACESS(atom.apply_ThermalBath);
 //    os TRACESS(atom.ejected);
   os TRACESS(atom.tag);

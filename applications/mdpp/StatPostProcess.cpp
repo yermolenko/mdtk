@@ -382,7 +382,7 @@ StatPostProcess::removeBadTrajectories()
     yaatk::text_ifstream fi(trajFinalName.c_str());
     state->initNLafterLoading = false;
     state->loadFromStream(fi);
-    state->updateGlobalIndexes();
+    state->atoms.prepareForSimulatation();
     fi.close();
 
     {
@@ -437,7 +437,7 @@ StatPostProcess::execute()
     yaatk::text_ifstream fi(trajFinalName.c_str()); 
     state->initNLafterLoading = false;
     state->loadFromStream(fi);
-    state->updateGlobalIndexes();
+    state->atoms.prepareForSimulatation();
     setTags(state);
     NeighbourList nl(state->atoms);
     fi.close();
@@ -451,8 +451,7 @@ StatPostProcess::execute()
     }
 */
 
-    REQUIRE(state->atoms.size() > 0);
-    td.PBC = state->atoms.front()->getPBC();
+    td.PBC = state->atoms.PBC();
     TRACE(td.PBC/mdtk::Ao);
 
     cout << "State " << trajFinalName << " loaded." << std::endl;
@@ -475,7 +474,7 @@ StatPostProcess::execute()
       yaatk::text_ifstream fi(mde_init_filename.c_str()); 
       mde_init->initNLafterLoading = false;
       mde_init->loadFromStream(fi);
-      mde_init->updateGlobalIndexes();
+      mde_init->atoms.prepareForSimulatation();
       setTags(mde_init);
       NeighbourList nl(mde_init->atoms);
       fi.close(); 
@@ -529,7 +528,7 @@ StatPostProcess::execute()
 	TRACE(mde_inter_filename);
 	yaatk::text_ifstream fi(mde_inter_filename.c_str()); 
 	mde_inter->loadFromStreamXVA(fi);
-	mde_inter->updateGlobalIndexes();
+	mde_inter->atoms.prepareForSimulatation();
 	setTags(mde_inter);
 	NeighbourList nl(mde_inter->atoms);
 	fi.close(); 
@@ -1921,7 +1920,7 @@ int coordsCut = 0;
       if (atraj.endCheckPoint.coords.z < -1.0*Ao) continue;
 
         for(size_t c = 0; c < 3; c++)
-        if (PBC.X(c) < MDTK_MAX_PBC)
+        if (PBC.X(c) != NO_PBC_L)
         {
           if (finCoords.X(c) < 0)         {finCoords.X(c) = 0.0;coordsCut++; }
           if (finCoords.X(c) >= PBC.X(c)) {finCoords.X(c) = PBC.X(c);coordsCut++; }
@@ -2147,7 +2146,7 @@ TRACE(PBC.X(2) < MDTK_MAX_PBC);
 //        TRACE(atraj.checkPoints.size());
 
         for(size_t c = 0; c < 3; c++)
-        if (PBC.X(c) < MDTK_MAX_PBC)
+        if (PBC.X(c) != NO_PBC_L)
         {
           if (currentCoords.X(c) < 0)         {currentCoords.X(c) = 0.0; }
           if (currentCoords.X(c) >= PBC.X(c)) {currentCoords.X(c) = PBC.X(c); }

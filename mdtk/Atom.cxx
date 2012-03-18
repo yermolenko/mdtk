@@ -39,7 +39,6 @@ Atom::Atom(ElementID id, Vector3D Cx, Vector3D Vx)
    V(Vx),
    an(0.0,0.0,0.0),
    an_no_tb(0.0,0.0,0.0),
-   apply_PBC(true),
    apply_ThermalBath(true),
    globalIndex(0),
    fixed(false),
@@ -59,7 +58,6 @@ Atom::Atom(const Atom &C)
   V = C.V;
   an = C.an;
   an_no_tb = C.an_no_tb;
-  apply_PBC = C.apply_PBC;
   apply_ThermalBath = C.apply_ThermalBath;
   globalIndex = C.globalIndex;
   fixed = C.fixed;
@@ -80,7 +78,6 @@ Atom::operator=(const Atom &C)
   V = C.V;
   an = C.an;
   an_no_tb = C.an_no_tb;
-  apply_PBC = C.apply_PBC;
   apply_ThermalBath = C.apply_ThermalBath;
   globalIndex = C.globalIndex;
   fixed = C.fixed;
@@ -90,23 +87,48 @@ Atom::operator=(const Atom &C)
   return *this;
 }
 
-Vector3D
-depos(const Atom &a1, const Atom &a2)
+void
+Atom::applyPBC()
 {
-  Vector3D r(a1.coords - a2.coords);
-//if (a1.globalIndex == 1806) {TRACE("before getPBC");TRACE(a1.container);}
-  if (a1.PBC == NULL) return r;
-  Vector3D PBC = a1.PBC;
-//if (a1.globalIndex == 1806) {TRACE("after getPBC");TRACE(a1.container);}
-  if (PBC == NO_PBC) return r;
+  Vector3D& c = coords;
 
-  if (!(a1.apply_PBC && a2.apply_PBC)) return r;
+  if (PBC.x != NO_PBC.x)
+  {
+    while(c.x < 0)      {c.x += PBC.x;--PBC_count.x;}
+    while(c.x >= PBC.x) {c.x -= PBC.x;++PBC_count.x;}
+  }
+  if (PBC.y != NO_PBC.y)
+  {
+    while(c.y < 0)      {c.y += PBC.y;--PBC_count.y;}
+    while(c.y >= PBC.y) {c.y -= PBC.y;++PBC_count.y;}
+  }
+  if (PBC.z != NO_PBC.z)
+  {
+    while(c.z < 0)      {c.z += PBC.z;--PBC_count.z;}
+    while(c.z >= PBC.z) {c.z -= PBC.z;++PBC_count.z;}
+  }
+}
 
-  if(fabs(r.x) > PBC.x*0.5) {r.x += (r.x > 0)?(-PBC.x):(PBC.x);}
-  if(fabs(r.y) > PBC.y*0.5) {r.y += (r.y > 0)?(-PBC.y):(PBC.y);}
-  if(fabs(r.z) > PBC.z*0.5) {r.z += (r.z > 0)?(-PBC.z):(PBC.z);}
+void
+Atom::unfoldPBC()
+{
+  Vector3D& c = coords;
 
-  return r;
+  if (PBC.x != NO_PBC.x)
+  {
+    c.x += PBC.x*PBC_count.x;
+    PBC_count.x = 0;
+  }
+  if (PBC.y != NO_PBC.y)
+  {
+    coords.y += PBC.y*PBC_count.y;
+    PBC_count.y = 0;
+  }
+  if (PBC.z != NO_PBC.z)
+  {
+    coords.z += PBC.z*PBC_count.z;
+    PBC_count.z = 0;
+  }
 }
 
 istream&
@@ -124,7 +146,6 @@ operator>>(istream& is, Atom& a)
   Vector3D an;
   Vector3D an_no_tb;
 
-  bool apply_PBC;
   bool apply_ThermalBath;
 
   size_t globalIndex;
@@ -142,7 +163,6 @@ operator>>(istream& is, Atom& a)
      >> V
      >> an
      >> an_no_tb
-     >> apply_PBC
      >> apply_ThermalBath
      >> globalIndex
      >> fixed
@@ -159,7 +179,6 @@ operator>>(istream& is, Atom& a)
     a.V = V;
     a.an = an;
     a.an_no_tb = an_no_tb;
-    a.apply_PBC = apply_PBC;
     a.apply_ThermalBath = apply_ThermalBath;
     a.globalIndex = globalIndex;
     a.fixed = fixed;
@@ -184,7 +203,6 @@ operator<<(ostream& os, const Atom& a)
      << a.V << "\n"
      << a.an << "\n"
      << a.an_no_tb << "\n"
-     << a.apply_PBC << "\n"
      << a.apply_ThermalBath << "\n"
      << a.globalIndex << "\n"
      << a.fixed << "\n"

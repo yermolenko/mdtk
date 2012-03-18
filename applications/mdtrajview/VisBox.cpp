@@ -72,7 +72,7 @@ VisBox::loadNewSnapshot(std::string base_state_filename,std::string file)
 	ml_->loadFromMDE(fi);
 //	  ml_->loadFromMDE_OLD(fi);
 	ml_->allowPartialLoading = true; // hack, disables essential checks
-	ml_->updateGlobalIndexes();
+	ml_->atoms.prepareForSimulatation();
       }
       fi.close(); 
     }
@@ -436,15 +436,15 @@ VisBox::listThermalBath()
   Float tb[3][2];
 
   tb[0][0] = ml_->thermalBath.dBoundary;
-  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->getPBC().x;
+  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->PBC.x;
   tb[1][0] = ml_->thermalBath.dBoundary;
-  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->getPBC().y;
+  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->PBC.y;
   tb[2][0] = ml_->thermalBath.zMinOfFreeZone;
   tb[2][1] = ml_->thermalBath.zMin;
 
   Float cb[3][2] = {{0,0},{0,0},{0,0}};
-  cb[0][1] = ml_->atoms.front()->getPBC().x;
-  cb[1][1] = ml_->atoms.front()->getPBC().y;
+  cb[0][1] = ml_->atoms.front()->PBC.x;
+  cb[1][1] = ml_->atoms.front()->PBC.y;
   cb[2][0] = tb[2][0];
   cb[2][1] = tb[2][1]+30*Ao;
 
@@ -493,15 +493,15 @@ VisBox::listThermalBathSketch()
   Float tb[3][2];
 
   tb[0][0] = ml_->thermalBath.dBoundary;
-  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->getPBC().x;
+  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->PBC.x;
   tb[1][0] = ml_->thermalBath.dBoundary;
-  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->getPBC().y;
+  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->atoms.front()->PBC.y;
   tb[2][0] = ml_->thermalBath.zMinOfFreeZone;
   tb[2][1] = ml_->thermalBath.zMin;
 
   Float cb[3][2] = {{0,0},{0,0},{0,0}};
-  cb[0][1] = ml_->atoms.front()->getPBC().x;
-  cb[1][1] = ml_->atoms.front()->getPBC().y;
+  cb[0][1] = ml_->atoms.front()->PBC.x;
+  cb[1][1] = ml_->atoms.front()->PBC.y;
   cb[2][0] = tb[2][0];
   cb[2][1] = tb[2][1]+30*Ao;
 

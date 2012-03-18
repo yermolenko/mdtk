@@ -40,13 +40,14 @@ public:
 
   Vector3D coords;
   IntVector3D PBC_count;
+  void applyPBC();
+  void unfoldPBC();
 
   Vector3D V;
 
   Vector3D an;
   Vector3D an_no_tb;
 
-  bool apply_PBC;
   bool apply_ThermalBath;
 
   size_t globalIndex;
@@ -57,8 +58,8 @@ public:
   void unfix() { fixed = false; V=0.0; an=0.0; an_no_tb=0.0; }
 
   Vector3D PBC;
-  Vector3D getPBC() const {return PBC;}
-  bool usePBC()const{return PBC != NO_PBC;};
+  bool PBCEnabled()const{return PBC != NO_PBC;};
+  bool lateralPBCEnabled()const{return PBC.x != NO_PBC && PBC.y != NO_PBC;};
 
   Atom(ElementID id=H_EL, Vector3D Cx=Vector3D(0,0,0), Vector3D Vx=Vector3D(0,0,0));
 
@@ -100,6 +101,23 @@ Atom::setAttributesByElementID()
     case Xe_EL : Z =  54.0*e; M =  131.293*amu; break;
     case DUMMY_EL : break;
   }
+}
+
+inline
+Vector3D
+depos(const Atom &a1, const Atom &a2)
+{
+  Vector3D r(a1.coords - a2.coords);
+
+//  if (!(a1.PBCEnabled() && a2.PBCEnabled())) return r;
+  if (a1.PBC.x == a2.PBC.x && a1.PBC.y == a2.PBC.y && a1.PBC.z == a2.PBC.z)
+  {
+    if(fabs(r.x) > a1.PBC.x*0.5) {r.x += (r.x > 0)?(-a1.PBC.x):(a1.PBC.x);}
+    if(fabs(r.y) > a1.PBC.y*0.5) {r.y += (r.y > 0)?(-a1.PBC.y):(a1.PBC.y);}
+    if(fabs(r.z) > a1.PBC.z*0.5) {r.z += (r.z > 0)?(-a1.PBC.z):(a1.PBC.z);}
+  }
+
+  return r;
 }
 
 inline

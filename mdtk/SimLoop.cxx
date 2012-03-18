@@ -74,7 +74,7 @@ SimLoop::SimLoop()
 SimLoop::SimLoop(const SimLoop &c)
   : allowToFreePotentials(true),
     allowToFreeAtoms(true),
-    atoms_(),
+    atoms_(c.atoms),
     atoms(atoms_),
     check(),
     simTime(0.0), 
@@ -105,11 +105,6 @@ SimLoop::SimLoop(const SimLoop &c)
   check.checkEnergyAfter = 1; // dummy, will be removed soon
 
   thermalBath = c.thermalBath;
-  for(size_t i = 0; i < c.atoms_.size(); i++)
-  {
-    Atom& a = *(c.atoms_[i]);
-    atoms_.push_back(&(*(new Atom()) = a));
-  }
 }
 
 SimLoop&
@@ -120,11 +115,7 @@ SimLoop::operator =(const SimLoop &c)
   atoms_.clear();
 
   thermalBath = c.thermalBath;
-  for(size_t i = 0; i < c.atoms_.size(); i++)
-  {
-    Atom& a = *(c.atoms_[i]);
-    atoms_.push_back(&(*(new Atom()) = a));
-  }
+  atoms = c.atoms;
 
   return *this;
 }
@@ -132,11 +123,7 @@ SimLoop::operator =(const SimLoop &c)
 void
 SimLoop::add_simloop(const SimLoop &sl_addon)
 {
-  for(size_t i = 0; i < sl_addon.atoms_.size(); i++)
-  {
-    Atom& a = *(sl_addon.atoms_[i]);
-    atoms_.push_back(&(*(new Atom()) = a));
-  }
+  atoms.addAtoms(sl_addon.atoms);
 }
 
 SimLoop::~SimLoop()
@@ -151,10 +138,12 @@ SimLoop::execute()
   try
   {
     fpot.diagnose();
-    PTRACE(atoms.front()->usePBC());
-    PTRACE(atoms.back()->usePBC());
-    PTRACE(atoms.front()->getPBC()/Ao);
-    PTRACE(atoms.back()->getPBC()/Ao);
+    PTRACE(atoms.front()->PBCEnabled());
+    PTRACE(atoms.front()->lateralPBCEnabled());
+    PTRACE(atoms.back()->PBCEnabled());
+    PTRACE(atoms.back()->lateralPBCEnabled());
+    PTRACE(atoms.front()->PBC/Ao);
+    PTRACE(atoms.back()->PBC/Ao);
     PTRACE(thermalBath.zMin/Ao);
     PTRACE(thermalBath.dBoundary/Ao);
     PTRACE(thermalBath.zMinOfFreeZone/Ao);
@@ -184,75 +173,6 @@ SimLoop::execute()
   }
 }  
 
-bool
-SimLoop::checkMIC()
-{
-  Vector3D PBC;
-  REQUIRE(atoms.size() > 0);
-  PBC = atoms.front()->getPBC();
-  if (PBC.x <= fpot.getRcutoff()*2.0 || PBC.y <= fpot.getRcutoff()*2.0)
-  {
-    return false;
-  }
-  else
-  {
-    return true;
-  }  
-}  
-
-bool
-SimLoop::fitInCell()
-{
-  Vector3D PBC;
-  REQUIRE(atoms.size() > 0);
-  PBC = atoms.front()->getPBC();
-  size_t i;
-  for(i = 0; i < atoms_.size(); i++)
-  {
-    if (!(atoms_[i]->apply_PBC)) continue;
-    Vector3D aci = atoms_[i]->coords;
-    if (PBC.x < MDTK_MAX_PBC) if (aci.x < 0 || aci.x>=PBC.x) {TRACE(i);TRACE(aci.x);TRACE(PBC.x);return false;}
-    if (PBC.y < MDTK_MAX_PBC) if (aci.y < 0 || aci.y>=PBC.y) {TRACE(i);TRACE(aci.y);TRACE(PBC.y);return false;}
-    if (PBC.z < MDTK_MAX_PBC) if (aci.z < 0 || aci.z>=PBC.z) {TRACE(i);TRACE(aci.z);TRACE(PBC.z);return false;}
-  }
-  return true;
-}  
-
-void
-SimLoop::applyPBC(Atom& a)
-{
-  Vector3D& ac = a.coords;
-  if (!a.usePBC()) return;
-  if (!(a.apply_PBC)) return;
-  Vector3D PBC(a.getPBC());
-
-  if (PBC.x < MDTK_MAX_PBC)
-  {
-    while(ac.x < 0)      {ac.x += PBC.x;--a.PBC_count.x;}
-    while(ac.x >= PBC.x) {ac.x -= PBC.x;++a.PBC_count.x;}
-  }  
-  if (PBC.y < MDTK_MAX_PBC)
-  {
-    while(ac.y < 0)      {ac.y += PBC.y;--a.PBC_count.y;}
-    while(ac.y >= PBC.y) {ac.y -= PBC.y;++a.PBC_count.y;}
-  }
-  if (PBC.z < MDTK_MAX_PBC)
-  {
-    while(ac.z < 0)      {ac.z += PBC.z;--a.PBC_count.z;}
-    while(ac.z >= PBC.z) {ac.z -= PBC.z;++a.PBC_count.z;}
-  }  
-}  
-
-void
-SimLoop::initPBC()
-{
-  size_t j, atoms_count = atoms_.size();
-  for(j = 0; j < atoms_count; j++)
-  {
-     applyPBC(*(atoms_[j]));
-  }  
-}  
-
 int
 SimLoop::execute_wo_checks()
 {
@@ -266,19 +186,11 @@ SimLoop::execute_wo_checks()
 
   procmon::ProcmonTimer pmtTotal;
 
-  REQUIRE(atoms.size() > 0);
-  if (atoms.front()->usePBC() && !checkMIC())
+  atoms.prepareForSimulatation();
+  if (!atoms.checkMIC(fpot.getRcutoff()*2.0))
   {
     cerr << "Rcutoff is too large for given PBC !" << endl << flush;
     throw Exception("Rcutoff is too large for given PBC !");
-  }
-
-  if (atoms.front()->usePBC()) initPBC();
-
-  if (atoms.front()->usePBC() && !fitInCell())
-  {
-    cerr << "Atoms do not fit given PBC cell !" << endl << flush;
-    throw Exception("Atoms do not fit given PBC cell !");
   }
 
   Float& dt = dt_; // just "sugar". dt_ should be renamed globally
@@ -427,10 +339,7 @@ SimLoop::execute_wo_checks()
         v_max = v;
     }
 
-    for(size_t j = 0; j < atoms.size(); j++)
-    {
-      applyPBC(*(atoms_[j]));
-    }
+    atoms.applyPBC();
 
     doAfterIteration();
 
@@ -609,7 +518,7 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   atoms_.resize(atoms_count);
   for(i = 0; i < atoms_count; i++)
   {
-    atoms_[i] = new Atom; REQUIRE(atoms_[i] != 0);
+    atoms[i] = atoms.createAtom();
     YAATK_FSTREAM_READ(is,*(atoms_[i]),smode);
   }
   cout << endl;
@@ -633,7 +542,7 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_READ(is,CPUTimeUsed_prev,smode);
   CPUTimeUsed_total = CPUTimeUsed_prev;
 
-  atoms_.LoadFromStream(is,smode);
+  atoms_.loadFromStream(is,smode);
 
 //TRACE(atoms_.getPBC());
 
@@ -676,7 +585,7 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
 
   os.precision(prevStreamSize);
 
-  atoms_.SaveToStream(os,smode);
+  atoms_.saveToStream(os,smode);
 }
 
 //#define DONT_USE_XVASCALE
@@ -1225,18 +1134,10 @@ void SimLoop::do_check_energy()
       }
 }
 
-
-void SimLoop::updateGlobalIndexes()
-{
-  for(size_t i = 0; i < atoms_.size(); i++)
-  {
-    atoms_[i]->globalIndex = i;
-  }
-}  
-
 void SimLoop::initialize()
 {
-  updateGlobalIndexes();
+//  updateGlobalIndexes();
+  atoms.prepareForSimulatation();
   TRACE(initNLafterLoading);
   if (initNLafterLoading)
   {
@@ -1265,7 +1166,7 @@ SimLoop::saveToMDE(std::ostream& fo)
   YAATK_FSTREAM_WRITE(fo,simTimeFinal,YAATK_FSTREAM_TEXT);
 
   REQUIRE(atoms.size() > 0);
-  fo << atoms.front()->getPBC() << std::endl;
+  fo << atoms.front()->PBC << std::endl;
   thermalBath.SaveToStream(fo,YAATK_FSTREAM_TEXT);
 }
 
@@ -1308,7 +1209,7 @@ SimLoop::loadFromMDE(std::istream& fi)
   for(int i = 0; i < atoms_count; i++)
   {
    Atom *new_atom;
-   new_atom = new Atom();
+   new_atom = atoms.createAtom();
    YAATK_FSTREAM_READ(fi,*new_atom,YAATK_FSTREAM_TEXT);
    Ro.push_back(new_atom);
   }  

@@ -30,92 +30,46 @@ namespace mdtk
 
 class AtomsContainer:public std::vector<Atom*>
 {
-//  Vector3D PBC;
+  std::vector<Atom*> createdAtoms;
 public:
-  void setPBC(Vector3D newPBC)
-    {
-      for (size_t i = 0; i < size(); i++)
-      {
-        Atom& a = *(at(i));
+  void applyPBC();
+  void unfoldPBC();
 
-        if (newPBC.x == NO_PBC.x)
-        {
-          a.coords.x += a.PBC.x*a.PBC_count.x;
-          a.PBC_count.x = 0;
-        }
-        if (newPBC.y == NO_PBC.y)
-        {
-          a.coords.y += a.PBC.y*a.PBC_count.y;
-          a.PBC_count.y = 0;
-        }
-        if (newPBC.z == NO_PBC.z)
-        {
-          a.coords.z += a.PBC.z*a.PBC_count.z;
-          a.PBC_count.z = 0;
-        }
-        a.PBC = newPBC;
-      }
-    }
-//  Vector3D getPBC()const {return PBC;}
-//  bool usePBC()const{return PBC != NO_PBC;};
-  AtomsContainer():std::vector<Atom*>(){}
-    void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
-    {
-//      YAATK_FSTREAM_WRITE(os,PBC,smode);
-    }  
-    void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
-    {
-//      YAATK_FSTREAM_READ(is,PBC,smode);
-    }  
-  void setAttributesByElementID()
-  {
-    size_t i;
-    for(i = 0; i < size(); i++)
-      operator[](i)->setAttributesByElementID();
-  }
-void 
-normalize()
-{
-  size_t i;
+  void PBC(Vector3D newPBC);
+  Vector3D PBC() const;
+  bool PBCEnabled() const;
 
-  Float msum = 0.0;
-  Vector3D mvsum = 0.0;
-  for (i = 0; i < size(); i++)
-  {
-    Atom& a = *(at(i));
-    if (a.isFixed()) {a.V=0.0;a.an_no_tb=0.0;a.an=0.0;continue;}
-    mvsum += a.V*a.M;
-    msum += a.M;
-  }
-  for (i = 0; i < size(); i++)
-  {
-    Atom& a = *(at(i));
-    if (a.isFixed()) {continue;}
-    a.V -= mvsum/msum;
-  }
-}
-    void unfoldPBC()
+  bool checkMIC(Float Rc) const; // check Minimum Image Criteria
+  bool fitInPBC() const;
+
+  void prepareForSimulatation();
+  void setAttributesByElementID();
+
+  AtomsContainer();
+  AtomsContainer(const AtomsContainer &c);
+  AtomsContainer& operator =(const AtomsContainer &c);
+  void addAtoms(const AtomsContainer &ac);
+  virtual ~AtomsContainer();
+
+  void saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode);
+  void loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode);
+
+  void normalize();
+
+  Atom* createAtom()
     {
-      for (size_t i = 0; i < size(); i++)
-      {
-        Atom& a = *(at(i));
-        if (a.PBC.x != NO_PBC.x)
-        {
-          a.coords.x += a.PBC.x*a.PBC_count.x;
-          a.PBC_count.x = 0;
-        }
-        if (a.PBC.y != NO_PBC.y)
-        {
-          a.coords.y += a.PBC.y*a.PBC_count.y;
-          a.PBC_count.y = 0;
-        }
-        if (a.PBC.z != NO_PBC.z)
-        {
-          a.coords.z += a.PBC.z*a.PBC_count.z;
-          a.PBC_count.z = 0;
-        }
-      }
-    }
+      Atom *pa = new Atom;
+      REQUIRE(pa != NULL);
+      createdAtoms.push_back(pa);
+      return pa;
+    };
+  Atom* createAtom(const Atom& a)
+    {
+      Atom *pa = new Atom(a);
+      REQUIRE(pa != NULL);
+      createdAtoms.push_back(pa);
+      return pa;
+    };
 };
 
 }  // namespace mdtk

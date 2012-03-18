@@ -78,6 +78,8 @@ ElementIDtoString(ElementID id)
   return str;
 }
 
+#define NO_PBC_L 10000.0*Ao
+
 extern const Vector3D NO_PBC;
 
 }

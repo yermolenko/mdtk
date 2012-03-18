@@ -63,7 +63,6 @@ public:
   }
   AtomsContainer atoms_;
   AtomsContainer& atoms; // added for compatibility
-  void updateGlobalIndexes();
   void initialize();
 public:
   struct Check
@@ -137,9 +136,6 @@ protected:
   void init_check_energy();
 
 protected:
-  bool checkMIC(); // check Minimum Image Criteria  
-  bool fitInCell();          
-  void applyPBC(Atom&);
 //  void fixAtom(Atom&);
 //  bool isFixed(Atom&);
 public:
@@ -175,12 +171,12 @@ public:
   bool isWithinThermalBath(const Atom& a)
   {
     return (a.coords.z > thermalBath.zMin) ||
-      (a.usePBC() &&
+      (a.lateralPBCEnabled() &&
        (
          (a.coords.x < 0.0 + thermalBath.dBoundary) ||
-         (a.coords.x > a.getPBC().x - thermalBath.dBoundary) ||
+         (a.coords.x > a.PBC.x - thermalBath.dBoundary) ||
          (a.coords.y < 0.0 + thermalBath.dBoundary) ||
-         (a.coords.y > a.getPBC().y - thermalBath.dBoundary)
+         (a.coords.y > a.PBC.y - thermalBath.dBoundary)
          ) && a.coords.z > thermalBath.zMinOfFreeZone
         );
   }
@@ -232,10 +228,8 @@ private:
   double CPUTimeUsed_prev;
   double CPUTimeUsed_total;
 public:
-  void setPBC(Vector3D PBC_){atoms_.setPBC(PBC_);}
+  void setPBC(Vector3D PBC_){atoms_.PBC(PBC_);}
 };
-
-#define MDTK_MAX_PBC 1e-5
 
 } // namespace mdtk
 
