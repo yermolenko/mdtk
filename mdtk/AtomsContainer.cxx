@@ -167,12 +167,25 @@ AtomsArray::~AtomsArray()
 void
 AtomsArray::saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
 {
+  int i,atoms_count = size();
+  YAATK_FSTREAM_WRITE(os,atoms_count,smode);
+  for(i = 0; i < atoms_count; i++)
+    YAATK_FSTREAM_WRITE(os,operator[](i),smode);
+
   YAATK_FSTREAM_WRITE(os,arrayPBC,smode);
 }
 
 void
 AtomsArray::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
 {
+  int i,atoms_count;
+  YAATK_FSTREAM_READ(is,atoms_count,smode);
+  cout << "Reading info about " << atoms_count << " atoms..." << endl;
+  resize(atoms_count);
+  for(i = 0; i < atoms_count; i++)
+    YAATK_FSTREAM_READ(is,operator[](i),smode);
+  cout << " done." << endl;
+
   YAATK_FSTREAM_READ(is,arrayPBC,smode);
 }
 

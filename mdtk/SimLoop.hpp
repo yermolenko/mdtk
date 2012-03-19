@@ -44,7 +44,6 @@ namespace mdtk
 
 class SimLoop
 {
-  static const std::string id;
 public:
   virtual void doBeforeIteration() {};
   virtual void doAfterIteration() {};

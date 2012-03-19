@@ -496,25 +496,7 @@ SimLoop::temperatureWithoutFixed()
 void
 SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
 {
-  if (smode == YAATK_FSTREAM_TEXT) 
-  {
-    char s[1024];
-    is >> s;
-    if (s != id) 
-    {
-      throw Exception("State file is not compatible");
-    }
-  }  
-  int i,atoms_count;
-  YAATK_FSTREAM_READ(is,atoms_count,smode);
-  cout << "Reading info about " << atoms_count << " atoms..." << endl;
-  atoms.resize(atoms_count);
-  for(i = 0; i < atoms_count; i++)
-  {
-    atoms[i] = Atom();
-    YAATK_FSTREAM_READ(is,atoms[i],smode);
-  }
-  cout << endl;
+  atoms.loadFromStream(is,smode);
 
   cout << "Reading timing info ... " << endl;
 
@@ -535,8 +517,6 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_READ(is,CPUTimeUsed_prev,smode);
   CPUTimeUsed_total = CPUTimeUsed_prev;
 
-  atoms.loadFromStream(is,smode);
-
 //TRACE(atoms_.getPBC());
 
   cout << "Parsing of state file done. " << endl;
@@ -552,13 +532,7 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
   std::streamsize prevStreamSize = os.precision();
   os.precision(FLOAT_PRECISION);
 
-  if (smode == YAATK_FSTREAM_TEXT) os << id << "\n"; 
-  int i,atoms_count = atoms.size();
-  YAATK_FSTREAM_WRITE(os,atoms_count,smode);
-  for(i = 0; i < atoms_count; i++)
-  {
-    YAATK_FSTREAM_WRITE(os,atoms[i],smode);
-  }
+  atoms.saveToStream(os,smode);
 
   check.SaveToStream(os,smode);
 
@@ -577,8 +551,6 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_WRITE(os,CPUTimeUsed_total,smode);
 
   os.precision(prevStreamSize);
-
-  atoms.saveToStream(os,smode);
 }
 
 //#define DONT_USE_XVASCALE
@@ -1060,12 +1032,6 @@ catch(mdtk::Exception& e)
 }
 }
 
-
-const std::string SimLoop::id = 
-                       std::string("GENERATED_BY_")
-                     + "MDE-B"
-                     + "-"
-                     + "1.0";
 
 /*
 void
