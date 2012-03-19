@@ -303,7 +303,7 @@ VisBox::setData(mdtk::SimLoop &ml)
   if (unfoldPBC)
     ml.atoms.unfoldPBC();
 
-  Ro = ml.atoms_;
+  Ro = ml.atoms;
 
   int VC = Ro.size();
 	

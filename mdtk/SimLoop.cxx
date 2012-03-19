@@ -39,8 +39,7 @@ using namespace std;
 
 SimLoop::SimLoop()
   : allowToFreePotentials(true),
-    atoms_(),
-    atoms(atoms_),
+    atoms(),
     check(),
     simTime(0.0), 
     breakSimLoop(false),
@@ -54,11 +53,11 @@ SimLoop::SimLoop()
 {
   verboseTrace = true;
   
-  timeaccel_ = 1.0*Ao;
+  timeaccel = 1.0*Ao;
 
-  dt_ = 1e-20; // initial dt_, it changes adaptive during simulation
-//  dt_ = 1e-17;
-  dt_prev = dt_;
+  dt = 1e-20; // initial dt, it changes adaptive during simulation
+//  dt = 1e-17;
+  dt_prev = dt;
   
   iterationFlushStateInterval = 1000;
   simTimeFinal = 4.0*ps;
@@ -72,8 +71,7 @@ SimLoop::SimLoop()
 
 SimLoop::SimLoop(const SimLoop &c)
   : allowToFreePotentials(true),
-    atoms_(c.atoms),
-    atoms(atoms_),
+    atoms(c.atoms),
     check(),
     simTime(0.0), 
     breakSimLoop(false),
@@ -87,11 +85,11 @@ SimLoop::SimLoop(const SimLoop &c)
 {
   verboseTrace = true;
 
-  timeaccel_ = 1.0*Ao;
+  timeaccel = 1.0*Ao;
 
-  dt_ = 1e-20; // initial dt_, it changes adaptive during simulation
-//  dt_ = 1e-17;
-  dt_prev = dt_;
+  dt = 1e-20; // initial dt, it changes adaptive during simulation
+//  dt = 1e-17;
+  dt_prev = dt;
 
   iterationFlushStateInterval = 1000;
   simTimeFinal = 4.0*ps;
@@ -110,7 +108,7 @@ SimLoop::operator =(const SimLoop &c)
 {
   if (this == &c) return *this;
 
-  atoms_.clear();
+  atoms.clear();
 
   thermalBath = c.thermalBath;
   atoms = c.atoms;
@@ -191,8 +189,6 @@ SimLoop::execute_wo_checks()
     cerr << "Rcutoff is too large for given PBC !" << endl << flush;
     throw Exception("Rcutoff is too large for given PBC !");
   }
-
-  Float& dt = dt_; // just "sugar". dt_ should be renamed globally
 
   dt_prev = dt;
 
@@ -351,7 +347,7 @@ SimLoop::execute_wo_checks()
     const Float dt_max = 5e-16;
     const Float dt_min = 1e-20;
     if (v_max != 0.0)
-      dt = 0.05*timeaccel_/v_max;
+      dt = 0.05*timeaccel/v_max;
     else
       dt = dt_max;
     if (dt > dt_max) dt = dt_max;
@@ -435,7 +431,7 @@ SimLoop::energyKin()
 {
   Float energyKinCur = 0.0;
   int j,atoms_count;
-  atoms_count = atoms_.size();
+  atoms_count = atoms.size();
   for(j = 0; j < atoms_count; j++)
   {
     Atom& atom = atoms[j];
@@ -459,7 +455,7 @@ SimLoop::actualTemperatureOfThermalBath()
 {
   Float energyKinCur = 0.0;
   int j,atoms_count,atoms_accounted = 0;
-  atoms_count = atoms_.size();
+  atoms_count = atoms.size();
   for(j = 0; j < atoms_count; j++)
   {
     Atom& atom = atoms[j];
@@ -482,7 +478,7 @@ SimLoop::temperatureWithoutFixed()
 {
   Float energyKinCur = 0.0;
   int j,atoms_count,atoms_accounted = 0;
-  atoms_count = atoms_.size();
+  atoms_count = atoms.size();
   for(j = 0; j < atoms_count; j++)
   {
     Atom& atom = atoms[j];
@@ -512,11 +508,11 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   int i,atoms_count;
   YAATK_FSTREAM_READ(is,atoms_count,smode);
   cout << "Reading info about " << atoms_count << " atoms..." << endl;
-  atoms_.resize(atoms_count);
+  atoms.resize(atoms_count);
   for(i = 0; i < atoms_count; i++)
   {
     atoms[i] = Atom();
-    YAATK_FSTREAM_READ(is,atoms_[i],smode);
+    YAATK_FSTREAM_READ(is,atoms[i],smode);
   }
   cout << endl;
 
@@ -527,8 +523,8 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_READ(is,simTime,smode);
   YAATK_FSTREAM_READ(is,simTimeSaveTrajInterval,smode);
   YAATK_FSTREAM_READ(is,simTimeFinal,smode);
-  YAATK_FSTREAM_READ(is,timeaccel_,smode);
-  YAATK_FSTREAM_READ(is,dt_,smode);
+  YAATK_FSTREAM_READ(is,timeaccel,smode);
+  YAATK_FSTREAM_READ(is,dt,smode);
   YAATK_FSTREAM_READ(is,iteration,smode); //iteration++;
   YAATK_FSTREAM_READ(is,iterationFlushStateInterval,smode);
   
@@ -539,7 +535,7 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_READ(is,CPUTimeUsed_prev,smode);
   CPUTimeUsed_total = CPUTimeUsed_prev;
 
-  atoms_.loadFromStream(is,smode);
+  atoms.loadFromStream(is,smode);
 
 //TRACE(atoms_.getPBC());
 
@@ -557,11 +553,11 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
   os.precision(FLOAT_PRECISION);
 
   if (smode == YAATK_FSTREAM_TEXT) os << id << "\n"; 
-  int i,atoms_count = atoms_.size();
+  int i,atoms_count = atoms.size();
   YAATK_FSTREAM_WRITE(os,atoms_count,smode);
   for(i = 0; i < atoms_count; i++)
   {
-    YAATK_FSTREAM_WRITE(os,atoms_[i],smode);
+    YAATK_FSTREAM_WRITE(os,atoms[i],smode);
   }
 
   check.SaveToStream(os,smode);
@@ -569,8 +565,8 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_WRITE(os,simTime,smode);
   YAATK_FSTREAM_WRITE(os,simTimeSaveTrajInterval,smode);
   YAATK_FSTREAM_WRITE(os,simTimeFinal,smode);
-  YAATK_FSTREAM_WRITE(os,timeaccel_,smode);
-  YAATK_FSTREAM_WRITE(os,dt_,smode);
+  YAATK_FSTREAM_WRITE(os,timeaccel,smode);
+  YAATK_FSTREAM_WRITE(os,dt,smode);
   YAATK_FSTREAM_WRITE(os,iteration,smode);
   YAATK_FSTREAM_WRITE(os,iterationFlushStateInterval,smode);
 
@@ -582,7 +578,7 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
 
   os.precision(prevStreamSize);
 
-  atoms_.saveToStream(os,smode);
+  atoms.saveToStream(os,smode);
 }
 
 //#define DONT_USE_XVASCALE
@@ -609,7 +605,7 @@ TRACE(XVA_DISTANCE_SCALE);
 
   size_t i,atoms_count;
   is >> atoms_count;
-  REQUIRE(atoms_count == atoms_.size());
+  REQUIRE(atoms_count == atoms.size());
 
 
   cout << "Reading XVA info about " << atoms_count << " atoms..." << endl;
@@ -628,7 +624,7 @@ TRACE(XVA_DISTANCE_SCALE);
   check.LoadFromStream(is,YAATK_FSTREAM_TEXT);
 
   is >> simTime;
-  is >> dt_;
+  is >> dt;
   is >> iteration; //iteration++;
 
   is >> CPUTimeUsed_prev;
@@ -644,14 +640,14 @@ SimLoop::saveToStreamXVA(ostream& os)
 {
 
 Float XVA_VELOCITY_SCALE = 0.0;//1.0e3;
-  for(size_t i = 0; i < atoms_.size(); i++)
+  for(size_t i = 0; i < atoms.size(); i++)
   {
     XVA_VELOCITY_SCALE += fabs(atoms[i].V.x);
     XVA_VELOCITY_SCALE += fabs(atoms[i].V.y);
     XVA_VELOCITY_SCALE += fabs(atoms[i].V.z);
   }
 
-XVA_VELOCITY_SCALE /= (3.0*atoms_.size());
+XVA_VELOCITY_SCALE /= (3.0*atoms.size());
 if (fabs(XVA_VELOCITY_SCALE) < 1e-30) XVA_VELOCITY_SCALE = 1e-30;
 XVA_VELOCITY_SCALE = pow(10.0,ceil(log10(fabs(XVA_VELOCITY_SCALE)))-2);
 
@@ -672,7 +668,7 @@ os << XVA_DISTANCE_SCALE << "\n";
 
   std::streamsize prevStreamSize = os.precision();
 
-  int i,atoms_count = atoms_.size();
+  int i,atoms_count = atoms.size();
   os << atoms_count << "\n";
   for(i = 0; i < atoms_count; i++)
   {
@@ -703,7 +699,7 @@ os << XVA_DISTANCE_SCALE << "\n";
   check.SaveToStream(os,YAATK_FSTREAM_TEXT);
 
   os << simTime << "\n";
-  os << dt_ << "\n";
+  os << dt << "\n";
   os << iteration << "\n";
   
   os << CPUTimeUsed_total << "\n";
@@ -718,7 +714,7 @@ SimLoop::loadFromStreamXVA_bin(istream& is)
 
   size_t i,atoms_count;
   YAATK_BIN_READ(is,atoms_count);
-  REQUIRE(atoms_count == atoms_.size());
+  REQUIRE(atoms_count == atoms.size());
 
 
   cout << "Reading XVA info about " << atoms_count << " atoms..." << endl;
@@ -733,7 +729,7 @@ SimLoop::loadFromStreamXVA_bin(istream& is)
   YAATK_BIN_READ(is,check);
 
   YAATK_BIN_READ(is,simTime);
-  YAATK_BIN_READ(is,dt_);
+  YAATK_BIN_READ(is,dt);
   YAATK_BIN_READ(is,iteration); //iteration++;
 
   TRACE(iteration);
@@ -749,7 +745,7 @@ SimLoop::loadFromStreamXVA_bin(istream& is)
 void
 SimLoop::saveToStreamXVA_bin(ostream& os)
 {
-  int i,atoms_count = atoms_.size();
+  int i,atoms_count = atoms.size();
   YAATK_BIN_WRITE(os,atoms_count);
   for(i = 0; i < atoms_count; i++)
   {
@@ -760,7 +756,7 @@ SimLoop::saveToStreamXVA_bin(ostream& os)
   YAATK_BIN_WRITE(os,check);
 
   YAATK_BIN_WRITE(os,simTime);
-  YAATK_BIN_WRITE(os,dt_);
+  YAATK_BIN_WRITE(os,dt);
   YAATK_BIN_WRITE(os,iteration);
   
   YAATK_BIN_WRITE(os,CPUTimeUsed_total);
@@ -806,9 +802,9 @@ SimLoop::writetrajXYZ()
   sprintf(s,"mde""%010ld.xyz",iteration);
   yaatk::text_ofstream os(s);
 
-  os << atoms_.size() << "\n";
+  os << atoms.size() << "\n";
   os << "Sample\n";
-  for(size_t i = 0; i < atoms_.size(); i++)
+  for(size_t i = 0; i < atoms.size(); i++)
   {
     os << setw(10) << left << ElementString(atoms[i]) << " ";
     os << fixed << right;
@@ -827,14 +823,14 @@ SimLoop::writetrajAccumulated(const std::vector<size_t>& atomIndices)
   Float XVA_VELOCITY_SCALE = 0.0;//1.0e3;
   Float XVA_DISTANCE_SCALE = Ao;
   {
-    for(size_t i = 0; i < atoms_.size(); i++)
+    for(size_t i = 0; i < atoms.size(); i++)
     {
       XVA_VELOCITY_SCALE += fabs(atoms[i].V.x);
       XVA_VELOCITY_SCALE += fabs(atoms[i].V.y);
       XVA_VELOCITY_SCALE += fabs(atoms[i].V.z);
     }
 
-    XVA_VELOCITY_SCALE /= (3.0*atoms_.size());
+    XVA_VELOCITY_SCALE /= (3.0*atoms.size());
     if (fabs(XVA_VELOCITY_SCALE) < 1e-30) XVA_VELOCITY_SCALE = 1e-30;
     XVA_VELOCITY_SCALE = pow(10.0,ceil(log10(fabs(XVA_VELOCITY_SCALE)))-2);
   }
@@ -1138,8 +1134,8 @@ void SimLoop::initialize()
   TRACE(initNLafterLoading);
   if (initNLafterLoading)
   {
-    fpot.NL_init(atoms_);
-    fpot.NL_UpdateIfNeeded(atoms_);
+    fpot.NL_init(atoms);
+    fpot.NL_UpdateIfNeeded(atoms);
   }
 }  
 
@@ -1147,8 +1143,8 @@ void SimLoop::initialize()
 void
 SimLoop::saveToMDE(std::ostream& fo)
 {
-  fo << atoms_.size() << std::endl;
-  for(size_t i = 0; i < atoms_.size(); i++)
+  fo << atoms.size() << std::endl;
+  for(size_t i = 0; i < atoms.size(); i++)
   {
     Atom& Ro_i = atoms[i];
     YAATK_FSTREAM_WRITE(fo,Ro_i,YAATK_FSTREAM_TEXT);
@@ -1171,7 +1167,7 @@ SimLoop::saveToMDE(std::ostream& fo)
 void
 SimLoop::saveToNanoHive(std::ostream& fo)
 {
-  for(size_t i = 0; i < atoms_.size(); i++)
+  for(size_t i = 0; i < atoms.size(); i++)
   {
     Atom& Ro_i = atoms[i];
     char et = 'X';
@@ -1222,7 +1218,7 @@ SimLoop::loadFromMDE(std::istream& fi)
 void
 SimLoop::heatUpEveryAtom(Float upEnergy, gsl_rng* rng)
 {
-  for(size_t i = 0; i < atoms_.size(); i++)
+  for(size_t i = 0; i < atoms.size(); i++)
   {
     Vector3D vn(gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0);
     vn.normalize();
@@ -1234,7 +1230,7 @@ SimLoop::heatUpEveryAtom(Float upEnergy, gsl_rng* rng)
 void
 SimLoop::displaceEveryAtom(Float dist, gsl_rng* rng)
 {
-  for(size_t i = 0; i < atoms_.size(); i++)
+  for(size_t i = 0; i < atoms.size(); i++)
   {
     Vector3D vn(gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0);
     vn.normalize();

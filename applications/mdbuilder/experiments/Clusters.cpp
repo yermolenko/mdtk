@@ -77,7 +77,7 @@ checkOnEnergyPotMin(SimLoop& simloop, Float& minPotEnergy)
   {
     minPotEnergy = currentPotEnergy;
     TRACE(minPotEnergy/eV);
-    TRACE(minPotEnergy/eV/simloop.atoms_.size());
+    TRACE(minPotEnergy/eV/simloop.atoms.size());
     {
       std::ofstream fo("in.mde.min");
       simloop.saveToMDE(fo);
@@ -85,11 +85,11 @@ checkOnEnergyPotMin(SimLoop& simloop, Float& minPotEnergy)
     }
     {
       std::ofstream fo("energy.min",std::ios::app);
-      fo << minPotEnergy/eV/simloop.atoms_.size() << " "
-         << minPotEnergy/eV/simloop.atoms_.size() << std::endl;
+      fo << minPotEnergy/eV/simloop.atoms.size() << " "
+         << minPotEnergy/eV/simloop.atoms.size() << std::endl;
       fo.close();
     }
-    ERRTRACE(minPotEnergy/eV/simloop.atoms_.size());
+    ERRTRACE(minPotEnergy/eV/simloop.atoms.size());
   }
 }
 
@@ -101,7 +101,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
   Float minPotEnergy = ENERGYINF;
   TRACE(minPotEnergy/eV);
 
-  Float freezingEnergy = 0.0001*2.5*eV*modloop->atoms_.size();
+  Float freezingEnergy = 0.0001*2.5*eV*modloop->atoms.size();
   TRACE(freezingEnergy/eV);
   ERRTRACE(freezingEnergy/eV);
 
@@ -115,7 +115,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->thermalBath.zMin = +100000.0*Ao;
     modloop->simTime = 0.0*ps;
     modloop->simTimeFinal = 1.0*ps;
-    modloop->dt_ = 1e-20;
+    modloop->dt = 1e-20;
     modloop->iteration = 0;
     cerr << "Heating up every atom to " << maxHeatUpEnergy/eV << " eV" << std::endl;
     modloop->heatUpEveryAtom(maxHeatUpEnergy, rng);
@@ -132,7 +132,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->thermalBath.zMin = -100000.0*Ao;
     modloop->simTime = 0.0*ps;
     modloop->simTimeFinal = 0.0*ps;
-    modloop->dt_ = 1e-20;
+    modloop->dt = 1e-20;
     modloop->iteration = 0;
     TRACE(modloop->atoms.PBC());
     while (modloop->simTimeFinal < 4.0*ps)
@@ -146,7 +146,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     checkOnEnergyPotMin(*modloop,minPotEnergy);
   }
   TRACE(minPotEnergy/eV);
-  TRACE(minPotEnergy/eV/modloop->atoms_.size());
+  TRACE(minPotEnergy/eV/modloop->atoms.size());
 
   {
     yaatk::text_ifstream fi("in.mde.min");
@@ -284,33 +284,33 @@ cluster(ElementID id, int clusterSize)
   std::ofstream foGlobal("energy.min.all",std::ios::app);
 
   if (sl.atoms.size() > 0)
-    add1atom(sl.atoms_,id,r);
+    add1atom(sl.atoms,id,r);
   else
-    add1atomInit(sl.atoms_, id);
+    add1atomInit(sl.atoms, id);
 
-  for(int atomsCount = sl.atoms_.size();
+  for(int atomsCount = sl.atoms.size();
       atomsCount <= clusterSize;
       atomsCount++)
   {
-    ERRTRACE(sl.atoms_.size());
+    ERRTRACE(sl.atoms.size());
 
     sl.initialize();
 
     char dirname[100];
-    sprintf(dirname,"%03lu",sl.atoms_.size());
+    sprintf(dirname,"%03lu",sl.atoms.size());
     yaatk::mkdir(dirname);
     yaatk::chdir(dirname);
 
     Float minPotEnergyOf = optimize_single(&sl, r);
 
-    foGlobal << std::setw (10) << sl.atoms_.size() << " "
+    foGlobal << std::setw (10) << sl.atoms.size() << " "
              << std::setw (20) << minPotEnergyOf/eV << " "
-             << std::setw (20) << minPotEnergyOf/eV/sl.atoms_.size() << std::endl;
+             << std::setw (20) << minPotEnergyOf/eV/sl.atoms.size() << std::endl;
 
     yaatk::chdir("..");
 
     if (atomsCount < clusterSize)
-      add1atom(sl.atoms_, id, r);
+      add1atom(sl.atoms, id, r);
   }
 
   foGlobal.close();
@@ -426,7 +426,7 @@ build_target_by_cluster_bombardment(
       for(size_t surfi = 0; !areInteracting && surfi < sl_target.atoms.size(); surfi++)
       {
         Atom& clusterAtom = cluster[cli];
-        Atom& surfaceAtom = sl_target.atoms[surfi];
+        const Atom& surfaceAtom = sl_target.atoms[surfi];
         if (depos(clusterAtom,surfaceAtom).module() < (/*(clusterEnergy==0.0)?3.0*Ao:*/6.0*Ao))
         {
           areInteracting = true;

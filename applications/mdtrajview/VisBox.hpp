@@ -83,7 +83,7 @@ public:
 
 public:
   mdtk::AtomsArray* getAtoms(){return &Ro;};
-  size_t getAtomsCount(){return ml_->atoms_.size();};
+  size_t getAtomsCount(){return ml_->atoms.size();};
   void loadNewSnapshot(std::string base_state_filename,std::string);
 private:
   mdtk::AtomsArray R,Ro;

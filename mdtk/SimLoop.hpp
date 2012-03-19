@@ -54,8 +54,7 @@ public:
     if (!allowToFreePotentials) return;
     fpot.freePotentials();
   }
-  AtomsArray atoms_;
-  AtomsArray& atoms; // added for compatibility
+  AtomsArray atoms; // added for compatibility
 //  AtomRefsContainer atomRefs() {return AtomRefsContainer(atoms);};
   void initialize();
 public:
@@ -111,9 +110,9 @@ public:
   Float simTimeFinal;
   bool  breakSimLoop;
 protected:    
-  Float timeaccel_;
+  Float timeaccel;
 public:
-  Float dt_;
+  Float dt;
   Float dt_prev;
   unsigned long iteration;
   unsigned long iterationFlushStateInterval;
@@ -222,7 +221,7 @@ private:
   double CPUTimeUsed_prev;
   double CPUTimeUsed_total;
 public:
-  void setPBC(Vector3D PBC_){atoms_.PBC(PBC_);}
+  void setPBC(Vector3D PBC_){atoms.PBC(PBC_);}
 };
 
 } // namespace mdtk
