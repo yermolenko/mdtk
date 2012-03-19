@@ -217,9 +217,9 @@ SimLoop::execute_wo_checks()
     fpot.NL_UpdateIfNeeded(atoms);
 
     if (iteration == 0)
-      init_check_energy();
+      initEnergyConservationCheck();
     else
-      do_check_energy();
+      doEnergyConservationCheck();
 
     Float actualThermalBathTemp = actualTemperatureOfThermalBath();
     {
@@ -313,7 +313,7 @@ SimLoop::execute_wo_checks()
 
           Float dEkin = atom.M*SQR((atom.V+dv)      .module())/2.0
                       - atom.M*SQR((atom.V+dv_no_tb).module())/2.0;
-          check.energyStart += dEkin;
+          check.energyTransferredFromBath += dEkin;
         }
 
         force += dforce;
@@ -1014,38 +1014,39 @@ SimLoop::loadstate()
 }
 
 void
-SimLoop::init_check_energy()
+SimLoop::initEnergyConservationCheck()
 {
-  check.temperatureCur = temperature();
-  Float energyPotStart = energyPot();
-  Float energyKinStart = energyKin();
-  check.energyCur = check.energyStart = energyPotStart+energyKinStart;
+  check.currentTemperature = temperature();
+  check.currentEnergy = check.initialEnergy = energy();
+  check.energyTransferredFromBath = 0;
 
-  cout << "Eo : " << showpos << check.energyStart/eV << endl;
+  cout << "Eo : " << showpos << check.initialEnergy/eV << endl;
   cout << noshowpos;
 
-  if(std::fabs(check.energyStart) < 0.001*eV)
+  if(std::fabs(check.initialEnergy) < 0.001*eV)
     cerr << "Total energy is less than 0.001*eV." << endl;
 }
 
-void SimLoop::do_check_energy()
+void SimLoop::doEnergyConservationCheck()
 {
+  check.currentTemperature = temperature();
+  check.currentEnergy = energy();
+
+  Float Eo_plus_Eb = check.initialEnergy + check.energyTransferredFromBath;
+  Float dE = check.currentEnergy - Eo_plus_Eb;
+  Float dE_by_Eo_plus_Eb = dE/Eo_plus_Eb;
+
   bool reallyPrintCheck = check.checkEnergy && iteration != 0;
-
-  check.temperatureCur = temperature();
-
-  check.energyCur = energy();
-  Float ediff = (check.energyCur-check.energyStart)/check.energyStart;
-
   if (reallyPrintCheck)
   {
-    cout << "Eo+Eb : " << showpos << (check.energyStart)/eV << endl;
-    cout << "E-(Eo+Eb) : " << showpos << (check.energyCur-check.energyStart)/eV << endl;
-    cout << "dE/(Eo+Eb) : " << showpos << ediff << endl;
+    cout << "Eb : " << showpos <<
+      check.energyTransferredFromBath/eV << endl;
+    cout << "dE : " << showpos << dE/eV << endl;
+    cout << "dE/(Eo+Eb) : " << showpos << dE_by_Eo_plus_Eb << endl;
     cout << noshowpos;
   }
 
-  if(std::fabs(check.energyCur) < 0.001*eV)
+  if(std::fabs(check.currentEnergy) < 0.001*eV)
     cerr << "Total energy is less than 0.001*eV." << endl;
 }
 
@@ -1158,35 +1159,39 @@ SimLoop::displaceEveryAtom(Float dist, gsl_rng* rng)
 }
 
 SimLoop::Check::Check(bool ce)
-  :netForce(0.0,0.0,0.0),
-   energyStart(1.0),energyCur(1.0),
-   temperatureCur(0.0),
-   checkEnergy(ce),checkForce(true)
+  :checkForce(true),netForce(0.0,0.0,0.0),
+   checkEnergy(ce),initialEnergy(1.0),currentEnergy(1.0),
+   energyTransferredFromBath(0.0),
+   currentTemperature(0.0)
 {
 }
 
 void
 SimLoop::Check::saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
 {
+  YAATK_FSTREAM_WRITE(os,checkForce,smode);
   YAATK_FSTREAM_WRITE(os,netForce,smode);
-  YAATK_FSTREAM_WRITE(os,energyStart,smode);
-  YAATK_FSTREAM_WRITE(os,energyCur,smode);
-  YAATK_FSTREAM_WRITE(os,temperatureCur,smode);
 
   YAATK_FSTREAM_WRITE(os,checkEnergy,smode);
-  YAATK_FSTREAM_WRITE(os,checkForce,smode);
+  YAATK_FSTREAM_WRITE(os,initialEnergy,smode);
+  YAATK_FSTREAM_WRITE(os,currentEnergy,smode);
+  YAATK_FSTREAM_WRITE(os,energyTransferredFromBath,smode);
+
+  YAATK_FSTREAM_WRITE(os,currentTemperature,smode);
 }
 
 void
 SimLoop::Check::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
 {
+  YAATK_FSTREAM_READ(is,checkForce,smode);
   YAATK_FSTREAM_READ(is,netForce,smode);
-  YAATK_FSTREAM_READ(is,energyStart,smode);
-  YAATK_FSTREAM_READ(is,energyCur,smode);
-  YAATK_FSTREAM_READ(is,temperatureCur,smode);
 
   YAATK_FSTREAM_READ(is,checkEnergy,smode);
-  YAATK_FSTREAM_READ(is,checkForce,smode);
+  YAATK_FSTREAM_READ(is,initialEnergy,smode);
+  YAATK_FSTREAM_READ(is,currentEnergy,smode);
+  YAATK_FSTREAM_READ(is,energyTransferredFromBath,smode);
+
+  YAATK_FSTREAM_READ(is,currentTemperature,smode);
 }
 
 /*

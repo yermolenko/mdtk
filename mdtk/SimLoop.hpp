@@ -55,14 +55,15 @@ public:
 public:
   struct Check
   {
+    bool checkForce;
     Vector3D netForce;
-    Float energyStart;
-    Float energyCur;
-
-    Float temperatureCur;
 
     bool checkEnergy;
-    bool checkForce;
+    Float initialEnergy;
+    Float currentEnergy;
+    Float energyTransferredFromBath;
+
+    Float currentTemperature;
 
     Check(bool ce = true);
     void saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode);
@@ -87,8 +88,8 @@ public:
   Float temperature();
   Float temperatureWithoutFixed();
 protected:
-  void do_check_energy();
-  void init_check_energy();
+  void doEnergyConservationCheck();
+  void initEnergyConservationCheck();
 public:
   struct ThermalBath
   {
