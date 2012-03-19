@@ -78,12 +78,20 @@ public:
   friend bool operator>=(const Atom& v1, const Atom& v2);
   friend bool operator<=(const Atom& v1, const Atom& v2);
 
-  unsigned int tag;
+  unsigned int tagbits;
 
-#define ATOMTAG_EXAMPLE 1<<0
-  bool isTaggedExample() const { return (tag & ATOMTAG_EXAMPLE); }
-  void tagExample() { tag |= ATOMTAG_EXAMPLE; }
-  void untagExample() { tag &= ~((unsigned int)ATOMTAG_EXAMPLE); }
+#define ATOMTAG_EXAMPLE (1<<0)
+#define ATOMTAG_TARGET (1<<1)
+#define ATOMTAG_PROJECTILE (1<<2)
+#define ATOMTAG_SUBSTRATE (1<<3)
+#define ATOMTAG_MONOMER (1<<4)
+#define ATOMTAG_CLUSTER (1<<5)
+#define ATOMTAG_FULLERENE (1<<6)
+
+  bool hasTag(unsigned int tagMask) const { return (tagbits & tagMask); }
+  void tag(unsigned int tagMask) { tagbits |= tagMask; }
+  void untag(unsigned int tagMask) { tagbits &= ~(tagMask); }
+  void clearTags() {tagbits = 0;};
 };
 
 inline

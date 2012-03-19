@@ -1154,11 +1154,13 @@ build_metal_C60_mixing(
   AtomsArray fullerene = mdbuilder::C60();
   fullerene.removeMomentum();
   fullerene.shiftToOrigin();
+  fullerene.tag(ATOMTAG_PROJECTILE | ATOMTAG_FULLERENE | ATOMTAG_CLUSTER);
 
   SimLoop sl_metalAtom;
   sl_metalAtom.atoms.push_back(Atom(metalElement));
   sl_metalAtom.atoms.removeMomentum();
   sl_metalAtom.atoms.shiftToOrigin();
+  sl_metalAtom.atoms.tag(ATOMTAG_PROJECTILE | ATOMTAG_MONOMER);
 
   int a_num_metal;
   int b_num_metal;
@@ -1217,6 +1219,7 @@ build_metal_C60_mixing(
   default:
     throw Exception("Unknow metal!");
   }
+  sl_metalCrystal.atoms.tag(ATOMTAG_TARGET | ATOMTAG_SUBSTRATE);
 
   int a_num_fullerite = 3;
   int b_num_fullerite = 3;
@@ -1231,6 +1234,7 @@ build_metal_C60_mixing(
       c_num_fullerite,
       true,
       a_fullerite);
+  sl_fulleriteCrystal.atoms.tag(ATOMTAG_TARGET | ATOMTAG_SUBSTRATE);
 
   for(size_t energyIndex = 0;
       energyIndex < impactEnergies.size();

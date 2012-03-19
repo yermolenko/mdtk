@@ -43,7 +43,7 @@ Atom::Atom(ElementID id, Vector3D Cx, Vector3D Vx)
    globalIndex(0),
    fixed(false),
    PBC(NO_PBC),
-   tag(0)
+   tagbits(0)
 {
   setAttributesByElementID();
 }
@@ -62,7 +62,7 @@ Atom::Atom(const Atom &C)
   globalIndex = C.globalIndex;
   fixed = C.fixed;
   PBC = C.PBC;
-  tag = C.tag;
+  tagbits = C.tagbits;
 }
 
 Atom&
@@ -82,7 +82,7 @@ Atom::operator=(const Atom &C)
   globalIndex = C.globalIndex;
   fixed = C.fixed;
   PBC = C.PBC;
-  tag = C.tag;
+  tagbits = C.tagbits;
 
   return *this;
 }
@@ -153,7 +153,7 @@ operator>>(istream& is, Atom& a)
 
   Vector3D PBC;
 
-  unsigned int tag;
+  unsigned int tagbits;
 
   is >> ID
      >> Z
@@ -167,7 +167,7 @@ operator>>(istream& is, Atom& a)
      >> globalIndex
      >> fixed
      >> PBC
-     >> tag;
+     >> tagbits;
 
   if (is)
   {
@@ -183,7 +183,7 @@ operator>>(istream& is, Atom& a)
     a.globalIndex = globalIndex;
     a.fixed = fixed;
     a.PBC = PBC;
-    a.tag = tag;
+    a.tagbits = tagbits;
   }
   else
   {
@@ -207,7 +207,7 @@ operator<<(ostream& os, const Atom& a)
      << a.globalIndex << "\n"
      << a.fixed << "\n"
      << a.PBC << "\n"
-     << a.tag << "\n";
+     << a.tagbits << "\n";
 
   return os;
 }

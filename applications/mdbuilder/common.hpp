@@ -38,11 +38,6 @@ namespace mdbuilder
 
 using namespace mdtk;
 
-#define ATOMTAG_FIXED 1<<0
-#define ATOMTAG_SUBSTRATE 1<<1
-#define ATOMTAG_CLUSTER   1<<2
-#define ATOMTAG_NOTAG 0
-
 inline
 mdtk::Vector3D getPosition()
 {

@@ -404,6 +404,36 @@ AtomsArray::fixAtoms(const std::vector<size_t> atomsToFix)
     at(atomsToFix[i]).fix();
 }
 
+bool
+AtomsArray::hasTag(unsigned int tagMask) const
+{
+  for(size_t i = 0; i < size(); i++)
+    if (at(i).hasTag(tagMask))
+      return true;
+  return false;
+}
+
+void
+AtomsArray::tag(unsigned int tagMask)
+{
+  for(size_t i = 0; i < size(); i++)
+    at(i).tag(tagMask);
+}
+
+void
+AtomsArray::untag(unsigned int tagMask)
+{
+  for(size_t i = 0; i < size(); i++)
+    at(i).untag(tagMask);
+}
+
+void
+AtomsArray::clearTags()
+{
+  for(size_t i = 0; i < size(); i++)
+    at(i).clearTags();
+}
+
 AtomRefsContainer::AtomRefsContainer()
   :std::vector<Atom*>()
 {

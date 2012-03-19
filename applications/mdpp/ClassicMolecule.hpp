@@ -12,15 +12,7 @@ namespace mdepp
 
 using namespace mdtk;
 
-#define ATOMTAG_FIXED 1<<0
-#define ATOMTAG_SUBSTRATE 1<<1
-#define ATOMTAG_CLUSTER   1<<2
-#define ATOMTAG_FULLERENE   1<<3
-#define ATOMTAG_PROJECTILE   1<<4
-#define ATOMTAG_NOTAG 0
-
 //#define REF_POT_OF(ML_FPOT) ML_FPOT.potentials[0]
-
 
 inline
 void
@@ -29,19 +21,19 @@ setTags(mdtk::SimLoop* ml)
   for(size_t i = 0; i < ml->atoms.size(); i++)
   {
     mdtk::Atom& atom = ml->atoms[i];
-    atom.tag = 0;
+    atom.clearTags();
 //    if (atom.M > 1000.0*mdtk::amu) atom.tag |= ATOMTAG_FIXED;
     if (atom.ID == mdtk::C_EL || atom.ID == mdtk::H_EL)
     {
-      atom.tag |= ATOMTAG_SUBSTRATE;
+      atom.tag(ATOMTAG_SUBSTRATE);
     }
     if (atom.ID == mdtk::Ar_EL || atom.ID == mdtk::Xe_EL)
     {
-      atom.tag |= ATOMTAG_PROJECTILE;
+      atom.tag(ATOMTAG_PROJECTILE);
     }
     if (atom.ID == mdtk::Cu_EL || atom.ID == mdtk::Au_EL)
     {
-      atom.tag |= ATOMTAG_CLUSTER;
+      atom.tag(ATOMTAG_CLUSTER);
     }
   }
 }
@@ -50,7 +42,7 @@ inline
 bool  isProjectileAtom(const mdtk::Atom& atom)// const
 {
 //  if (atom.ID == mdtk::Ar_EL) return true;
-  if (atom.tag & ATOMTAG_PROJECTILE) return true;
+  if (atom.hasTag(ATOMTAG_PROJECTILE)) return true;
   return false;
 }  
 
@@ -58,7 +50,7 @@ inline
 bool  isClusterAtom(const mdtk::Atom& atom)// const
 {
 //  if (atom.ID == mdtk::Cu_EL) return true;
-  if (atom.tag & ATOMTAG_CLUSTER) return true;
+  if (atom.hasTag(ATOMTAG_CLUSTER)) return true;
   return false;
 }  
 
@@ -66,7 +58,7 @@ inline
 bool  isSubstrateAtom(const mdtk::Atom& atom)// const
 {
 //  if (atom.ID == mdtk::C_EL || atom.ID == mdtk::H_EL) return true;
-  if (atom.tag & ATOMTAG_SUBSTRATE) return true;
+  if (atom.hasTag(ATOMTAG_SUBSTRATE)) return true;
   return false;
 }  
 
@@ -74,7 +66,7 @@ inline
 bool  isFullereneAtom(const mdtk::Atom& atom)// const
 {
 //  if (atom.ID == mdtk::C_EL || atom.ID == mdtk::H_EL) return true;
-  if (atom.tag & ATOMTAG_FULLERENE) return true;
+  if (atom.hasTag(ATOMTAG_FULLERENE)) return true;
   return false;
 }  
 

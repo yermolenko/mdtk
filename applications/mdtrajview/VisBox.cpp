@@ -596,7 +596,7 @@ VisBox::listVertexes()
       case Cu_EL: c = (0x00FFFF); break; 
       case Ag_EL: c = (0x00FFFF); break; 
       case Au_EL: c = (0x00FFFF); break; 
-      default: c = R[i].tag;
+      default: c = R[i].tagbits;
       };
 
       if (showSelected)
@@ -784,7 +784,7 @@ VisBox::listCTree()
 	case Cu_EL: c = (0x00FFFF); break; 
 	case Ag_EL: c = (0x00FFFF); break; 
 	case Au_EL: c = (0x00FFFF); break; 
-	default: c = R[i].tag;
+	default: c = R[i].tagbits;
 	}
 
 	if (showCTreeAtoms)

@@ -236,7 +236,7 @@ StatPostProcess::buildClusterDynamics(mdtk::SimLoop& state,size_t trajIndex,
     for(size_t atomIndex = 0; atomIndex < state.atoms.size(); atomIndex++)
     {
       mdtk::Atom &atom = state.atoms[atomIndex];
-      if (!(atom.tag & ATOMTAG_CLUSTER)) continue;
+      if (!(atom.hasTag(ATOMTAG_CLUSTER))) continue;
       trajData[trajIndex].clusterDynamics.atomTrajectories.
 	push_back(AtomTrajectory(atom));
     }

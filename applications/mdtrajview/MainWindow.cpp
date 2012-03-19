@@ -113,7 +113,7 @@ MainWindow::setAtomViewIndex(int index)
   os TRACESS(atom.lateralPBCEnabled());
   os TRACESS(atom.apply_ThermalBath);
 //    os TRACESS(atom.ejected);
-  os TRACESS(atom.tag);
+  os TRACESS(atom.tagbits);
   os TRACESS(atom.globalIndex);
   
   out(os.str());  

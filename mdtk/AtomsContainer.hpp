@@ -89,6 +89,11 @@ public:
   std::vector<size_t> fixUnfixedCHAtoms(const size_t begin, const size_t end);
   void unfixAtoms(const std::vector<size_t> fixedAtoms);
   void fixAtoms(const std::vector<size_t> atomsToFix);
+
+  bool hasTag(unsigned int tagMask) const;
+  void tag(unsigned int tagMask);
+  void untag(unsigned int tagMask);
+  void clearTags();
 };
 
 class AtomRefsContainer:public std::vector<Atom*>
