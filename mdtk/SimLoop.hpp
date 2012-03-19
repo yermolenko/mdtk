@@ -37,10 +37,8 @@
 
 #include <mdtk/procmon.hpp>
 
-
 namespace mdtk
 {
-
 
 class SimLoop
 {
@@ -53,62 +51,29 @@ public:
     if (!allowToFreePotentials) return;
     fpot.freePotentials();
   }
-  AtomsArray atoms; // added for compatibility
-//  AtomRefsContainer atomRefs() {return AtomRefsContainer(atoms);};
-  void initialize();
+  AtomsArray atoms;
 public:
   struct Check
   {
-    Vector3D fullForce;
+    Vector3D netForce;
     Float energyStart;
     Float energyCur;
 
-    Float energy0;
-    
     Float temperatureCur;
 
-    unsigned long checkEnergyAfter;
     bool checkEnergy;
     bool checkForce;
-    
-    Check(bool ce = true)
-     :fullForce(0.0,0.0,0.0),energyStart(1.0),energyCur(1.0),
-      energy0(0.0), temperatureCur(0.0),
-      checkEnergyAfter(1),checkEnergy(ce),checkForce(true)
-    {
-    }   
-    void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
-    {
-      YAATK_FSTREAM_WRITE(os,fullForce,smode);
-      YAATK_FSTREAM_WRITE(os,energyStart,smode);
-      YAATK_FSTREAM_WRITE(os,energyCur,smode);
-      YAATK_FSTREAM_WRITE(os,energy0,smode);
-      YAATK_FSTREAM_WRITE(os,temperatureCur,smode);
-      
-      YAATK_FSTREAM_WRITE(os,checkEnergyAfter,smode);
-      YAATK_FSTREAM_WRITE(os,checkEnergy,smode);
-      YAATK_FSTREAM_WRITE(os,checkForce,smode);
-    }  
-    void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
-    {
-      YAATK_FSTREAM_READ(is,fullForce,smode);
-      YAATK_FSTREAM_READ(is,energyStart,smode);
-      YAATK_FSTREAM_READ(is,energyCur,smode);
-      YAATK_FSTREAM_READ(is,energy0,smode);
-      YAATK_FSTREAM_READ(is,temperatureCur,smode);
-      
-      YAATK_FSTREAM_READ(is,checkEnergyAfter,smode);
-      YAATK_FSTREAM_READ(is,checkEnergy,smode);
-      YAATK_FSTREAM_READ(is,checkForce,smode);
-    }  
-  }check;                    
-public:
 
+    Check(bool ce = true);
+    void saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode);
+    void loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode);
+  }check;
+public:
   Float simTime;
   Float simTimeSaveTrajInterval;
   Float simTimeFinal;
   bool  breakSimLoop;
-protected:    
+protected:
   Float timeaccel;
 public:
   Float dt;
@@ -116,22 +81,14 @@ public:
   unsigned long iteration;
   unsigned long iterationFlushStateInterval;
 public:
-  Float getEnergyCur(){return check.energyCur;}
-public: 
   Float energy();
   Float energyPot();
   Float energyKin();
   Float temperature();
   Float temperatureWithoutFixed();
-protected:  
+protected:
   void do_check_energy();
   void init_check_energy();
-
-protected:
-//  void fixAtom(Atom&);
-//  bool isFixed(Atom&);
-public:
-  void initPBC();
 public:
   struct ThermalBath
   {
@@ -139,50 +96,20 @@ public:
     Float dBoundary;
     Float zMinOfFreeZone;
     Float To;
-//    void disableGlobally() {zMin = 1000000.0*Ao;dBoundary = 0.0;zMinOfFreeZone = 0.0;}
-    ThermalBath(Float zMin_ = 1000000.0*Ao, Float dBoundary_ = 0.0, Float zMinOfFreeZone_ = -5.0*mdtk::Ao)
-    : zMin(zMin_), dBoundary(dBoundary_), zMinOfFreeZone(zMinOfFreeZone_), To(0.0)
-    {
-    }
-    void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
-    {
-      YAATK_FSTREAM_WRITE(os,zMin,smode);
-      YAATK_FSTREAM_WRITE(os,dBoundary,smode);
-      YAATK_FSTREAM_WRITE(os,zMinOfFreeZone,smode);
-      YAATK_FSTREAM_WRITE(os,To,smode);
-    }  
-    void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
-    {
-      YAATK_FSTREAM_READ(is,zMin,smode);
-      YAATK_FSTREAM_READ(is,dBoundary,smode);
-      YAATK_FSTREAM_READ(is,zMinOfFreeZone,smode);
-      YAATK_FSTREAM_READ(is,To,smode);
-    }  
-  }thermalBath;                
+    ThermalBath(Float zMin_ = 1000000.0*Ao, Float dBoundary_ = 0.0, Float zMinOfFreeZone_ = -5.0*mdtk::Ao);
+    void saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode);
+    void loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode);
+  }thermalBath;
   Float actualTemperatureOfThermalBath();
-  bool isWithinThermalBath(const Atom& a)
-  {
-    return (a.coords.z > thermalBath.zMin) ||
-      (a.lateralPBCEnabled() &&
-       (
-         (a.coords.x < 0.0 + thermalBath.dBoundary) ||
-         (a.coords.x > a.PBC.x - thermalBath.dBoundary) ||
-         (a.coords.y < 0.0 + thermalBath.dBoundary) ||
-         (a.coords.y > a.PBC.y - thermalBath.dBoundary)
-         ) && a.coords.z > thermalBath.zMinOfFreeZone
-        );
-  }
-
+  bool isWithinThermalBath(const Atom& a);
 public:
   bool initNLafterLoading;
-
 
   void writetraj();
   void writestate();
   void loadstate();
-  
+
   SimLoop();
-  virtual void init(Float /*px*/,Float /*py*/) {};//= 0;
   virtual ~SimLoop();
 
   SimLoop(const SimLoop &c);
@@ -194,7 +121,7 @@ public:
 
   void saveToStream(std::ostream& os, YAATK_FSTREAM_MODE = YAATK_FSTREAM_TEXT);
   void loadFromStream(std::istream& is, YAATK_FSTREAM_MODE = YAATK_FSTREAM_TEXT);
-  
+
   bool allowPartialLoading;
   void saveToStreamXVA(std::ostream& os);
   void loadFromStreamXVA(std::istream& is);
@@ -216,11 +143,12 @@ public:
   void heatUpEveryAtom(Float upEnergy, gsl_rng* rng);
   void displaceEveryAtom(Float dist, gsl_rng* rng);
 private:
-private:
   double CPUTimeUsed_prev;
   double CPUTimeUsed_total;
 public:
+  // these functions are obsolete
   void setPBC(Vector3D PBC_){atoms.PBC(PBC_);}
+  void initialize();
 };
 
 } // namespace mdtk

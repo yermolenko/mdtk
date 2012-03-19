@@ -41,7 +41,7 @@ SimLoop::SimLoop()
   : allowToFreePotentials(true),
     atoms(),
     check(),
-    simTime(0.0), 
+    simTime(0.0),
     breakSimLoop(false),
     iteration(0) ,
     thermalBath(),
@@ -52,13 +52,12 @@ SimLoop::SimLoop()
     ,CPUTimeUsed_total(0)
 {
   verboseTrace = true;
-  
+
   timeaccel = 1.0*Ao;
 
-  dt = 1e-20; // initial dt, it changes adaptive during simulation
-//  dt = 1e-17;
+  dt = 1e-20;
   dt_prev = dt;
-  
+
   iterationFlushStateInterval = 1000;
   simTimeFinal = 4.0*ps;
 
@@ -66,14 +65,13 @@ SimLoop::SimLoop()
 
   check.checkEnergy = true;
   check.checkForce = true;
-  check.checkEnergyAfter = 1; // dummy, will be removed soon
 }
 
 SimLoop::SimLoop(const SimLoop &c)
   : allowToFreePotentials(true),
     atoms(c.atoms),
     check(),
-    simTime(0.0), 
+    simTime(0.0),
     breakSimLoop(false),
     iteration(0) ,
     thermalBath(),
@@ -87,8 +85,7 @@ SimLoop::SimLoop(const SimLoop &c)
 
   timeaccel = 1.0*Ao;
 
-  dt = 1e-20; // initial dt, it changes adaptive during simulation
-//  dt = 1e-17;
+  dt = 1e-20;
   dt_prev = dt;
 
   iterationFlushStateInterval = 1000;
@@ -98,13 +95,12 @@ SimLoop::SimLoop(const SimLoop &c)
 
   check.checkEnergy = true;
   check.checkForce = true;
-  check.checkEnergyAfter = 1; // dummy, will be removed soon
 
   thermalBath = c.thermalBath;
 }
 
 SimLoop&
-SimLoop::operator =(const SimLoop &c) 
+SimLoop::operator =(const SimLoop &c)
 {
   if (this == &c) return *this;
 
@@ -150,10 +146,10 @@ SimLoop::execute()
     std::cerr << "Caught mdtk Exception: " << e.what() << std::endl;
     std::cerr << "Flushing state.....";
     writestate();
-    { 
-      std::ofstream fo("in.mde.after_crash"); 
-      saveToMDE(fo); 
-      fo.close(); 
+    {
+      std::ofstream fo("in.mde.after_crash");
+      saveToMDE(fo);
+      fo.close();
     }
     std::cerr << "done." << std::endl;
     return -1;
@@ -166,7 +162,7 @@ SimLoop::execute()
     std::cerr << "done." << std::endl;
     return -1;
   }
-}  
+}
 
 int
 SimLoop::execute_wo_checks()
@@ -232,7 +228,7 @@ SimLoop::execute_wo_checks()
     }
 
     if (check.checkForce)
-      check.fullForce = 0;
+      check.netForce = 0;
 
     Float v_max = 0.0;
 
@@ -280,7 +276,7 @@ SimLoop::execute_wo_checks()
       Vector3D  force = -fpot.grad(atom,this->atoms);
 
       if (check.checkForce)
-        check.fullForce += force;
+        check.netForce += force;
 
       if (isWithinThermalBath(atom) && atom.apply_ThermalBath)
       {
@@ -357,11 +353,11 @@ SimLoop::execute_wo_checks()
     {
       if (verboseTrace)
       {
-        Float ffmod = check.fullForce.module();
+        Float ffmod = check.netForce.module();
         PTRACE(ffmod);
       }
 
-      if (check.fullForce.module() > 1e-8)
+      if (check.netForce.module() > 1e-8)
       {
         cerr << "FullForce != 0" << endl << flush;
         cout << "FullForce != 0" << endl << flush;
@@ -407,15 +403,15 @@ SimLoop::energy()
   Float energyPotCur = energyPot();
   Float energyKinCur = energyKin();
 
-{
-Float Ep = energyPotCur/mdtk::eV;
-Float Ek = energyKinCur/mdtk::eV;
-Float Et = (energyPotCur+energyKinCur)/mdtk::eV;
+  {
+    Float Ep = energyPotCur/mdtk::eV;
+    Float Ek = energyKinCur/mdtk::eV;
+    Float Et = (energyPotCur+energyKinCur)/mdtk::eV;
 
-PTRACE(Ep);
-PTRACE(Ek);
-PTRACE(Et);
-}
+    PTRACE(Ep);
+    PTRACE(Ek);
+    PTRACE(Et);
+  }
 
   return energyPotCur+energyKinCur;
 }
@@ -500,29 +496,27 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
 
   cout << "Reading timing info ... " << endl;
 
-  check.LoadFromStream(is,smode);
+  check.loadFromStream(is,smode);
 
   YAATK_FSTREAM_READ(is,simTime,smode);
   YAATK_FSTREAM_READ(is,simTimeSaveTrajInterval,smode);
   YAATK_FSTREAM_READ(is,simTimeFinal,smode);
   YAATK_FSTREAM_READ(is,timeaccel,smode);
   YAATK_FSTREAM_READ(is,dt,smode);
-  YAATK_FSTREAM_READ(is,iteration,smode); //iteration++;
+  YAATK_FSTREAM_READ(is,iteration,smode);
   YAATK_FSTREAM_READ(is,iterationFlushStateInterval,smode);
-  
-  thermalBath.LoadFromStream(is,smode);
+
+  thermalBath.loadFromStream(is,smode);
 
   fpot.LoadFromStream(is,smode);
 
   YAATK_FSTREAM_READ(is,CPUTimeUsed_prev,smode);
   CPUTimeUsed_total = CPUTimeUsed_prev;
 
-//TRACE(atoms_.getPBC());
-
   cout << "Parsing of state file done. " << endl;
 
   initialize();
-  
+
   allowPartialLoading = true;
 }
 
@@ -534,7 +528,7 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
 
   atoms.saveToStream(os,smode);
 
-  check.SaveToStream(os,smode);
+  check.saveToStream(os,smode);
 
   YAATK_FSTREAM_WRITE(os,simTime,smode);
   YAATK_FSTREAM_WRITE(os,simTimeSaveTrajInterval,smode);
@@ -544,10 +538,10 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_WRITE(os,iteration,smode);
   YAATK_FSTREAM_WRITE(os,iterationFlushStateInterval,smode);
 
-  thermalBath.SaveToStream(os,smode);
+  thermalBath.saveToStream(os,smode);
 
   fpot.SaveToStream(os,smode);
-  
+
   YAATK_FSTREAM_WRITE(os,CPUTimeUsed_total,smode);
 
   os.precision(prevStreamSize);
@@ -560,25 +554,20 @@ SimLoop::loadFromStreamXVA(istream& is)
 {
   REQUIRE(allowPartialLoading == true);
 
-
-Float XVA_VELOCITY_SCALE = 1.0;
-Float XVA_DISTANCE_SCALE = 1.0;
+  Float XVA_VELOCITY_SCALE = 1.0;
+  Float XVA_DISTANCE_SCALE = 1.0;
 
 #ifndef DONT_USE_XVASCALE
-
-is >> XVA_VELOCITY_SCALE;
-is >> XVA_DISTANCE_SCALE;
-
+  is >> XVA_VELOCITY_SCALE;
+  is >> XVA_DISTANCE_SCALE;
 #endif
 
-TRACE(XVA_VELOCITY_SCALE);
-TRACE(XVA_DISTANCE_SCALE);
-
+  TRACE(XVA_VELOCITY_SCALE);
+  TRACE(XVA_DISTANCE_SCALE);
 
   size_t i,atoms_count;
   is >> atoms_count;
   REQUIRE(atoms_count == atoms.size());
-
 
   cout << "Reading XVA info about " << atoms_count << " atoms..." << endl;
 
@@ -593,7 +582,7 @@ TRACE(XVA_DISTANCE_SCALE);
   }
   cout << endl;
 
-  check.LoadFromStream(is,YAATK_FSTREAM_TEXT);
+  check.loadFromStream(is,YAATK_FSTREAM_TEXT);
 
   is >> simTime;
   is >> dt;
@@ -610,8 +599,7 @@ TRACE(XVA_DISTANCE_SCALE);
 void
 SimLoop::saveToStreamXVA(ostream& os)
 {
-
-Float XVA_VELOCITY_SCALE = 0.0;//1.0e3;
+  Float XVA_VELOCITY_SCALE = 0.0;//1.0e3;
   for(size_t i = 0; i < atoms.size(); i++)
   {
     XVA_VELOCITY_SCALE += fabs(atoms[i].V.x);
@@ -619,23 +607,20 @@ Float XVA_VELOCITY_SCALE = 0.0;//1.0e3;
     XVA_VELOCITY_SCALE += fabs(atoms[i].V.z);
   }
 
-XVA_VELOCITY_SCALE /= (3.0*atoms.size());
-if (fabs(XVA_VELOCITY_SCALE) < 1e-30) XVA_VELOCITY_SCALE = 1e-30;
-XVA_VELOCITY_SCALE = pow(10.0,ceil(log10(fabs(XVA_VELOCITY_SCALE)))-2);
+  XVA_VELOCITY_SCALE /= (3.0*atoms.size());
+  if (fabs(XVA_VELOCITY_SCALE) < 1e-30) XVA_VELOCITY_SCALE = 1e-30;
+  XVA_VELOCITY_SCALE = pow(10.0,ceil(log10(fabs(XVA_VELOCITY_SCALE)))-2);
 
-
-Float XVA_DISTANCE_SCALE = Ao;
+  Float XVA_DISTANCE_SCALE = Ao;
 
 #ifdef DONT_USE_XVASCALE
-XVA_VELOCITY_SCALE = 1.0;
-XVA_DISTANCE_SCALE = 1.0;
+  XVA_VELOCITY_SCALE = 1.0;
+  XVA_DISTANCE_SCALE = 1.0;
 #endif
 
 #ifndef DONT_USE_XVASCALE
-
-os << XVA_VELOCITY_SCALE << "\n";
-os << XVA_DISTANCE_SCALE << "\n";
-
+  os << XVA_VELOCITY_SCALE << "\n";
+  os << XVA_DISTANCE_SCALE << "\n";
 #endif
 
   std::streamsize prevStreamSize = os.precision();
@@ -668,12 +653,12 @@ os << XVA_DISTANCE_SCALE << "\n";
 
   os.precision(FLOAT_PRECISION);
 
-  check.SaveToStream(os,YAATK_FSTREAM_TEXT);
+  check.saveToStream(os,YAATK_FSTREAM_TEXT);
 
   os << simTime << "\n";
   os << dt << "\n";
   os << iteration << "\n";
-  
+
   os << CPUTimeUsed_total << "\n";
 
   os.precision(prevStreamSize);
@@ -687,7 +672,6 @@ SimLoop::loadFromStreamXVA_bin(istream& is)
   size_t i,atoms_count;
   YAATK_BIN_READ(is,atoms_count);
   REQUIRE(atoms_count == atoms.size());
-
 
   cout << "Reading XVA info about " << atoms_count << " atoms..." << endl;
 
@@ -730,11 +714,9 @@ SimLoop::saveToStreamXVA_bin(ostream& os)
   YAATK_BIN_WRITE(os,simTime);
   YAATK_BIN_WRITE(os,dt);
   YAATK_BIN_WRITE(os,iteration);
-  
+
   YAATK_BIN_WRITE(os,CPUTimeUsed_total);
 }
-
-
 
 void
 SimLoop::writetraj()
@@ -756,12 +738,11 @@ SimLoop::writetrajXVA()
   fo1.close();
 }
 
-
 void
 SimLoop::writetrajXVA_bin()
 {
   static char s[1024];
-  sprintf(s,"mde""%010ld.xva.bin",iteration); //#
+  sprintf(s,"mde""%010ld.xva.bin",iteration);
   yaatk::binary_ofstream fo1(s);
   saveToStreamXVA_bin(fo1);
   fo1.close();
@@ -994,32 +975,32 @@ void
 SimLoop::writestate()
 {
   {
-  yaatk::binary_ofstream fo1("simloop.conf.bak");
-  saveToStream(fo1,YAATK_FSTREAM_BIN);
-  fo1.close();
+    yaatk::binary_ofstream fo1("simloop.conf.bak");
+    saveToStream(fo1,YAATK_FSTREAM_BIN);
+    fo1.close();
   }
 
   {
-  yaatk::binary_ofstream fo1("simloop.conf");
-  saveToStream(fo1,YAATK_FSTREAM_BIN);
-  fo1.close();
+    yaatk::binary_ofstream fo1("simloop.conf");
+    saveToStream(fo1,YAATK_FSTREAM_BIN);
+    fo1.close();
   }
 }
 
 void
 SimLoop::loadstate()
 {
-try
-{
-  std::cout << "Reading simloop.conf." << std::endl;
-  yaatk::binary_ifstream fo1("simloop.conf");
-  loadFromStream(fo1,YAATK_FSTREAM_BIN);
-  
-  REQUIRE(fo1!=0);
-  fo1.close();
-}  
-catch(mdtk::Exception& e)
-{ 
+  try
+  {
+    std::cout << "Reading simloop.conf." << std::endl;
+    yaatk::binary_ifstream fo1("simloop.conf");
+    loadFromStream(fo1,YAATK_FSTREAM_BIN);
+
+    REQUIRE(fo1!=0);
+    fo1.close();
+  }
+  catch(mdtk::Exception& e)
+  {
     std::cerr << "simloop.conf is corrupted. Trying simloop.conf.bak" << std::endl;
     yaatk::binary_ifstream fo1bak("simloop.conf.bak");
     loadFromStream(fo1bak,YAATK_FSTREAM_BIN);
@@ -1027,26 +1008,13 @@ catch(mdtk::Exception& e)
     {
       std::cerr << "simloop.conf.bak is ALSO corrupted. Exiting..." << std::endl;
       exit(1);
-    }  
+    }
     fo1bak.close();
-}
+  }
 }
 
-
-/*
 void
-SimLoop::fixAtom(Atom& atom)
-{
-  check.energy0 -= atom.M*SQR(atom.V.module())/2.0;
-  atom.M = INFINITE_MASS;
-  atom.V = Vector3D(0,0,0);
-  atom.an = Vector3D(0,0,0);
-  atom.an_no_tb = Vector3D(0,0,0);
-}
-*/
-
-
-void SimLoop::init_check_energy()
+SimLoop::init_check_energy()
 {
   check.temperatureCur = temperature();
   Float energyPotStart = energyPot();
@@ -1091,8 +1059,7 @@ void SimLoop::initialize()
     fpot.NL_init(atoms);
     fpot.NL_UpdateIfNeeded(atoms);
   }
-}  
-
+}
 
 void
 SimLoop::saveToMDE(std::ostream& fo)
@@ -1102,21 +1069,15 @@ SimLoop::saveToMDE(std::ostream& fo)
   {
     Atom& Ro_i = atoms[i];
     YAATK_FSTREAM_WRITE(fo,Ro_i,YAATK_FSTREAM_TEXT);
-/*
-    fo << Ro_i.Z/mdtk::e << " " << Ro_i.M/mdtk::amu << " " << Ro_i.ID << " " << Ro_i.tag << " " << Ro_i.fixed << " " << Ro_i.thermostat << std::endl;
-    fo << Ro_i.V.x << " " << Ro_i.V.y << " " << Ro_i.V.z <<  std::endl;
-    fo << Ro_i.coords.x << " " << Ro_i.coords.y << " " << Ro_i.coords.z <<  std::endl;
-*/
-  }  
+  }
   YAATK_FSTREAM_WRITE(fo,simTime,YAATK_FSTREAM_TEXT);
   YAATK_FSTREAM_WRITE(fo,simTimeSaveTrajInterval,YAATK_FSTREAM_TEXT);
   YAATK_FSTREAM_WRITE(fo,simTimeFinal,YAATK_FSTREAM_TEXT);
 
   REQUIRE(atoms.size() > 0);
   fo << atoms.PBC() << std::endl;
-  thermalBath.SaveToStream(fo,YAATK_FSTREAM_TEXT);
+  thermalBath.saveToStream(fo,YAATK_FSTREAM_TEXT);
 }
-
 
 void
 SimLoop::saveToNanoHive(std::ostream& fo)
@@ -1137,7 +1098,7 @@ SimLoop::saveToNanoHive(std::ostream& fo)
     };
     fo << "<atom id=\"" << i+1 << "\" elementType=\"" << et
        << "\" x3=\"" << Ro_i.coords.x/Ao << "\" y3=\"" << Ro_i.coords.y/Ao << "\" z3=\"" << Ro_i.coords.z/Ao << "\" />\n";
-  }  
+  }
 }
 
 void
@@ -1164,7 +1125,7 @@ SimLoop::loadFromMDE(std::istream& fi)
   Vector3D PBC;
   fi >> PBC;
   setPBC(PBC);
-  thermalBath.LoadFromStream(fi,YAATK_FSTREAM_TEXT);
+  thermalBath.loadFromStream(fi,YAATK_FSTREAM_TEXT);
 
   initialize();
 }
@@ -1176,10 +1137,10 @@ SimLoop::heatUpEveryAtom(Float upEnergy, gsl_rng* rng)
   {
     Vector3D vn(gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0);
     vn.normalize();
-  
+
     atoms[i].V = vn*sqrt(2.0*upEnergy/atoms[i].M);
-  } 	
-}  
+  }
+}
 
 void
 SimLoop::displaceEveryAtom(Float dist, gsl_rng* rng)
@@ -1188,16 +1149,89 @@ SimLoop::displaceEveryAtom(Float dist, gsl_rng* rng)
   {
     Vector3D vn(gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0);
     vn.normalize();
-  
+
     TRACE(vn*dist/Ao);
     TRACE((vn*dist).module()/Ao);
 
     atoms[i].coords += vn*dist;
-  } 	
-}  
+  }
+}
 
+SimLoop::Check::Check(bool ce)
+  :netForce(0.0,0.0,0.0),
+   energyStart(1.0),energyCur(1.0),
+   temperatureCur(0.0),
+   checkEnergy(ce),checkForce(true)
+{
+}
+
+void
+SimLoop::Check::saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
+{
+  YAATK_FSTREAM_WRITE(os,netForce,smode);
+  YAATK_FSTREAM_WRITE(os,energyStart,smode);
+  YAATK_FSTREAM_WRITE(os,energyCur,smode);
+  YAATK_FSTREAM_WRITE(os,temperatureCur,smode);
+
+  YAATK_FSTREAM_WRITE(os,checkEnergy,smode);
+  YAATK_FSTREAM_WRITE(os,checkForce,smode);
+}
+
+void
+SimLoop::Check::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
+{
+  YAATK_FSTREAM_READ(is,netForce,smode);
+  YAATK_FSTREAM_READ(is,energyStart,smode);
+  YAATK_FSTREAM_READ(is,energyCur,smode);
+  YAATK_FSTREAM_READ(is,temperatureCur,smode);
+
+  YAATK_FSTREAM_READ(is,checkEnergy,smode);
+  YAATK_FSTREAM_READ(is,checkForce,smode);
+}
+
+/*
+void
+ThermalBath::disableGlobally()
+{
+  zMin = 1000000.0*Ao;dBoundary = 0.0;zMinOfFreeZone = 0.0;
+}
+*/
+
+SimLoop::ThermalBath::ThermalBath(Float zMin_, Float dBoundary_, Float zMinOfFreeZone_)
+  :zMin(zMin_), dBoundary(dBoundary_), zMinOfFreeZone(zMinOfFreeZone_), To(0.0)
+{
+}
+
+void
+SimLoop::ThermalBath::saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
+{
+  YAATK_FSTREAM_WRITE(os,zMin,smode);
+  YAATK_FSTREAM_WRITE(os,dBoundary,smode);
+  YAATK_FSTREAM_WRITE(os,zMinOfFreeZone,smode);
+  YAATK_FSTREAM_WRITE(os,To,smode);
+}
+
+void
+SimLoop::ThermalBath::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
+{
+  YAATK_FSTREAM_READ(is,zMin,smode);
+  YAATK_FSTREAM_READ(is,dBoundary,smode);
+  YAATK_FSTREAM_READ(is,zMinOfFreeZone,smode);
+  YAATK_FSTREAM_READ(is,To,smode);
+}
+
+bool
+SimLoop::isWithinThermalBath(const Atom& a)
+{
+  return (a.coords.z > thermalBath.zMin) ||
+    (a.lateralPBCEnabled() &&
+     (
+       (a.coords.x < 0.0 + thermalBath.dBoundary) ||
+       (a.coords.x > a.PBC.x - thermalBath.dBoundary) ||
+       (a.coords.y < 0.0 + thermalBath.dBoundary) ||
+       (a.coords.y > a.PBC.y - thermalBath.dBoundary)
+       ) && a.coords.z > thermalBath.zMinOfFreeZone
+      );
+}
 
 }// namespace mdtk
-
-
-
