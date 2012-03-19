@@ -457,6 +457,7 @@ AtomRefsContainer::genAtomsArray()
   AtomsArray ar;
   for(size_t i = 0; i < size(); i++)
     ar.push_back(*at(i));
+  return ar;
 }
 
 AtomRefsContainer&
