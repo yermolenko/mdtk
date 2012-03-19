@@ -1048,49 +1048,37 @@ SimLoop::fixAtom(Atom& atom)
 
 void SimLoop::init_check_energy()
 {
-  using std::fabs;
-
   check.temperatureCur = temperature();
   Float energyPotStart = energyPot();
   Float energyKinStart = energyKin();
   check.energyCur = check.energyStart = energyPotStart+energyKinStart;
 
-      check.energy0 = min3(
-                            energyPotStart,energyKinStart,
-                           (energyPotStart+energyKinStart)
-                          )
-                      -
-                      max3(
-                            fabs(energyPotStart),fabs(energyKinStart),
-                            fabs(energyPotStart+energyKinStart)
-                          );
-
-  cout << "Eo : " << showpos << check.energy0/mdtk::eV << endl;
-  cout << "E0 : " << showpos << (check.energyStart)/eV << endl;
+  cout << "Eo : " << showpos << check.energyStart/eV << endl;
   cout << noshowpos;
-}  
+
+  if(std::fabs(check.energyStart) < 0.001*eV)
+    cerr << "Total energy is less than 0.001*eV." << endl;
+}
 
 void SimLoop::do_check_energy()
 {
-  Float ediff;
-    bool reallyPrintCheck = check.checkEnergy && iteration%check.checkEnergyAfter == 0
-        && iteration != 0;
+  bool reallyPrintCheck = check.checkEnergy && iteration != 0;
 
   check.temperatureCur = temperature();
 
   check.energyCur = energy();
-  ediff = (check.energyCur-check.energyStart)
-          /
-          (/*check.energyStart-*/check.energy0);
+  Float ediff = (check.energyCur-check.energyStart)/check.energyStart;
 
-      if (reallyPrintCheck)
-      {
-        cout << "E0+Eb : " << showpos << (check.energyStart)/eV << endl;
-//        cout << "Ec : " << showpos << (check.energyCur)/eV << endl;
-        cout << "E-(E0+Eb) : " << showpos << (check.energyCur-check.energyStart)/eV << endl;
-        cout << "dE/Eo : " << showpos << ediff << endl;
-        cout << noshowpos;
-      }
+  if (reallyPrintCheck)
+  {
+    cout << "Eo+Eb : " << showpos << (check.energyStart)/eV << endl;
+    cout << "E-(Eo+Eb) : " << showpos << (check.energyCur-check.energyStart)/eV << endl;
+    cout << "dE/(Eo+Eb) : " << showpos << ediff << endl;
+    cout << noshowpos;
+  }
+
+  if(std::fabs(check.energyCur) < 0.001*eV)
+    cerr << "Total energy is less than 0.001*eV." << endl;
 }
 
 void SimLoop::initialize()

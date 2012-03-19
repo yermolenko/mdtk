@@ -389,7 +389,7 @@ StatPostProcess::removeBadTrajectories()
       SimLoop::Check& check = state->check;
       Float ediff = (check.energyCur-check.energyStart)
         /
-        (/*check.energyStart-*/check.energy0);
+        (/*check.energyStart-*/check.energyStart);
       if (fabs(ediff) > 0.01)
       {
         cerr << "Trajectory " << trajData[trajIndex].trajDir << " has bad energy conservation. Handle it separately." << endl;
