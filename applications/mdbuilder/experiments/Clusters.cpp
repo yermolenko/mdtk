@@ -960,7 +960,7 @@ bomb_orthorhombic_with_clusters(
     yaatk::chdir(trajDirName);
     {
       sl.simTime = 0.0*ps;
-      sl.simTimeFinal = 10.0*ps;
+      sl.simTimeFinal = 6.0*ps;
       sl.simTimeSaveTrajInterval = 0.1*ps;
 
       yaatk::text_ofstream fomde("in.mde");
@@ -1150,7 +1150,7 @@ build_metal_C60_mixing(
   ElementID metalElement
   )
 {
-  size_t numberOfImpacts = 16;
+  size_t numberOfImpacts = 128;
 
   AtomsArray fullerene = mdbuilder::C60();
   fullerene.removeMomentum();
