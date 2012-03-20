@@ -121,14 +121,19 @@ MainWindow::setAtomViewIndex(int index)
   renderBox->redraw();
 }
 
-MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
-		       VisBox* avb, bool instantAnimate):
-  Fl_Window(1000,550,"MDTK Trajectory Viewer"),renderBox(avb)
+MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
+  Fl_Window(1000,550,"MDTK Trajectory Viewer"),
+  renderBox(avb),
+  stateList(),
+  stateIndex(0)
 {
-  base_state_filename = bsf;
-  stateList = fileList;
-  stateIndex = 0;
-  
+  MDTrajectory_stateName::const_iterator t = avb->mdt_stateName.begin();
+  while (t != avb->mdt_stateName.end())
+  {
+    stateList.push_back(t->second);
+    ++t;
+  }
+
   log_buffer = new char[MAX_LOG_BUFFER_LEN];
   log_buffer[0]='\0';
   log_pos = 0;
@@ -643,7 +648,7 @@ MainWindow::MainWindow(std::string &bsf,std::vector<std::string>& fileList,
   renderBox->hide();
   renderBox->show();
 
-  if (fileList.size() > 0)
+  if (stateList.size() > 0)
     loadNewSnapshot(0);
 
   renderBox->allowRescale = false;
@@ -1103,7 +1108,7 @@ MainWindow::loadNewSnapshot(int index)
   stateIndex = index;
   label((std::string("MDTK Trajectory Viewer [Control Window] - ")+stateList[stateIndex]).c_str());
   renderBox -> label((std::string("MDTK 3D View - ")+stateList[stateIndex]).c_str());
-  renderBox -> loadNewSnapshot(base_state_filename,stateList[stateIndex]);
+  renderBox -> loadNewSnapshot(stateIndex);
   setAtomViewIndex(int(current_atomindex->value())/*-1*/);
 }  
 

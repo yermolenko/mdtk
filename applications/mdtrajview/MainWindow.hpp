@@ -2,8 +2,8 @@
    The MainWindow class for the molecular dynamics trajectory viewer
    (header file)
 
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
+   2012 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -126,8 +126,7 @@ class MainWindow : public Fl_Window
   void quickSaveBitmap();
 public:
   int  handle(int);
-  std::string base_state_filename;
-  MainWindow(std::string&,std::vector<std::string>&,VisBox* ,bool);
+  MainWindow(VisBox* ,bool);
   ~MainWindow();
   void redrawGL();
   void setAtomViewIndex(int index);

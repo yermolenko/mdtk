@@ -84,14 +84,19 @@ public:
 public:
   mdtk::AtomsArray* getAtoms(){return &Ro;};
   size_t getAtomsCount(){return ml_->atoms.size();};
-  void loadNewSnapshot(std::string base_state_filename,std::string);
+  void loadNewSnapshot(size_t);
 private:
   mdtk::AtomsArray R,Ro;
+  std::vector<bool> completeInfoPresent;
 public:
   mdtk::SimLoop* ml_;
 private:
   MDTrajectory mdt;
-  std::vector<std::string> xvaList;
+  MDTrajectory_defined mdt_defined;
+public:
+  MDTrajectory_stateName mdt_stateName;
+private:
+  std::string baseStateFilename;
   CollisionTree *ctree;
 private:
   mdtk::Float zbar;

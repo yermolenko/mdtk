@@ -46,9 +46,13 @@ void updateAtomsFromSimLoop(const SimLoop& ml, std::vector<Atom>& atoms)
   }
 }
 
-void MDTrajectory_read(MDTrajectory& mdt,
-		       const std::string basefile, 
-		       const std::vector<std::string>& xvas)
+void MDTrajectory_read(
+  MDTrajectory& mdt,
+  MDTrajectory_defined& mdt_defined,
+  MDTrajectory_stateName& mdt_stateName,
+  const std::string basefile,
+  const std::vector<std::string>& xvas
+  )
 {
   SimLoop ml;
   if (basefile.find("simloop.conf") != std::string::npos) 
@@ -74,6 +78,8 @@ void MDTrajectory_read(MDTrajectory& mdt,
   }
 
   std::vector<Atom> atoms;
+  std::vector<bool> atoms_defined;
+  atoms_defined.resize(ml.atoms.size());
 
   for(size_t i = 0; i < xvas.size(); ++i)
   {
@@ -86,11 +92,23 @@ void MDTrajectory_read(MDTrajectory& mdt,
       ml_->loadFromStreamXVA_bin(fixva);
       fixva.close(); 
     */
+
+    for(size_t adi = 0; adi < atoms_defined.size(); adi++)
+      atoms_defined[adi] = true;
+
     if (i == 0)
       getAtomsFromSimLoop(ml,atoms);
     else
       updateAtomsFromSimLoop(ml,atoms);
     mdt[ml.simTime] = atoms;
+    mdt_defined[ml.simTime] = atoms_defined;
+
+    std::ostringstream slabel;
+    slabel << std::fixed << std::setprecision(5)
+           << ml.simTime/ps << " ps : "
+           << xvas[i];
+
+    mdt_stateName[ml.simTime] = slabel.str();
     TRACE(ml.simTime);
     TRACE(atoms.size());
   }  
@@ -98,7 +116,10 @@ void MDTrajectory_read(MDTrajectory& mdt,
 
 void MDTrajectory_read_from_SnapshotList(
   MDTrajectory& mdt,
-  const std::string basefile)
+  MDTrajectory_defined& mdt_defined,
+  MDTrajectory_stateName& mdt_stateName,
+  const std::string basefile
+  )
 {
   SimLoop ml;
   if (basefile.find("simloop.conf") != std::string::npos) 
@@ -124,11 +145,14 @@ void MDTrajectory_read_from_SnapshotList(
   }
 
   std::vector<Atom> atoms;
+  std::vector<bool> atoms_defined;
+  atoms_defined.resize(ml.atoms.size());
   SnapshotList shots;
   shots.loadstate();
 
   for(size_t i = 0; i < shots.snapshots.size(); ++i)
   {
+    atoms_defined.assign(atoms_defined.size(),false);
     ml.simTime = shots.snapshots[i].first;
     for(size_t ai = 0; ai < shots.snapshots[i].second.size(); ++ai)
     {
@@ -136,6 +160,7 @@ void MDTrajectory_read_from_SnapshotList(
         shots.snapshots[i].second[ai];
       Atom& a = ml.atoms[shots.atomsSelectedForSaving[ai]];
       as.restoreToAtom(a);
+      atoms_defined[shots.atomsSelectedForSaving[ai]] = true;
     }
 
     if (i == 0)
@@ -143,6 +168,14 @@ void MDTrajectory_read_from_SnapshotList(
     else
       updateAtomsFromSimLoop(ml,atoms);
     mdt[ml.simTime] = atoms;
+    mdt_defined[ml.simTime] = atoms_defined;
+
+    std::ostringstream slabel;
+    slabel << std::fixed << std::setprecision(5)
+           << ml.simTime/ps << " ps : "
+           << "partial snapshot #" << std::setprecision(20) << i;
+
+    mdt_stateName[ml.simTime] = slabel.str();
     TRACE(ml.simTime);
     TRACE(atoms.size());
   }  

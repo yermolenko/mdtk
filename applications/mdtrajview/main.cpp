@@ -1,7 +1,7 @@
 /*
    mdtrajview (the molecular dynamics trajectory viewer)
 
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -167,6 +167,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
           ostringstream os; os << "shot" << i;
           fileList.push_back(os.str());
         }
+        findIntermediateStates("./",fileList);
       }
       else
         findIntermediateStates("./",fileList);
@@ -202,7 +203,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
   xmde::VisBox avb(15,35,500,500,baseFile,fileList);
   avb.set_non_modal();
 
-  xmde::MainWindow w(baseFile,fileList,&avb, instantAnimate);
+  xmde::MainWindow w(&avb, instantAnimate);
   MainWindow_GlobalPtr = &w;
 
   Fl::run();

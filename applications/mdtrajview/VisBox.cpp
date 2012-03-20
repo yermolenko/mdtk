@@ -37,35 +37,30 @@ namespace xmde
 using namespace mdtk;
 
 void
-VisBox::loadNewSnapshot(std::string base_state_filename,std::string file)
+VisBox::loadNewSnapshot(size_t index)
 {
   using mdtk::Exception;
 
-  TRACE(file);
+  TRACE(index);
 
-  std::vector<std::string>::iterator xvai = 
-    std::find(xvaList.begin(),xvaList.end(),file);
-
-  REQUIRE(xvai != xvaList.end());
-
-  if (xvai == xvaList.begin())
+  if (index == 0)
   {
     
     TRACE("*********LOADING INITIAL STATE *******");
     
-    TRACE(base_state_filename);
+    TRACE(baseStateFilename);
 
-    if (base_state_filename.find("simloop.conf") != std::string::npos) 
+    if (baseStateFilename.find("simloop.conf") != std::string::npos) 
     {
       ml_->loadstate();
     }
     else
     {
-      yaatk::text_ifstream fi(base_state_filename.c_str()); 
+      yaatk::text_ifstream fi(baseStateFilename.c_str()); 
 
       ml_->initNLafterLoading = false;
 
-      if (base_state_filename.find("mde_init") != std::string::npos)
+      if (baseStateFilename.find("mde_init") != std::string::npos)
 	ml_->loadFromStream(fi);
       else
       {
@@ -76,37 +71,29 @@ VisBox::loadNewSnapshot(std::string base_state_filename,std::string file)
       }
       fi.close(); 
     }
-    if (file != "shot")
-    {
-      yaatk::text_ifstream fixva(file.c_str()); 
-      ml_->loadFromStreamXVA(fixva);
-      fixva.close(); 
-      /*
-	yaatk::binary_ifstream fixva(file.c_str()); 
-	ml_->loadFromStreamXVA_bin(fixva);
-	fixva.close(); 
-      */
-    }
+
+    // assume the first xva has always actual info
+    completeInfoPresent.assign(ml_->atoms.size(),true);
   }
-  else
+
   {
     TRACE("********* UPDATING FROM MDT ***********");
     MDTrajectory::const_iterator t = mdt.begin();
-    int xvaCount = 0;
-    TRACE(xvai-xvaList.begin());
-    while (xvaCount < xvai-xvaList.begin())
+    MDTrajectory_defined::const_iterator tci = mdt_defined.begin();
+    for(size_t count = 0; count < index; count++)
     {
       ++t;
-      ++xvaCount;
+      ++tci;
     }
-    TRACE(xvaCount);
     const std::vector<Atom>& atoms = t->second;
+    completeInfoPresent = tci->second;
     TRACE(atoms.size());
     TRACE(ml_->atoms.size());
     REQUIRE(atoms.size() == ml_->atoms.size());
     for(size_t i = 0; i < ml_->atoms.size(); ++i)
     {
-      ml_->atoms[i] = atoms[i];
+      if (completeInfoPresent[i])
+        ml_->atoms[i] = atoms[i];
     }
     ml_->simTime = t->first;
   }
@@ -153,9 +140,12 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     nRange(50),
     vertexRadius(1.0), axesRadius(1.0), scale(1.0), maxScale(1.0),
     R(),Ro(),
+    completeInfoPresent(),
     ml_(NULL),
     mdt(),
-    xvaList(xvas),
+    mdt_defined(),
+    mdt_stateName(),
+    baseStateFilename(base_state_filename),
     ctree(NULL),
     zbar(0.0),
     lstBall(0),
@@ -196,12 +186,26 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     fi.close(); 
   }
   setData(*ml_);
-  if (xvas.size() > 0 && xvas[0] != "shot")
-    MDTrajectory_read(mdt,base_state_filename,xvas);
-  else
+
+  completeInfoPresent.resize(ml_->atoms.size());
+  completeInfoPresent.assign(completeInfoPresent.size(),true);
+
+  if (xvas.size() > 0)
   {
-    if (yaatk::exists("snapshots.conf"))
-      MDTrajectory_read_from_SnapshotList(mdt,base_state_filename);
+    if (std::find(xvas.begin(),xvas.end(),"shot") == xvas.end())
+      MDTrajectory_read(mdt,mdt_defined,mdt_stateName,base_state_filename,xvas);
+    else
+    {
+      if (yaatk::exists("snapshots.conf"))
+        MDTrajectory_read_from_SnapshotList(mdt,mdt_defined,mdt_stateName,base_state_filename);
+      std::vector<std::string> xvas_wo_shots;
+      for(size_t xi = 0; xi < xvas.size(); xi++)
+        if (xvas[xi][0] != 's')
+          xvas_wo_shots.push_back(xvas[xi]);
+      TRACE(xvas_wo_shots.front().c_str());
+      TRACE(xvas_wo_shots.back().c_str());
+      MDTrajectory_read(mdt,mdt_defined,mdt_stateName,base_state_filename,xvas_wo_shots);
+    }
   }
 //    ctree = new CollisionTree(*(ml_->atoms.back()),mdt.begin(),mdt);
   }
@@ -622,7 +626,7 @@ VisBox::listVertexes()
       glTranslated(R[i].coords.x,R[i].coords.y,R[i].coords.z);
       Atom a = R[i]; a.setAttributesByElementID();
       Float scale = 1.0*vertexRadius*pow(a.M/mdtk::amu,1.0/3.0);
-      if (tinyAtoms) scale /= 5;
+      if (tinyAtoms || !completeInfoPresent[i]) scale /= 5;
       glScaled(scale,scale,scale);
       glCallList(hqMode?lstBallHQ:lstBall);
     }
