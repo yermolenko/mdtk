@@ -508,7 +508,7 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
 
   thermalBath.loadFromStream(is,smode);
 
-  fpot.LoadFromStream(is,smode);
+//  fpot.LoadFromStream(is,smode);
 
   YAATK_FSTREAM_READ(is,CPUTimeUsed_prev,smode);
   CPUTimeUsed_total = CPUTimeUsed_prev;
@@ -540,7 +540,7 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
 
   thermalBath.saveToStream(os,smode);
 
-  fpot.SaveToStream(os,smode);
+//  fpot.SaveToStream(os,smode);
 
   YAATK_FSTREAM_WRITE(os,CPUTimeUsed_total,smode);
 
