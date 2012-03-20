@@ -909,6 +909,7 @@ bomb_orthorhombic_with_clusters(
   {
     Float bombX = 0.0;
     Float bombY = 0.0;
+    Float d = (a>b)?a:b;
     Float cell_part_x;
     Float cell_part_y;
     bool positionNotFound = true;
@@ -920,13 +921,13 @@ bomb_orthorhombic_with_clusters(
       cell_part_x = v[0];
       cell_part_y = v[1];
 
-      bombX = bombX0 + cell_part_x*(a+b);
-      bombY = bombY0 + cell_part_y*(a+b);
+      bombX = bombX0 + cell_part_x*d;
+      bombY = bombY0 + cell_part_y*d;
 
       allowToBomb = true;
 
       positionNotFound =
-        (cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) || !allowToBomb;
+        (cell_part_x >= a/d || cell_part_y >= b/d) || !allowToBomb;
 
       if (positionNotFound)
         rngExcluded << cell_part_x << " " << cell_part_y << "\n";
