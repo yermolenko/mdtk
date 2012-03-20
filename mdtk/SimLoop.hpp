@@ -69,6 +69,7 @@ public:
     void saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode);
     void loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode);
   }check;
+  void forgetHistory() { iteration = 0; }
 public:
   Float simTime;
   Float simTimeSaveTrajInterval;

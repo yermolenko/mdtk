@@ -959,6 +959,7 @@ bomb_orthorhombic_with_clusters(
     yaatk::mkdir(trajDirName);
     yaatk::chdir(trajDirName);
     {
+      sl.forgetHistory();
       sl.simTime = 0.0*ps;
       sl.simTimeFinal = 6.0*ps;
       sl.simTimeSaveTrajInterval = 0.1*ps;
