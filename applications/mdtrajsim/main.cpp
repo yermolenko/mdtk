@@ -319,7 +319,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     return 0;
   }
 
-  std::string inputFile = "in.mde";
+  std::string inputFile = "mde_init";
   if (argc > 1) inputFile = argv[1];
 
   return runTraj(inputFile);
@@ -343,13 +343,16 @@ try
   {
     REQUIRE(yaatk::exists(inputFile.c_str()));
     yaatk::text_ifstream fi(inputFile.c_str());
-    mdloop.loadFromMDE(fi);
+    mdloop.loadFromStream(fi);
 //    mdloop.simTimeFinal = 6.0*ps;
 //    mdloop.loadFromMDE_OLD(fi);
     fi.close();
-  yaatk::text_ofstream fo1("mde""_init");
-    mdloop.saveToStream(fo1);
-  fo1.close();
+    if (0)
+    {
+      yaatk::text_ofstream fo1("mde""_init");
+      mdloop.saveToStream(fo1);
+      fo1.close();
+    }
   }
 
   mdloop.execute();

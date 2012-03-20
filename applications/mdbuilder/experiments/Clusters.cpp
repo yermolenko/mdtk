@@ -963,8 +963,8 @@ bomb_orthorhombic_with_clusters(
       sl.simTimeFinal = 6.0*ps;
       sl.simTimeSaveTrajInterval = 0.1*ps;
 
-      yaatk::text_ofstream fomde("in.mde");
-      sl.saveToMDE(fomde);
+      yaatk::text_ofstream fomde("mde_init");
+      sl.saveToStream(fomde);
       fomde.close();
     }
     yaatk::chdir("..");
