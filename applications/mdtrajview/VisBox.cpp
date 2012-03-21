@@ -616,7 +616,7 @@ VisBox::listVertexes()
       }
     }
     myglColor(c);
-    if (R[i].M > 1000.0*amu) myglColor(0x0);
+    if (R[i].isFixed()) myglColor(0x0);
 
     if (atomsQuality > 2)
     {
