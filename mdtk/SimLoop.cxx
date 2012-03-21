@@ -42,26 +42,22 @@ SimLoop::SimLoop()
     atoms(),
     check(),
     simTime(0.0),
+    simTimeSaveTrajInterval(0.1*ps),
+    simTimeFinal(4.0*ps),
     breakSimLoop(false),
-    iteration(0) ,
+    timeaccel(1.0*Ao),
+    dt(1e-20),
+    dt_prev(1e-20),
+    iteration(0),
+    iterationFlushStateInterval(1000),
     thermalBath(),
     initNLafterLoading(true),
     allowPartialLoading(false),
-    fpot()
-    ,CPUTimeUsed_prev(0)
-    ,CPUTimeUsed_total(0)
+    fpot(),
+    CPUTimeUsed_prev(0),
+    CPUTimeUsed_total(0)
 {
   verboseTrace = true;
-
-  timeaccel = 1.0*Ao;
-
-  dt = 1e-20;
-  dt_prev = dt;
-
-  iterationFlushStateInterval = 1000;
-  simTimeFinal = 4.0*ps;
-
-  simTimeSaveTrajInterval = 0.1*ps;
 
   check.checkEnergy = true;
   check.checkForce = true;
@@ -70,33 +66,27 @@ SimLoop::SimLoop()
 SimLoop::SimLoop(const SimLoop &c)
   : allowToFreePotentials(true),
     atoms(c.atoms),
-    check(),
-    simTime(0.0),
+    check(c.check),
+    simTime(c.simTime),
+    simTimeSaveTrajInterval(c.simTimeSaveTrajInterval),
+    simTimeFinal(c.simTimeFinal),
     breakSimLoop(false),
-    iteration(0) ,
-    thermalBath(),
+    timeaccel(c.timeaccel),
+    dt(1e-20), // check this!
+    dt_prev(1e-20), // check this!
+    iteration(c.iteration),
+    iterationFlushStateInterval(c.iterationFlushStateInterval),
+    thermalBath(c.thermalBath),
     initNLafterLoading(true),
     allowPartialLoading(false),
-    fpot()
-    ,CPUTimeUsed_prev(0)
-    ,CPUTimeUsed_total(0)
+    fpot(),
+    CPUTimeUsed_prev(0),
+    CPUTimeUsed_total(0)
 {
   verboseTrace = true;
 
-  timeaccel = 1.0*Ao;
-
-  dt = 1e-20;
-  dt_prev = dt;
-
-  iterationFlushStateInterval = 1000;
-  simTimeFinal = 4.0*ps;
-
-  simTimeSaveTrajInterval = 0.1*ps;
-
   check.checkEnergy = true;
   check.checkForce = true;
-
-  thermalBath = c.thermalBath;
 }
 
 SimLoop&
@@ -106,8 +96,24 @@ SimLoop::operator =(const SimLoop &c)
 
   atoms.clear();
 
-  thermalBath = c.thermalBath;
+  allowToFreePotentials = true;
   atoms = c.atoms;
+  check = c.check;
+  simTime = c.simTime;
+  simTimeSaveTrajInterval = c.simTimeSaveTrajInterval;
+  simTimeFinal = c.simTimeFinal;
+  breakSimLoop = false;
+  timeaccel = c.timeaccel;
+  dt = 1e-20; // check this!
+  dt_prev = 1e-20; // check this!
+  iteration = c.iteration;
+  iterationFlushStateInterval = c.iterationFlushStateInterval;
+  thermalBath = c.thermalBath;
+  initNLafterLoading = true;
+  allowPartialLoading = false;
+//  fpot();
+  CPUTimeUsed_prev = 0;
+  CPUTimeUsed_total = 0;
 
   return *this;
 }
