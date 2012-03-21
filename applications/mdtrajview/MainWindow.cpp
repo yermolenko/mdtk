@@ -731,9 +731,9 @@ void
 MainWindow::quickSaveBitmap()
 {
   char tmp_filename[4096];
-	
-  sprintf(tmp_filename,"%010d.bmp",/*MainWindow_Ptr->*/stateIndex);
-	
+
+  sprintf(tmp_filename,"%010d__%.5f_ps__.bmp",stateIndex,renderBox->ml_->simTime/ps);
+
   if (!fl_filename_isdir(tmp_filename))
   {
     renderBox->saveImageToFile(tmp_filename);
