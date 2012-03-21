@@ -90,11 +90,7 @@ private:
   std::vector<bool> completeInfoPresent;
 public:
   mdtk::SimLoop* ml_;
-private:
   MDTrajectory mdt;
-  MDTrajectory_defined mdt_defined;
-public:
-  MDTrajectory_stateName mdt_stateName;
 private:
   std::string baseStateFilename;
   CollisionTree *ctree;

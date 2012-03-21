@@ -79,14 +79,12 @@ VisBox::loadNewSnapshot(size_t index)
   {
     TRACE("********* UPDATING FROM MDT ***********");
     MDTrajectory::const_iterator t = mdt.begin();
-    MDTrajectory_defined::const_iterator tci = mdt_defined.begin();
     for(size_t count = 0; count < index; count++)
     {
       ++t;
-      ++tci;
     }
-    const std::vector<Atom>& atoms = t->second;
-    completeInfoPresent = tci->second;
+    const std::vector<Atom>& atoms = t->second.atoms;
+    completeInfoPresent = t->second.upToDate;
     TRACE(atoms.size());
     TRACE(ml_->atoms.size());
     REQUIRE(atoms.size() == ml_->atoms.size());
@@ -143,8 +141,6 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     completeInfoPresent(),
     ml_(NULL),
     mdt(),
-    mdt_defined(),
-    mdt_stateName(),
     baseStateFilename(base_state_filename),
     ctree(NULL),
     zbar(0.0),
@@ -192,19 +188,20 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
 
   if (xvas.size() > 0)
   {
-    if (std::find(xvas.begin(),xvas.end(),"shot") == xvas.end())
-      MDTrajectory_read(mdt,mdt_defined,mdt_stateName,base_state_filename,xvas);
+    std::vector<std::string> xvas_wo_shots;
+    for(size_t xi = 0; xi < xvas.size(); xi++)
+      if (xvas[xi][0] != 's')
+        xvas_wo_shots.push_back(xvas[xi]);
+
+    if (yaatk::exists("snapshots.conf") && xvas.size() != xvas_wo_shots.size())
+    {
+      MDTrajectory_read_from_SnapshotList(mdt,base_state_filename);
+      MDTrajectory_read(mdt,base_state_filename,xvas_wo_shots);
+      MDTrajectory_read_from_basefiles(mdt);
+    }
     else
     {
-      if (yaatk::exists("snapshots.conf"))
-        MDTrajectory_read_from_SnapshotList(mdt,mdt_defined,mdt_stateName,base_state_filename);
-      std::vector<std::string> xvas_wo_shots;
-      for(size_t xi = 0; xi < xvas.size(); xi++)
-        if (xvas[xi][0] != 's')
-          xvas_wo_shots.push_back(xvas[xi]);
-      TRACE(xvas_wo_shots.front().c_str());
-      TRACE(xvas_wo_shots.back().c_str());
-      MDTrajectory_read(mdt,mdt_defined,mdt_stateName,base_state_filename,xvas_wo_shots);
+      MDTrajectory_read(mdt,base_state_filename,xvas_wo_shots);
     }
   }
 //    ctree = new CollisionTree(*(ml_->atoms.back()),mdt.begin(),mdt);
@@ -756,8 +753,8 @@ VisBox::listCTree()
   size_t j = 10695;
   Draw_Edge(R[i].coords,R[j].coords,0xFF0000);
 */
-  std::vector<bool> ignore(mdt.begin()->second.size());
-  std::vector<bool> hadEnteredCollision(mdt.begin()->second.size());
+  std::vector<bool> ignore(mdt.begin()->second.atoms.size());
+  std::vector<bool> hadEnteredCollision(mdt.begin()->second.atoms.size());
 
   MDTrajectory::const_iterator t = mdt.begin();
   while (t != mdt.end())
@@ -765,11 +762,11 @@ VisBox::listCTree()
     if (!showCTreeAllTimes && t->first > ml_->simTime)
       break;
 
-    const std::vector<Atom>& atoms = t->second;
+    const std::vector<Atom>& atoms = t->second.atoms;
 
     MDTrajectory::const_iterator t_prev = t;
     if (t != mdt.begin()) --t_prev;
-    const std::vector<Atom>& atoms_prev = t_prev->second;
+    const std::vector<Atom>& atoms_prev = t_prev->second.atoms;
 
     for(size_t i = 0; i < atoms.size(); ++i)
     {
@@ -898,11 +895,11 @@ VisBox::listCustom3()
     if (!showCTreeAllTimes && t->first > ml_->simTime)
       break;
 
-    const std::vector<Atom>& atoms = t->second;
+    const std::vector<Atom>& atoms = t->second.atoms;
 
     MDTrajectory::const_iterator t_prev = t;
     if (t != mdt.begin()) --t_prev;
-    const std::vector<Atom>& atoms_prev = t_prev->second;
+    const std::vector<Atom>& atoms_prev = t_prev->second.atoms;
     
     Vector3D clusterMassCenter;
     {

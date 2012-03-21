@@ -127,10 +127,10 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   stateList(),
   stateIndex(0)
 {
-  MDTrajectory_stateName::const_iterator t = avb->mdt_stateName.begin();
-  while (t != avb->mdt_stateName.end())
+  MDTrajectory::const_iterator t = avb->mdt.begin();
+  while (t != avb->mdt.end())
   {
-    stateList.push_back(t->second);
+    stateList.push_back(t->second.name);
     ++t;
   }
 

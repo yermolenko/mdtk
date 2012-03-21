@@ -33,23 +33,37 @@ namespace xmde
 
 using namespace mdtk;
 
-typedef std::map<Float,std::vector<Atom> > MDTrajectory;
-typedef std::map<Float,std::vector<bool> > MDTrajectory_defined;
-typedef std::map<Float,std::string> MDTrajectory_stateName;
+class MDSnapshot
+{
+public:
+  AtomsArray atoms;
+  std::vector<bool> upToDate;
+  std::vector<bool> accurate;
+  Float time;
+  std::string name;
+  MDSnapshot();
+  virtual ~MDSnapshot();
+  MDSnapshot(SimLoop ml);
+  MDSnapshot(SimLoop ml, const std::string xva);
+  MDSnapshot(SimLoop ml, const SnapshotList& snapshots, size_t index);
+  void setCustomName(std::string srcName);
+};
+
+typedef std::map<Float, MDSnapshot> MDTrajectory;
 
 void MDTrajectory_read(
   MDTrajectory& mdt,
-  MDTrajectory_defined& mdt_defined,
-  MDTrajectory_stateName& mdt_stateName,
   const std::string basefile,
   const std::vector<std::string>& xvas
   );
 
 void MDTrajectory_read_from_SnapshotList(
   MDTrajectory& mdt,
-  MDTrajectory_defined& mdt_defined,
-  MDTrajectory_stateName& mdt_stateName,
   const std::string basefile
+  );
+
+void MDTrajectory_read_from_basefiles(
+  MDTrajectory& mdt
   );
 
 class CollisionTree
