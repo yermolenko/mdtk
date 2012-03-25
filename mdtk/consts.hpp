@@ -78,6 +78,21 @@ ElementIDtoString(ElementID id)
   return str;
 }
 
+inline
+ElementID
+StringToElementID(std::string s)
+{
+  if (s == "H") return H_EL;
+  if (s == "C") return C_EL;
+  if (s == "Cu") return Cu_EL;
+  if (s == "Ag") return Ag_EL;
+  if (s == "Au") return Au_EL;
+  if (s == "Ar") return Ar_EL;
+  if (s == "Xe") return Xe_EL;
+  throw Exception("Unknown element");
+  return DUMMY_EL;
+}
+
 #define NO_PBC_L 10000.0*Ao
 
 extern const Vector3D NO_PBC;
