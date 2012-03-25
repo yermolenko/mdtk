@@ -544,13 +544,13 @@ StatPostProcess::printFullereneInfo(size_t trajIndex) const
 {
   using namespace mdtk;
   const TrajData& td = trajData[trajIndex];
-  std::map< Float, Molecule >::const_iterator i;
+  std::map< Float, AtomGroup >::const_iterator i;
 //  REQUIRE(fabs(td.trajProjectile.begin()->first-0.0*ps)<0.05*ps);
   REQUIRE(fabs(td.trajProjectile.rbegin()->first-6.0*ps)<0.05*ps);
   for( i = td.trajProjectile.begin(); i != td.trajProjectile.end() ; ++i )
   {
     std::cout << "Time : " << i->first/mdtk::ps << "\n";
-    Molecule f = i->second;
+    AtomGroup f = i->second;
 //    std::cout << "\t "; TRACE(getVelocity(f.atoms));
     std::cout << "\t "; TRACE(f.maxMolecule().size());
 //    std::cout << "\t "; TRACE(f.minDistanceFromMassCenter()/Ao);
@@ -563,44 +563,141 @@ StatPostProcess::printFullereneInfo(size_t trajIndex) const
   }
 }
 
+bool
+isAmongSputtered(const Atom& a, const std::vector<ClassicMolecule>& molecules)
+{
+  for(size_t mi = 0; mi < molecules.size(); mi++)
+  {
+    for(size_t ai = 0; ai < molecules[mi].atoms.size(); ai++)
+    {
+      const mdtk::Atom& atom = molecules[mi].atoms[ai];
+      if (atom.globalIndex == a.globalIndex)
+        return true;
+    }
+  }
+  return false;
+}
+
+bool
+isAmongSputtered(const AtomGroup& atoms, const std::vector<ClassicMolecule>& molecules)
+{
+  for(size_t pi = 0; pi < atoms.atoms.size(); pi++)
+  {
+    const mdtk::Atom& atom = atoms.atoms[pi];
+    if (!isAmongSputtered(atom,molecules))
+      return false;
+  }
+  return true;
+}
+
 void
 StatPostProcess::printCoefficients() const
 {
+  std::ofstream fo("Coefficients.txt");
+
+  size_t stickedProjectiles = 0;
+  size_t backscatteredProjectiles = 0;
+
+  size_t stickedIntegralProjectiles = 0;
+  size_t backscatteredIntegralProjectiles = 0;
+
+  size_t stickedProjectileAtoms = 0;
+  size_t backscatteredProjectileAtoms = 0;
+
+  size_t sputteredTargetAtoms = 0;
+  size_t sputteredTargetMolecules = 0;
+  size_t sputteredIntegralTargetMolecules = 0; // undefined yet
+
   for(size_t traj = 0; traj < trajData.size(); traj++)
-  if (trajData[traj].trajProjectile.size() > 0)
   {
     const TrajData& td = trajData[traj];
-    std::map< Float, Molecule >::const_iterator i;
+    REQUIRE(td.trajProjectile.size() > 0);
 //    REQUIRE(fabs(td.trajProjectile.begin()->first-0.0*ps)<0.05*ps);
     REQUIRE(fabs(td.trajProjectile.rbegin()->first-6.0*ps)<0.05*ps);
 
-    size_t stickedProjectiles = 0;
-    size_t stickedProjectileAtoms = 0;
-
-    i = td.trajProjectile.end();
+    std::map< Float, AtomGroup >::const_iterator i = td.trajProjectile.end();
     i--;
+    const AtomGroup& projectile = i->second;
     REQUIRE(fabs(i->first-6.0*ps)<0.05*ps);
 
-    for( i = td.trajProjectile.begin(); i != td.trajProjectile.end() ; ++i )
+    if (projectile.isMolecule())
     {
-      std::cout << "Time : " << i->first/mdtk::ps << "\n";
-      Molecule m = i->second;
-//    std::cout << "\t "; TRACE(getVelocity(f.atoms));
-      std::cout << "\t "; TRACE(m.maxMolecule().size());
-//    std::cout << "\t "; TRACE(f.minDistanceFromMassCenter()/Ao);
-//    std::cout << "\t "; TRACE(f.maxDistanceFromMassCenter()/Ao);
-//    std::cout << "\t "; TRACE(f.isUnparted());
-//    std::cout << "\t "; TRACE(f.isIntegral());
-      std::cout << "\t "; TRACE(m.massCenter().z/Ao);
-//    std::cout << "\t "; TRACE(f.isEndoFullerene());
-//    std::cout << "\t "; TRACE(f.cluster.maxMolecule().size());
+      if (isAmongSputtered(projectile,td.molecules))
+      {
+        backscatteredProjectiles++;
+        if (projectile.isMonomer())
+          backscatteredIntegralProjectiles++;
+        if (projectile.isFullerene() && Fullerene(projectile).isIntegral())
+            backscatteredIntegralProjectiles++;
+      }
+      else
+      {
+        stickedProjectiles++;
+        if (projectile.isMonomer())
+          stickedIntegralProjectiles++;
+        if (projectile.isFullerene() && Fullerene(projectile).isIntegral())
+          stickedIntegralProjectiles++;
+      }
     }
-//    Sticking coefficient
-    cout << "Fullerene for trajectory " << traj <<
-     " ("  << trajData[traj].trajDir << ") " << " :\n";
-    printFullereneInfo(traj);
-    cout << std::endl;
+
+    for(size_t pi = 0; pi < projectile.size(); pi++)
+    {
+      const mdtk::Atom& patom = projectile.atoms[pi];
+      if (!isAmongSputtered(patom,td.molecules))
+        stickedProjectileAtoms++;
+    }
+
+    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      for(size_t ai = 0; ai < td.molecules[mi].atoms.size(); ai++)
+      {
+        const mdtk::Atom& atom = td.molecules[mi].atoms[ai];
+        if (atom.hasTag(ATOMTAG_PROJECTILE))
+          backscatteredProjectileAtoms++;
+        if (atom.hasTag(ATOMTAG_TARGET))
+          sputteredTargetAtoms++;
+      }
+      const AtomGroup m(td.molecules[mi]);
+      if (m.isMonomer() && m.isMetalCluster())
+      {
+        sputteredIntegralTargetMolecules++;
+        sputteredTargetMolecules++;
+      }
+      if (m.isFullerene())
+      {
+        sputteredTargetMolecules++;
+        if (Fullerene(m).isIntegral())
+          sputteredIntegralTargetMolecules++;
+      }
+    }
   }
+
+  Float trajCount = trajData.size();
+  fo TRACESS(trajCount);
+
+  fo << "\n";
+
+  fo TRACESS(stickedIntegralProjectiles/trajCount);
+  fo TRACESS(backscatteredIntegralProjectiles/trajCount);
+  fo TRACESS(sputteredIntegralTargetMolecules/trajCount);
+
+  fo << "\n";
+
+  fo TRACESS(stickedProjectiles/trajCount);
+  fo TRACESS(backscatteredProjectiles/trajCount);
+  fo TRACESS(sputteredTargetMolecules/trajCount);
+
+  fo << "\n";
+
+  fo TRACESS(stickedProjectileAtoms/trajCount);
+  fo TRACESS(backscatteredProjectileAtoms/trajCount);
+  fo TRACESS(sputteredTargetAtoms/trajCount);
+
+  REQUIRE(stickedIntegralProjectiles <= stickedProjectiles);
+  REQUIRE(backscatteredIntegralProjectiles <= backscatteredProjectiles);
+  REQUIRE(sputteredIntegralTargetMolecules <= sputteredTargetMolecules);
+
+  fo.close();
 }
 
 int

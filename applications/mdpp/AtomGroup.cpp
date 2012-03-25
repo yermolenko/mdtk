@@ -19,6 +19,12 @@ AtomGroup::AtomGroup(const AtomGroup &c)
   atoms = c.atoms;
 }
 
+AtomGroup::AtomGroup(const ClassicMolecule &c)
+ :atoms()
+{
+  atoms = c.atoms;
+}
+
 AtomGroup& 
 AtomGroup::operator =(const AtomGroup &c) 
 {
@@ -136,6 +142,29 @@ bool
 AtomGroup::isMolecule() const
 {
   return maxMolecule().size() == atoms.size();
+}
+
+bool
+AtomGroup::isMetalCluster() const
+{
+  if (!isMolecule()) return false;
+  for(size_t i = 0; i < atoms.size(); i++)
+    if (atoms[i].ID != Cu_EL ||
+        atoms[i].ID != Ag_EL ||
+        atoms[i].ID != Au_EL) return false;
+
+  return true;
+}
+
+bool
+AtomGroup::isFullerene() const
+{
+  if (!isMolecule()) return false;
+  if (atoms.size() != 60) return false;
+  for(size_t i = 0; i < atoms.size(); i++)
+    if (atoms[i].ID != C_EL) return false;
+
+  return true;
 }
 
 Molecule

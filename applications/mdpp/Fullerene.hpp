@@ -20,6 +20,7 @@ public:
   Fullerene();
   ~Fullerene();
   Fullerene(const Fullerene &c);
+  Fullerene(const AtomGroup &c);
 
   Fullerene& operator =(const Fullerene &c);
 

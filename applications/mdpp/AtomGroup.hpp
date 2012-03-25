@@ -5,6 +5,7 @@
 #include <mdtk/SimLoop.hpp>
 #include <algorithm>
 #include <vector>
+#include "ClassicMolecule.hpp"
 
 namespace mdepp
 {
@@ -20,6 +21,7 @@ public:
   AtomGroup();
   virtual ~AtomGroup();
   AtomGroup(const AtomGroup &c);
+  AtomGroup(const ClassicMolecule &c);
 
   AtomGroup& operator =(const AtomGroup &c);
 
@@ -41,6 +43,9 @@ public:
   Molecule molecule(const mdtk::Atom& a) const;
   Molecule maxMolecule() const;
   bool isMolecule() const;
+  bool isMonomer() const { return atoms.size() == 1;}
+  bool isMetalCluster() const;
+  bool isFullerene() const;
   mdtk::Vector3D massCenter() const;
 
   Float          mass() const;

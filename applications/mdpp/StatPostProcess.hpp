@@ -95,7 +95,7 @@ public:
   {
     std::string trajDir;
     std::vector<ClassicMolecule> molecules;
-    std::map <Float,Molecule> trajProjectile;
+    std::map <Float,AtomGroup> trajProjectile;
     Vector3D PBC;
     TrajData() :
       trajDir(),
@@ -109,7 +109,7 @@ public:
         molecules[i].saveToStream(os);
 
       os << trajProjectile.size() << "\n";
-      std::map< Float, Molecule >::const_iterator i;
+      std::map< Float, AtomGroup >::const_iterator i;
       for( i = trajProjectile.begin(); i != trajProjectile.end() ; ++i )
         os << i->first << "\t " << i->second << "\n";
 
@@ -128,7 +128,7 @@ public:
       for(i = 0; i < sz; ++i)
       {
 	Float t;
-	Molecule f;
+	AtomGroup f;
 	is >> t >> f;
 	trajProjectile[t] = f;
       }

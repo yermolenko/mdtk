@@ -17,6 +17,14 @@ Fullerene::Fullerene(const Fullerene &c)
 {
 }
 
+Fullerene::Fullerene(const AtomGroup &c)
+  :AtomGroup(c),cluster()
+{
+  REQUIRE(atoms.size()==60);
+  for(size_t i = 0; i < atoms.size(); i++)
+    REQUIRE(atoms[i].ID == C_EL);
+}
+
 Fullerene& 
 Fullerene::operator =(const Fullerene &c) 
 {
