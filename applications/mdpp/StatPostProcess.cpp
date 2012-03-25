@@ -346,8 +346,8 @@ StatPostProcess::execute()
     }
     NeighbourList nl(state->atoms);
 
+    Molecule projectile;
     {
-      Molecule projectile;
       projectile.buildByTag(*state,ATOMTAG_PROJECTILE);
       td.trajProjectile[state->simTime] = projectile;
 
@@ -366,9 +366,7 @@ StatPostProcess::execute()
 
 //  if (td.molecules.size() > 0)
 
-#if 0
-
-    if (0)
+//    if (0)
     {
       mdtk::SimLoop* mde_init = new mdtk::SimLoop();
       mde_init->allowToFreePotentials = true;
@@ -390,17 +388,9 @@ StatPostProcess::execute()
 //      buildClusterDynamics(*mde_init,trajIndex,STATE_INIT,nl);
 //      buildProjectileDynamics(*mde_init,trajIndex,STATE_INIT);
 
-//      if (bombardingWithFullerene)
       {
-        TRACE("Building fullerene:");
-        f.buildByTag(*mde_init,ATOMTAG_PROJECTILE);
-        td.trajProjectile[mde_init->simTime] = f;
-        TRACE(mde_init->simTime);
-
-        TRACE("Updating fullerene:");
-        f.update(*state);
-        td.trajProjectile[state->simTime] = f;
-        TRACE(state->simTime);
+        projectile.update(*mde_init);
+        td.trajProjectile[mde_init->simTime] = projectile;
       }
 
       delete mde_init;
@@ -447,14 +437,12 @@ StatPostProcess::execute()
 
 //        if (bombardingWithFullerene)
         {
-          f.update(*mde_inter);
-          td.trajProjectile[mde_inter->simTime] = f;
+          projectile.update(*mde_inter);
+          td.trajProjectile[mde_inter->simTime] = projectile;
         }
       }
       delete mde_inter;
     }
-
-#endif
 
     cout << "Building molecules for state done." << std::endl;
 
