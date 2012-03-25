@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <mdtk/SimLoop.hpp>
+#include <map>
 #include <algorithm>
 
 #include "NeighbourList.hpp"
@@ -292,6 +293,22 @@ operator =(const ClassicMolecule &C)
       fo << atom.globalIndex << std::endl;
     } 
   } 
+  std::string formula() const
+  {
+    std::ostringstream os;
+    std::map<ElementID, size_t> formula;
+    for(size_t ai = 0; ai < atoms.size(); ai++)
+      formula[atoms[ai].ID]++;
+    std::map<ElementID, size_t>::iterator i = formula.begin();
+    while (i != formula.end())
+    {
+      os << ElementIDtoString(i->first);
+      if (i->second > 1)
+        os << i->second;
+      i++;
+    }
+    return os.str();
+  }
   void saveToStream(std::ostream& os) const
   {
     os << formationTime << "\n";
