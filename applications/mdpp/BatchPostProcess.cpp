@@ -1,8 +1,8 @@
 /* 
    Molecular dynamics postprocessor, BatchPostProcess  class
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -155,6 +155,8 @@ BatchPostProcess::printResults()
     yaatk::chdir("..");
   }
 
+#if 0
+
   {
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,"yields-Cluster");
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,"yields-Projectile");
@@ -245,6 +247,8 @@ BatchPostProcess::printResults()
     }
   }
 
+#endif
+
   yaatk::chdir("..");
 
   {
@@ -268,6 +272,8 @@ BatchPostProcess::printResults()
     }
   }
 }
+
+#if 0
 
 void
 BatchPostProcess::plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
@@ -724,5 +730,7 @@ plot \\\n\
 
   fplt.close();
 }
+
+#endif
 
 }

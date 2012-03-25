@@ -1,8 +1,8 @@
 /* 
    Molecular dynamics postprocessor, BatchPostProcess classes, header
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -45,6 +45,8 @@ public:
 
   void printResults();
 
+#if 0
+
   void plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
                                   std::string idStr = "yields",
                                   ElementID specIonElement = DUMMY_EL,
@@ -57,6 +59,9 @@ public:
   void plotEnergyLoss(ElementID specIonElement = DUMMY_EL,
                       size_t specClusterSize = 0,
                       Float specIonEnergy = -100*eV) const;
+
+#endif
+
 };
 
 }
