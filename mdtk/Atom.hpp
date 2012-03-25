@@ -118,6 +118,8 @@ depos(const Atom &a1, const Atom &a2)
   Vector3D r(a1.coords - a2.coords);
 
 //  if (!(a1.PBCEnabled() && a2.PBCEnabled())) return r;
+  REQUIRE(a1.PBC.x == a2.PBC.x && a1.PBC.y == a2.PBC.y && a1.PBC.z == a2.PBC.z);
+  REQUIRE(a1.PBC != NO_PBC);
   if (a1.PBC.x == a2.PBC.x && a1.PBC.y == a2.PBC.y && a1.PBC.z == a2.PBC.z)
   {
     if(fabs(r.x) > a1.PBC.x*0.5) {r.x += (r.x > 0)?(-a1.PBC.x):(a1.PBC.x);}
