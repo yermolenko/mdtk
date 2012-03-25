@@ -1,7 +1,7 @@
 /* 
    Molecular dynamics postprocessor, main classes, header
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -204,32 +204,28 @@ public:
   struct Id
   {
     std::string str;
-    mdtk::ElementID clusterElement;
-    size_t clusterSize;
-    mdtk::ElementID ionElement;
-    Float ionEnergy;
+    std::string projectile;
+    ElementID projectileElement() {return StringToElementID(projectile);}
+    std::string target;
+    Float projectileEnergy;
     Id(std::string s);
     Id():str(),
-         clusterElement(),
-         clusterSize(),
-         ionElement(),
-         ionEnergy(){};
+         projectile(),
+         target(),
+         projectileEnergy(){};
     void saveToStream(std::ostream& os) const
       {
         os << str << "\n";
-        os << clusterElement << "\n";
-        os << clusterSize << "\n";
-        os << ionElement << "\n";
-        os << ionEnergy << "\n";
+        os << projectile << "\n";
+        os << target << "\n";
+        os << projectileEnergy << "\n";
       }
     void loadFromStream(std::istream& is)
       {
         is >> str;
-        int ID;
-        is >> ID; clusterElement = ElementID(ID);
-        is >> clusterSize;
-        is >> ID; ionElement = ElementID(ID);
-        is >> ionEnergy;
+        is >> projectile;
+        is >> target;
+        is >> projectileEnergy;
       }
   }id;
   StatPostProcess(std::string trajsetDir)

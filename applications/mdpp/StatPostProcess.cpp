@@ -35,61 +35,52 @@ namespace mdepp
 
 StatPostProcess::Id::Id(std::string s)
   :str(s),
-   clusterElement(),
-   clusterSize(),
-   ionElement(),
-   ionEnergy()
+   projectile(),
+   target(),
+   projectileEnergy()
 {
+  REQUIRE(s.substr(0,4) == "bomb");
   {
-    std::string clusterElementString = s.substr(0,2);
-    bool elementRecognized = false;
-    if (clusterElementString == "Cu")
-    {
-      clusterElement = Cu_EL; elementRecognized = true;
-    }
-    if (clusterElementString == "Au")
-    {
-      clusterElement = Au_EL; elementRecognized = true;
-    }
-    REQUIRE(elementRecognized);
+    size_t istart = 5;
+    size_t iend = s.find("_",istart);
+    REQUIRE(iend != std::string::npos);
+
+    target = s.substr(istart,iend-istart);
+    bool targetRecognized = false;
+    if (target == "Fullerite")
+      targetRecognized = true;
+    if (target == "Cu")
+      targetRecognized = true;
+    REQUIRE(targetRecognized);
   }
 
   {
-    istringstream is(s.substr(2,3));
-    is >> clusterSize;
-  }
-
-  {
-    size_t istart = s.find("_by_");
+    size_t istart = s.find("_with_");
     REQUIRE(istart != std::string::npos);
-    istart += 4;
+    istart += 6;
+    size_t iend = s.find("_",istart);
+    REQUIRE(iend != std::string::npos);
 
-    std::string ionElementString = s.substr(istart,2);
-    bool elementRecognized = false;
-    if (ionElementString == "Ar")
-    {
-      ionElement = Ar_EL; elementRecognized = true;
-    }
-    if (ionElementString == "Xe")
-    {
-      ionElement = Xe_EL; elementRecognized = true;
-    }
-    REQUIRE(elementRecognized);
+    projectile = s.substr(istart,iend-istart);
+    bool projectileRecognized = false;
+    if (projectile == "C60")
+      projectileRecognized = true;
+    if (projectile == "Cu")
+      projectileRecognized = true;
+    REQUIRE(projectileRecognized);
   }
 
   {
-    istringstream is(s.substr(s.find("_by_")+7,4));
-    is >> ionEnergy;
+    istringstream is(s.substr(s.size()-6,4));
+    is >> projectileEnergy;
   }
 
   TRACE(str);
-  TRACE(ElementIDtoString(clusterElement));
-  TRACE(clusterSize);
-  TRACE(ElementIDtoString(ionElement));
-  TRACE(ionEnergy);
-  REQUIRE(str.size()>1);
-  REQUIRE(*str.begin()=='C');
-  REQUIRE(*(str.end()-1)=='V');
+  TRACE(projectile);
+  TRACE(target);
+  TRACE(projectileEnergy);
+  REQUIRE(s.size()>1);
+  REQUIRE(*(s.end()-1)=='V');
 }
 
 void
