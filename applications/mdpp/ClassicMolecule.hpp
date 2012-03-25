@@ -18,6 +18,7 @@ inline
 void
 setTags(mdtk::SimLoop* ml)
 {
+  return; // disable retagging
   for(size_t i = 0; i < ml->atoms.size(); i++)
   {
     mdtk::Atom& atom = ml->atoms[i];
