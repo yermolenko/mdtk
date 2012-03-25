@@ -366,6 +366,8 @@ StatPostProcess::execute()
 
 //  if (td.molecules.size() > 0)
 
+#if 0
+
 //    if (0)
     {
       mdtk::SimLoop* mde_init = new mdtk::SimLoop();
@@ -443,6 +445,8 @@ StatPostProcess::execute()
       }
       delete mde_inter;
     }
+
+#endif
 
     cout << "Building molecules for state done." << std::endl;
 
