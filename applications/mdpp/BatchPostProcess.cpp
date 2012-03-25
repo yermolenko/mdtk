@@ -44,7 +44,7 @@ BatchPostProcess::BatchPostProcess(std::string mdeppinPath)
 
   while(fi.getline(trajsetDir, 1000-1, '\n'))
   {
-    if (strlen(trajsetDir) > 0)
+    if (strlen(trajsetDir) > 0 && trajsetDir[0] != '#')
     {
       pps.push_back(new mdepp::StatPostProcess(trajsetDir));
     }
