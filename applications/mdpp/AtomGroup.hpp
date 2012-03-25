@@ -33,6 +33,8 @@ public:
 
   void build(const mdtk::SimLoop& ml, 
 	     const double SPOTTED_DISTANCE = +1000.0*mdtk::Ao);
+  void buildByTag(const mdtk::SimLoop& ml,
+                  const unsigned int tag);
   void update(const mdtk::SimLoop& ml);
 
   Molecule molecule(size_t atomIndex) const;

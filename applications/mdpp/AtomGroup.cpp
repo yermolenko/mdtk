@@ -103,6 +103,19 @@ AtomGroup::build(const mdtk::SimLoop& ml,
   }
 }  
 
+void
+AtomGroup::buildByTag(const mdtk::SimLoop& ml,
+                      const unsigned int tag)
+{
+  const AtomsArray &ac = ml.atoms;
+  for(size_t i = 0; i < ac.size(); i++)
+  {
+    const mdtk::Atom a = ac[i];
+    if (a.hasTag(tag))
+      addAtom(a);
+  }
+}
+
 Molecule
 AtomGroup::molecule(size_t atomIndex) const
 {
