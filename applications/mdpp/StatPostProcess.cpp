@@ -416,7 +416,7 @@ StatPostProcess::execute()
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
     TrajData& td = trajData[trajIndex];
-    Fullerene f;
+    Molecule f;
 
     mdtk::SimLoop* state = new mdtk::SimLoop();
     state->allowToFreePotentials = true;
@@ -454,7 +454,7 @@ StatPostProcess::execute()
 //    buildProjectileDynamics(*state,trajIndex,STATE_FINAL);
 
 //  if (td.molecules.size() > 0)
-    if (0)
+//  if (0)
     {
       mdtk::SimLoop* mde_init = new mdtk::SimLoop();    
       mde_init->allowToFreePotentials = true;
@@ -476,15 +476,18 @@ StatPostProcess::execute()
 //      buildClusterDynamics(*mde_init,trajIndex,STATE_INIT,nl);
 //      buildProjectileDynamics(*mde_init,trajIndex,STATE_INIT);
 
-      TRACE("Building fullerene:");
-      f.build(*mde_init);
-      td.trajFullerene[mde_init->simTime] = f;
-      TRACE(mde_init->simTime);
+//      if (bombardingWithFullerene)
+      {
+        TRACE("Building fullerene:");
+        f.buildByTag(*mde_init,ATOMTAG_PROJECTILE);
+        td.trajProjectile[mde_init->simTime] = f;
+        TRACE(mde_init->simTime);
 
-      TRACE("Updating fullerene:");
-      f.update(*state);
-      td.trajFullerene[state->simTime] = f;
-      TRACE(state->simTime);
+        TRACE("Updating fullerene:");
+        f.update(*state);
+        td.trajProjectile[state->simTime] = f;
+        TRACE(state->simTime);
+      }
 
       delete mde_init;
     }  
@@ -528,8 +531,11 @@ StatPostProcess::execute()
 //	buildClusterDynamics(*mde_inter,trajIndex,STATE_INTER,nl);
 //	buildProjectileDynamics(*mde_inter,trajIndex,STATE_INTER);
 
-	f.update(*mde_inter);
-	td.trajFullerene[mde_inter->simTime] = f;
+//        if (bombardingWithFullerene)
+        {
+          f.update(*mde_inter);
+          td.trajProjectile[mde_inter->simTime] = f;
+        }
       }  
       delete mde_inter;
     }  
@@ -661,7 +667,7 @@ void
 StatPostProcess::printFullereneInfo() const
 {
   for(size_t traj = 0; traj < trajData.size(); traj++)
-  if (trajData[traj].trajFullerene.size() > 0)
+  if (trajData[traj].trajProjectile.size() > 0)
   {
     cout << "Fullerene for trajectory " << traj << 
      " ("  << trajData[traj].trajDir << ") " << " :\n";
@@ -675,23 +681,63 @@ StatPostProcess::printFullereneInfo(size_t trajIndex) const
 {
   using namespace mdtk;
   const TrajData& td = trajData[trajIndex];
-  std::map< Float, Fullerene >::const_iterator i;
-  REQUIRE(fabs(td.trajFullerene.begin()->first-0.0*ps)<0.05*ps);
-  REQUIRE(fabs(td.trajFullerene.rbegin()->first-10.0*ps)<0.05*ps);
-  for( i = td.trajFullerene.begin(); i != td.trajFullerene.end() ; ++i )
+  std::map< Float, Molecule >::const_iterator i;
+  REQUIRE(fabs(td.trajProjectile.begin()->first-0.0*ps)<0.05*ps);
+  REQUIRE(fabs(td.trajProjectile.rbegin()->first-10.0*ps)<0.05*ps);
+  for( i = td.trajProjectile.begin(); i != td.trajProjectile.end() ; ++i )
   {
     std::cout << "Time : " << i->first/mdtk::ps << "\n";
-    Fullerene f = i->second;
+    Molecule f = i->second;
 //    std::cout << "\t "; TRACE(getVelocity(f.atoms));
     std::cout << "\t "; TRACE(f.maxMolecule().size());
-    std::cout << "\t "; TRACE(f.minDistanceFromMassCenter()/Ao);
-    std::cout << "\t "; TRACE(f.maxDistanceFromMassCenter()/Ao);
-    std::cout << "\t "; TRACE(f.isUnparted());
-    std::cout << "\t "; TRACE(f.isIntegral());
+//    std::cout << "\t "; TRACE(f.minDistanceFromMassCenter()/Ao);
+//    std::cout << "\t "; TRACE(f.maxDistanceFromMassCenter()/Ao);
+//    std::cout << "\t "; TRACE(f.isUnparted());
+//    std::cout << "\t "; TRACE(f.isIntegral());
     std::cout << "\t "; TRACE(f.massCenter().z/Ao);
-    std::cout << "\t "; TRACE(f.isEndoFullerene());
-    std::cout << "\t "; TRACE(f.cluster.maxMolecule().size());
+//    std::cout << "\t "; TRACE(f.isEndoFullerene());
+//    std::cout << "\t "; TRACE(f.cluster.maxMolecule().size());
   }
+}  
+
+void
+StatPostProcess::printCoefficients() const
+{
+  for(size_t traj = 0; traj < trajData.size(); traj++)
+  if (trajData[traj].trajProjectile.size() > 0)
+  {
+    const TrajData& td = trajData[traj];
+    std::map< Float, Molecule >::const_iterator i;
+    REQUIRE(fabs(td.trajProjectile.begin()->first-0.0*ps)<0.05*ps);
+    REQUIRE(fabs(td.trajProjectile.rbegin()->first-6.0*ps)<0.05*ps);
+
+    size_t stickedProjectiles = 0;
+    size_t stickedProjectileAtoms = 0;
+
+    i = td.trajProjectile.end();
+    i--;
+    REQUIRE(fabs(i->first-6.0*ps)<0.05*ps);
+
+    for( i = td.trajProjectile.begin(); i != td.trajProjectile.end() ; ++i )
+    {
+      std::cout << "Time : " << i->first/mdtk::ps << "\n";
+      Molecule m = i->second;
+//    std::cout << "\t "; TRACE(getVelocity(f.atoms));
+      std::cout << "\t "; TRACE(m.maxMolecule().size());
+//    std::cout << "\t "; TRACE(f.minDistanceFromMassCenter()/Ao);
+//    std::cout << "\t "; TRACE(f.maxDistanceFromMassCenter()/Ao);
+//    std::cout << "\t "; TRACE(f.isUnparted());
+//    std::cout << "\t "; TRACE(f.isIntegral());
+      std::cout << "\t "; TRACE(m.massCenter().z/Ao);
+//    std::cout << "\t "; TRACE(f.isEndoFullerene());
+//    std::cout << "\t "; TRACE(f.cluster.maxMolecule().size());
+    }
+//    Sticking coefficient
+    cout << "Fullerene for trajectory " << traj << 
+     " ("  << trajData[traj].trajDir << ") " << " :\n";
+    printFullereneInfo(traj);
+    cout << std::endl;
+  }  
 }  
 
 Float parseTransEnergy(const std::string trajname)
@@ -742,6 +788,8 @@ Float parseRotEnergy(const std::string trajname)
 
   return val;
 }
+
+#if 0
 
 void
 StatPostProcess::plotFullereneLandings(bool endo, const std::string rotDir, Float integralThreshold) const
@@ -1292,6 +1340,8 @@ set border 4095\n";
 
   fdat.close();
 }
+
+#endif
 
 int
 StatPostProcess::getAboveSpottedHeight(mdtk::SimLoop& state) const

@@ -129,6 +129,8 @@ BatchPostProcess::printResults()
 
     using namespace mdtk;
 
+    pp->printCoefficients();
+
 //  pp->printClusterDynamicsTotal();
 
 //  pp->spottedTotalByMass();

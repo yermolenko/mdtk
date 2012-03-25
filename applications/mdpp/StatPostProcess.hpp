@@ -147,13 +147,13 @@ public:
     ClusterDynamics clusterDynamics;
     ProjectileDynamics projectileDynamics;
     Translations trans;
-    std::map <Float,Fullerene> trajFullerene;
+    std::map <Float,Molecule> trajProjectile;
     Vector3D PBC;
     TrajData() : 
       trajDir(),
       molecules(),
       clusterDynamics(), projectileDynamics(), trans(),
-      trajFullerene(), PBC() {;}
+      trajProjectile(), PBC() {;}
     void saveToStream(std::ostream& os) const
     {
       os << trajDir << "\n";
@@ -166,9 +166,9 @@ public:
       projectileDynamics.saveToStream(os);
       trans.saveToStream(os);
 
-      os << trajFullerene.size() << "\n";
-      std::map< Float, Fullerene >::const_iterator i;
-      for( i = trajFullerene.begin(); i != trajFullerene.end() ; ++i )
+      os << trajProjectile.size() << "\n";
+      std::map< Float, Molecule >::const_iterator i;
+      for( i = trajProjectile.begin(); i != trajProjectile.end() ; ++i )
 	os << i->first << "\t " << i->second << "\n";
 
       os << PBC << "\n";
@@ -191,9 +191,9 @@ public:
       for(i = 0; i < sz; ++i)
       {
 	Float t;
-	Fullerene f;
+	Molecule f;
 	is >> t >> f;
-	trajFullerene[t] = f;
+	trajProjectile[t] = f;
       }
 
       is >> PBC;
@@ -295,6 +295,8 @@ public:
 
   void  printFullereneInfo(size_t trajIndex) const;
   void  printFullereneInfo() const;
+
+  void  printCoefficients() const;
 
   void  plotFullereneLandings(bool endo, const std::string rotDir, Float integralThreshold = 3.0*Ao) const;
   void  plotFullereneImplantDepth(bool endo, const std::string rotDir, Float integralThreshold = 3.0*Ao, Float maxDepth = 4.0*Ao, bool showEvents = true) const;
