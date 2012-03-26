@@ -149,8 +149,8 @@ AtomGroup::isMetalCluster() const
 {
   if (!isMolecule()) return false;
   for(size_t i = 0; i < atoms.size(); i++)
-    if (atoms[i].ID != Cu_EL ||
-        atoms[i].ID != Ag_EL ||
+    if (atoms[i].ID != Cu_EL &&
+        atoms[i].ID != Ag_EL &&
         atoms[i].ID != Au_EL) return false;
 
   return true;
