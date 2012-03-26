@@ -144,16 +144,17 @@ BatchPostProcess::printResults()
       std::string s = "Process"#FPM;\
       yaatk::mkdir(s.c_str());\
       yaatk::chdir(s.c_str());\
+      pp->buildMassSpectrum(mdepp::StatPostProcess::Process##FPM);\
+      pp->buildAngular(mdepp::StatPostProcess::Process##FPM);\
       yaatk::chdir("..");\
     }
 
-//      pp->buildMassSpectrum(mdepp::StatPostProcess::Process##FPM);
-//      pp->buildAngular(mdepp::StatPostProcess::Process##FPM);
-
+/*
     MDPP_PROCESS_ONLY(Cluster);
     MDPP_PROCESS_ONLY(Projectile);
     MDPP_PROCESS_ONLY(Substrate);
     MDPP_PROCESS_ONLY(All);
+*/
 
     yaatk::chdir("..");
   }
