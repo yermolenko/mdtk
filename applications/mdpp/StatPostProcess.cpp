@@ -582,6 +582,18 @@ isAmongSputtered(const AtomGroup& atoms, const std::vector<ClassicMolecule>& mol
   return true;
 }
 
+bool consistsMostlyOfTargetAtoms(const AtomGroup& atoms, double threshold = 0.5)
+{
+  size_t count = 0;
+  for(size_t pi = 0; pi < atoms.atoms.size(); pi++)
+  {
+    const mdtk::Atom& atom = atoms.atoms[pi];
+    if (atom.hasTag(ATOMTAG_TARGET))
+      count++;
+  }
+  return double(count)/atoms.atoms.size() >= threshold;
+}
+
 void
 StatPostProcess::printCoefficients() const
 {
@@ -598,7 +610,10 @@ StatPostProcess::printCoefficients() const
 
   size_t sputteredTargetAtoms = 0;
   size_t sputteredTargetMolecules = 0;
-  size_t sputteredIntegralTargetMolecules = 0; // undefined yet
+  size_t sputteredIntegralTargetMolecules = 0;
+
+  size_t sputteredMolecules = 0;
+  size_t sputteredIntegralMolecules = 0;
 
   for(size_t traj = 0; traj < trajData.size(); traj++)
   {
@@ -620,7 +635,7 @@ StatPostProcess::printCoefficients() const
         if (projectile.isMonomer())
           backscatteredIntegralProjectiles++;
         if (projectile.isFullerene() && Fullerene(projectile).isIntegral())
-            backscatteredIntegralProjectiles++;
+          backscatteredIntegralProjectiles++;
       }
       else
       {
@@ -652,14 +667,30 @@ StatPostProcess::printCoefficients() const
       const AtomGroup m(td.molecules[mi]);
       if (m.isMonomer() && m.isMetalCluster())
       {
-        sputteredIntegralTargetMolecules++;
-        sputteredTargetMolecules++;
+        sputteredIntegralMolecules++;
+        sputteredMolecules++;
+        REQUIRE(consistsMostlyOfTargetAtoms(m) ==
+                ((m.atoms[0].ID == Cu_EL ||
+                  m.atoms[0].ID == Ag_EL ||
+                  m.atoms[0].ID == Au_EL) &&
+                 m.atoms[0].hasTag(ATOMTAG_TARGET)));
+        if (consistsMostlyOfTargetAtoms(m))
+        {
+          sputteredIntegralTargetMolecules++;
+          sputteredTargetMolecules++;
+        }
       }
       if (m.isFullerene())
       {
-        sputteredTargetMolecules++;
+        sputteredMolecules++;
+        if (consistsMostlyOfTargetAtoms(m))
+          sputteredTargetMolecules++;
         if (Fullerene(m).isIntegral())
-          sputteredIntegralTargetMolecules++;
+        {
+          sputteredIntegralMolecules++;
+          if (consistsMostlyOfTargetAtoms(m))
+            sputteredIntegralTargetMolecules++;
+        }
       }
     }
   }
@@ -669,24 +700,33 @@ StatPostProcess::printCoefficients() const
 
   fo << "\n";
 
-  fo TRACESS(stickedIntegralProjectiles/trajCount);
-  fo TRACESS(backscatteredIntegralProjectiles/trajCount);
-  fo TRACESS(sputteredIntegralTargetMolecules/trajCount);
+  fo TRACESS(stickedProjectiles/trajCount);
+  fo TRACESS(backscatteredProjectiles/trajCount);
 
   fo << "\n";
 
-  fo TRACESS(stickedProjectiles/trajCount);
-  fo TRACESS(backscatteredProjectiles/trajCount);
-  fo TRACESS(sputteredTargetMolecules/trajCount);
+  fo TRACESS(stickedIntegralProjectiles/trajCount);
+  fo TRACESS(backscatteredIntegralProjectiles/trajCount);
 
   fo << "\n";
 
   fo TRACESS(stickedProjectileAtoms/trajCount);
   fo TRACESS(backscatteredProjectileAtoms/trajCount);
+
+  fo << "\n";
+
   fo TRACESS(sputteredTargetAtoms/trajCount);
+  fo TRACESS(sputteredTargetMolecules/trajCount);
+  fo TRACESS(sputteredIntegralTargetMolecules/trajCount);
+
+  fo << "\n";
+
+  fo TRACESS(sputteredMolecules/trajCount);
+  fo TRACESS(sputteredIntegralMolecules/trajCount);
 
   REQUIRE(stickedIntegralProjectiles <= stickedProjectiles);
   REQUIRE(backscatteredIntegralProjectiles <= backscatteredProjectiles);
+  REQUIRE(sputteredIntegralMolecules <= sputteredMolecules);
   REQUIRE(sputteredIntegralTargetMolecules <= sputteredTargetMolecules);
 
   fo.close();
