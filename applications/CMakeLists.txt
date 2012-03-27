@@ -20,7 +20,13 @@
 #
 
 add_subdirectory (mdtrajsim)
-add_subdirectory (mdpp)
+
+IF(WIN32)
+  message("Molecular Dynamics Postprocessor will not be compiled on Win32. Use *nix to build it.")
+ELSE(WIN32)
+  add_subdirectory (mdpp)
+ENDIF(WIN32)
+
 add_subdirectory (selftest)
 
 IF(MSVC)
