@@ -2,6 +2,7 @@
 #
 #  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr
 #  Yermolenko <oleksandr.yermolenko@gmail.com>
+#
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
 #
 #  MDTK is free software: you can redistribute it and/or modify it
@@ -47,7 +48,7 @@ IF(MDTK_HEAVY_OPTIMZE)
 
   SET(CMAKE_BUILD_TYPE distribution)
 
-ELSEIF(MDTK_HEAVY_OPTIMZE)
+ELSE(MDTK_HEAVY_OPTIMZE)
 
   SET(CMAKE_BUILD_TYPE Release)
 
