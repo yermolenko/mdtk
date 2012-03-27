@@ -157,6 +157,11 @@ SimLoop::execute()
       saveToMDE(fo);
       fo.close();
     }
+    {
+      std::ofstream fo("mde_state.after_crash");
+      saveToStream(fo);
+      fo.close();
+    }
     std::cerr << "done." << std::endl;
     return -1;
   }
