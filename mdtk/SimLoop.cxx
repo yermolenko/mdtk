@@ -194,6 +194,9 @@ SimLoop::execute_wo_checks()
 
   dt_prev = dt;
 
+  fpot.NL_init(atoms);
+  fpot.NL_UpdateIfNeeded(atoms);
+
   while (simTime < simTimeFinal && !breakSimLoop)
   {
     doBeforeIteration();
@@ -219,13 +222,6 @@ SimLoop::execute_wo_checks()
       writetrajXVA();
       cout << "done. " << endl;
     };
-
-    fpot.NL_UpdateIfNeeded(atoms);
-
-    if (iteration == 0)
-      initEnergyConservationCheck();
-    else
-      doEnergyConservationCheck();
 
     Float actualThermalBathTemp = actualTemperatureOfThermalBath();
     {
@@ -253,23 +249,37 @@ SimLoop::execute_wo_checks()
       }
     }
 
+    if (iteration == 0)
+    {
+      initEnergyConservationCheck();
+
+      for(size_t j = 0; j < atoms.size(); j++)
+      {
+        Atom& atom = atoms[j];
+
+        if (atom.isFixed()) continue;
+
+        Vector3D  force = -fpot.grad(atom,this->atoms);
+        atom.an = force/atom.M;
+        atom.an_no_tb = force/atom.M;
+      }
+    }
+
     for(size_t j = 0; j < atoms.size(); j++)
     {
       Atom& atom = atoms[j];
 
       if (atom.isFixed()) continue;
 
-      if (iteration == 0)
-      {
-        Vector3D  force = -fpot.grad(atom,this->atoms);
-        atom.an = force/atom.M;
-        atom.an_no_tb = force/atom.M;
-      }
-
       Vector3D dr = atom.V*dt + atom.an*dt*dt/2.0; // eq 1
       atom.coords += dr;
       fpot.incDisplacement(atoms[j],dr);
     }
+
+    fpot.NL_checkRequestUpdate(atoms);
+    fpot.NL_UpdateIfNeeded(atoms);
+
+    doEnergyConservationCheck();
 
     for(size_t j = 0; j < atoms.size(); j++)
     {
@@ -339,8 +349,6 @@ SimLoop::execute_wo_checks()
     atoms.applyPBC();
 
     doAfterIteration();
-
-    fpot.NL_checkRequestUpdate(atoms);
 
     simTime += dt;
 
