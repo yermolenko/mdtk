@@ -40,7 +40,6 @@ quench(
   yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
   yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
 
-  sl.initialize();
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = 0.0;
   sl.simTimeSaveTrajInterval = 0.05*ps;
@@ -94,7 +93,6 @@ heatUp(
   yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
   yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
 
-  sl.initialize();
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = 0.0;
   sl.simTimeSaveTrajInterval = 0.05*ps;
@@ -147,7 +145,6 @@ relax(
   MDBUILDER_DRY_RUN_HOOK;
   yaatk::mkdir(tmpDir.c_str());
   yaatk::chdir(tmpDir.c_str());
-  sl.initialize();
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = forTime;
   sl.simTimeSaveTrajInterval = 0.05*ps;
@@ -185,7 +182,6 @@ relax_flush(
   yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
   yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
 
-  sl.initialize();
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = forTime;
   sl.simTimeSaveTrajInterval = 0.001*ps;
@@ -215,7 +211,6 @@ void
 initialize_simloop(mdtk::SimLoop& sl)
 {
   setupPotentials(sl);
-  sl.initialize();
 }
 
 void
@@ -240,7 +235,6 @@ initialize_simloop_REBO_only(SimLoop& sl)
   pot = new mdtk::Brenner(Brenner::POTENTIAL2);
   simloop.fpot.addPotential(pot);
 */
-  sl.initialize();
 }
 
 void

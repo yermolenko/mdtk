@@ -43,7 +43,7 @@ pairtest()
   mdloop.atoms.push_back(Atom(Cu_EL,Vector3D(0.0*Ao,0.0*Ao,0.0*Ao)));
   mdloop.atoms.push_back(Atom(Cu_EL,Vector3D(0.5*Ao,0.0*Ao,0.0*Ao)));
 
-  mdloop.initialize();
+  mdloop.executeDryRun();
 
   ofstream foe("e.dat");
   ofstream fof("f.dat");

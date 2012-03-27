@@ -145,7 +145,7 @@ SimLoop::execute()
     PTRACE(thermalBath.dBoundary/Ao);
     PTRACE(thermalBath.zMinOfFreeZone/Ao);
     PTRACE(thermalBath.To/K);
-    return execute_wo_checks();
+    return executeMain();
   }
   catch (Exception& e)
   {
@@ -170,8 +170,25 @@ SimLoop::execute()
   }
 }
 
+int SimLoop::executeDryRun()
+{
+// update global indexes, initialize neighbor lists etc
+// without actually running simulation
+  atoms.prepareForSimulatation();
+  REQUIRE(atoms.checkMIC(fpot.getRcutoff()*2.0));
+
+  TRACE(initNLafterLoading);
+  if (initNLafterLoading)
+  {
+    fpot.NL_init(atoms);
+    fpot.NL_UpdateIfNeeded(atoms);
+  }
+
+  return 0;
+}
+
 int
-SimLoop::execute_wo_checks()
+SimLoop::executeMain()
 {
   gsl_rng * r;
   r = gsl_rng_alloc (gsl_rng_ranlxd2);
@@ -529,7 +546,7 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
 
   cout << "Parsing of state file done. " << endl;
 
-  initialize();
+  executeDryRun();
 
   allowPartialLoading = true;
 }
@@ -607,7 +624,7 @@ SimLoop::loadFromStreamXVA(istream& is)
 
   cout << "Parsing of state file done. " << endl;
 
-  initialize();
+  executeDryRun();
 }
 
 void
@@ -709,7 +726,7 @@ SimLoop::loadFromStreamXVA_bin(istream& is)
 
   cout << "Parsing of state file done. " << endl;
 
-  initialize();
+  executeDryRun();
 }
 
 void
@@ -1064,18 +1081,6 @@ void SimLoop::doEnergyConservationCheck()
     cerr << "Total energy is less than 0.001*eV." << endl;
 }
 
-void SimLoop::initialize()
-{
-//  updateGlobalIndexes();
-//  atoms.prepareForSimulatation();
-  TRACE(initNLafterLoading);
-  if (initNLafterLoading)
-  {
-    fpot.NL_init(atoms);
-    fpot.NL_UpdateIfNeeded(atoms);
-  }
-}
-
 void
 SimLoop::saveToMDE(std::ostream& fo)
 {
@@ -1142,7 +1147,7 @@ SimLoop::loadFromMDE(std::istream& fi)
   setPBC(PBC);
   thermalBath.loadFromStream(fi,YAATK_FSTREAM_TEXT);
 
-  initialize();
+  executeDryRun();
 }
 
 void

@@ -44,7 +44,6 @@ main()
   mdloop.atoms.push_back(Atom(H_EL,Vector3D(-0.4*Ao,-0.9*Ao,-0.2*Ao)));
   mdloop.atoms.push_back(Atom(H_EL,Vector3D(-0.4*Ao,0.8*Ao,-0.2*Ao)));
 
-  mdloop.initialize();
   mdloop.simTimeSaveTrajInterval = 0.001*ps;
   mdloop.simTimeFinal = 0.5*ps;
 

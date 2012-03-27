@@ -294,7 +294,7 @@ cluster(ElementID id, int clusterSize)
   {
     ERRTRACE(sl.atoms.size());
 
-    sl.initialize();
+    sl.executeDryRun();
 
     char dirname[100];
     sprintf(dirname,"%03lu",sl.atoms.size());

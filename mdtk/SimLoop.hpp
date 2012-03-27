@@ -118,7 +118,8 @@ public:
   SimLoop& operator=(const SimLoop &c);
   void add_simloop(const SimLoop &sl_addon);
 
-  int execute_wo_checks();
+  int executeDryRun();
+  int executeMain();
   int execute();
 
   void saveToStream(std::ostream& os, YAATK_FSTREAM_MODE = YAATK_FSTREAM_TEXT);
@@ -150,7 +151,6 @@ private:
 public:
   // these functions are obsolete
   void setPBC(Vector3D PBC_){atoms.PBC(PBC_);}
-  void initialize();
 };
 
 } // namespace mdtk
