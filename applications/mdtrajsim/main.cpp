@@ -94,7 +94,6 @@ CustomSimLoop::doAfterIteration()
   for(size_t j = 0; j < atoms.size(); j++)
   {
     Atom& a = atoms[j];
-    Vector3D c = a.coords;
     if (a.coords.z < thermalBath.zMinOfFreeZone && a.lateralPBCEnabled() &&
         (
           (a.coords.x < 0.0 + thermalBath.dBoundary) ||

@@ -254,6 +254,4 @@ place_Cluster(
   glPopMatrix();
 }
 
-static int mdbuilder_common_dummy = 1;
-
 }

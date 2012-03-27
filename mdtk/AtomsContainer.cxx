@@ -235,7 +235,6 @@ AtomsArray::massCenter() const
 Vector3D
 AtomsArray::geomCenter() const
 {
-  Float clusterRadius = 0.0;
   Vector3D clusterCenter(0,0,0);
 
   for(size_t i = 0; i < size(); i++)
@@ -278,10 +277,10 @@ AtomsArray::removeMomentum()
 }
 
 void
-AtomsArray::addTranslationalEnergy(Float energy, Vector3D direction)
+AtomsArray::setTranslationalEnergy(Float energy, Vector3D direction)
 {
   direction.normalize();
-  Vector3D v = velocity();
+  removeMomentum();
   for(size_t ai = 0; ai < size(); ai++)
   {
     mdtk::Atom& a = at(ai);
@@ -314,14 +313,15 @@ AtomsArray::dimensions() const
 {
   Dimensions d;
 
+  REQUIRE(size() > 0);
   const Atom& a = at(0);
 
-  Float x_max = a.coords.x;
-  Float x_min = a.coords.x;
-  Float y_max = a.coords.y;
-  Float y_min = a.coords.y;
-  Float z_max = a.coords.z;
-  Float z_min = a.coords.z;
+  d.x_max = a.coords.x;
+  d.x_min = a.coords.x;
+  d.y_max = a.coords.y;
+  d.y_min = a.coords.y;
+  d.z_max = a.coords.z;
+  d.z_min = a.coords.z;
 
   for(size_t i = 0; i < size(); i++)
   {
@@ -354,7 +354,7 @@ std::vector<size_t>
 AtomsArray::fixNotFixedAtoms(const size_t begin, const size_t end)
 {
   std::vector<size_t> fixated;
-  for(size_t i = 0; i < end; i++)
+  for(size_t i = begin; i < end; i++)
     if (!at(i).isFixed())
     {
       at(i).fix();
@@ -367,7 +367,7 @@ std::vector<size_t>
 AtomsArray::unfixFixedAtoms(const size_t begin, const size_t end)
 {
   std::vector<size_t> unfixated;
-  for(size_t i = 0; i < end; i++)
+  for(size_t i = begin; i < end; i++)
     if (at(i).isFixed())
     {
       at(i).unfix();
@@ -380,7 +380,7 @@ std::vector<size_t>
 AtomsArray::fixUnfixedCHAtoms(const size_t begin, const size_t end)
 {
   std::vector<size_t> fixated;
-  for(size_t i = 0; i < end; i++)
+  for(size_t i = begin; i < end; i++)
     if (!at(i).isFixed())
       if (at(i).ID == C_EL || at(i).ID == H_EL)
       {

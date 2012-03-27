@@ -63,7 +63,7 @@ public:
   Float maxDistanceFrom(Vector3D point) const;
 
   void removeMomentum();
-  void addTranslationalEnergy(Float energy, Vector3D direction);
+  void setTranslationalEnergy(Float energy, Vector3D direction);
   void shiftToOrigin();
   void shiftToPosition(Vector3D v);
 

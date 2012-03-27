@@ -1117,6 +1117,7 @@ SimLoop::saveToNanoHive(std::ostream& fo)
       case H_EL: et = 'H'; break;
       case Cu_EL: et = 'X'; break;
       case Ar_EL: et = 'X'; break;
+      case Xe_EL: et = 'X'; break;
       case Ag_EL: et = 'X'; break;
       case Au_EL: et = 'X'; break;
       case DUMMY_EL: et = 'X'; break;

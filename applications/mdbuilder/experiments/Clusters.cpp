@@ -1069,7 +1069,7 @@ build_FCC_metal_bombardment_with_C60(
 
     SimLoop sl_energeticFullerene;
     sl_energeticFullerene.atoms = fullerene;
-    sl_energeticFullerene.atoms.addTranslationalEnergy(
+    sl_energeticFullerene.atoms.setTranslationalEnergy(
       fullereneEnergy,
       Vector3D(0,0,1));
 
@@ -1247,11 +1247,11 @@ build_metal_C60_mixing(
 
     SimLoop sl_energeticFullerene;
     sl_energeticFullerene.atoms = fullerene;
-    sl_energeticFullerene.atoms.addTranslationalEnergy(
+    sl_energeticFullerene.atoms.setTranslationalEnergy(
       impactEnergy,Vector3D(0,0,1));
 
     SimLoop sl_energeticMetalAtom(sl_metalAtom);
-    sl_energeticMetalAtom.atoms.addTranslationalEnergy(
+    sl_energeticMetalAtom.atoms.setTranslationalEnergy(
       impactEnergy,
       Vector3D(0,0,1));
 
