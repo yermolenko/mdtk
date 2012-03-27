@@ -180,7 +180,7 @@ int SimLoop::executeDryRun()
 // update global indexes, initialize neighbor lists etc
 // without actually running simulation
   atoms.prepareForSimulatation();
-  REQUIRE(atoms.checkMIC(fpot.getRcutoff()*2.0));
+//  REQUIRE(atoms.checkMIC(fpot.getRcutoff()*2.0));
 
   TRACE(initNLafterLoading);
   if (initNLafterLoading)
