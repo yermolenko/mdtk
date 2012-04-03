@@ -669,11 +669,6 @@ StatPostProcess::printCoefficients() const
       {
         sputteredIntegralMolecules++;
         sputteredMolecules++;
-        REQUIRE(consistsMostlyOfTargetAtoms(m) ==
-                ((m.atoms[0].ID == Cu_EL ||
-                  m.atoms[0].ID == Ag_EL ||
-                  m.atoms[0].ID == Au_EL) &&
-                 m.atoms[0].hasTag(ATOMTAG_TARGET)));
         if (consistsMostlyOfTargetAtoms(m))
         {
           sputteredIntegralTargetMolecules++;
