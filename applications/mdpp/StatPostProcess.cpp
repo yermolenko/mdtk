@@ -478,7 +478,8 @@ StatPostProcess::buildMassSpectrum() const
   {
     fo << i->first.formula()
        << " (" << i->first.getAMUMass() << " amu) : "
-       << i->second << "\n";
+       << i->second << "/" << trajData.size()
+       << " = " << double(i->second)/trajData.size() << "\n";
     i++;
   }
 
