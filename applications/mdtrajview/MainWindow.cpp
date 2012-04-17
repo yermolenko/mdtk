@@ -656,6 +656,14 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   renderBox->redraw();
 
   callback(window_cb);
+  { // rotate around x axis by 6*45=270 degrees
+    for(size_t ri = 0; ri < 6; ri++)
+    {
+      renderBox->make_current();
+      btn_view_cb(roll_x,roll_x);
+      renderBox->redraw();
+    }
+  }
   if (btn_animate->value()) Fl::add_timeout(1.0, timer_callback);
 }
 
