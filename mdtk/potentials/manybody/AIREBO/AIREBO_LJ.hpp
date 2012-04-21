@@ -64,36 +64,28 @@ class AIREBO : public FManybody
   Float S(Float arg, Float arg_min, Float arg_max) const;
     Float dS(Float arg, Float arg_min, Float arg_max) const;
 
-  Float VLJ(Atom &a1,Atom &a2); 
-    Vector3D dVLJ(Atom &a1,Atom &a2, Atom &da); 
+  Float StrStb(AtomsPair& ij, const Float V = 0.0);
 
-  Float Vtors(Atom &ai,Atom &aj,Atom &ak,Atom &al); 
-    Vector3D dVtors(Atom &ai,Atom &aj,Atom &ak,Atom &al, Atom &da); 
+  Float VLJ(AtomsPair& ij, const Float V = 0.0);
 
-  Float Cij(Atom &atom1,Atom &atom2); 
-    Vector3D dCij(Atom &atom1,Atom &atom2, Atom &datom); 
+  Float Vtors(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V = 0.0);
 
-  Float BijAsterix(Atom &atom1,Atom &atom2); 
-    Vector3D dBijAsterix(Atom &atom1,Atom &atom2, Atom &datom); 
+  Float Cij(AtomsPair& ij, const Float V = 0.0);
 
+  Float BijAsterix(AtomsPair& ij, const Float V = 0.0);
 public:
   virtual Float operator()(AtomsArray& nl);
-  virtual Vector3D grad(Atom &atom,AtomsArray&);
-
-  Float ELJ(AtomsArray&);
-  Vector3D dELJ(Atom &,AtomsArray&);
 
   AIREBO(CREBO* crebo);
 //  virtual
   Float getRcutoff() const {return      max3(R_[C][C][1],R_[C][H][1],R_[H][H][1]);}
-  bool probablyAreNeighbours(Atom& atom1, Atom& atom2) const
+  bool probablyAreNeighbours(const Atom& atom1, const Atom& atom2) const
     {
-      if (r_vec_no_touch(atom1,atom2).module_squared() > SQR(R(1,atom1,atom2)))
+      if (depos(atom1,atom2).module_squared() > SQR(R(1,atom1,atom2)))
         return false;
 
       return true;
     }
-
 private:
   void setupPotential();
 
@@ -102,30 +94,30 @@ private:
   enum {H = CREBO::H};
 
 
-  Float sigma(Atom &atom1,Atom &atom2) const
+  Float sigma(const AtomsPair& ij) const
   {
-    return sigma_[rebo.e2i(atom1)][rebo.e2i(atom2)];
-  }  
+    return sigma_[rebo.e2i(ij.atom1)][rebo.e2i(ij.atom2)];
+  }
 
-  Float R(int i,Atom &atom1,Atom &atom2) const
+  Float R(int i, const Atom &atom1, const Atom &atom2) const
   {
     return R_[rebo.e2i(atom1)][rebo.e2i(atom2)][i];
-  }  
+  }
 
-  Float RLJ(int i,Atom &atom1,Atom &atom2) const
+  Float RLJ(int i, const AtomsPair& ij) const
   {
-    return RLJ_[rebo.e2i(atom1)][rebo.e2i(atom2)][i];
-  }  
+    return RLJ_[rebo.e2i(ij.atom1)][rebo.e2i(ij.atom2)][i];
+  }
 
-  Float b(int i,Atom &atom1,Atom &atom2) const
+  Float b(int i, const AtomsPair& ij) const
   {
-    return b_[rebo.e2i(atom1)][rebo.e2i(atom2)][i];
-  }  
+    return b_[rebo.e2i(ij.atom1)][rebo.e2i(ij.atom2)][i];
+  }
 
-  Float zeta(Atom &atom1,Atom &atom2) const
+  Float zeta(const AtomsPair& ij) const
   {
-    return zeta_[rebo.e2i(atom1)][rebo.e2i(atom2)];
-  }  
+    return zeta_[rebo.e2i(ij.atom1)][rebo.e2i(ij.atom2)];
+  }
   Float R_[ECOUNT][ECOUNT][2];
   Float RLJ_[ECOUNT][ECOUNT][2];
   Float b_[ECOUNT][ECOUNT][2];
@@ -135,79 +127,12 @@ public:
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {
     FManybody::SaveToStream(os,smode);
-  }  
+  }
   void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   {
     FManybody::LoadFromStream(is,smode);
-  }  
+  }
   Float  buildPairs(AtomsArray& gl);
-
-Float
-f(Atom &atom1,Atom &atom2)
-{
-  Float r;
-  if (ontouch_enabled)
-  {
-    r  = r_vec_module_no_touch(atom1,atom2);
-  }
-  else
-  {
-    r  = r_vec_module(atom1,atom2);
-  }
-
-  Float R1;
-  Float R2;
-
-  if (r<(R1=R(0,atom1,atom2)))
-  {
-    return 1.0;
-  }
-  else if (r>(R2=R(1,atom1,atom2)))
-  {
-    return 0.0;
-  }
-  else
-  {
-    if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
-    return (1.0+cos(M_PI*(r-R1)
-            /(R2-R1)))/2.0;
-  }  
-}
-
-Vector3D
-df(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  if (&datom != &atom1 && &datom != &atom2) return 0.0;
-
-  Float r = r_vec_module(atom1,atom2);
-
-  Float R1;
-  Float R2;
-  
-  if (r<(R1=R(0,atom1,atom2)))
-  {
-    return 0.0;
-  }
-  else if (r>(R2=R(1,atom1,atom2)))
-  {
-    return 0.0;
-  }
-  else
-  {
-#ifdef FGENERAL_OPTIMIZED  
-    Vector3D dvar = dr_vec_module(atom1,atom2,datom);
-    if (dvar != 0.0)
-      return (-(M_PI/(R2-R1))*sin(M_PI*(r-R1)/(R2-R1)))/2.0
-             *dvar;
-    else
-      return 0.0;
-#else
-    return (-(M_PI/(R2-R1))*sin(M_PI*(r-R1)/(R2-R1)))/2.0
-           *dr_vec_module(atom1,atom2,datom);
-#endif
-  }     
-}
-
 };
 
 }

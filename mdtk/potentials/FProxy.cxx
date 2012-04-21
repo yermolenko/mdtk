@@ -47,6 +47,9 @@ FProxy::operator()(AtomsArray& gl)
 {
   Float Ei = 0;
 
+  for(size_t i = 0; i < gl.size(); i++)
+    gl[i].grad = Vector3D(0,0,0);
+
   for(size_t i = 0; i < potentials.size(); i++)
   {
     Float Ecur = (*(potentials[i]))(gl);
@@ -55,19 +58,6 @@ FProxy::operator()(AtomsArray& gl)
   }
 
   return Ei;
-}
-
-Vector3D
-FProxy::grad(Atom &atom,AtomsArray&gl)
-{
-  Vector3D dEi(0.0,0.0,0.0);
-
-  for(size_t i = 0; i < potentials.size(); i++)
-  {
-    dEi += potentials[i]->grad(atom,gl);
-  }
-
-  return dEi;
 }
 
 void

@@ -28,8 +28,8 @@ namespace mdtk
 
 using std::fabs;
 using std::exp;
-using std::sqrt; 
-using std::pow; 
+using std::sqrt;
+using std::pow;
 
 FBM::FBM(Rcutoff rcutoff):
   FPairwise(rcutoff)
@@ -53,26 +53,18 @@ FBM::FBM(Rcutoff rcutoff):
 }
 
 Float
-FBM::F11(Atom& a1, Atom& a2)
+FBM::F11(AtomsPair& ij, const Float V)
 {
-  Vector3D r = r_vec(a1,a2);
-  Float R = r.module();
+  Float R = ij.r();
 
-  if (R > getRcutoff()) return 0.0;
+  if (V != 0.0)
+  {
+    Float Der = -A3[ij.atom1.ID][ij.atom2.ID]*A4[ij.atom1.ID][ij.atom2.ID]*exp(-A4[ij.atom1.ID][ij.atom2.ID]*R);
 
-  return  A3[a1.ID][a2.ID]*exp(-A4[a1.ID][a2.ID]*R);
-}
+    ij.r(Der*V);
+  }
 
-Vector3D
-FBM::dF11(Atom& a1, Atom& a2, Atom& da)
-{
-  Vector3D r = r_vec(a1,a2);
-  Float R = r.module();
-
-  if (R > getRcutoff()) return Vector3D(0.0,0.0,0.0);
-  
-  Float Der = -A3[a1.ID][a2.ID]*A4[a1.ID][a2.ID]*exp(-A4[a1.ID][a2.ID]*R);
-  return  Der*dr_vec_module(a1,a2,da);
+  return  A3[ij.atom1.ID][ij.atom2.ID]*exp(-A4[ij.atom1.ID][ij.atom2.ID]*R);
 }
 
 Float
@@ -90,28 +82,18 @@ for(size_t i = 0; i < gl.size(); i++)
     if (atom.globalIndex > atom_j.globalIndex) continue;
     if (isHandledPair(atom,atom_j))
     if (&atom != &atom_j)
-      Ei += F11(atom,atom_j)*f(atom,atom_j);
-  }  
-}  
+    {
+      if (!probablyAreNeighbours(atom,atom_j)) continue;
+      AtomsPair ij(atom,atom_j,R(0),R(1));
+      Float f = ij.f();
+      Float F11Val = F11(ij,f);
+//      if (V != 0)
+      ij.f(F11Val);
+      Ei += F11Val*f;
+    }
+  }
+}
   return Ei;
 }
 
-Vector3D
-FBM::grad(Atom &atom,AtomsArray&)
-{
-  Index j;
-  Vector3D dEi(0.0,0.0,0.0);
-  for(j = 0; j < NL(atom).size(); j++)
-  {
-    Atom &atom_j = *(NL(atom)[j]);
-    if (isHandledPair(atom,atom_j))
-    if (&atom != &atom_j)
-      dEi += dF11(atom,atom_j,atom)*f(atom,atom_j)
-             +F11(atom,atom_j)    *df(atom,atom_j,atom);
-  }  
-  return dEi;
-}
-
 } // namespace mdtk
-
-

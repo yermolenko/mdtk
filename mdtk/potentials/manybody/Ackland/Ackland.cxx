@@ -31,136 +31,72 @@ namespace mdtk
 //#define ACKLAND_ZBL_CORRETION (-22.67812*eV)
 #define ACKLAND_ZBL_CORRETION (-40.0*eV)
 
-  Float  Ackland::buildPairs(AtomsArray& gl)
+Float
+Ackland::operator()(AtomsArray& gl)
+{
+  Float Ei = 0;
+  if (gl.size() != pairs.size()) pairs.resize(gl.size());
+  size_t ii;
+  for(ii = 0; ii < gl.size(); ii++)
   {
-    Float Ei = 0;
-    if (gl.size() != pairs.size()) pairs.resize(gl.size());    
-    size_t ii;
-    for(ii = 0; ii < gl.size(); ii++)
+    size_t prevSize = pairs[ii].size();
+    pairs[ii].clear();
+    pairs[ii].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
+  }
+  for(ii = 0; ii < gl.size(); ii++)
+  {
+    Atom &atom_i = gl[ii];
+    if (isHandled(atom_i))
     {
-      size_t prevSize = pairs[ii].size();
-      pairs[ii].clear();
-      pairs[ii].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
-    }  
-    for(ii = 0; ii < gl.size(); ii++)
-    {
-      Atom &atom_i = gl[ii];
-      if (isHandled(atom_i))
-      {
-      std::pair<int,int> sample_pair(atom_i.globalIndex,DUMMY_EL);
-    currentPairPtr = &sample_pair;
-    ontouch_enabled = true;
-        Ei += F(atom_i);
-/*
-TRACE(atom_i.globalIndex);
-TRACE(F(atom_i)/eV);
-*/
-    currentPairPtr = NULL;
-    ontouch_enabled = false;
-      };
+      Ei += F(atom_i);
+    };
 
-      if (isHandled(atom_i))
+    if (isHandled(atom_i))
       for(size_t jj = 0; jj < NL(atom_i).size(); jj++)
       {
         Atom &atom_j = *(NL(atom_i)[jj]);
         if (atom_i.globalIndex > atom_j.globalIndex) continue;
-        std::pair<int,int> sample_pair(atom_i.globalIndex,atom_j.globalIndex);
         if (isHandled(atom_j))
-        if (&atom_i != &atom_j)
-//        if (r_vec_module(atom_i,atom_j) < R(1,atom_i,atom_j))
-        {
-
-    currentPairPtr = &sample_pair;
-    ontouch_enabled = true;
-        Ei += Phi(atom_i,atom_j);
-/*
-TRACE(atom_j.globalIndex);
-TRACE(r_vec_module_no_touch(atom_i,atom_j));
-TRACE(Phi(atom_i,atom_j)/eV);
-*/
-    currentPairPtr = NULL;
-    ontouch_enabled = false;
-        }  
-      }  
-    }  
-
-return Ei;
-  }  
-
-Vector3D
-Ackland::grad(Atom &atom,AtomsArray& gl)
-{
-  Index i;
-  
-  Vector3D dEi(0.0,0.0,0.0);
-
-  if (isHandled(atom))
-  {
-
-    std::vector<std::pair<int,int> >& acnt = pairs[atom.globalIndex];
-
-    for(i = 0; i < acnt.size(); i++)
-    {
-      Atom &atom_i = gl[acnt[i].first];
-      
-      if (isHandled(atom_i))
-      {
-      if (acnt[i].second == DUMMY_EL)
-      {
-        dEi += dF(atom_i,atom);
-/*
-TRACE(atom.globalIndex);
-TRACE(atom_i.globalIndex);
-TRACE(dF(atom_i,atom));
-*/
-        continue;
-      }  
-      };
-      
-      if (isHandled(atom_i))
-      {
-        Atom &atom_j = gl[acnt[i].second];
-
-        REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
-        if (isHandled(atom_j))
-        {
-          dEi += dPhi(atom_i,atom_j,atom);
-/*
-TRACE(atom_j.globalIndex);
-TRACE(dPhi(atom_i,atom_j,atom));
-*/
-        }  
+          if (&atom_i != &atom_j)
+          {
+            AtomsPair ij(atom_i,atom_j,10.0*Ao,20.0*Ao);
+            Ei += Phi(ij);
+          }
       }
-    }    
-  }  
+  }
 
-  return  dEi;
-}  
-
+  return Ei;
+}
 
 inline
 Float
-Ackland::Phi(Atom &atom1,Atom &atom2) // V
+Ackland::Phi(AtomsPair& ij) // V
 {
-  Float r;
-  if (ontouch_enabled)
-    r  = r_vec_module_no_touch(atom1,atom2);
-  else
-    r  = r_vec_module(atom1,atom2);
+  Float r = ij.r();
 
 #ifndef  Ackland_HANDLE_SHORTRANGE
-  Spline& spline = *(splines[e2i(atom1)][e2i(atom2)]);
+  Spline& spline = *(splines[e2i(ij.atom1)][e2i(ij.atom2)]);
   if (r < spline.x1())
   {
   Float AB_ = 0.53e-8;
 
-  Float ZA = atom1.Z; Float ZB = atom2.Z;
+  Float ZA = ij.atom1.Z; Float ZB = ij.atom2.Z;
 
   Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
 
   Float Y=r/AS;
 
-  if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
+// if (V != 0)
+    {
+      Float Der =
+          -ZA*ZB/(r*r)*(0.18175*exp(-3.1998*Y)+
+          0.50986*exp(-0.94229*Y)+
+          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y))-
+          ZA*ZB/(r*AS)*(0.18175*3.1998*exp(-3.1998*Y)+
+          0.50986*0.94229*exp(-0.94229*Y)+0.28022*0.4029*exp(-0.4029*Y)+
+          0.02817*0.20162*exp(-0.20162*Y));
+      ij.r(Der);
+    }
 
   return  ZA*ZB/r*(0.18175*exp(-3.1998*Y)+
           0.50986*exp(-0.94229*Y)+
@@ -170,116 +106,55 @@ Ackland::Phi(Atom &atom1,Atom &atom2) // V
   {
     if (r < spline.x2())
     {
-      if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
-
+//    if (V != 0)
+      ij.r(spline.der(r));
       return spline(r);
     }
   }
 #endif
 
-#ifdef Ackland_OPTIMIZED  
-  if (r >= rk(1,atom1,atom2))  return 0.0;
+#ifdef Ackland_OPTIMIZED
+  if (r >= rk(1,ij))  return 0.0;
 #endif
 
-  if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
+  Float Der = 0.0;
+  Float Val = 0.0;
 
-  Float V = 0.0;
-
-  size_t nk = (atom1.ID == atom2.ID)?6:3;
+  size_t nk = (ij.atom1.ID == ij.atom2.ID)?6:3;
 
   for(size_t k = 1; k <= nk; k++)
   {
-    Float rt = rk(k,atom1,atom2)-r;
+    Float rt = rk(k,ij)-r;
     if (rt <= 0) continue;
-    V += ak(k,atom1,atom2)*rt*rt*rt;
-//TRACE(ak(k,atom1,atom2)*rt*rt*rt/eV);
+    Float akval = ak(k,ij);
+    Val  += akval*rt*rt*rt;
+//    if (Vglob !=0 )
+    Der += akval*3.0*rt*rt*(-1.0);
   }
 
-  return V;
-}  
-
-inline
-Vector3D
-Ackland::dPhi(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  Vector3D drmodvar = dr_vec_module(atom1,atom2,datom);
-
-#ifdef Ackland_OPTIMIZED  
-  if (drmodvar == 0.0)  return 0.0;
-#endif
-
-  Float r = r_vec_module(atom1,atom2);
-
-#ifndef  Ackland_HANDLE_SHORTRANGE
-  Spline& spline = *(splines[e2i(atom1)][e2i(atom2)]);
-  if (r < spline.x1())
+// if (Vglob != 0)
   {
-  Float AB_ = 0.53e-8;
-
-  Float ZA = atom1.Z; Float ZB = atom2.Z;
-  Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
-  Float Y=r/AS;
-  Float Der =
-          -ZA*ZB/(r*r)*(0.18175*exp(-3.1998*Y)+
-          0.50986*exp(-0.94229*Y)+
-          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y))-
-          ZA*ZB/(r*AS)*(0.18175*3.1998*exp(-3.1998*Y)+
-          0.50986*0.94229*exp(-0.94229*Y)+0.28022*0.4029*exp(-0.4029*Y)+
-          0.02817*0.20162*exp(-0.20162*Y));
-
-  return Der*drmodvar;
-  }
-  else
-  {
-    if (r < spline.x2()) return spline.der(r)*drmodvar;
-  }
-#endif
-
-#ifdef Ackland_OPTIMIZED  
-  if (r >= rk(1,atom1,atom2))  return 0.0;
-#endif
-
-  Float dV = 0.0;
-  Float V = 0.0;
-
-  size_t nk = (atom1.ID == atom2.ID)?6:3;
-
-  for(size_t k = 1; k <= nk; k++)
-  {
-    Float rt = rk(k,atom1,atom2)-r;
-    if (rt <= 0) continue;
-    Float akval = ak(k,atom1,atom2);
-    V  += akval*rt*rt*rt;
-    dV += akval*3.0*rt*rt*(-1.0);
+    ij.r(Der);
   }
 
-  return dV*drmodvar;
+  return Val;
 }
 
 inline
 Float
 Ackland::PhiCap(size_t a1_id, size_t a2_id, Float r) const
 {
-#ifdef Ackland_OPTIMIZED  
+#ifdef Ackland_OPTIMIZED
   if (r >= Rk_[a1_id][a2_id][1])  return 0.0;
 #endif
-/*
-  TRACE(a1_id);
-  TRACE(a2_id);
-  TRACE(r);
-*/
+
   Float val = 0.0;
   for(size_t k = 1; k <= 2; k++)
   {
-//    TRACE(Rk_[a1_id][a2_id][k]);
-//    TRACE(Ak_[a1_id][a2_id][k]);
-
     Float rt = Rk_[a1_id][a2_id][k]-r;
     if (rt <= 0) continue;
     val += Ak_[a1_id][a2_id][k]*rt*rt*rt;
   }
-
-//  TRACE(val);
 
   return val;
 }
@@ -288,7 +163,7 @@ inline
 Float
 Ackland::dPhiCap(size_t a1_id, size_t a2_id, Float r) const
 {
-#ifdef Ackland_OPTIMIZED  
+#ifdef Ackland_OPTIMIZED
   if (r >= Rk_[a1_id][a2_id][1])  return 0.0;
 #endif
 
@@ -304,32 +179,40 @@ Ackland::dPhiCap(size_t a1_id, size_t a2_id, Float r) const
 
 inline
 Float
-Ackland::g(Atom &atom1,Atom &atom2)  //PhiBig
+Ackland::g(AtomsPair& ij, const Float V)  //PhiBig
 {
-  Float r;
-  if (ontouch_enabled)
-    r  = r_vec_module_no_touch(atom1,atom2);
-  else
-    r  = r_vec_module(atom1,atom2);
+  Float r = ij.r();
 
   Float PhiCapVal = 0.0;
 
-  size_t a1_id = e2i(atom1);
-  size_t a2_id = e2i(atom2);
+  size_t a1_id = e2i(ij.atom1);
+  size_t a2_id = e2i(ij.atom2);
 
   if (a1_id != a2_id)
   {
-    bool touch = true;
-    if (r >= Rk_[a1_id][a1_id][1]) touch = false;
-    if (r >= Rk_[a2_id][a2_id][1]) touch = false;
-    if (ontouch_enabled && touch) r_vec_touch_only(atom1,atom2);
-    PhiCapVal = sqrt(PhiCap(a1_id, a1_id, r)*PhiCap(a2_id, a2_id, r));
+    bool dotouch = true;
+    Float PhiCapVal1 = PhiCap(a1_id, a1_id, r);
+    Float PhiCapVal2 = PhiCap(a2_id, a2_id, r);
+    Float sqrt_of_prod = sqrt(PhiCapVal1*PhiCapVal2);
+    REQUIRE(PhiCapVal1*PhiCapVal2>=0);
+    if (r >= Rk_[a1_id][a1_id][1]) dotouch = false;
+    if (r >= Rk_[a2_id][a2_id][1]) dotouch = false;
+    if (dotouch)
+    {
+      Float dPhiCapVal1 = dPhiCap(a1_id, a1_id, r);
+      Float dPhiCapVal2 = dPhiCap(a2_id, a2_id, r);
+      ij.r(0.5/sqrt_of_prod*(dPhiCapVal1*PhiCapVal2+PhiCapVal1*dPhiCapVal2)*V);
+    }
+    PhiCapVal = sqrt_of_prod;
   }
   else
   {
-    bool touch = true;
-    if (r >= Rk_[a1_id][a2_id][1]) touch = false;
-    if (ontouch_enabled && touch) r_vec_touch_only(atom1,atom2);
+    bool dotouch = true;
+    if (r >= Rk_[a1_id][a2_id][1]) dotouch = false;
+    if (dotouch)
+    {
+      ij.r(dPhiCap(a1_id, a2_id, r)*V);
+    }
     PhiCapVal = PhiCap(a1_id, a2_id, r);
   }
 
@@ -337,66 +220,20 @@ Ackland::g(Atom &atom1,Atom &atom2)  //PhiBig
 }
 
 inline
-Vector3D
-Ackland::dg(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  Vector3D drmodvar = dr_vec_module(atom1,atom2,datom);
-
-#ifdef Ackland_OPTIMIZED  
-  if (drmodvar == 0.0)  return 0.0;
-#endif
-
-  Float r = r_vec_module(atom1,atom2);
-
-  size_t a1_id = e2i(atom1);
-  size_t a2_id = e2i(atom2);
-
-  if (a1_id != a2_id)
-  {
-    Float PhiCapVal1 = PhiCap(a1_id, a1_id, r);
-    Float PhiCapVal2 = PhiCap(a2_id, a2_id, r);
-//    TRACE(PhiCapVal1);
-//    TRACE(PhiCapVal2);
-    REQUIRE(PhiCapVal1*PhiCapVal2>=0);
-    if (PhiCapVal1*PhiCapVal2<=0) return 0.0;
-    Float dPhiCapVal1 = dPhiCap(a1_id, a1_id, r);
-    Float dPhiCapVal2 = dPhiCap(a2_id, a2_id, r);
-    Float dsqrtPhiCapVal = 0.5/sqrt(PhiCapVal1*PhiCapVal2)*(dPhiCapVal1*PhiCapVal2+PhiCapVal1*dPhiCapVal2);
-    return dsqrtPhiCapVal*drmodvar;
-  }
-  else
-  {
-    Float dPhiCapVal = dPhiCap(a1_id, a2_id, r);
-    return dPhiCapVal*drmodvar;
-  }
-}
-  
-inline
 Float
 Ackland::F(Atom &atom1)
 {
-//  return 0;
-
   Float rhovar = rho(atom1);
   REQUIRE(rhovar >= 0.0);
+  if (rhovar != 0)
+  {
+    rho(atom1,-c_/(2.0*sqrt(rhovar)));
+  }
   return -c_*sqrt(rhovar);
 }
 
-inline
-Vector3D
-Ackland::dF(Atom &atom1, Atom &datom)
-{
-//  return 0;
-
-  Float rhovar = rho(atom1);
-  REQUIRE(rhovar >= 0.0);
-  Vector3D drhovar = drho(atom1,datom);
-  if (rhovar == 0.0 || drhovar == 0.0) return 0.0;
-  return -c_/(2.0*sqrt(rhovar))*drhovar;
-}
-
 Float
-Ackland::rho(Atom &atom_i)
+Ackland::rho(Atom &atom_i, const Float V)
 {
   Index j;
   Float rhoij = 0.0;
@@ -405,32 +242,12 @@ Ackland::rho(Atom &atom_i)
     Atom& atom_j = *(NL(atom_i)[j]);
     if (/*atom_j.globalIndex > atom_i.globalIndex &&*/ isHandled(atom_j))
     {
-      rhoij += g(atom_i,atom_j);
-    }  
-  }  
+      AtomsPair ij(atom_i,atom_j,10.0*Ao,20.0*Ao);
+      rhoij += g(ij,V);
+    }
+  }
   return rhoij;
 }
-
-Vector3D
-Ackland::drho(Atom &atom_i, Atom &datom)
-{
-  Vector3D Derrho = 0.0;
-  for(Index j = 0; j < NL(atom_i).size(); j++)
-  {
-    Atom& atom_j = *(NL(atom_i)[j]);
-    if (/*atom_j.globalIndex > atom_i.globalIndex &&*/ isHandled(atom_j))
-    {
-      Derrho += dg(atom_i,atom_j,datom);
-    }  
-  }  
-  return Derrho;
-}
-
-Float
-Ackland::operator()(AtomsArray& gl)
-{
-  return buildPairs(gl);
-}  
 
 Ackland::Ackland():
   FManybody()
@@ -587,7 +404,7 @@ Ackland::setupPotential()
         Ak_[i1][i2][i3] *= koe;
 */
 fillR_concat_();
-}  
+}
 
 void
 Ackland::fillR_concat_()
@@ -651,12 +468,14 @@ Atom& atom2 = atoms[j];
 
   size_t nk = (atom1.ID == atom2.ID)?6:3;
 
+  AtomsPair ij(atom1,atom2,10.0*Ao,20.0*Ao);
+
   for(size_t k = 1; k <= nk; k++)
   {
-    Float rt = rk(k,atom1,atom2)-r;
+    Float rt = rk(k,ij)-r;
     if (rt <= 0) continue;
-    VAckland += ak(k,atom1,atom2)*rt*rt*rt;
-    DerVAckland += ak(k,atom1,atom2)*3.0*rt*rt*(-1.0);
+    VAckland += ak(k,ij)*rt*rt*rt;
+    DerVAckland += ak(k,ij)*3.0*rt*rt*(-1.0);
   }
   }
 
@@ -678,5 +497,3 @@ for(size_t j = 0; j < ECOUNT; j++)
 }
 
 }
-
-

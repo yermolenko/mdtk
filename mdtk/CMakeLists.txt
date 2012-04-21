@@ -23,6 +23,8 @@ include_directories (${MDTK_SOURCE_DIR})
 add_library (mdtk
   Atom.cxx
   AtomsContainer.cxx
+  potentials/AtomsPair.cxx
+  potentials/FGeneral.cxx
   config.cxx
   consts.cxx
   Exception.cxx
@@ -38,7 +40,6 @@ add_library (mdtk
   Vector3D.cxx
   potentials/NeighbourList.cxx
   potentials/FProxy.cxx
-  potentials/FGeneral.cxx
   potentials/pairwise/FPairwise.cxx
   potentials/pairwise/FLJ.cxx
   potentials/pairwise/FBZL.cxx
@@ -50,8 +51,8 @@ add_library (mdtk
   potentials/manybody/Brenner/Brenner.cxx
   potentials/manybody/AIREBO/cubici.cxx
   potentials/manybody/AIREBO/REBO.cxx
-  potentials/manybody/AIREBO/AIREBO_LJ.cxx
   potentials/manybody/AIREBO/AIREBO_ETors.cxx
+  potentials/manybody/AIREBO/AIREBO_LJ.cxx
   yaatk.cxx
   procmon.cxx
 )

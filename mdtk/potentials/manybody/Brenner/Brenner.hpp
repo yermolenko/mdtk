@@ -48,40 +48,27 @@ class Brenner : public FManybody
 {
   friend class AIREBO;
 public:
-  Float VR(Atom &atom1,Atom &atom2); 
-    Vector3D dVR(Atom &atom1,Atom &atom2, Atom &datom); 
-  Float VR_Exp(Atom &atom1,Atom &atom2); 
-    Vector3D dVR_Exp(Atom &atom1,Atom &atom2, Atom &datom); 
+  Float VR(AtomsPair& ij, const Float V = 0.0);
+  Float VR_Exp(AtomsPair& ij, const Float V = 0.0);
 
-  Float VA(Atom &atom1,Atom &atom2); 
-    Vector3D dVA(Atom &atom1,Atom &atom2, Atom &datom); 
-  Float VA_Exp(Atom &atom1,Atom &atom2); 
-    Vector3D dVA_Exp(Atom &atom1,Atom &atom2, Atom &datom); 
+  Float VA(AtomsPair& ij, const Float V = 0.0);
+  Float VA_Exp(AtomsPair& ij, const Float V = 0.0);
 private:
 
-  Float Baver(Atom &atom1,Atom &atom2); 
-    Vector3D dBaver(Atom &atom1,Atom &atom2, Atom &datom); 
-  Float B(Atom &atom1,Atom &atom2); 
-    Vector3D dB(Atom &atom1,Atom &atom2, Atom &datom); 
-  Float D(Atom &atom1,Atom &atom2); 
-    Vector3D dD(Atom &atom1,Atom &atom2, Atom &datom); 
-  Float ExpTerm(Atom &atom_i,Atom &atom_j,Atom &atom_k); 
-    Vector3D dExpTerm(Atom &atom_i,Atom &atom_j,Atom &atom_k, Atom &datom); 
-  Float G(Atom &atom_i,Atom &atom_j,Atom &atom_k); 
-    Vector3D dG(Atom &atom_i,Atom &atom_j,Atom &atom_k, Atom &datom); 
-      Float dGdCT(Float CosT) const;
+  Float Baver(AtomsPair& ij, const Float V = 0.0);
+  Float B(AtomsPair& ij, const Float V = 0.0);
+  Float D(AtomsPair& ij, const Float V = 0.0);
+  Float ExpTerm(AtomsPair& ij, AtomsPair& ik, const Float V = 0.0);
+  Float G(AtomsPair& ij, AtomsPair& ik, const Float V = 0.0);
+  Float dGdCT(Float CosT) const;
 
-  Float Nt(Atom &atom_i, Atom &atom_j); 
-    Vector3D dNt(Atom &atom_i, Atom &atom_j, Atom &datom); 
-  Float NH(Atom &atom_i, Atom &atom_j); 
-    Vector3D dNH(Atom &atom_i, Atom &atom_j, Atom &datom); 
-  Float NC(Atom &atom_i, Atom &atom_j); 
-    Vector3D dNC(Atom &atom_i, Atom &atom_j, Atom &datom); 
+  Float Nt(AtomsPair& ij, const Float V = 0.0);
+  Float NH(AtomsPair& ij, const Float V = 0.0);
+  Float NC(AtomsPair& ij, const Float V = 0.0);
 
-  Float Nconj(Atom &atom1,Atom &atom2); 
-    Vector3D dNconj(Atom &atom1,Atom &atom2, Atom &datom); 
-  Float F(Float x) const; 
-    Float dF(Float x) const; 
+  Float Nconj(AtomsPair& ij, const Float V = 0.0);
+  Float F(Float x) const;
+  Float dF(Float x) const;
 
   Float HN_CC_num(Float a1, Float a2) const;
     Float HN_CC_dH_num(Float a1, Float a2) const;
@@ -90,27 +77,30 @@ private:
     Float HN_CH_dH_num(Float a1, Float a2) const;
     Float HN_CH_dC_num(Float a1, Float a2) const;
 
-  Float HN(Atom &atom_i, Atom &atom_j);
-    Vector3D dHN(Atom &atom_i, Atom &atom_j, Atom &datom);
-  
-  Float FN_num(Float a1, Float a2, Float a3) const; 
+  Float HN(AtomsPair& ij, const Float V = 0.0);
+
+  Float FN_num(Float a1, Float a2, Float a3) const;
     Float FN_dNconj_num(Float a1, Float a2, Float a3) const;
     Float FN_dNt_i_num(Float a1, Float a2, Float a3) const;
     Float FN_dNt_j_num(Float a1, Float a2, Float a3) const;
 
-  Float FN(Atom &atom_i, Atom &atom_j);
-    Vector3D dFN(Atom &atom_i, Atom &atom_j, Atom &datom); 
-  
+  Float FN(AtomsPair& ij, const Float V = 0.0);
+
 public:
-  enum ParamSet{POTENTIAL1,POTENTIAL2} paramSet;  
+  enum ParamSet{POTENTIAL1,POTENTIAL2} paramSet;
 
   virtual Float operator()(AtomsArray&);
-  virtual Vector3D grad(Atom &,AtomsArray&);
 
   Brenner(ParamSet parSet = POTENTIAL1);
-//  virtual 
+//  virtual
   Float getRcutoff() const {return      max3(R_[C][C][1],R_[C][H][1],R_[H][H][1]);}
+  bool probablyAreNeighbours(const Atom& atom1, const Atom& atom2) const
+    {
+      if (depos(atom1,atom2).module_squared() > SQR(R(1,atom1,atom2)))
+        return false;
 
+      return true;
+    }
 private:
   enum {ECOUNT = 2};
   enum {C = 0};
@@ -124,7 +114,7 @@ private:
   Float R_[ECOUNT][ECOUNT][2];
 
   Float alpha_[ECOUNT][ECOUNT][ECOUNT];
-  
+
   Float ao_;
   Float co_;
   Float do_;
@@ -133,50 +123,54 @@ private:
 
   void setupPotential1();
   void setupPotential2();
-  
-  size_t e2i(Atom &atom) const
+
+  size_t e2i(const Atom &atom) const
   {
     switch (atom.ID)
     {
       case H_EL : return H; break;
       case C_EL : return C; break;
       default : throw Exception("e2i() : unknown element");
-    };  
-  }  
+    };
+  }
 
-  Float Re(Atom &atom1,Atom &atom2) const
+  Float Re(const AtomsPair& ij) const
   {
-    return Re_[e2i(atom1)][e2i(atom2)];
-  }  
-  Float De(Atom &atom1,Atom &atom2) const
+    return Re_[e2i(ij.atom1)][e2i(ij.atom2)];
+  }
+  Float De(const AtomsPair& ij) const
   {
-    return De_[e2i(atom1)][e2i(atom2)];
-  }  
-  Float beta(Atom &atom1,Atom &atom2) const
+    return De_[e2i(ij.atom1)][e2i(ij.atom2)];
+  }
+  Float beta(const AtomsPair& ij) const
   {
-    return beta_[e2i(atom1)][e2i(atom2)];
-  }  
-  Float S(Atom &atom1,Atom &atom2) const
+    return beta_[e2i(ij.atom1)][e2i(ij.atom2)];
+  }
+  Float S(const AtomsPair& ij) const
   {
-    return S_[e2i(atom1)][e2i(atom2)];
-  }  
-  Float delta(Atom &atom1,Atom &atom2) const
+    return S_[e2i(ij.atom1)][e2i(ij.atom2)];
+  }
+  Float delta(const AtomsPair& ij) const
   {
-    return delta_[e2i(atom1)][e2i(atom2)];
-  }  
-    Float delta(Atom &atom) const
+    return delta_[e2i(ij.atom1)][e2i(ij.atom2)];
+  }
+  Float delta(const Atom &atom) const
     {
       return delta_[e2i(atom)][e2i(atom)];
-    }  
+    }
 //  virtual
-  Float R(int i,Atom &atom1,Atom &atom2) const
+  Float R(int i, const AtomsPair& ij) const
+  {
+    return R_[e2i(ij.atom1)][e2i(ij.atom2)][i];
+  }
+  Float R(int i, const Atom& atom1, const Atom& atom2) const
   {
     return R_[e2i(atom1)][e2i(atom2)][i];
-  }  
-  Float alpha(Atom &atom1,Atom &atom2,Atom &atom3) const
+  }
+  Float alpha(const AtomsPair& ij, const AtomsPair& ik) const
   {
-    return alpha_[e2i(atom1)][e2i(atom2)][e2i(atom3)];
-  }  
+    return alpha_[e2i(ij.atom1)][e2i(ij.atom2)][e2i(ik.atom2)];
+  }
 
   FuncH_CC funcH_CC;
   FuncH_CH funcH_CH;
@@ -186,88 +180,13 @@ public:
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {
     FManybody::SaveToStream(os,smode);
-  }  
+  }
   void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   {
     FManybody::LoadFromStream(is,smode);
-  }  
-
-  Float  buildPairs(AtomsArray& gl);
-
-Float
-f(Atom &atom1,Atom &atom2)
-{
-  Float r;
-  if (ontouch_enabled)
-  {
-    r  = r_vec_module_no_touch(atom1,atom2);
   }
-  else
-  {
-    r  = r_vec_module(atom1,atom2);
-  }
-
-  Float R1;
-  Float R2;
-
-  if (r<(R1=R(0,atom1,atom2)))
-  {
-    return 1.0;
-  }
-  else if (r>(R2=R(1,atom1,atom2)))
-  {
-    return 0.0;
-  }
-  else
-  {
-    if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
-    return (1.0+cos(M_PI*(r-R1)
-            /(R2-R1)))/2.0;
-  }  
-}
-
-Vector3D
-df(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  if (&datom != &atom1 && &datom != &atom2) return 0.0;
-
-  Float r = r_vec_module(atom1,atom2);
-
-  Float R1;
-  Float R2;
-  
-  if (r<(R1=R(0,atom1,atom2)))
-  {
-    return 0.0;
-  }
-  else if (r>(R2=R(1,atom1,atom2)))
-  {
-    return 0.0;
-  }
-  else
-  {
-#ifdef FGENERAL_OPTIMIZED  
-    Vector3D dvar = dr_vec_module(atom1,atom2,datom);
-    if (dvar != 0.0)
-      return (-(M_PI/(R2-R1))*sin(M_PI*(r-R1)/(R2-R1)))/2.0
-             *dvar;
-    else
-      return 0.0;
-#else
-    return (-(M_PI/(R2-R1))*sin(M_PI*(r-R1)/(R2-R1)))/2.0
-           *dr_vec_module(atom1,atom2,datom);
-#endif
-  }     
-}
-
-
 };
 
-  
-
-
 }
 
 #endif
-
-
