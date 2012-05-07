@@ -521,26 +521,26 @@ FGeneral::dCosDihedral(Atom &atom_i,Atom &atom_j,Atom &atom_k,Atom &atom_l, Atom
     Float  rlk_z = rlk.z;
 */
 
-//  Vector3D ril = r_vec(atom_i,atom_l); 
-  Vector3D ril = rij+rjl;
+  Vector3D ril = r_vec(atom_i,atom_l); 
+//  Vector3D ril = rij+rjl;
     Float  ril_x = ril.x;
     Float  ril_y = ril.y;
     Float  ril_z = ril.z;
 
-//  Vector3D rjk = r_vec(atom_j,atom_k); 
-  Vector3D rjk = rji+rik; 
+  Vector3D rjk = r_vec(atom_j,atom_k); 
+//  Vector3D rjk = rji+rik; 
     Float  rjk_x = rjk.x;
     Float  rjk_y = rjk.y;
     Float  rjk_z = rjk.z;
 
-//  Vector3D rkj = r_vec(atom_k,atom_j); 
-  Vector3D rkj = rki+rij; 
+  Vector3D rkj = r_vec(atom_k,atom_j); 
+//  Vector3D rkj = rki+rij; 
     Float  rkj_x = rkj.x;
     Float  rkj_y = rkj.y;
     Float  rkj_z = rkj.z;
 
-//  Vector3D rli = r_vec(atom_l,atom_i); 
-  Vector3D rli = rlj+rji; 
+  Vector3D rli = r_vec(atom_l,atom_i); 
+//  Vector3D rli = rlj+rji; 
     Float  rli_x = rli.x;
     Float  rli_y = rli.y;
     Float  rli_z = rli.z;
