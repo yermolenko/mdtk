@@ -74,6 +74,8 @@ namespace mdtk
         Float wij  = EREBO::f(atom_i,atom_j);
         if (r_vec_module_no_touch(atom_j,atom_l) < EREBO::R(1,atom_j,atom_l))
         {
+          if (fabs(SinTheta(atom_i,atom_j,atom_k))<0.1) continue;
+          if (fabs(SinTheta(atom_i,atom_j,atom_l))<0.1) continue;
           Float wjl  = EREBO::f(atom_j,atom_l);
           Ei += wki*wij*wjl*Vtors(atom_i,atom_j,atom_k,atom_l);
         }  
@@ -176,6 +178,8 @@ ETors::dETor(Atom &atom,AtomsArray &gl)
 
         if (r_vec_module_no_touch(atom_j,atom_l) < EREBO::R(1,atom_j,atom_l))
         {
+          if (fabs(SinTheta(atom_i,atom_j,atom_k))<0.1) continue;
+          if (fabs(SinTheta(atom_i,atom_j,atom_l))<0.1) continue;
           Float wjl     = EREBO::f(atom_j,atom_l);
           Vector3D dwjl = EREBO::df(atom_j,atom_l,atom);
 
