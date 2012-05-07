@@ -105,6 +105,7 @@ public:
     Vector3D dr_vec_module(Atom &atom1,Atom &atom2, Atom &datom) ; 
   Float rsqr_vec_module(Atom &atom1,Atom &atom2) ; 
     Vector3D drsqr_vec_module(Atom &atom1,Atom &atom2, Atom &datom) ; 
+  Float SinTheta(Atom &atom_i,Atom &atom_j,Atom &atom_k) ;
   Float CosTheta(Atom &atom_i,Atom &atom_j,Atom &atom_k) ;
     Vector3D dCosTheta(Atom &atom_i,Atom &atom_j,Atom &atom_k, Atom &datom) ;
   Float CosThetaJIK(Atom &atom_i,Atom &atom_j,Atom &atom_k) ;
@@ -303,6 +304,23 @@ FGeneral::drsqr_vec_module(Atom &atom1,Atom &atom2, Atom &datom)
 }   
 
 #define CosT_epsilon 1e-7
+
+inline
+Float
+FGeneral::SinTheta(Atom &atom_i,Atom &atom_j,Atom &atom_k)
+{
+  Vector3D rij = r_vec(atom_i,atom_j);
+  Vector3D rik = r_vec(atom_i,atom_k);
+
+  Float SinT = vectormul(rij,rik).module()/(rij.module()*rik.module());
+
+  REQUIRE(SinT>=-1.0-CosT_epsilon && SinT<=+1.0+CosT_epsilon);
+
+  if (SinT<-1.0) SinT = -1.0;
+  if (SinT>+1.0) SinT = +1.0;
+
+  return SinT;
+}
 
 inline
 Float

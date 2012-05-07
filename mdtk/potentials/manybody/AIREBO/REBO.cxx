@@ -983,6 +983,8 @@ RETURN_REBO_0;
     if (probablyAreNeighbours(atom_j,atom_l))
 #endif
     {
+      if (fabs(SinTheta(atom_i,atom_j,atom_k))<0.1) continue;
+      if (fabs(SinTheta(atom_i,atom_j,atom_l))<0.1) continue;
       Float f_ik = fprime(atom_k,atom_i);
       Float f_jl = fprime(atom_l,atom_j);
       
@@ -1044,6 +1046,8 @@ RETURN_REBO_0;
     if (probablyAreNeighbours(atom_j,atom_l))
 #endif
     {
+      if (fabs(SinTheta(atom_i,atom_j,atom_k))<0.1) continue;
+      if (fabs(SinTheta(atom_i,atom_j,atom_l))<0.1) continue;
       Float f_ik = fprime(atom_k,atom_i);
       Float f_jl = fprime(atom_l,atom_j);
 
