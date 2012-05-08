@@ -522,7 +522,9 @@ SimLoop::temperatureWithoutFixed()
     }
   };
 
-  REQUIRE(atoms_accounted != 0);
+  if (atoms_accounted == 0)
+    return 0.0;
+
   return energyKinCur/(3.0/2.0*kb*atoms_accounted);
 }
 
