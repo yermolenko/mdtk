@@ -34,14 +34,27 @@ using std::pow;
 FLJ::FLJ(Rcutoff rcutoff):
   FPairwise(rcutoff)
 {
-  handledElements.insert(Cu_EL);
-  handledElements.insert(C_EL);
-  handledElements.insert(H_EL);
+  std::vector<ElementID> elements1;
+  elements1.push_back(H_EL);
+  elements1.push_back(C_EL);
 
-  handledElementPairs.insert(std::make_pair(Cu_EL,C_EL));
-  handledElementPairs.insert(std::make_pair(Cu_EL,H_EL));
-  handledElementPairs.insert(std::make_pair(C_EL,Cu_EL));
-  handledElementPairs.insert(std::make_pair(H_EL,Cu_EL));
+  std::vector<ElementID> elements2;
+  elements2.push_back(Cu_EL);
+//  elements2.push_back(Ag_EL);
+//  elements2.push_back(Au_EL);
+
+  for(size_t i = 0; i < elements1.size(); ++i)
+    handledElements.insert(elements1[i]);
+
+  for(size_t i = 0; i < elements2.size(); ++i)
+    handledElements.insert(elements2[i]);
+
+  for(size_t i = 0; i < elements1.size(); ++i)
+    for(size_t j = 0; j < elements2.size(); ++j)
+    {
+      handledElementPairs.insert(std::make_pair(elements1[i],elements2[j]));
+      handledElementPairs.insert(std::make_pair(elements2[j],elements1[i]));
+    }
 
 //  See [D.E. Ellis et al., Materials Science in Semiconductor
 //  Processing 3, 123 (2000)]
