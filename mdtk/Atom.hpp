@@ -181,7 +181,7 @@ wDeb(Atom &/*atom*/)
 
 inline
 std::string
-ElementString(Atom &atom)
+ElementString(const Atom &atom)
 {
   return ElementIDtoString(atom.ID);
 }
