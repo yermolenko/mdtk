@@ -31,107 +31,99 @@
 namespace mdtk
 {
 
-  Float  AIREBO::buildPairs(AtomsArray& gl)
+Float
+AIREBO::operator()(AtomsArray& gl)
+{
+  std::vector<std::vector<AtomPair> > backup = rebo.pairs;
+  if (gl.size() != rebo.pairs.size()) rebo.pairs.resize(gl.size());
+  size_t iir;
+  for(iir = 0; iir < gl.size(); iir++)
   {
-    std::vector<std::vector<AtomPair> > backup = rebo.pairs;
-    if (gl.size() != rebo.pairs.size()) rebo.pairs.resize(gl.size());
-    size_t iir;
-    for(iir = 0; iir < gl.size(); iir++)
-    {
-      size_t prevSize = rebo.pairs[iir].size();
-      rebo.pairs[iir].clear();
-      rebo.pairs[iir].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
-    }
+    size_t prevSize = rebo.pairs[iir].size();
+    rebo.pairs[iir].clear();
+    rebo.pairs[iir].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
+  }
 
-    Float Ei = 0;
-    if (gl.size() != pairs.size()) pairs.resize(gl.size());    
-    size_t ii;
-    for(ii = 0; ii < gl.size(); ii++)
+  Float Ei = 0;
+  if (gl.size() != pairs.size()) pairs.resize(gl.size());
+  size_t ii;
+  for(ii = 0; ii < gl.size(); ii++)
+  {
+    size_t prevSize = pairs[ii].size();
+    pairs[ii].clear();
+    pairs[ii].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
+  }
+  for(ii = 0; ii < gl.size(); ii++)
+  {
+    Atom &atom_i = gl[ii];
+    if (isHandled(atom_i))
     {
-      size_t prevSize = pairs[ii].size();
-      pairs[ii].clear();
-      pairs[ii].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
-    }  
-    for(ii = 0; ii < gl.size(); ii++)
-    {
-      Atom &atom_i = gl[ii];
-      if (isHandled(atom_i))
-      for(size_t jj = 0; jj < NL(atom_i).size(); jj++)
+      AtomRefsContainer& nli = NL(atom_i);
+      for(size_t jj = 0; jj < nli.size(); jj++)
       {
-        Atom &atom_j = *(NL(atom_i)[jj]);
+        Atom &atom_j = *(nli[jj]);
         if (atom_i.globalIndex > atom_j.globalIndex) continue;
-        std::pair<int,int> sample_pair(atom_i.globalIndex,atom_j.globalIndex);
         if (&atom_i != &atom_j)
-        if (r_vec_module(atom_i,atom_j) < R(1,atom_i,atom_j))
-#ifdef AIREBO_OPTIMIZED_EVEN_BETTER
-        if (Cij(atom_i, atom_j) > 0.0 /* C!=0 */)
-#endif
         {
-    currentPairPtr = &sample_pair;
-    ontouch_enabled = true;
+          if (!probablyAreNeighbours(atom_i,atom_j)) continue;
+          AtomsPair ij(atom_i,atom_j,R(0,atom_i,atom_j),R(1,atom_i,atom_j));
 
-    rebo.currentPairPtr = &sample_pair;
-    rebo.ontouch_enabled = true;
+          Float V = 1.0;
 
-      {
-        Float C = Cij(atom_i, atom_j);
-#ifdef AIREBO_OPTIMIZED
+          Float C = Cij(ij);
+
           if (C > 0.0) // C !=0.0
           {
-#endif
-        Float rij = r_vec_module(atom_i, atom_j);
-        Float rij_min = RLJ(0,atom_i, atom_j);
-        Float rij_max = RLJ(1,atom_i, atom_j);
-        Float Str = S(rij,rij_min,rij_max);
-#ifdef AIREBO_OPTIMIZED
-          if (Str != 0.0)
-          {
-#endif
-        Float bij = BijAsterix(atom_i, atom_j);
-        Float bij_min = b(0,atom_i, atom_j);
-        Float bij_max = b(1,atom_i, atom_j);
-        Float Stb = S(bij,bij_min,bij_max);
-        Ei += (1.0+Str*(Stb-1.0))*C*VLJ(atom_i,atom_j);
-#ifdef AIREBO_OPTIMIZED
-          } // Str!=0
-          else
-          {
-        Ei += (1.0              )*C*VLJ(atom_i,atom_j);
-          }  
-#endif 
-#ifdef AIREBO_OPTIMIZED
-          } // C!=0
-#endif 
-
-      }  
-    currentPairPtr = NULL;
-    ontouch_enabled = false;
-
-    rebo.currentPairPtr = NULL;
-    rebo.ontouch_enabled = false;
-        }  
-      }  
-    }  
-
-    for(size_t ai = 0; ai < rebo.pairs.size(); ++ai)
-    {
-      const std::vector<AtomPair>& rebo_atom_pairs = rebo.pairs[ai];
-      std::vector<AtomPair>& atom_pairs = pairs[ai];
-      for(size_t pi = 0; pi < rebo_atom_pairs.size(); pi++)
-      {
-        const AtomPair& rebo_pair = rebo_atom_pairs[pi];
-        if (std::find(atom_pairs.begin(),atom_pairs.end(),rebo_pair)
-            == atom_pairs.end())
-        {
-          atom_pairs.push_back(rebo_pair);
+            Float SrSb = StrStb(ij);
+            Float LJ = VLJ(ij,SrSb*C*V);
+            if (V != 0)
+            {
+              StrStb(ij,C*LJ*V);
+              Cij(ij,SrSb*LJ*V);
+            }
+            Ei += SrSb*C*LJ;
+          }
         }
       }
     }
+  }
 
-    rebo.pairs = backup;
+  return Ei;
+}
 
-    return Ei;
-  }  
+inline
+Float
+AIREBO::StrStb(AtomsPair& ij, const Float V)
+{
+  Float Val = 1.0;
+
+  Float rij = ij.r();
+  Float rij_min = RLJ(0,ij);
+  Float rij_max = RLJ(1,ij);
+  Float Str = S(rij,rij_min,rij_max);
+  if (Str != 0.0)
+  {
+    Float bij = BijAsterix(ij);
+    Float bij_min = b(0,ij);
+    Float bij_max = b(1,ij);
+    Float Stb = S(bij,bij_min,bij_max);
+
+    if (V != 0.0)
+    {
+      Float dStr = dS(rij,rij_min,rij_max);
+      ij.r(-dStr*V);
+
+      Float dStb = dS(bij,bij_min,bij_max);
+      ij.r(dStr*Stb*V);
+      BijAsterix(ij,Str*dStb*V);
+    }
+
+    Val += Str*Stb-Str;
+  }
+
+//  Val = 1.0+Str*(Stb-1.0);
+  return Val;
+}
 
 inline
 Float
@@ -151,15 +143,15 @@ AIREBO::S(Float arg, Float arg_min, Float arg_max) const
   {
     Float t = (arg-arg_min)/(arg_max-arg_min);
     return 1.0-t*t*(3.0-2.0*t);
-  }  
-}  
+  }
+}
 
 inline
 Float
 AIREBO::dS(Float arg, Float arg_min, Float arg_max) const
 {
   REQUIRE(arg_min < arg_max);
-          
+
   if (arg<arg_min)
   {
     return 0.0;
@@ -172,203 +164,54 @@ AIREBO::dS(Float arg, Float arg_min, Float arg_max) const
   {
     Float t = (arg-arg_min)/(arg_max-arg_min);
     return (-2.0*t*(3.0-2.0*t)+2.0*t*t)/(arg_max-arg_min);
-  }  
-}  
+  }
+}
 
 inline
 Float
-AIREBO::VLJ(Atom &atom1,Atom &atom2)
+AIREBO::VLJ(AtomsPair& ij, const Float V)
 {
-  Float fvar = f(atom1,atom2);
+  Float fvar = ij.f();
 
-#ifdef AIREBO_OPTIMIZED  
+#ifdef AIREBO_OPTIMIZED
   if (fvar == 0.0) return 0.0;
 #endif
 
-  Float r = r_vec_module(atom1,atom2);
+  Float r = ij.r();
 
-  Float sigma_ij=     this->sigma(atom1,atom2);
-  Float zeta_ij =     this->zeta(atom1,atom2);
+  Float sigma_ij=     this->sigma(ij);
+  Float zeta_ij =     this->zeta(ij);
 
   Float s_div_r    = sigma_ij/r;
   Float s_div_r_6  = s_div_r;
   int i;
   for(i = 2; i <= 6; i++) s_div_r_6 *= s_div_r;
   Float s_div_r_12 = s_div_r_6*s_div_r_6;
-  return fvar*4.0*zeta_ij*(s_div_r_12-s_div_r_6);
+
+  Float Val = 4.0*zeta_ij*(s_div_r_12-s_div_r_6);
+
+  if (V != 0.0)
+  {
+    Float Der = 4.0*zeta_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
+    ij.r(Der*fvar*V);
+    ij.f(Val*V);
+  }
+
+  return fvar*Val;
 }
 
-inline
-Vector3D
-AIREBO::dVLJ(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  Vector3D dfvar = df(atom1,atom2,datom);
-  Vector3D drmodvar = dr_vec_module(atom1,atom2,datom);
-
-#ifdef AIREBO_OPTIMIZED  
-  if (dfvar == 0.0 && drmodvar == 0.0)  return 0.0;
-#endif
-
-  Float r = r_vec_module(atom1,atom2);
-
-  Float sigma_ij=     this->sigma(atom1,atom2);
-  Float zeta_ij =     this->zeta(atom1,atom2);
-
-  Float s_div_r    = sigma_ij/r;
-  Float s_div_r_6  = s_div_r;
-  int i;
-  for(i = 2; i <= 6; i++) s_div_r_6 *= s_div_r;
-  Float s_div_r_12 = s_div_r_6*s_div_r_6;
-  Float Der = 4.0*zeta_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
-#ifdef AIREBO_OPTIMIZED  
-  if (dfvar == 0.0) return Der*f(atom1,atom2)*drmodvar;
-#endif
-  Float Val = 4.0*zeta_ij*(s_div_r_12-s_div_r_6);
-  
-  return  Der*f(atom1,atom2)*drmodvar+Val*dfvar;
-}  
-
 Float
-AIREBO::operator()(AtomsArray& gl)
-{
-  Float Ei = 0.0;
-  Ei += ELJ(gl);
-  return Ei;
-}  
-
-
-
-Vector3D
-AIREBO::grad(Atom &atom,AtomsArray &gl)
-{
-  Vector3D dEi = 0.0;
-  dEi += dELJ(atom, gl);
-  return  dEi;
-}  
-
-Float
-AIREBO::BijAsterix(Atom &atom1,Atom &atom2)
+AIREBO::BijAsterix(AtomsPair& ij, const Float V)
 {
   Float bij = 0.0;
-  
-  rebo.set_r_vec_exception(atom1,atom2,rebo.R(0,atom1,atom2));
-  bij = rebo.Baver(atom1, atom2);
-  rebo.cleat_r_vec_exception();
-  
+
+  AtomsPair ijAsterix(ij.atom1,ij.atom2,
+                      rebo.R(0,ij.atom1,ij.atom2),rebo.R(1,ij.atom1,ij.atom2),
+                      rebo.R(0,ij.atom1,ij.atom2));
+  bij = rebo.Baver(ijAsterix, V);
+
   return bij;
 }
-
-Vector3D
-AIREBO::dBijAsterix(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  Vector3D dbij;
-  
-  rebo.set_r_vec_exception(atom1,atom2,rebo.R(0,atom1,atom2));
-  dbij = rebo.dBaver(atom1, atom2, datom);
-  rebo.cleat_r_vec_exception();
-  
-  return dbij;
-}   
-
-Float
-AIREBO::ELJ(AtomsArray& gl)
-{
-  return buildPairs(gl);
-}  
-
-Vector3D
-AIREBO::dELJ(Atom &atom,AtomsArray &gl)
-{
-  Vector3D dEi = 0.0;
-
-  Index i;
-
-  if (isHandled(atom))
-  {
-    std::vector<std::pair<int,int> >& acnt = pairs[atom.globalIndex];
-    
-    for(i = 0; i < acnt.size(); i++)
-    {
-      Atom &atom_i = gl[acnt[i].first];
-      {
-        Atom &atom_j = gl[acnt[i].second];
-
-        REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
-        {
-          Vector3D dEij = 0.0; dEij = 0.0;
-
-          Float C = Cij(atom_i, atom_j);
-#ifdef AIREBO_OPTIMIZED
-          if (C > 0.0) // (C != 0.0)
-          {
-#endif
-          Vector3D dC = 0.0;
-#ifdef AIREBO_OPTIMIZED
-            if (C < 1.0)
-            {
-#endif
-          dC = dCij(atom_i, atom_j, atom);
-#ifdef AIREBO_OPTIMIZED
-            }   
-            else
-            {
-          dC = 0.0;
-            };
-#endif
-          Float rij = r_vec_module(atom_i, atom_j);
-          Float rij_min = RLJ(0,atom_i, atom_j);
-          Float rij_max = RLJ(1,atom_i, atom_j);
-          Float Str = S(rij,rij_min,rij_max);
-          Vector3D dStr = dS(rij,rij_min,rij_max)*dr_vec_module(atom_i, atom_j,atom);
-#ifdef AIREBO_OPTIMIZED
-          if (Str != 0.0)
-          {
-#endif
-          Float bij = BijAsterix(atom_i, atom_j);
-          Float bij_min = b(0,atom_i, atom_j);
-          Float bij_max = b(1,atom_i, atom_j);
-          Float Stb = S(bij,bij_min,bij_max);
-#ifdef AIREBO_OPTIMIZED
-          Float dSdBij  = dS(bij,bij_min,bij_max);
-          Vector3D dStb = 0.0;
-          if (dSdBij != 0.0)
-          {
-            dStb = dSdBij*dBijAsterix(atom_i, atom_j,atom);
-          }
-#else
-          Vector3D dStb = dS(bij,bij_min,bij_max)*dBijAsterix(atom_i, atom_j,atom);
-#endif
-
-          Float VLJ_val = VLJ(atom_i,atom_j);
-
-          dEij = (dStr*(Stb-1.0)+Str*dStb)  * C* VLJ_val+
-                 (1.0+Str*(Stb-1.0))        *dC* VLJ_val+
-                 (1.0+Str*(Stb-1.0))        * C*dVLJ(atom_i,atom_j,atom);
-
-#ifdef AIREBO_OPTIMIZED
-          } // Str != 0.0
-          else
-          {
-          dEij =  0.0+
-                 (1.0              )        *dC* VLJ(atom_i,atom_j)+
-                 (1.0              )        * C*dVLJ(atom_i,atom_j,atom);
-          }  
-#endif
-
-#ifdef AIREBO_OPTIMIZED
-          } // C!=0
-#endif
-          dEi += dEij;
-        }  
-      }
-    }    
-    
-  }  
-
-  return  dEi;
-}  
-
-
 
 AIREBO::AIREBO(CREBO* crebo):
   FManybody()
@@ -449,123 +292,151 @@ AIREBO::setupPotential()
 
 inline
 Float
-AIREBO::Cij(Atom &atom1,Atom &atom2)
+AIREBO::Cij(AtomsPair& ij, const Float V)
 {
+  bool found = false;
   Float wmax = 0.0;
-  Float new_wmax = rebo.f(atom1,atom2);
-  if (new_wmax > wmax)
   {
-    wmax  = new_wmax;
-if (wmax >= 1.0)  return 0.0/*1.0-wmax*/;
-  }
-  for(Index k = 0; k < rebo.NL(atom1).size(); k++)
-  {
-    Atom &atom_k = *(rebo.NL(atom1)[k]);
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-    if (rebo.probablyAreNeighbours(atom1,atom_k))
-#endif
-    if (&atom_k != &atom1 && &atom_k != &atom2)
+    AtomsPair ij_rebo(ij.atom1,ij.atom2,rebo.R(0,ij),rebo.R(1,ij));
+    Float new_wmax = ij_rebo.f();
+    if (new_wmax > wmax)
     {
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-      if (rebo.probablyAreNeighbours(atom2,atom_k))
-#endif
-      {
-        Float new_wmax = rebo.f(atom1,atom_k)*rebo.f(atom_k,atom2);
-        if (new_wmax > wmax)
-        {
-          wmax  = new_wmax;
-if (wmax >= 1.0)  return 0.0/*1.0-wmax*/;
-        }  
-      }  
-      for(Index l = 0; l < rebo.NL(atom2).size(); l++)
-      {
-        Atom &atom_l = *(rebo.NL(atom2)[l]); 
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-        if (rebo.probablyAreNeighbours(atom2,atom_l))
-#endif
-        if (&atom_l != &atom_k && &atom_l != &atom1 && &atom_l != &atom2)
-        {
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-          if (rebo.probablyAreNeighbours(atom_k,atom_l))
-#endif
-          {
-            Float new_wmax = rebo.f(atom1,atom_k)*rebo.f(atom_k,atom_l)*rebo.f(atom_l,atom2);
-            if (new_wmax > wmax)
-            {
-               wmax  = new_wmax;
-if (wmax >= 1.0)  return 0.0/*1.0-wmax*/;
-            }  
-          }  
-        }  
-      }
+      wmax  = new_wmax;
+      if (wmax >= 1.0)
+        found = true;
     }
-  }    
-  return 1.0-wmax;
-}
-   
-inline
-Vector3D
-AIREBO::dCij(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  Float wmax = 0.0;
-  Vector3D dwmax = 0.0;
-  Float new_wmax = rebo.f(atom1,atom2);
-  if (new_wmax > wmax)
-  {
-    dwmax  = rebo.df(atom1,atom2,datom);
-     wmax  = new_wmax;
-if (wmax >= 1.0)  {REQUIRE(dwmax==0);return -dwmax;}
-  }  
-  for(Index k = 0; k < rebo.NL(atom1).size(); k++)
-  {
-    Atom &atom_k = *(rebo.NL(atom1)[k]);
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-    if (rebo.probablyAreNeighbours(atom1,atom_k))
-#endif
-    if (&atom_k != &atom1 && &atom_k != &atom2)
+    AtomRefsContainer& nli = rebo.NL(ij_rebo.atom1);
+    for(size_t k = 0; k < nli.size() && !found; k++)
     {
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-      if (rebo.probablyAreNeighbours(atom2,atom_k))
-#endif
+      Atom &atom_k = *(nli[k]);
+      if (!rebo.probablyAreNeighbours(ij_rebo.atom1,atom_k)) continue;
+      if (&atom_k != &ij_rebo.atom1 && &atom_k != &ij_rebo.atom2)
       {
-        Float new_wmax = rebo.f(atom1,atom_k)*rebo.f(atom_k,atom2);
-        if (new_wmax > wmax)
+        AtomsPair ik_rebo(ij_rebo.atom1,atom_k,
+                          rebo.R(0,ij_rebo.atom1,atom_k),
+                          rebo.R(1,ij_rebo.atom1,atom_k));
+        if (rebo.probablyAreNeighbours(ij_rebo.atom2,atom_k))
         {
-          dwmax  = rebo.df(atom1,atom_k,datom)*rebo. f(atom_k,atom2)+
-                   rebo. f(atom1,atom_k)      *rebo.df(atom_k,atom2,datom);
-           wmax  = new_wmax;
-if (wmax >= 1.0)  {REQUIRE(dwmax==0);return -dwmax;}
+          AtomsPair kj_rebo(atom_k,ij_rebo.atom2,
+                            rebo.R(0,ij_rebo.atom2,atom_k),
+                            rebo.R(1,ij_rebo.atom2,atom_k));
+          Float new_wmax = ik_rebo.f()*kj_rebo.f();
+          if (new_wmax > wmax)
+          {
+            wmax  = new_wmax;
+            if (wmax >= 1.0)
+            {
+              found = true;
+              break;
+            }
+          }
+        }
+        AtomRefsContainer& nlj = rebo.NL(ij_rebo.atom2);
+        for(Index l = 0; l < nlj.size() && !found; l++)
+        {
+          Atom &atom_l = *(nlj[l]);
+          if (!rebo.probablyAreNeighbours(ij_rebo.atom2,atom_l)) continue;
+          if (&atom_l != &atom_k && &atom_l != &ij_rebo.atom1 && &atom_l != &ij_rebo.atom2)
+          {
+            if (rebo.probablyAreNeighbours(atom_k,atom_l))
+            {
+              AtomsPair lj_rebo(atom_l,ij_rebo.atom2,
+                                rebo.R(0,ij_rebo.atom2,atom_l),
+                                rebo.R(1,ij_rebo.atom2,atom_l));
+              AtomsPair kl_rebo(atom_k,atom_l,
+                                rebo.R(0,atom_l,atom_k),
+                                rebo.R(1,atom_l,atom_k));
+              Float new_wmax = ik_rebo.f()*kl_rebo.f()*lj_rebo.f();
+              if (new_wmax > wmax)
+              {
+                wmax  = new_wmax;
+                if (wmax >= 1.0)
+                {
+                  found = true;
+                  break;
+                }
+              }
+            }
+          }
         }
       }
-      for(Index l = 0; l < rebo.NL(atom2).size(); l++)
+    }
+  }
+  REQUIRE(1.0-wmax >= 0);
+
+  if (V != 0.0)
+  {
+    found = false;
+    AtomsPair ij_rebo(ij.atom1,ij.atom2,rebo.R(0,ij),rebo.R(1,ij));
+    Float new_wmax = ij_rebo.f();
+    if (new_wmax == wmax)
+    {
+      ij_rebo.f(-V);
+      found = true;
+    }
+    AtomRefsContainer& nli = rebo.NL(ij_rebo.atom1);
+    for(size_t k = 0; k < nli.size() && !found; k++)
+    {
+      Atom &atom_k = *(nli[k]);
+      if (!rebo.probablyAreNeighbours(ij_rebo.atom1,atom_k)) continue;
+      if (&atom_k != &ij_rebo.atom1 && &atom_k != &ij_rebo.atom2)
       {
-        Atom &atom_l = *(rebo.NL(atom2)[l]); 
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-        if (rebo.probablyAreNeighbours(atom2,atom_l))
-#endif
-        if (&atom_l != &atom_k && &atom_l != &atom1 && &atom_l != &atom2)
+        AtomsPair ik_rebo(ij_rebo.atom1,atom_k,
+                          rebo.R(0,ij_rebo.atom1,atom_k),
+                          rebo.R(1,ij_rebo.atom1,atom_k));
+        if (rebo.probablyAreNeighbours(ij_rebo.atom2,atom_k))
         {
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-          if (rebo.probablyAreNeighbours(atom_k,atom_l))
-#endif
+          AtomsPair kj_rebo(atom_k,ij_rebo.atom2,
+                            rebo.R(0,ij_rebo.atom2,atom_k),
+                            rebo.R(1,ij_rebo.atom2,atom_k));
+          Float f_ik = ik_rebo.f();
+          Float f_kj = kj_rebo.f();
+          Float new_wmax = f_ik*f_kj;
+          if (new_wmax == wmax)
           {
-            Float new_wmax = rebo.f(atom1,atom_k)*rebo.f(atom_k,atom_l)*rebo.f(atom_l,atom2);
-            if (new_wmax > wmax)
+            ik_rebo.f(-f_kj*V);
+            kj_rebo.f(-f_ik*V);
+            found = true;
+            break;
+          }
+        }
+        AtomRefsContainer& nlj = rebo.NL(ij_rebo.atom2);
+        for(Index l = 0; l < nlj.size() && !found; l++)
+        {
+          Atom &atom_l = *(nlj[l]);
+          if (!rebo.probablyAreNeighbours(ij_rebo.atom2,atom_l)) continue;
+          if (&atom_l != &atom_k && &atom_l != &ij_rebo.atom1 && &atom_l != &ij_rebo.atom2)
+          {
+            if (rebo.probablyAreNeighbours(atom_k,atom_l))
             {
-              dwmax  = rebo.df(atom1,atom_k,datom)*rebo. f(atom_k,atom_l)      *rebo. f(atom_l,atom2)+
-                       rebo. f(atom1,atom_k)      *rebo.df(atom_k,atom_l,datom)*rebo. f(atom_l,atom2)+
-                       rebo. f(atom1,atom_k)      *rebo. f(atom_k,atom_l)      *rebo.df(atom_l,atom2,datom);
-               wmax  = new_wmax;
-if (wmax >= 1.0)  {REQUIRE(dwmax==0);return -dwmax;}
-            }  
-          }  
-        }  
+              AtomsPair lj_rebo(atom_l,ij_rebo.atom2,
+                                rebo.R(0,ij_rebo.atom2,atom_l),
+                                rebo.R(1,ij_rebo.atom2,atom_l));
+              AtomsPair kl_rebo(atom_k,atom_l,
+                                rebo.R(0,atom_l,atom_k),
+                                rebo.R(1,atom_l,atom_k));
+              Float f_ik = ik_rebo.f();
+              Float f_kl = kl_rebo.f();
+              Float f_lj = lj_rebo.f();
+              Float new_wmax = f_ik*f_kl*f_lj;
+              if (new_wmax == wmax)
+              {
+                ik_rebo.f(-f_kl*f_lj*V);
+                kl_rebo.f(-f_ik*f_lj*V);
+                lj_rebo.f(-f_ik*f_kl*V);
+                found = true;
+                break;
+              }
+            }
+          }
+        }
       }
     }
-  }    
-  return -dwmax;
-}   
 
+    REQUIRE(found);
+  }
+
+  return 1.0-wmax;
 }
 
-
+}

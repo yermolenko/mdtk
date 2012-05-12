@@ -40,7 +40,6 @@ public:
   }
 public:
   Float operator()(AtomsArray&);
-  Vector3D grad(Atom &,AtomsArray&);
   Float getRcutoff() const;
   FProxy();
   virtual
@@ -95,17 +94,6 @@ public:
     return false;
   }  
   
-  Vector3D
-  r_vec(Atom &atom1, Atom &atom2)
-  {
-    REQUIRE(potentials.size() > 0);
-    return potentials[0]->r_vec_no_touch(atom1,atom2);
-  }
-  Float
-  r_vec_module(Atom &atom1,Atom &atom2)
-  {
-    return r_vec(atom1,atom2).module();
-  }   
   struct fakeNL
   {
     Float nlSkin() {TRACE("***CAUTION*** Called fake nlSkin()");return 0.0;}

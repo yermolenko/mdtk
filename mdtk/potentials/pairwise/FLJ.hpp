@@ -35,9 +35,8 @@ namespace mdtk
 class FLJ : public FPairwise
 {
 private:
-public:  
-  Float VLJ(Atom &a1,Atom &a2); 
-  Vector3D dVLJ(Atom &a1,Atom &a2, Atom &da); 
+public:
+  Float VLJ(AtomsPair& ij);
 
   enum {ECOUNT = 3};
   enum {Cu = 0};
@@ -46,15 +45,15 @@ public:
 
   Float sigma_[ECOUNT][ECOUNT];
   Float zeta_[ECOUNT][ECOUNT];
-  Float sigma(Atom &atom1,Atom &atom2) const
+  Float sigma(const AtomsPair& ij) const
   {
-    return sigma_[e2i(atom1)][e2i(atom2)];
-  }  
-  Float zeta(Atom &atom1,Atom &atom2) const
+    return sigma_[e2i(ij.atom1)][e2i(ij.atom2)];
+  }
+  Float zeta(const AtomsPair& ij) const
   {
-    return zeta_[e2i(atom1)][e2i(atom2)];
-  }  
-  size_t e2i(Atom &atom) const
+    return zeta_[e2i(ij.atom1)][e2i(ij.atom2)];
+  }
+  size_t e2i(const Atom &atom) const
   {
     switch (atom.ID)
     {
@@ -62,28 +61,27 @@ public:
       case C_EL : return C; break;
       case Cu_EL : return Cu; break;
       default : throw Exception("e2i() : unknown element");
-    };  
-  }  
+    };
+  }
 
   Spline* splines[ECOUNT][ECOUNT];
   void fillR_concat_();
 
 public:
   virtual Float operator()(AtomsArray&);
-  virtual Vector3D grad(Atom &a1,AtomsArray&);
-	FLJ(Rcutoff = Rcutoff());
+  FLJ(Rcutoff = Rcutoff());
 
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {
     FPairwise::SaveToStream(os,smode);
-  }  
+  }
   void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   {
     FPairwise::LoadFromStream(is,smode);
-  }  
+  }
 };
 
-} 
+}
 
 #endif
 

@@ -256,6 +256,8 @@ SimLoop::executeMain()
     {
       Atom& atom = atoms[j];
 
+      atom.grad = 0;
+
       if (atom.isFixed())
       {
         // in presence of fixed atoms net force check does not work
@@ -277,9 +279,11 @@ SimLoop::executeMain()
 
         if (atom.isFixed()) continue;
 
-        Vector3D  force = -fpot.grad(atom,this->atoms);
+        Vector3D  force = -atom.grad;
         atom.an = force/atom.M;
         atom.an_no_tb = force/atom.M;
+
+        atom.grad = 0;
       }
     }
 
@@ -307,7 +311,7 @@ SimLoop::executeMain()
 
       Vector3D  vdt2 = atom.V + atom.an*dt/2.0; // eq 2
 
-      Vector3D  force = -fpot.grad(atom,this->atoms);
+      Vector3D  force = -atom.grad;
 
       if (check.checkForce)
         check.netForce += force;

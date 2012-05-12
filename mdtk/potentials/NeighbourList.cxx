@@ -64,7 +64,7 @@ NeighbourList::Update(AtomsArray& atoms_)
 
       if (j != i)
       {
-        dij_squared = fpot->r_vec_no_touch(atom_i,atom_j).module_squared();
+        dij_squared = depos(atom_i,atom_j).module_squared();
         if (dij_squared < range_squared) 
         {
           nl_.push_back(&atom_j);
