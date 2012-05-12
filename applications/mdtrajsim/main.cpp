@@ -47,6 +47,7 @@ public:
 CustomSimLoop::CustomSimLoop()
   :SimLoop()
 {
+  verboseTrace = true;
 }
 
 bool

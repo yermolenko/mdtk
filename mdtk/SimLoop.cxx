@@ -57,8 +57,6 @@ SimLoop::SimLoop()
     CPUTimeUsed_prev(0),
     CPUTimeUsed_total(0)
 {
-  verboseTrace = true;
-
   check.checkEnergy = true;
   check.checkForce = true;
 }
@@ -83,8 +81,6 @@ SimLoop::SimLoop(const SimLoop &c)
     CPUTimeUsed_prev(0),
     CPUTimeUsed_total(0)
 {
-  verboseTrace = true;
-
   check.checkEnergy = true;
   check.checkForce = true;
 }
@@ -182,7 +178,7 @@ int SimLoop::executeDryRun()
   atoms.prepareForSimulatation();
 //  REQUIRE(atoms.checkMIC(fpot.getRcutoff()*2.0));
 
-  TRACE(initNLafterLoading);
+  PTRACE(initNLafterLoading);
   if (initNLafterLoading)
   {
     fpot.NL_init(atoms);
@@ -232,17 +228,17 @@ SimLoop::executeMain()
 
     if (iteration%iterationFlushStateInterval == 0/* && iteration != 0*/)
     {
-      cout << "Writing state ... " ;
+      if (verboseTrace) cout << "Writing state ... " ;
       writestate();
-      cout << "done. " << endl;
+      if (verboseTrace) cout << "done. " << endl;
     };
 
 
     if (simTime == 0.0 || int(simTime/simTimeSaveTrajInterval) != int((simTime - dt_prev)/simTimeSaveTrajInterval))
     {
-      cout << "Writing trajectory ... " ;
+      if (verboseTrace) cout << "Writing trajectory ... " ;
       writetrajXVA();
-      cout << "done. " << endl;
+      if (verboseTrace) cout << "done. " << endl;
     };
 
     Float actualThermalBathTemp = actualTemperatureOfThermalBath();
@@ -404,7 +400,8 @@ SimLoop::executeMain()
       cout << "it : " << iteration << endl;
 
     curWallTime = time(NULL);
-    if (verboseTrace) cout << "tw : " << (curWallTime-startWallTime) << endl;
+    if (verboseTrace)
+      cout << "tw : " << (curWallTime-startWallTime) << endl;
 
     CPUTimeUsed_total = CPUTimeUsed_prev + pmtTotal.getTimeInSeconds();
 
@@ -414,19 +411,23 @@ SimLoop::executeMain()
     iteration = (iteration+1)%2000000000L;
   };
 
-  cout << "Final Modeling time = " << simTime << endl;
-  cout << "Final Time step = " << dt << endl;
-  cout << "Modeling cycle complete " << endl;
-
-  cout << "--------------------------------------------------------- " << endl;
+  if (verboseTrace)
   {
-    cout << "Writing trajectory ... " ;
+    cout << "Final Modeling time = " << simTime << endl;
+    cout << "Final Time step = " << dt << endl;
+    cout << "Modeling cycle complete " << endl;
+
+    cout << "--------------------------------------------------------- " << endl;
+  }
+  {
+    if (verboseTrace) cout << "Writing trajectory ... ";
     writetrajXVA();
-    cout << "done. " << endl;
+    if (verboseTrace) cout << "done. " << endl;
   };
 
   curWallTime = time(NULL);
-  cout << "Wall TIME used = " << (curWallTime-startWallTime) << endl;
+  if (verboseTrace)
+    cout << "Wall TIME used = " << (curWallTime-startWallTime) << endl;
 
   gsl_rng_free (r);
 
@@ -530,7 +531,7 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
 {
   atoms.loadFromStream(is,smode);
 
-  cout << "Reading timing info ... " << endl;
+  if (verboseTrace) cout << "Reading timing info ... " << endl;
 
   check.loadFromStream(is,smode);
 
@@ -549,7 +550,7 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_READ(is,CPUTimeUsed_prev,smode);
   CPUTimeUsed_total = CPUTimeUsed_prev;
 
-  cout << "Parsing of state file done. " << endl;
+  if (verboseTrace) cout << "Parsing of state file done. " << endl;
 
   executeDryRun();
 
@@ -605,7 +606,7 @@ SimLoop::loadFromStreamXVA(istream& is)
   is >> atoms_count;
   REQUIRE(atoms_count == atoms.size());
 
-  cout << "Reading XVA info about " << atoms_count << " atoms..." << endl;
+  if (verboseTrace) cout << "Reading XVA info about " << atoms_count << " atoms..." << endl;
 
   for(i = 0; i < atoms_count; i++)
   {
@@ -616,7 +617,7 @@ SimLoop::loadFromStreamXVA(istream& is)
     atoms[i].V *= XVA_VELOCITY_SCALE;
     atoms[i].coords *= XVA_DISTANCE_SCALE;
   }
-  cout << endl;
+  if (verboseTrace) cout << endl;
 
   check.loadFromStream(is,YAATK_FSTREAM_TEXT);
 
@@ -627,7 +628,7 @@ SimLoop::loadFromStreamXVA(istream& is)
   is >> CPUTimeUsed_prev;
   CPUTimeUsed_total = CPUTimeUsed_prev;
 
-  cout << "Parsing of state file done. " << endl;
+  if (verboseTrace) cout << "Parsing of state file done. " << endl;
 
   executeDryRun();
 }
@@ -709,14 +710,14 @@ SimLoop::loadFromStreamXVA_bin(istream& is)
   YAATK_BIN_READ(is,atoms_count);
   REQUIRE(atoms_count == atoms.size());
 
-  cout << "Reading XVA info about " << atoms_count << " atoms..." << endl;
+  if (verboseTrace) cout << "Reading XVA info about " << atoms_count << " atoms..." << endl;
 
   for(i = 0; i < atoms_count; i++)
   {
     YAATK_BIN_READ(is,atoms[i].V);
     YAATK_BIN_READ(is,atoms[i].coords);
   }
-  cout << endl;
+  if (verboseTrace) cout << endl;
 
   YAATK_BIN_READ(is,check);
 
@@ -729,7 +730,7 @@ SimLoop::loadFromStreamXVA_bin(istream& is)
   YAATK_BIN_READ(is,CPUTimeUsed_prev);
   CPUTimeUsed_total = CPUTimeUsed_prev;
 
-  cout << "Parsing of state file done. " << endl;
+  if (verboseTrace) cout << "Parsing of state file done. " << endl;
 
   executeDryRun();
 }
@@ -909,7 +910,7 @@ SimLoop::writetrajAccumulated(const std::vector<size_t>& atomIndices)
       acc << fixed << setprecision(2) << atoms[atomIndices[ai]].V.X(ci)/XVA_VELOCITY_SCALE << "\n";
     }
   }
-  cout << endl;
+  if (verboseTrace) cout << endl;
 
   accPrev.close();
   acc.close();
@@ -998,7 +999,7 @@ SimLoop::writetrajAccumulated_bin(const std::vector<size_t>& atomIndices)
       YAATK_BIN_WRITE(acc,atoms[atomIndices[ai]].V.X(ci));
     }
   }
-  cout << endl;
+  if (verboseTrace) cout << endl;
 
   accPrev.close();
   acc.close();
@@ -1056,11 +1057,15 @@ SimLoop::initEnergyConservationCheck()
   check.currentEnergy = check.initialEnergy = energy();
   check.energyTransferredFromBath = 0;
 
-  cout << "Eo : " << showpos << check.initialEnergy/eV << endl;
-  cout << noshowpos;
+  if (verboseTrace)
+  {
+    cout << "Eo : " << showpos << check.initialEnergy/eV << endl;
+    cout << noshowpos;
+  }
 
   if(std::fabs(check.initialEnergy) < 0.001*eV)
-    cerr << "Total energy is less than 0.001*eV." << endl;
+    if (verboseTrace)
+      cerr << "Total energy is less than 0.001*eV." << endl;
 }
 
 void SimLoop::doEnergyConservationCheck()
@@ -1073,7 +1078,7 @@ void SimLoop::doEnergyConservationCheck()
   Float dE_by_Eo_plus_Eb = dE/Eo_plus_Eb;
 
   bool reallyPrintCheck = check.checkEnergy && iteration != 0;
-  if (reallyPrintCheck)
+  if (reallyPrintCheck && verboseTrace)
   {
     cout << "Eb : " << showpos <<
       check.energyTransferredFromBath/eV << endl;
@@ -1083,7 +1088,8 @@ void SimLoop::doEnergyConservationCheck()
   }
 
   if(std::fabs(check.currentEnergy) < 0.001*eV)
-    cerr << "Total energy is less than 0.001*eV." << endl;
+    if (verboseTrace)
+      cerr << "Total energy is less than 0.001*eV." << endl;
 }
 
 void
@@ -1135,7 +1141,7 @@ SimLoop::loadFromMDE(std::istream& fi)
   int atoms_count;
   fi >> atoms_count;
 
-  cout << "Reading " << atoms_count << " atoms...\n";
+  if (verboseTrace) cout << "Reading " << atoms_count << " atoms...\n";
   atoms.resize(atoms_count);
 
   for(int i = 0; i < atoms_count; i++)

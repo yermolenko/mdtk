@@ -33,6 +33,8 @@ using namespace std;
 void
 pairtest()
 {
+  mdtk::verboseTrace = false;
+
   SimLoop mdloop;
 
   mdtk::FGeneral* pot = NULL;

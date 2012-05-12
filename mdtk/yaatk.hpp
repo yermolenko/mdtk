@@ -104,20 +104,20 @@ namespace yaatk
 #define TRACE_EMPH(x) std::cout << #x << " : " << "<<<##  " << (x) << "" << std::endl;
 
 
-#define TRACE(x) std::cout << #x << " : " << (x) << std::endl;
+#define TRACE(x) if (mdtk::verboseTrace) std::cout << #x << " : " << (x) << std::endl;
 #define ERRTRACE(x) std::cerr << #x << " : " << (x) << std::endl;
 #ifdef MDE_PARALLEL
 #define PTRACE(x) if (comm_rank==0) std::cout << #x << " : " << (x) << std::endl; 
 #define PTRACE_SIMPLE(x) if (comm_rank==0) std::cout << x; 
 #else
-#define PTRACE(x) std::cout << #x << " : " << (x) << std::endl; 
-#define PTRACE_SIMPLE(x) std::cout << x; 
+#define PTRACE(x) if (mdtk::verboseTrace) std::cout << #x << " : " << (x) << std::endl; 
+#define PTRACE_SIMPLE(x) if (mdtk::verboseTrace) std::cout << x; 
 #endif
 
 #ifdef MDE_PARALLEL
 #define PLOG(x) if (comm_rank==0) std::cout << (x); 
 #else
-#define PLOG(x) std::cout << (x); 
+#define PLOG(x) if (mdtk::verboseTrace) std::cout << (x); 
 #endif
 
 #ifdef MDE_PARALLEL
