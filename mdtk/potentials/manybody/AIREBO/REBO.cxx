@@ -737,8 +737,8 @@ RETURN_REBO_0;
         if (V != 0)
         {
           - CosDihedral(ij,ki,lj,+1.0*2*CosDh*f_ik*f_jl*V);
-          ik.f((1.0-SQR(CosDh))*f_jl*V);
-          jl.f((1.0-SQR(CosDh))*f_ik*V);
+          fprime(ik,(1.0-SQR(CosDh))*f_jl*V);
+          fprime(jl,(1.0-SQR(CosDh))*f_ik*V);
         }
 
         temp_sum += (1.0-SQR(CosDh))*f_ik*f_jl;
