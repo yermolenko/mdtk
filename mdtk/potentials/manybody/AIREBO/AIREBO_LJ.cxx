@@ -294,6 +294,20 @@ inline
 Float
 AIREBO::Cij(AtomsPair& ij, const Float V)
 {
+  std::vector<std::pair<Atom*,Vector3D> > grads_bak;
+
+#define RESTORE_GRADIENTS                                       \
+  {                                                             \
+    for(size_t x = 0; x < grads_bak.size(); ++x)                \
+      grads_bak[x].first->grad = grads_bak[x].second;           \
+    grads_bak.clear();                                          \
+  }
+
+#define BACKUP_GRADIENT(ATOM)                                           \
+  {                                                                     \
+    grads_bak.push_back(std::pair<Atom*,Vector3D>(&ATOM,ATOM.grad));    \
+  }
+
   bool found = false;
   Float wmax = 0.0;
   {
@@ -302,6 +316,15 @@ AIREBO::Cij(AtomsPair& ij, const Float V)
     if (new_wmax > wmax)
     {
       wmax  = new_wmax;
+      if (V != 0.0)
+      {
+        RESTORE_GRADIENTS;
+        BACKUP_GRADIENT(ij_rebo.atom1);
+        BACKUP_GRADIENT(ij_rebo.atom2);
+        REQUIRE(grads_bak.size()==2);
+
+        ij_rebo.f(-V);
+      }
       if (wmax >= 1.0)
         found = true;
     }
@@ -324,6 +347,17 @@ AIREBO::Cij(AtomsPair& ij, const Float V)
           if (new_wmax > wmax)
           {
             wmax  = new_wmax;
+            if (V != 0.0)
+            {
+              RESTORE_GRADIENTS;
+              BACKUP_GRADIENT(ik_rebo.atom1);
+              BACKUP_GRADIENT(ik_rebo.atom2);
+              BACKUP_GRADIENT(kj_rebo.atom2);
+              REQUIRE(grads_bak.size()==3);
+
+              ik_rebo.f(-kj_rebo.f()*V);
+              kj_rebo.f(-ik_rebo.f()*V);
+            }
             if (wmax >= 1.0)
             {
               found = true;
@@ -350,6 +384,19 @@ AIREBO::Cij(AtomsPair& ij, const Float V)
               if (new_wmax > wmax)
               {
                 wmax  = new_wmax;
+                if (V != 0.0)
+                {
+                  RESTORE_GRADIENTS;
+                  BACKUP_GRADIENT(ik_rebo.atom1);
+                  BACKUP_GRADIENT(ik_rebo.atom2);
+                  BACKUP_GRADIENT(kl_rebo.atom2);
+                  BACKUP_GRADIENT(lj_rebo.atom2);
+                  REQUIRE(grads_bak.size()==4);
+
+                  ik_rebo.f(-kl_rebo.f()*lj_rebo.f()*V);
+                  kl_rebo.f(-ik_rebo.f()*lj_rebo.f()*V);
+                  lj_rebo.f(-ik_rebo.f()*kl_rebo.f()*V);
+                }
                 if (wmax >= 1.0)
                 {
                   found = true;
@@ -363,78 +410,6 @@ AIREBO::Cij(AtomsPair& ij, const Float V)
     }
   }
   REQUIRE(1.0-wmax >= 0);
-
-  if (V != 0.0)
-  {
-    found = false;
-    AtomsPair ij_rebo(ij.atom1,ij.atom2,rebo.R(0,ij),rebo.R(1,ij));
-    Float new_wmax = ij_rebo.f();
-    if (new_wmax == wmax)
-    {
-      ij_rebo.f(-V);
-      found = true;
-    }
-    AtomRefsContainer& nli = rebo.NL(ij_rebo.atom1);
-    for(size_t k = 0; k < nli.size() && !found; k++)
-    {
-      Atom &atom_k = *(nli[k]);
-      if (!rebo.probablyAreNeighbours(ij_rebo.atom1,atom_k)) continue;
-      if (&atom_k != &ij_rebo.atom1 && &atom_k != &ij_rebo.atom2)
-      {
-        AtomsPair ik_rebo(ij_rebo.atom1,atom_k,
-                          rebo.R(0,ij_rebo.atom1,atom_k),
-                          rebo.R(1,ij_rebo.atom1,atom_k));
-        if (rebo.probablyAreNeighbours(ij_rebo.atom2,atom_k))
-        {
-          AtomsPair kj_rebo(atom_k,ij_rebo.atom2,
-                            rebo.R(0,ij_rebo.atom2,atom_k),
-                            rebo.R(1,ij_rebo.atom2,atom_k));
-          Float f_ik = ik_rebo.f();
-          Float f_kj = kj_rebo.f();
-          Float new_wmax = f_ik*f_kj;
-          if (new_wmax == wmax)
-          {
-            ik_rebo.f(-f_kj*V);
-            kj_rebo.f(-f_ik*V);
-            found = true;
-            break;
-          }
-        }
-        AtomRefsContainer& nlj = rebo.NL(ij_rebo.atom2);
-        for(Index l = 0; l < nlj.size() && !found; l++)
-        {
-          Atom &atom_l = *(nlj[l]);
-          if (!rebo.probablyAreNeighbours(ij_rebo.atom2,atom_l)) continue;
-          if (&atom_l != &atom_k && &atom_l != &ij_rebo.atom1 && &atom_l != &ij_rebo.atom2)
-          {
-            if (rebo.probablyAreNeighbours(atom_k,atom_l))
-            {
-              AtomsPair lj_rebo(atom_l,ij_rebo.atom2,
-                                rebo.R(0,ij_rebo.atom2,atom_l),
-                                rebo.R(1,ij_rebo.atom2,atom_l));
-              AtomsPair kl_rebo(atom_k,atom_l,
-                                rebo.R(0,atom_l,atom_k),
-                                rebo.R(1,atom_l,atom_k));
-              Float f_ik = ik_rebo.f();
-              Float f_kl = kl_rebo.f();
-              Float f_lj = lj_rebo.f();
-              Float new_wmax = f_ik*f_kl*f_lj;
-              if (new_wmax == wmax)
-              {
-                ik_rebo.f(-f_kl*f_lj*V);
-                kl_rebo.f(-f_ik*f_lj*V);
-                lj_rebo.f(-f_ik*f_kl*V);
-                found = true;
-                break;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    REQUIRE(found);
-  }
 
   return 1.0-wmax;
 }
