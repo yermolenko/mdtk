@@ -260,9 +260,6 @@ SimLoop::executeMain()
 
       if (atom.isFixed())
       {
-        // in presence of fixed atoms net force check does not work
-        // because forces for fixed atoms are not calculated
-        check.checkForce = false;
         REQUIRE(atom.an == Vector3D(0.0,0.0,0.0));
         REQUIRE(atom.an_no_tb == Vector3D(0.0,0.0,0.0));
         REQUIRE(atom.V == Vector3D(0.0,0.0,0.0));
@@ -307,14 +304,14 @@ SimLoop::executeMain()
     {
       Atom& atom = atoms[j];
 
-      if (atom.isFixed()) continue;
-
-      Vector3D  vdt2 = atom.V + atom.an*dt/2.0; // eq 2
-
       Vector3D  force = -atom.grad;
 
       if (check.checkForce)
         check.netForce += force;
+
+      if (atom.isFixed()) continue;
+
+      Vector3D  vdt2 = atom.V + atom.an*dt/2.0; // eq 2
 
       if (isWithinThermalBath(atom) && atom.apply_ThermalBath)
       {
@@ -387,14 +384,13 @@ SimLoop::executeMain()
 
     if (check.checkForce)
     {
-      if (verboseTrace)
-      {
-        Float ffmod = check.netForce.module();
-        PTRACE(ffmod);
-      }
-
       if (check.netForce.module() > 1e-8)
       {
+        if (verboseTrace)
+        {
+          Float ffmod = check.netForce.module();
+          PTRACE(ffmod);
+        }
         cerr << "FullForce != 0" << endl << flush;
         cout << "FullForce != 0" << endl << flush;
       }
