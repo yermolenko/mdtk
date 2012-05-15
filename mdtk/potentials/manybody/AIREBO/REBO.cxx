@@ -610,11 +610,13 @@ REBO::Nconj(AtomsPair& ij, const Float V)
   Float Nconj_ij = 1.0;
 
   Float sum1 = NconjSum1(ij);
-  NconjSum1(ij,2.0*sum1*V);
+  if (V != 0.0 && sum1 != 0.0)
+    NconjSum1(ij,2.0*sum1*V);
   Nconj_ij += SQR(sum1);
 
   Float sum2 = NconjSum2(ij);
-  NconjSum2(ij,2.0*sum2*V);
+  if (V != 0.0 && sum2 != 0.0)
+    NconjSum2(ij,2.0*sum2*V);
   Nconj_ij += SQR(sum2);
 
   return Nconj_ij;
@@ -781,9 +783,12 @@ RETURN_REBO_0;
       Tij_dNconj_num_val == 0.0
       ) return 0.0;
 
-    Nt_donly(ij,Tij_dNt_i_num_val*V);
-    Nt_donly(ji,Tij_dNt_j_num_val*V);
-    Nconj(ij,Tij_dNconj_num_val*V);
+    if (Tij_dNt_i_num_val != 0.0)
+      Nt_donly(ij,Tij_dNt_i_num_val*V);
+    if (Tij_dNt_j_num_val != 0.0)
+      Nt_donly(ji,Tij_dNt_j_num_val*V);
+    if (Tij_dNconj_num_val != 0.0)
+      Nconj(ij,Tij_dNconj_num_val*V);
   }
 
   return Tij_num_val;
@@ -799,7 +804,8 @@ REBO::pi_dh(AtomsPair& ij, const Float V)
 
   if (V != 0.0)
   {
-    pi_dh_Tij(ij,temp_sum*V);
+    if (temp_sum != 0.0)
+      pi_dh_Tij(ij,temp_sum*V);
     pi_dh_sum(ij,TijVal*V);
   }
 
