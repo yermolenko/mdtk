@@ -111,11 +111,14 @@ AIREBO::StrStb(AtomsPair& ij, const Float V)
     if (V != 0.0)
     {
       Float dStr = dS(rij,rij_min,rij_max);
-      ij.r(-dStr*V);
+      if (dStr != 0.0)
+        ij.r(-dStr*V);
 
       Float dStb = dS(bij,bij_min,bij_max);
-      ij.r(dStr*Stb*V);
-      BijAsterix(ij,Str*dStb*V);
+      if (dStr != 0.0 && Stb != 0.0)
+        ij.r(dStr*Stb*V);
+      if (dStb != 0.0)
+        BijAsterix(ij,Str*dStb*V);
     }
 
     Val += Str*Stb-Str;

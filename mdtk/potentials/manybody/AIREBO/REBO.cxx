@@ -308,9 +308,11 @@ REBO::G(AtomsPair& ij, AtomsPair& ik, const Float V)
       Float funcGC1Der = funcG_C1.dCosT(CosT);
       Float funcGC2Der = funcG_C2.dCosT(CosT);
 
-      CosTheta(ij,ik,funcGC2Der*V + funcGC1Der*Sp*V + (-funcGC2Der*Sp*V));
+      if (funcGC2Der != 0.0 || funcGC1Der != 0.0)
+        CosTheta(ij,ik,funcGC2Der*V + funcGC1Der*Sp*V + (-funcGC2Der*Sp*V));
 
-      Nt_donly(ij,funcGC1*SpDer*V + (-funcGC2*SpDer*V));
+      if ((funcGC2 != 0.0 || funcGC1 != 0.0) && SpDer != 0.0)
+        Nt_donly(ij,funcGC1*SpDer*V + (-funcGC2*SpDer*V));
     }
 
     return funcGC2+Sp*(funcGC1 - funcGC2);
@@ -318,7 +320,11 @@ REBO::G(AtomsPair& ij, AtomsPair& ik, const Float V)
   else if (ij.atom1.ID == H_EL)
   {
     if (V != 0.0)
-      CosTheta(ij,ik,funcG_H.dCosT(CosT)*V);
+    {
+      Float funcGHDer = funcG_H.dCosT(CosT);
+      if (funcGHDer != 0.0)
+        CosTheta(ij,ik,funcGHDer*V);
+    }
     return funcG_H(CosT);
   }
   else
