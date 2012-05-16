@@ -744,7 +744,7 @@ RETURN_REBO_0;
 
         if (V != 0)
         {
-          - CosDihedral(ij,ki,lj,+1.0*2*CosDh*f_ik*f_jl*V);
+          CosDihedral(ij,ki,lj,+1.0*2*CosDh*f_ik*f_jl*V);
           fprime(ik,(1.0-SQR(CosDh))*f_jl*V);
           fprime(jl,(1.0-SQR(CosDh))*f_ik*V);
         }

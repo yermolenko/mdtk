@@ -102,7 +102,8 @@ TightBinding::Phi(AtomsPair& ij)
 // if (V != 0)
   {
     Float Der = Val*(-alpha_);
-    ij.r(Der*fvar)+ij.f(Val);
+    ij.r(Der*fvar);
+    ij.f(Val);
   }
 
   return fvar*Val;
@@ -129,7 +130,8 @@ TightBinding::g(AtomsPair& ij, const Float V)
 // if (V != 0)
   {
     Float Der = Val*(-beta_);
-    ij.r(Der*fvar*V)+ij.f(Val*V);
+    ij.r(Der*fvar*V);
+    ij.f(Val*V);
   }
 
   return fvar*Val;

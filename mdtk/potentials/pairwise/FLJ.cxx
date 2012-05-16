@@ -230,7 +230,8 @@ FLJ::VLJ(AtomsPair& ij)
 // if (V != 0)
   {
     Float Der = 4.0*zeta_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
-    ij.r(Der*f)+ij.f(Val);
+    ij.r(Der*f);
+    ij.f(Val);
   }
 
   return f*Val;
