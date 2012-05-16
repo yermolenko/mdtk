@@ -124,7 +124,7 @@ REBO::fprime(AtomsPair& ij, const Float V)
 
   Float Val = Sprime(r,R1,R2);
 
-  if (r >= R1 && r <= R2)
+  if (V != 0.0 && r >= R1 && r <= R2)
   {
     ij.r(dSprime(r,R1,R2)*V);
   }
