@@ -387,6 +387,46 @@ buildCommands()
         mdbuilder::build_metal_C60_mixing(impactEnergies);
       }
     }
+    if (0)
+    {
+      mdtk::SimLoop sl;
+      sl.atoms = mdbuilder::C60();
+
+      for(size_t i = 0; i < sl.atoms.size(); ++i)
+        sl.atoms[i].coords += Vector3D(10*Ao,10*Ao,10*Ao);
+
+      {
+        yaatk::text_ofstream fomde("000-C60.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+
+      Vector3D refVector(0,0,1);
+      Vector3D randomVector(1,0,0);
+      mdbuilder::rotate(sl.atoms,refVector,randomVector);
+
+      {
+        yaatk::text_ofstream fomde("001-C60-rot-90-deg-no-mass-center.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+
+      mdbuilder::rotate(sl.atoms,randomVector,refVector);
+
+      {
+        yaatk::text_ofstream fomde("002-C60.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+
+      mdbuilder::rotate(sl.atoms,refVector,randomVector,true);
+
+      {
+        yaatk::text_ofstream fomde("003-C60-rot-90-deg.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+    }
   }
   exit(0);
 }

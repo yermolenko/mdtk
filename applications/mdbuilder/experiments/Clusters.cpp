@@ -900,6 +900,12 @@ bomb_orthorhombic_with_clusters(
   gsl_qrng* qrng_2d_pos = gsl_qrng_alloc(gsl_qrng_niederreiter_2, 2);
   REQUIRE(qrng_2d_pos != NULL);
 
+  gsl_qrng* qrng_3d_rot = gsl_qrng_alloc(gsl_qrng_niederreiter_2, 3);
+  REQUIRE(qrng_3d_rot != NULL);
+
+  std::ofstream rng_3d_rot_log("rng_3d_rot.log");
+  REQUIRE(rng_3d_rot_log != NULL);
+
   yaatk::mkdir("dataset");
   yaatk::chdir("dataset");
 
@@ -945,8 +951,17 @@ bomb_orthorhombic_with_clusters(
     bombXY << cluster.atoms.massCenter().x/Ao << " "
            << cluster.atoms.massCenter().y/Ao << "\n";
 
+    double v[3];
+    gsl_qrng_get(qrng_3d_rot, v);
+    Vector3D randomVector(v[0],v[1],v[2]);
+    rng_3d_rot_log << randomVector << "\n";
+    Vector3D refVector(0,0,1);
+
+    SimLoop cluster_rotated(cluster);
+    rotate(cluster_rotated.atoms,refVector,randomVector,true);
+
     SimLoop sl(target);
-    sl.add_simloop(cluster);
+    sl.add_simloop(cluster_rotated);
 
     for(size_t i = 0; i < sl.atoms.size(); i++)
     {
@@ -974,10 +989,13 @@ bomb_orthorhombic_with_clusters(
 
   yaatk::chdir("..");
 
+  rng_3d_rot_log.close();
+
   rngSelected.close();
   rngExcluded.close();
   bombXY.close();
   gsl_qrng_free(qrng_2d_pos);
+  gsl_qrng_free(qrng_3d_rot);
 
   yaatk::chdir("..");
 }
