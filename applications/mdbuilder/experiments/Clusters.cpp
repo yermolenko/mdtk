@@ -874,7 +874,8 @@ bomb_orthorhombic_with_clusters(
   int b_num,
   double a,
   double b,
-  size_t numberOfImpacts
+  size_t impactPointVariations,
+  size_t orientationVariations
   )
 {
   yaatk::mkdir(dirname.c_str());
@@ -900,18 +901,12 @@ bomb_orthorhombic_with_clusters(
   gsl_qrng* qrng_2d_pos = gsl_qrng_alloc(gsl_qrng_niederreiter_2, 2);
   REQUIRE(qrng_2d_pos != NULL);
 
-  gsl_qrng* qrng_3d_rot = gsl_qrng_alloc(gsl_qrng_niederreiter_2, 3);
-  REQUIRE(qrng_3d_rot != NULL);
-
-  std::ofstream rng_3d_rot_log("rng_3d_rot.log");
-  REQUIRE(rng_3d_rot_log != NULL);
-
   yaatk::mkdir("dataset");
   yaatk::chdir("dataset");
 
   Float allowToBomb = false;
 
-  for(int trajIndex = 0; trajIndex < numberOfImpacts; trajIndex++)
+  for(int ipointIndex = 0; ipointIndex < impactPointVariations; ipointIndex++)
   {
     Float bombX = 0.0;
     Float bombY = 0.0;
@@ -951,51 +946,63 @@ bomb_orthorhombic_with_clusters(
     bombXY << cluster.atoms.massCenter().x/Ao << " "
            << cluster.atoms.massCenter().y/Ao << "\n";
 
-    double v[3];
-    gsl_qrng_get(qrng_3d_rot, v);
-    Vector3D randomVector(v[0],v[1],v[2]);
-    rng_3d_rot_log << randomVector << "\n";
-    Vector3D refVector(0,0,1);
+    if (cluster.atoms.size() == 1)
+      orientationVariations = 1;
 
-    SimLoop cluster_rotated(cluster);
-    rotate(cluster_rotated.atoms,refVector,randomVector,true);
+    gsl_qrng* qrng_3d_rot = gsl_qrng_alloc(gsl_qrng_niederreiter_2, 3);
+    REQUIRE(qrng_3d_rot != NULL);
 
-    SimLoop sl(target);
-    sl.add_simloop(cluster_rotated);
+    std::ofstream rng_3d_rot_log("rng_3d_rot.log");
+    REQUIRE(rng_3d_rot_log != NULL);
 
-    for(size_t i = 0; i < sl.atoms.size(); i++)
+    for(int orientIndex = 0; orientIndex < orientationVariations; orientIndex++)
     {
-//      sl.atoms[i]->apply_PBC=true;
-      sl.atoms[i].apply_ThermalBath=true;
+      double v[3];
+      gsl_qrng_get(qrng_3d_rot, v);
+      Vector3D randomVector(v[0],v[1],v[2]);
+      rng_3d_rot_log << randomVector << "\n";
+      Vector3D refVector(0,0,1);
+
+      SimLoop cluster_rotated(cluster);
+      rotate(cluster_rotated.atoms,refVector,randomVector,true);
+
+      SimLoop sl(target);
+      sl.add_simloop(cluster_rotated);
+
+      for(size_t i = 0; i < sl.atoms.size(); i++)
+      {
+//        sl.atoms[i]->apply_PBC=true;
+        sl.atoms[i].apply_ThermalBath=true;
+      }
+
+      char trajDirName[1024];
+      sprintf(trajDirName,"%08d-%08d",ipointIndex,orientIndex);
+      yaatk::mkdir(trajDirName);
+      yaatk::chdir(trajDirName);
+      {
+        sl.forgetHistory();
+        sl.atoms.prepareForSimulatation();
+        sl.simTime = 0.0*ps;
+        sl.simTimeFinal = 6.0*ps;
+        sl.simTimeSaveTrajInterval = 0.1*ps;
+
+        yaatk::text_ofstream fomde("mde_init");
+        sl.saveToStream(fomde);
+        fomde.close();
+      }
+      yaatk::chdir("..");
     }
 
-    char trajDirName[1024];
-    sprintf(trajDirName,"%08d",trajIndex);
-    yaatk::mkdir(trajDirName);
-    yaatk::chdir(trajDirName);
-    {
-      sl.forgetHistory();
-      sl.atoms.prepareForSimulatation();
-      sl.simTime = 0.0*ps;
-      sl.simTimeFinal = 6.0*ps;
-      sl.simTimeSaveTrajInterval = 0.1*ps;
-
-      yaatk::text_ofstream fomde("mde_init");
-      sl.saveToStream(fomde);
-      fomde.close();
-    }
-    yaatk::chdir("..");
+    rng_3d_rot_log.close();
+    gsl_qrng_free(qrng_3d_rot);
   }
 
   yaatk::chdir("..");
-
-  rng_3d_rot_log.close();
 
   rngSelected.close();
   rngExcluded.close();
   bombXY.close();
   gsl_qrng_free(qrng_2d_pos);
-  gsl_qrng_free(qrng_3d_rot);
 
   yaatk::chdir("..");
 }
@@ -1170,7 +1177,8 @@ build_metal_C60_mixing(
   ElementID metalElement
   )
 {
-  size_t numberOfImpacts = 128;
+  size_t impactPointVariations = 64;
+  size_t orientationVariations = 8;
 
   AtomsArray fullerene = mdbuilder::C60();
   fullerene.removeMomentum();
@@ -1284,7 +1292,8 @@ build_metal_C60_mixing(
         sl_metalCrystal,
         a_num_metal,b_num_metal,
         a_metal,b_metal,
-        numberOfImpacts);
+        impactPointVariations,
+        orientationVariations);
     }
     {
       std::string id = metal_C60_mixing_id(
@@ -1297,7 +1306,8 @@ build_metal_C60_mixing(
         sl_metalCrystal,
         a_num_metal,b_num_metal,
         a_metal,b_metal,
-        numberOfImpacts);
+        impactPointVariations,
+        orientationVariations);
     }
     {
       std::string id = metal_C60_mixing_id(
@@ -1310,7 +1320,8 @@ build_metal_C60_mixing(
         sl_fulleriteCrystal,
         a_num_fullerite,b_num_fullerite,
         a_fullerite,b_fullerite,
-        numberOfImpacts);
+        impactPointVariations,
+        orientationVariations);
     }
     {
       std::string id = metal_C60_mixing_id(
@@ -1323,7 +1334,8 @@ build_metal_C60_mixing(
         sl_fulleriteCrystal,
         a_num_fullerite,b_num_fullerite,
         a_fullerite,b_fullerite,
-        numberOfImpacts);
+        impactPointVariations,
+        orientationVariations);
     }
   }
 }

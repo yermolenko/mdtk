@@ -103,7 +103,8 @@ bomb_orthorhombic_with_clusters(
   int b_num,
   double a,
   double b,
-  size_t numberOfImpacts = 1024
+  size_t numberOfImpacts = 1024,
+  size_t orientationVariations = 1
   );
 
 void
