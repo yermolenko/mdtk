@@ -20,6 +20,8 @@
    along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <gsl/gsl_randist.h>
+
 #include "Clusters.hpp"
 #include "FCC.hpp"
 #include "Graphite.hpp"
@@ -949,17 +951,18 @@ bomb_orthorhombic_with_clusters(
     if (cluster.atoms.size() == 1)
       orientationVariations = 1;
 
-    gsl_qrng* qrng_3d_rot = gsl_qrng_alloc(gsl_qrng_niederreiter_2, 3);
-    REQUIRE(qrng_3d_rot != NULL);
+    gsl_rng *rng_3d_rot = gsl_rng_alloc(gsl_rng_taus);
+    REQUIRE(rng_3d_rot != NULL);
+    gsl_rng_set(rng_3d_rot, 697861L);
 
-    std::ofstream rng_3d_rot_log("rng_3d_rot.log");
+    std::ofstream rng_3d_rot_log("rng_3d_rot.log",std::ofstream::app);
     REQUIRE(rng_3d_rot_log != NULL);
 
     for(int orientIndex = 0; orientIndex < orientationVariations; orientIndex++)
     {
-      double v[3];
-      gsl_qrng_get(qrng_3d_rot, v);
-      Vector3D randomVector(v[0],v[1],v[2]);
+      double xdir, ydir, zdir;
+      gsl_ran_dir_3d(rng_3d_rot,&xdir,&ydir,&zdir);
+      Vector3D randomVector(xdir,ydir,zdir);
       rng_3d_rot_log << randomVector << "\n";
       Vector3D refVector(0,0,1);
 
@@ -994,7 +997,7 @@ bomb_orthorhombic_with_clusters(
     }
 
     rng_3d_rot_log.close();
-    gsl_qrng_free(qrng_3d_rot);
+    gsl_rng_free(rng_3d_rot);
   }
 
   yaatk::chdir("..");
