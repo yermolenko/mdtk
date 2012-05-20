@@ -269,6 +269,9 @@ rotate(
   Float rotAngle,
   bool aroundMassCenter)
 {
+  if (atoms.size() < 2 && aroundMassCenter)
+    return;
+
   AtomsArray atoms_rotated;
 
   Vector3D massCenterOrig = atoms.massCenter();
