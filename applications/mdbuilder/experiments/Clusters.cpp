@@ -958,13 +958,18 @@ bomb_orthorhombic_with_clusters(
     std::ofstream rng_3d_rot_log("rng_3d_rot.log",std::ofstream::app);
     REQUIRE(rng_3d_rot_log != NULL);
 
+    Vector3D refVector;
+
     for(int orientIndex = 0; orientIndex < orientationVariations; orientIndex++)
     {
       double xdir, ydir, zdir;
       gsl_ran_dir_3d(rng_3d_rot,&xdir,&ydir,&zdir);
       Vector3D randomVector(xdir,ydir,zdir);
       rng_3d_rot_log << randomVector << "\n";
-      Vector3D refVector(0,0,1);
+      if (orientIndex == 0)
+        refVector = randomVector;
+
+      REQUIRE(refVector != Vector3D());
 
       SimLoop cluster_rotated(cluster);
       rotate(cluster_rotated.atoms,refVector,randomVector,true);
