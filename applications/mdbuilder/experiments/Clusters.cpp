@@ -951,7 +951,7 @@ bomb_orthorhombic_with_clusters(
     if (cluster.atoms.size() == 1)
       orientationVariations = 1;
 
-    gsl_rng *rng_3d_rot = gsl_rng_alloc(gsl_rng_taus);
+    gsl_rng *rng_3d_rot = gsl_rng_alloc(gsl_rng_taus2);
     REQUIRE(rng_3d_rot != NULL);
     gsl_rng_set(rng_3d_rot, 697861L);
 
