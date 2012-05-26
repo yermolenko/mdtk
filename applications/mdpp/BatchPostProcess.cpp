@@ -166,7 +166,21 @@ BatchPostProcess::printResults()
     projectiles.insert("Cu");
     targets.insert("Fullerite");
     projectiles.insert("C60");
-    plotCoeffAgainstEnergy(targets,projectiles);
+    plotCoeffAgainstEnergy("stickedProjectiles",targets,projectiles);
+    plotCoeffAgainstEnergy("backscatteredProjectiles",targets,projectiles);
+
+    plotCoeffAgainstEnergy("stickedIntegralProjectiles",targets,projectiles);
+    plotCoeffAgainstEnergy("backscatteredIntegralProjectiles",targets,projectiles);
+
+    plotCoeffAgainstEnergy("stickedProjectileAtoms",targets,projectiles);
+    plotCoeffAgainstEnergy("backscatteredProjectileAtoms",targets,projectiles);
+
+    plotCoeffAgainstEnergy("sputteredTargetAtoms",targets,projectiles);
+    plotCoeffAgainstEnergy("sputteredTargetMolecules",targets,projectiles);
+    plotCoeffAgainstEnergy("sputteredIntegralTargetMolecules",targets,projectiles);
+
+    plotCoeffAgainstEnergy("sputteredMolecules",targets,projectiles);
+    plotCoeffAgainstEnergy("sputteredIntegralMolecules",targets,projectiles);
   }
 
 #if 0
@@ -287,18 +301,16 @@ BatchPostProcess::printResults()
   }
 }
 
-#define COEFF2PLOT stickedProjectiles
-#define COEFF2PLOT_ID "stickedProjectiles"
-
 void
 BatchPostProcess::plotCoeffAgainstEnergy(
+  std::string coeffId,
   std::set<std::string> targets,
   std::set<std::string> projectiles) const
 {
   std::stringstream fnb;
-  fnb << COEFF2PLOT_ID;
+  fnb << coeffId;
 
-  string yieldOfWhat = COEFF2PLOT_ID;
+  string yieldOfWhat = coeffId;
 
   ofstream fplt((fnb.str()+".plt").c_str());
   fplt << "\
@@ -334,7 +346,7 @@ plot \\\n\
 
     Float trajCount = pp->trajData.size();
 
-    data << pp->id.projectileEnergy << " " << pp->coefficients.COEFF2PLOT/trajCount << "\n";
+    data << pp->id.projectileEnergy << " " << pp->coefficients[coeffId]/trajCount << "\n";
     if (i%4 == 3)
     {
       std::ostringstream cmd;

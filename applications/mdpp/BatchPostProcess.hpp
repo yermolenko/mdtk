@@ -46,6 +46,7 @@ public:
   void printResults();
 
   void plotCoeffAgainstEnergy(
+    std::string coeffId,
     std::set<std::string> targets,
     std::set<std::string> projectiles) const;
 

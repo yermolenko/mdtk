@@ -232,43 +232,8 @@ public:
   void  printFullereneInfo(size_t trajIndex) const;
   void  printFullereneInfo() const;
 
-  struct Coefficients
-  {
-    size_t stickedProjectiles;
-    size_t backscatteredProjectiles;
-
-    size_t stickedIntegralProjectiles;
-    size_t backscatteredIntegralProjectiles;
-
-    size_t stickedProjectileAtoms;
-    size_t backscatteredProjectileAtoms;
-
-    size_t sputteredTargetAtoms;
-    size_t sputteredTargetMolecules;
-    size_t sputteredIntegralTargetMolecules;
-
-    size_t sputteredMolecules;
-    size_t sputteredIntegralMolecules;
-
-    Coefficients():
-      stickedProjectiles(0),
-      backscatteredProjectiles(0),
-
-      stickedIntegralProjectiles(0),
-      backscatteredIntegralProjectiles(0),
-
-      stickedProjectileAtoms(0),
-      backscatteredProjectileAtoms(0),
-
-      sputteredTargetAtoms(0),
-      sputteredTargetMolecules(0),
-      sputteredIntegralTargetMolecules(0),
-
-      sputteredMolecules(0),
-      sputteredIntegralMolecules(0)
-      {
-      }
-  }coefficients;
+  typedef std::map<std::string, Float> Coefficients;
+  Coefficients coefficients;
   Coefficients printCoefficients() const;
 
   void  buildMassSpectrum() const;
