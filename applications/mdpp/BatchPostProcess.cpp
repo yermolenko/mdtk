@@ -129,7 +129,7 @@ BatchPostProcess::printResults()
 
     using namespace mdtk;
 
-    pp->printCoefficients();
+    pp->coefficients = pp->printCoefficients();
 
 //  pp->printClusterDynamicsTotal();
 
@@ -157,6 +157,16 @@ BatchPostProcess::printResults()
 */
 
     yaatk::chdir("..");
+  }
+
+  {
+    std::set<std::string> targets;
+    std::set<std::string> projectiles;
+    targets.insert("Cu");
+    projectiles.insert("Cu");
+    targets.insert("Fullerite");
+    projectiles.insert("C60");
+    plotCoeffAgainstEnergy(targets,projectiles);
   }
 
 #if 0
@@ -275,6 +285,81 @@ BatchPostProcess::printResults()
       TRACE("--------------------");
     }
   }
+}
+
+#define COEFF2PLOT stickedProjectiles
+#define COEFF2PLOT_ID "stickedProjectiles"
+
+void
+BatchPostProcess::plotCoeffAgainstEnergy(
+  std::set<std::string> targets,
+  std::set<std::string> projectiles) const
+{
+  std::stringstream fnb;
+  fnb << COEFF2PLOT_ID;
+
+  string yieldOfWhat = COEFF2PLOT_ID;
+
+  ofstream fplt((fnb.str()+".plt").c_str());
+  fplt << "\
+reset\n\
+set xrange [0:500]\n\
+set yrange [0:*]\n\
+set xtics (100,200,400)\n\
+set pointsize 1.5\n\
+#set grid ytics\n\
+" << (false?"#":"") << "set key left top\n\
+#set key right top\n\
+set key spacing 1.5\n\
+set xlabel \"Енергія іона, еВ\"\n\
+set ylabel \"Коефіцієнт " << yieldOfWhat << ", атом/іон\"\n  \
+set encoding koi8u\n\
+set output  \"" << fnb.str() << ".eps\"\n\
+set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
+plot \\\n\
+";
+
+  std::vector<std::string> plotCmds;
+  std::ostringstream data;
+
+  for(size_t i = 0; i < pps.size(); ++i)
+  {
+    mdepp::StatPostProcess* pp = pps[i];
+
+    if (projectiles.find(pp->id.projectile) == projectiles.end())
+      continue;
+
+    if (targets.find(pp->id.target) == targets.end())
+      continue;
+
+    Float trajCount = pp->trajData.size();
+
+    data << pp->id.projectileEnergy << " " << pp->coefficients.COEFF2PLOT/trajCount << "\n";
+    if (i%4 == 3)
+    {
+      std::ostringstream cmd;
+      cmd << "'-' title \"{/Italic "
+          << pp->id.projectile << "->" << pp->id.target
+          << "}\" "
+          << "with linespoints";
+      plotCmds.push_back(cmd.str());
+
+      data << "e\n";
+    }
+  }
+
+  REQUIRE(plotCmds.size() > 0);
+  for(size_t i = 0; i < plotCmds.size(); ++i)
+  {
+    if (i != plotCmds.size()-1)
+      fplt << plotCmds[i] << ",\\\n";
+    else
+      fplt << plotCmds[i] << "\n";
+  }
+
+  fplt << data.str();
+
+  fplt.close();
 }
 
 #if 0

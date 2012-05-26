@@ -45,6 +45,10 @@ public:
 
   void printResults();
 
+  void plotCoeffAgainstEnergy(
+    std::set<std::string> targets,
+    std::set<std::string> projectiles) const;
+
 #if 0
 
   void plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,

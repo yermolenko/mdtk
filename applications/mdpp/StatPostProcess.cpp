@@ -595,26 +595,12 @@ bool consistsMostlyOfTargetAtoms(const AtomGroup& atoms, double threshold = 0.5)
   return double(count)/atoms.atoms.size() >= threshold;
 }
 
-void
+StatPostProcess::Coefficients
 StatPostProcess::printCoefficients() const
 {
   std::ofstream fo("Coefficients.txt");
 
-  size_t stickedProjectiles = 0;
-  size_t backscatteredProjectiles = 0;
-
-  size_t stickedIntegralProjectiles = 0;
-  size_t backscatteredIntegralProjectiles = 0;
-
-  size_t stickedProjectileAtoms = 0;
-  size_t backscatteredProjectileAtoms = 0;
-
-  size_t sputteredTargetAtoms = 0;
-  size_t sputteredTargetMolecules = 0;
-  size_t sputteredIntegralTargetMolecules = 0;
-
-  size_t sputteredMolecules = 0;
-  size_t sputteredIntegralMolecules = 0;
+  Coefficients c;
 
   for(size_t traj = 0; traj < trajData.size(); traj++)
   {
@@ -632,19 +618,19 @@ StatPostProcess::printCoefficients() const
     {
       if (isAmongSputtered(projectile,td.molecules))
       {
-        backscatteredProjectiles++;
+        c.backscatteredProjectiles++;
         if (projectile.isMonomer())
-          backscatteredIntegralProjectiles++;
+          c.backscatteredIntegralProjectiles++;
         if (projectile.isFullerene() && Fullerene(projectile).isIntegral())
-          backscatteredIntegralProjectiles++;
+          c.backscatteredIntegralProjectiles++;
       }
       else
       {
-        stickedProjectiles++;
+        c.stickedProjectiles++;
         if (projectile.isMonomer())
-          stickedIntegralProjectiles++;
+          c.stickedIntegralProjectiles++;
         if (projectile.isFullerene() && Fullerene(projectile).isIntegral())
-          stickedIntegralProjectiles++;
+          c.stickedIntegralProjectiles++;
       }
     }
 
@@ -652,7 +638,7 @@ StatPostProcess::printCoefficients() const
     {
       const mdtk::Atom& patom = projectile.atoms[pi];
       if (!isAmongSputtered(patom,td.molecules))
-        stickedProjectileAtoms++;
+        c.stickedProjectileAtoms++;
     }
 
     for(size_t mi = 0; mi < td.molecules.size(); mi++)
@@ -661,31 +647,31 @@ StatPostProcess::printCoefficients() const
       {
         const mdtk::Atom& atom = td.molecules[mi].atoms[ai];
         if (atom.hasTag(ATOMTAG_PROJECTILE))
-          backscatteredProjectileAtoms++;
+          c.backscatteredProjectileAtoms++;
         if (atom.hasTag(ATOMTAG_TARGET))
-          sputteredTargetAtoms++;
+          c.sputteredTargetAtoms++;
       }
       const AtomGroup m(td.molecules[mi]);
       if (m.isMonomer() && m.isMetalCluster())
       {
-        sputteredIntegralMolecules++;
-        sputteredMolecules++;
+        c.sputteredIntegralMolecules++;
+        c.sputteredMolecules++;
         if (consistsMostlyOfTargetAtoms(m))
         {
-          sputteredIntegralTargetMolecules++;
-          sputteredTargetMolecules++;
+          c.sputteredIntegralTargetMolecules++;
+          c.sputteredTargetMolecules++;
         }
       }
       if (m.isFullerene())
       {
-        sputteredMolecules++;
+        c.sputteredMolecules++;
         if (consistsMostlyOfTargetAtoms(m))
-          sputteredTargetMolecules++;
+          c.sputteredTargetMolecules++;
         if (Fullerene(m).isIntegral())
         {
-          sputteredIntegralMolecules++;
+          c.sputteredIntegralMolecules++;
           if (consistsMostlyOfTargetAtoms(m))
-            sputteredIntegralTargetMolecules++;
+            c.sputteredIntegralTargetMolecules++;
         }
       }
     }
@@ -696,36 +682,38 @@ StatPostProcess::printCoefficients() const
 
   fo << "\n";
 
-  fo TRACESS(stickedProjectiles/trajCount);
-  fo TRACESS(backscatteredProjectiles/trajCount);
+  fo TRACESS(c.stickedProjectiles/trajCount);
+  fo TRACESS(c.backscatteredProjectiles/trajCount);
 
   fo << "\n";
 
-  fo TRACESS(stickedIntegralProjectiles/trajCount);
-  fo TRACESS(backscatteredIntegralProjectiles/trajCount);
+  fo TRACESS(c.stickedIntegralProjectiles/trajCount);
+  fo TRACESS(c.backscatteredIntegralProjectiles/trajCount);
 
   fo << "\n";
 
-  fo TRACESS(stickedProjectileAtoms/trajCount);
-  fo TRACESS(backscatteredProjectileAtoms/trajCount);
+  fo TRACESS(c.stickedProjectileAtoms/trajCount);
+  fo TRACESS(c.backscatteredProjectileAtoms/trajCount);
 
   fo << "\n";
 
-  fo TRACESS(sputteredTargetAtoms/trajCount);
-  fo TRACESS(sputteredTargetMolecules/trajCount);
-  fo TRACESS(sputteredIntegralTargetMolecules/trajCount);
+  fo TRACESS(c.sputteredTargetAtoms/trajCount);
+  fo TRACESS(c.sputteredTargetMolecules/trajCount);
+  fo TRACESS(c.sputteredIntegralTargetMolecules/trajCount);
 
   fo << "\n";
 
-  fo TRACESS(sputteredMolecules/trajCount);
-  fo TRACESS(sputteredIntegralMolecules/trajCount);
+  fo TRACESS(c.sputteredMolecules/trajCount);
+  fo TRACESS(c.sputteredIntegralMolecules/trajCount);
 
-  REQUIRE(stickedIntegralProjectiles <= stickedProjectiles);
-  REQUIRE(backscatteredIntegralProjectiles <= backscatteredProjectiles);
-  REQUIRE(sputteredIntegralMolecules <= sputteredMolecules);
-  REQUIRE(sputteredIntegralTargetMolecules <= sputteredTargetMolecules);
+  REQUIRE(c.stickedIntegralProjectiles <= c.stickedProjectiles);
+  REQUIRE(c.backscatteredIntegralProjectiles <= c.backscatteredProjectiles);
+  REQUIRE(c.sputteredIntegralMolecules <= c.sputteredMolecules);
+  REQUIRE(c.sputteredIntegralTargetMolecules <= c.sputteredTargetMolecules);
 
   fo.close();
+
+  return c;
 }
 
 int
