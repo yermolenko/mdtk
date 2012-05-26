@@ -315,9 +315,9 @@ BatchPostProcess::plotCoeffAgainstEnergy(
   ofstream fplt((fnb.str()+".plt").c_str());
   fplt << "\
 reset\n\
-set xrange [0:500]\n\
+set xrange [0:225]\n\
 set yrange [0:*]\n\
-set xtics (100,200,400)\n\
+set xtics (25,50,100,200)\n\
 set pointsize 1.5\n\
 #set grid ytics\n\
 " << (false?"#":"") << "set key left top\n\
