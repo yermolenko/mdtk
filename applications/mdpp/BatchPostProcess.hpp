@@ -48,11 +48,13 @@ public:
   void plotCoeffAgainstEnergy(
     std::string coeffId,
     std::set<std::string> targets,
-    std::set<std::string> projectiles) const;
+    std::set<std::string> projectiles,
+    std::set<std::pair<std::string, std::string> > excludedCombinations = std::set<std::pair<std::string, std::string> >()) const;
 
   void plotAllCoeffitientsAgainstEnergy(
     std::set<std::string> targets,
-    std::set<std::string> projectiles) const;
+    std::set<std::string> projectiles,
+    std::set<std::pair<std::string, std::string> > excludedCombinations = std::set<std::pair<std::string, std::string> >()) const;
 
 #if 0
 

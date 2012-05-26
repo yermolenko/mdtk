@@ -239,6 +239,44 @@ BatchPostProcess::printResults()
     yaatk::chdir("..");
   }
 
+  {
+    yaatk::mkdir("Cu-Fullerite-Cu-C60-xor1");
+    yaatk::chdir("Cu-Fullerite-Cu-C60-xor1");
+
+    std::set<std::string> targets;
+    std::set<std::string> projectiles;
+    std::set<std::pair<std::string, std::string> > excludedCombinations;
+
+    targets.insert("Cu");
+    targets.insert("Fullerite");
+    projectiles.insert("Cu");
+    projectiles.insert("C60");
+    excludedCombinations.insert(std::pair<std::string, std::string>("Cu","Cu"));
+    excludedCombinations.insert(std::pair<std::string, std::string>("Fullerite","C60"));
+    plotAllCoeffitientsAgainstEnergy(targets,projectiles,excludedCombinations);
+
+    yaatk::chdir("..");
+  }
+
+  {
+    yaatk::mkdir("Cu-Fullerite-Cu-C60-xor2");
+    yaatk::chdir("Cu-Fullerite-Cu-C60-xor2");
+
+    std::set<std::string> targets;
+    std::set<std::string> projectiles;
+    std::set<std::pair<std::string, std::string> > excludedCombinations;
+
+    targets.insert("Cu");
+    targets.insert("Fullerite");
+    projectiles.insert("Cu");
+    projectiles.insert("C60");
+    excludedCombinations.insert(std::pair<std::string, std::string>("Cu","C60"));
+    excludedCombinations.insert(std::pair<std::string, std::string>("Fullerite","Cu"));
+    plotAllCoeffitientsAgainstEnergy(targets,projectiles,excludedCombinations);
+
+    yaatk::chdir("..");
+  }
+
 #if 0
 
   {
@@ -360,30 +398,32 @@ BatchPostProcess::printResults()
 void
 BatchPostProcess::plotAllCoeffitientsAgainstEnergy(
   std::set<std::string> targets,
-  std::set<std::string> projectiles) const
+  std::set<std::string> projectiles,
+  std::set<std::pair<std::string, std::string> > excludedCombinations) const
 {
-  plotCoeffAgainstEnergy("stickedProjectiles",targets,projectiles);
-  plotCoeffAgainstEnergy("backscatteredProjectiles",targets,projectiles);
+  plotCoeffAgainstEnergy("stickedProjectiles",targets,projectiles,excludedCombinations);
+  plotCoeffAgainstEnergy("backscatteredProjectiles",targets,projectiles,excludedCombinations);
 
-  plotCoeffAgainstEnergy("stickedIntegralProjectiles",targets,projectiles);
-  plotCoeffAgainstEnergy("backscatteredIntegralProjectiles",targets,projectiles);
+  plotCoeffAgainstEnergy("stickedIntegralProjectiles",targets,projectiles,excludedCombinations);
+  plotCoeffAgainstEnergy("backscatteredIntegralProjectiles",targets,projectiles,excludedCombinations);
 
-  plotCoeffAgainstEnergy("stickedProjectileAtoms",targets,projectiles);
-  plotCoeffAgainstEnergy("backscatteredProjectileAtoms",targets,projectiles);
+  plotCoeffAgainstEnergy("stickedProjectileAtoms",targets,projectiles,excludedCombinations);
+  plotCoeffAgainstEnergy("backscatteredProjectileAtoms",targets,projectiles,excludedCombinations);
 
-  plotCoeffAgainstEnergy("sputteredTargetAtoms",targets,projectiles);
-  plotCoeffAgainstEnergy("sputteredTargetMolecules",targets,projectiles);
-  plotCoeffAgainstEnergy("sputteredIntegralTargetMolecules",targets,projectiles);
+  plotCoeffAgainstEnergy("sputteredTargetAtoms",targets,projectiles,excludedCombinations);
+  plotCoeffAgainstEnergy("sputteredTargetMolecules",targets,projectiles,excludedCombinations);
+  plotCoeffAgainstEnergy("sputteredIntegralTargetMolecules",targets,projectiles,excludedCombinations);
 
-  plotCoeffAgainstEnergy("sputteredMolecules",targets,projectiles);
-  plotCoeffAgainstEnergy("sputteredIntegralMolecules",targets,projectiles);
+  plotCoeffAgainstEnergy("sputteredMolecules",targets,projectiles,excludedCombinations);
+  plotCoeffAgainstEnergy("sputteredIntegralMolecules",targets,projectiles,excludedCombinations);
 }
 
 void
 BatchPostProcess::plotCoeffAgainstEnergy(
   std::string coeffId,
   std::set<std::string> targets,
-  std::set<std::string> projectiles) const
+  std::set<std::string> projectiles,
+  std::set<std::pair<std::string, std::string> > excludedCombinations) const
 {
   std::stringstream fnb;
   fnb << coeffId;
@@ -420,6 +460,9 @@ plot \\\n\
       continue;
 
     if (targets.find(pp->id.target) == targets.end())
+      continue;
+
+    if (excludedCombinations.find(std::pair<std::string,std::string>(pp->id.target,pp->id.projectile)) != excludedCombinations.end())
       continue;
 
     Float trajCount = pp->trajData.size();
