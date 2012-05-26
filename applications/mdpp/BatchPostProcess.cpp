@@ -160,27 +160,83 @@ BatchPostProcess::printResults()
   }
 
   {
+    yaatk::mkdir("Cu-Fullerite-Cu-C60");
+    yaatk::chdir("Cu-Fullerite-Cu-C60");
+
     std::set<std::string> targets;
     std::set<std::string> projectiles;
+
     targets.insert("Cu");
-    projectiles.insert("Cu");
     targets.insert("Fullerite");
+    projectiles.insert("Cu");
     projectiles.insert("C60");
-    plotCoeffAgainstEnergy("stickedProjectiles",targets,projectiles);
-    plotCoeffAgainstEnergy("backscatteredProjectiles",targets,projectiles);
+    plotAllCoeffitientsAgainstEnergy(targets,projectiles);
 
-    plotCoeffAgainstEnergy("stickedIntegralProjectiles",targets,projectiles);
-    plotCoeffAgainstEnergy("backscatteredIntegralProjectiles",targets,projectiles);
+    yaatk::chdir("..");
+  }
 
-    plotCoeffAgainstEnergy("stickedProjectileAtoms",targets,projectiles);
-    plotCoeffAgainstEnergy("backscatteredProjectileAtoms",targets,projectiles);
+  {
+    yaatk::mkdir("Cu-_-Cu-C60");
+    yaatk::chdir("Cu-_-Cu-C60");
 
-    plotCoeffAgainstEnergy("sputteredTargetAtoms",targets,projectiles);
-    plotCoeffAgainstEnergy("sputteredTargetMolecules",targets,projectiles);
-    plotCoeffAgainstEnergy("sputteredIntegralTargetMolecules",targets,projectiles);
+    std::set<std::string> targets;
+    std::set<std::string> projectiles;
 
-    plotCoeffAgainstEnergy("sputteredMolecules",targets,projectiles);
-    plotCoeffAgainstEnergy("sputteredIntegralMolecules",targets,projectiles);
+    targets.insert("Cu");
+//    targets.insert("Fullerite");
+    projectiles.insert("Cu");
+    projectiles.insert("C60");
+    plotAllCoeffitientsAgainstEnergy(targets,projectiles);
+
+    yaatk::chdir("..");
+  }
+
+  {
+    yaatk::mkdir("_-Fullerite-Cu-C60");
+    yaatk::chdir("_-Fullerite-Cu-C60");
+
+    std::set<std::string> targets;
+    std::set<std::string> projectiles;
+
+//    targets.insert("Cu");
+    targets.insert("Fullerite");
+    projectiles.insert("Cu");
+    projectiles.insert("C60");
+    plotAllCoeffitientsAgainstEnergy(targets,projectiles);
+
+    yaatk::chdir("..");
+  }
+
+  {
+    yaatk::mkdir("Cu-Fullerite-_-C60");
+    yaatk::chdir("Cu-Fullerite-_-C60");
+
+    std::set<std::string> targets;
+    std::set<std::string> projectiles;
+
+    targets.insert("Cu");
+    targets.insert("Fullerite");
+//    projectiles.insert("Cu");
+    projectiles.insert("C60");
+    plotAllCoeffitientsAgainstEnergy(targets,projectiles);
+
+    yaatk::chdir("..");
+  }
+
+  {
+    yaatk::mkdir("Cu-Fullerite-Cu-_");
+    yaatk::chdir("Cu-Fullerite-Cu-_");
+
+    std::set<std::string> targets;
+    std::set<std::string> projectiles;
+
+    targets.insert("Cu");
+    targets.insert("Fullerite");
+    projectiles.insert("Cu");
+//    projectiles.insert("C60");
+    plotAllCoeffitientsAgainstEnergy(targets,projectiles);
+
+    yaatk::chdir("..");
   }
 
 #if 0
@@ -299,6 +355,28 @@ BatchPostProcess::printResults()
       TRACE("--------------------");
     }
   }
+}
+
+void
+BatchPostProcess::plotAllCoeffitientsAgainstEnergy(
+  std::set<std::string> targets,
+  std::set<std::string> projectiles) const
+{
+  plotCoeffAgainstEnergy("stickedProjectiles",targets,projectiles);
+  plotCoeffAgainstEnergy("backscatteredProjectiles",targets,projectiles);
+
+  plotCoeffAgainstEnergy("stickedIntegralProjectiles",targets,projectiles);
+  plotCoeffAgainstEnergy("backscatteredIntegralProjectiles",targets,projectiles);
+
+  plotCoeffAgainstEnergy("stickedProjectileAtoms",targets,projectiles);
+  plotCoeffAgainstEnergy("backscatteredProjectileAtoms",targets,projectiles);
+
+  plotCoeffAgainstEnergy("sputteredTargetAtoms",targets,projectiles);
+  plotCoeffAgainstEnergy("sputteredTargetMolecules",targets,projectiles);
+  plotCoeffAgainstEnergy("sputteredIntegralTargetMolecules",targets,projectiles);
+
+  plotCoeffAgainstEnergy("sputteredMolecules",targets,projectiles);
+  plotCoeffAgainstEnergy("sputteredIntegralMolecules",targets,projectiles);
 }
 
 void

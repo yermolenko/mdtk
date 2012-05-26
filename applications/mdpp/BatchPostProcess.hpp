@@ -50,6 +50,10 @@ public:
     std::set<std::string> targets,
     std::set<std::string> projectiles) const;
 
+  void plotAllCoeffitientsAgainstEnergy(
+    std::set<std::string> targets,
+    std::set<std::string> projectiles) const;
+
 #if 0
 
   void plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
