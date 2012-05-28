@@ -822,4 +822,146 @@ StatPostProcess::getAverageEnergyOfSputtered( FProcessClassicMolecule fpm) const
   return Float(getTotalEnergyOfSputtered(fpm))/trajData.size();
 }
 
+void
+depthHist2file(
+  const char* filename,
+  std::vector<Float>& depth,
+  Float scale = 1.0,
+  const Float minDepth_desired   = -40.0,
+  const Float maxDepth_desired   =  40.0,
+  const Float matchPoint         =   0.0,
+  const Float c = 6.708,
+  const Float histStep           =   6.708/6.0
+  )
+{
+  using mdtk::Exception;
+
+  REQUIRE(minDepth_desired < matchPoint);
+  REQUIRE(maxDepth_desired > matchPoint);
+  const int n_below_matchPoint = int( (matchPoint       - minDepth_desired)/histStep ) +1;
+  const int n_above_matchPoint = int( (maxDepth_desired - matchPoint      )/histStep ) +1;
+
+  const int n = n_above_matchPoint + n_below_matchPoint;
+  const Float minDepth   = matchPoint - n_below_matchPoint*histStep;
+  const Float maxDepth   = matchPoint + n_above_matchPoint*histStep;
+
+  {
+    std::ofstream fo((std::string(filename)+".plt").c_str());
+    fo << "\
+reset\n\
+#set yrange [*:0]\n\
+set yrange [0:*]\n\
+#set xrange [-3:25]\n\
+set pointsize 1.5\n\
+set format x \"%.1f\"\n\
+set xtics " << c/2.0 << "\n\
+set grid xtics\n\
+#set key right top\n\
+set key spacing 1.5\n\
+set xlabel \", Ao\"\n\
+set ylabel \"D , атом/іон\"\n  \
+set encoding koi8u\n\
+set output  \"" << filename << ".eps\"\n\
+set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
+plot \'" << filename << "\' with boxes fs solid 0.25\n\
+";
+    fo.close();
+  }
+
+  std::ofstream fo(filename);
+
+  fo << "# min depth = " << minDepth << " Ao" << std::endl
+     << "# max depth = " << maxDepth << " Ao" << std::endl
+     << "# number of bins = " << n << std::endl;
+
+  gsl_histogram * h = gsl_histogram_alloc (n);
+  gsl_histogram_set_ranges_uniform (h, minDepth, maxDepth);
+
+  for(size_t i = 0; i < depth.size(); i++)
+  {
+    REQUIRE(depth[i] < maxDepth);
+    REQUIRE(depth[i] > minDepth);
+    gsl_histogram_increment (h, depth[i]);
+  }
+
+  for(int i = 0; i < n; i++)
+  {
+    double lower, upper;
+    gsl_histogram_get_range (h, i, &lower, &upper);
+    fo << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i)*scale << std::endl;
+  }
+
+  gsl_histogram_free (h);
+  fo.close();
+}
+
+void
+saveDepth(std::vector<Float>& depth, const char *filename)
+{
+  std::ofstream fo(filename);
+  fo << depth.size() << std::endl;
+  for(size_t i = 0; i < depth.size(); i++)
+    fo << depth[i] << std::endl;
+  fo.close();
+}
+
+void
+StatPostProcess::printProjectileStopping() const
+{
+  yaatk::mkdir("_projectileStopping");
+  yaatk::chdir("_projectileStopping");
+
+  std::vector<Float> depth;
+
+  Float dmin = +1000.0;
+  Float dmax = -1000.0;
+
+  for(size_t traj = 0; traj < trajData.size(); traj++)
+  {
+    const TrajData& td = trajData[traj];
+    REQUIRE(td.trajProjectile.size() > 0);
+    std::map< Float, AtomGroup >::const_iterator i = td.trajProjectile.end();
+    i--;
+    const AtomGroup& projectile = i->second;
+    REQUIRE(fabs(i->first-6.0*ps)<0.05*ps);
+
+    for(size_t atomIndex = 0; atomIndex < projectile.atoms.size(); atomIndex++)
+    {
+      const Atom & a = projectile.atoms[atomIndex];
+      if (!isAmongSputtered(a,td.molecules))
+      {
+        depth.push_back(a.coords.z/mdtk::Ao);
+        if (a.coords.z/mdtk::Ao > dmax)
+          dmax = a.coords.z/mdtk::Ao;
+        if (a.coords.z/mdtk::Ao < dmin)
+          dmin = a.coords.z/mdtk::Ao;
+      }
+    }
+  }
+
+  if (id.target == "Cu")
+  {
+    Float c = 3.615;
+    if (dmin > c/8)
+      dmin = c/8;
+    if (dmax < c/8)
+      dmax = c/8;
+    depthHist2file("implants_by_depth.dat",depth, 1.0/trajData.size(),
+                   dmin-c,dmax+c,c/8,c,c/4);
+  }
+
+  if (id.target == "Fullerite")
+  {
+    Float c = 14.17;
+    if (dmin > c/8)
+      dmin = c/8;
+    if (dmax < c/8)
+      dmax = c/8;
+    depthHist2file("implants_by_depth.dat",depth, 1.0/trajData.size(),
+                   dmin-c,dmax+c,c/8,c,c/4);
+  }
+
+  yaatk::chdir("..");
+}
+
 }

@@ -139,6 +139,8 @@ BatchPostProcess::printResults()
 
     pp->buildMassSpectrum();
 
+    pp->printProjectileStopping();
+
 #define MDPP_PROCESS_ONLY(FPM) \
     {\
       std::string s = "Process"#FPM;\

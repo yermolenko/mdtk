@@ -236,6 +236,8 @@ public:
   Coefficients coefficients;
   Coefficients printCoefficients() const;
 
+  void  printProjectileStopping() const;
+
   void  buildMassSpectrum() const;
   void  saveToStream(std::ostream& os) const
   {
