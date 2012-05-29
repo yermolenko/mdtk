@@ -105,6 +105,7 @@ namespace yaatk
 
 
 #define TRACE(x) std::cout << #x << " : " << (x) << std::endl;
+#define TRACE2S(s,x) s << #x << " : " << (x) << std::endl;
 #define ERRTRACE(x) std::cerr << #x << " : " << (x) << std::endl;
 #ifdef MDE_PARALLEL
 #define PTRACE(x) if (comm_rank==0) std::cout << #x << " : " << (x) << std::endl; 
