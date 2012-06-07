@@ -233,6 +233,33 @@ StatPostProcess::buildDummyDynamics(mdtk::SimLoop& state,size_t trajIndex,
 }
 
 void
+StatPostProcess::buildTargetEndoFullerenes(mdtk::SimLoop& state,size_t trajIndex)
+{
+  TrajData& td = trajData[trajIndex];
+  if (id.target == "Fullerite" && id.projectile == "Cu")
+  {
+    REQUIRE((state.atoms.size()-1) % 60 == 0);
+    size_t numberOfFullerenes = (state.atoms.size()-1)/60;
+    REQUIRE(numberOfFullerenes == 108);
+    for(size_t fi = 0; fi < numberOfFullerenes; ++fi)
+    {
+      Fullerene f;
+      for(size_t ai = 0; ai < 60; ++ai)
+        f.addAtom(state.atoms[fi*60+ai]);
+      REQUIRE(state.atoms.rbegin()->ID == Cu_EL);
+      f.cluster.atoms.push_back(*state.atoms.rbegin());
+      if (!f.isClusterWithinFullerene())
+        f.cluster.atoms.clear();
+      else
+      {
+        if (f.isIntegral())
+          td.targetEndoFullerenes.push_back(f);
+      }
+    }
+  }
+}
+
+void
 StatPostProcess::removeBadTrajectories()
 {
   std::vector<size_t> badTrajIndices;
@@ -364,6 +391,8 @@ StatPostProcess::execute()
     buildSputteredClassicMolecules(*state,trajIndex,STATE_FINAL,nl);
 //    buildClusterDynamics(*state,trajIndex,STATE_FINAL,nl);
 //    buildProjectileDynamics(*state,trajIndex,STATE_FINAL);
+
+    buildTargetEndoFullerenes(*state,trajIndex);
 
 //  if (td.molecules.size() > 0)
 
@@ -531,6 +560,42 @@ StatPostProcess::printFullereneInfo() const
     printFullereneInfo(traj);
     cout << std::endl;
   }
+}
+
+Float
+StatPostProcess::targetEndoFullerenesPerTraj() const
+{
+  size_t count = 0;
+
+  ofstream fo("targetEndoFullerenes.txt");
+
+  for(size_t traj = 0; traj < trajData.size(); traj++)
+  {
+    const TrajData& td = trajData[traj];
+    if (td.targetEndoFullerenes.size() == 0)
+      continue;
+    count += td.targetEndoFullerenes.size();
+
+    fo << "Target EndoFullerenes for trajectory " << traj <<
+      " ("  << td.trajDir << ") " << " :\n";
+
+    for(size_t fi = 0; fi < td.targetEndoFullerenes.size(); ++fi)
+    {
+      TRACE2S(fo,fi);
+      const Fullerene& f = td.targetEndoFullerenes[fi];
+      fo << "\t "; TRACE2S(fo,f.massCenter().z/Ao);
+      fo << "\t "; TRACE2S(fo,f.atoms.size());
+      fo << "\t "; TRACE2S(fo,f.isUnparted());
+      fo << "\t "; TRACE2S(fo,f.isIntegral());
+      fo << "\t "; TRACE2S(fo,f.cluster.atoms.size());
+    }
+
+    fo << std::endl;
+  }
+
+  fo.close();
+
+  return Float(count)/trajData.size();
 }
 
 void

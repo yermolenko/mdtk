@@ -30,6 +30,7 @@ public:
   void build(const mdtk::SimLoop& ml);
 
   bool isEndoFullerene() const;
+  bool isClusterWithinFullerene() const;
   bool isUnparted() const {return maxMolecule().size() == atoms.size();}
   Float maxDistanceFromMassCenter() const;
   Float minDistanceFromMassCenter() const;

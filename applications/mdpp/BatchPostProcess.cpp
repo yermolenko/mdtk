@@ -92,6 +92,8 @@ BatchPostProcess::printResults()
   yaatk::mkdir("results");
   yaatk::chdir("results");
 
+  std::map<std::string, Float> targetEndoFullerenesPerTrajCount;
+
   for(size_t i = 0; i < pps.size(); ++i)
   {
     mdepp::StatPostProcess* pp = pps[i];
@@ -131,6 +133,8 @@ BatchPostProcess::printResults()
 
     pp->coefficients = pp->printCoefficients();
 
+    targetEndoFullerenesPerTrajCount[pp->id.str] = pp->targetEndoFullerenesPerTraj();
+
 //  pp->printClusterDynamicsTotal();
 
 //  pp->spottedTotalByMass();
@@ -159,6 +163,17 @@ BatchPostProcess::printResults()
 */
 
     yaatk::chdir("..");
+  }
+
+  {
+    ofstream fo("targetEndoFullerenesPerTrajCount.txt");
+    std::map<std::string, Float>::iterator i = targetEndoFullerenesPerTrajCount.begin();
+    while (i != targetEndoFullerenesPerTrajCount.end())
+    {
+      fo << i->first << " : " << i->second << "\n";
+      ++i;
+    }
+    fo.close();
   }
 
   {

@@ -96,11 +96,14 @@ public:
     std::string trajDir;
     std::vector<ClassicMolecule> molecules;
     std::map <Float,AtomGroup> trajProjectile;
+    std::vector <Fullerene> targetEndoFullerenes;
     Vector3D PBC;
     TrajData() :
       trajDir(),
       molecules(),
-      trajProjectile(), PBC() {;}
+      trajProjectile(),
+      targetEndoFullerenes(),
+      PBC() {;}
     void saveToStream(std::ostream& os) const
     {
       os << trajDir << "\n";
@@ -112,6 +115,10 @@ public:
       std::map< Float, AtomGroup >::const_iterator i;
       for( i = trajProjectile.begin(); i != trajProjectile.end() ; ++i )
         os << i->first << "\t " << i->second << "\n";
+
+      os << targetEndoFullerenes.size() << "\n";
+      for(size_t i = 0; i < targetEndoFullerenes.size(); i++)
+        targetEndoFullerenes[i].put(os);
 
       os << PBC << "\n";
     }
@@ -132,6 +139,11 @@ public:
 	is >> t >> f;
 	trajProjectile[t] = f;
       }
+
+      is >> sz;
+      targetEndoFullerenes.resize(sz);
+      for(i = 0; i < targetEndoFullerenes.size(); i++)
+        targetEndoFullerenes[i].get(is);
 
       is >> PBC;
     }
@@ -226,11 +238,15 @@ public:
   void  buildSputteredClassicMolecules(mdtk::SimLoop&,size_t trajIndex, StateType s, NeighbourList& nl);
   void  buildDummyDynamics(mdtk::SimLoop&,size_t trajIndex, StateType s);
 
+  void  buildTargetEndoFullerenes(mdtk::SimLoop&,size_t trajIndex);
+
   void  printClassicMolecules(size_t trajIndex) const;
   void  printClassicMoleculesTotal() const;
 
   void  printFullereneInfo(size_t trajIndex) const;
   void  printFullereneInfo() const;
+
+  Float targetEndoFullerenesPerTraj() const;
 
   typedef std::map<std::string, Float> Coefficients;
   Coefficients coefficients;

@@ -68,6 +68,34 @@ Fullerene::isEndoFullerene() const
   return cluster.atoms.size() != 0;
 }
 
+bool
+Fullerene::isClusterWithinFullerene() const
+{
+  REQUIRE(cluster.atoms.size() == 1);
+
+  Vector3D closestCAtomPos = atoms[0].coords;
+  {
+    for(size_t i = 0; i < atoms.size(); ++i)
+    {
+      if (
+        (atoms[i].coords - cluster.atoms[0].coords).module() <
+        (closestCAtomPos - cluster.atoms[0].coords).module()
+        )
+        closestCAtomPos = atoms[i].coords;
+    }
+  }
+
+  Vector3D mc = massCenter();
+
+  if ((closestCAtomPos - mc).module() > (cluster.atoms[0].coords - mc).module())
+  {
+    TRACE((closestCAtomPos - mc).module()/Ao);
+    TRACE((cluster.atoms[0].coords - mc).module()/Ao);
+  }
+
+  return (closestCAtomPos - mc).module() > (cluster.atoms[0].coords - mc).module();
+}
+
 Float
 Fullerene::maxDistanceFromMassCenter() const
 {
