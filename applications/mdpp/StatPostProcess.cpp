@@ -344,6 +344,7 @@ StatPostProcess::execute()
       setTags(state);
       cout << "State " << trajFinalName << " loaded." << std::endl;
     }
+    state->atoms.unfoldPBC();
     NeighbourList nl(state->atoms);
 
     Molecule projectile;
