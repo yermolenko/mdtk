@@ -114,6 +114,8 @@ addTrajDirNames(std::vector<std::string> &stateFileNames,const char *trajsetDir_
       struct dirent* entry = readdir(trajsetDirHandle);
       while (entry != NULL)
       {
+//        if (std::string(entry->d_name) == std::string("00000015"))
+//        if (stateFileNames.size() < 3)
         if (entry->d_type == DT_DIR && strcmp(entry->d_name,".") && strcmp(entry->d_name,".."))
         if (entry->d_name[0] == '0')
         {
