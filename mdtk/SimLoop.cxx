@@ -322,10 +322,7 @@ SimLoop::executeMain()
         if (To_by_T < -max_To_by_T) To_by_T = -max_To_by_T;
         if (To_by_T > +max_To_by_T) To_by_T = +max_To_by_T;
 
-        Float gamma = 1.0e13;
-//        Float gamma = 1.0/(1000.0*dt);
-
-        Vector3D dforce = -atom.V*atom.M*gamma*(1.0-sqrt(To_by_T));
+        Vector3D dforce = -atom.V*atom.M*thermalBath.gamma*(1.0-sqrt(To_by_T));
 
         // try to account energy transfered to thermalbath
         // only required to perform energy conservation check
@@ -1236,7 +1233,7 @@ ThermalBath::disableGlobally()
 */
 
 SimLoop::ThermalBath::ThermalBath(Float zMin_, Float dBoundary_, Float zMinOfFreeZone_)
-  :zMin(zMin_), dBoundary(dBoundary_), zMinOfFreeZone(zMinOfFreeZone_), To(0.0)
+  :zMin(zMin_), dBoundary(dBoundary_), zMinOfFreeZone(zMinOfFreeZone_), To(0.0), gamma(1.0e13)
 {
 }
 
