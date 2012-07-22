@@ -1244,6 +1244,7 @@ SimLoop::ThermalBath::saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_WRITE(os,dBoundary,smode);
   YAATK_FSTREAM_WRITE(os,zMinOfFreeZone,smode);
   YAATK_FSTREAM_WRITE(os,To,smode);
+  YAATK_FSTREAM_WRITE(os,gamma,smode);
 }
 
 void
@@ -1253,6 +1254,7 @@ SimLoop::ThermalBath::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_READ(is,dBoundary,smode);
   YAATK_FSTREAM_READ(is,zMinOfFreeZone,smode);
   YAATK_FSTREAM_READ(is,To,smode);
+  YAATK_FSTREAM_READ(is,gamma,smode);
 }
 
 bool
