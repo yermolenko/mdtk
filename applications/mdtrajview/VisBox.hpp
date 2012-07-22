@@ -63,6 +63,7 @@ public:
   bool showAtoms;
   bool showBath;
   bool showBathSketch;
+  bool showBonds;
   bool unfoldPBC;
   bool showCustom1;
   bool showCustom2;
@@ -117,12 +118,13 @@ private:
   void listThermalBath();
   void listThermalBathSketch();
   void listCTree();
+  void listBonds();
   void listCustom1();
   void listCustom2();
   void listCustom3();
   void drawCTree(CollisionTree* ct);
   void drawEdge(const Vector3D& vi, const Vector3D& vj, 
-		unsigned int color, double radius);
+		unsigned int color, double radius, GLubyte alpha = 255);
   void drawArrow(const Vector3D& vi, const Vector3D& vj, 
 		 unsigned int color, double radius, 
                  Float arrowPart = 0.2);
