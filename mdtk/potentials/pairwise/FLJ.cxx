@@ -79,10 +79,7 @@ FLJ::FLJ(Rcutoff rcutoff):
     epsilon_[H][H]   = 0.0*eV;
     epsilon_[Cu][H]  = 0.01*eV;
       epsilon_[H][Cu] = epsilon_[Cu][H];
-  }
 
-  if (0) // disable this set of parameters
-  {
 //  See [Arnaud Delcorte, Barbara J. Garrison, Nuclear Instruments and
 //  Methods in Physics Research B 269, 1572 (2011)]
 
@@ -106,70 +103,17 @@ FLJ::FLJ(Rcutoff rcutoff):
   {
 //  Lorentz–Berthelot mixing rules 1
 
-//  S.-P. Huang et al. / Surface Science 545 (2003) 163–179
+//  S.-P. Huang et al. / Surface Science 545 (2003) 163
     sigma_[Cu][Cu] = 3.05*Ao;
     epsilon_[Cu][Cu] = 0.165565*eV;
     sigma_[C][C]   = 3.4*Ao;
     epsilon_[C][C]   = 0.002413*eV;
-
-//  loose extrapolation of Au-Au from Cu-Cu
-    Float Z_F = 9;
-    Float sigma_F = 2.83*Ao;
-    Float epsilon_F = 52.8*K*kb;
-    Float Z_Br = 35;
-    Float sigma_Br = 3.54*Ao;
-    Float epsilon_Br = 257.2*K*kb;
-    Float Z_Cu = 29;
-    Float Z_Au = 79;
-    Float a = (sigma_Br - sigma_F)/(Z_Br - Z_F)*(Z_Au - Z_Cu);
-    sigma_[Au][Au] = sigma_[Cu][Cu]*(1 + a);
-    Float b = (epsilon_Br - epsilon_F)/(Z_Br - Z_F)*(Z_Au - Z_Cu);
-    epsilon_[Au][Au] = epsilon_[Cu][Cu]*(1 + b);
+    sigma_[Au][Au] = 2.569*Ao;
+    epsilon_[Au][Au] = 0.408*eV;
 
 //  M.P. Allen, D.J. Tildesley, 1987
     sigma_[H][H]   = 2.81*Ao;
     epsilon_[H][H]   = 8.6*K*kb;
-
-    sigma_[Cu][C]  = (sigma_[Cu][Cu] + sigma_[C][C])/2; // should be ~ 3.225*Ao
-    sigma_[C][Cu] = sigma_[Cu][C];
-    sigma_[Cu][H]  = (sigma_[Cu][Cu] + sigma_[H][H])/2;
-    sigma_[H][Cu] = sigma_[Cu][H];
-
-    epsilon_[Cu][C]  = sqrt(epsilon_[Cu][Cu]*epsilon_[C][C]); // should be ~ 0.019996*eV
-    epsilon_[C][Cu] = epsilon_[Cu][C];
-    epsilon_[Cu][H]  = sqrt(epsilon_[Cu][Cu]*epsilon_[H][H]);
-    epsilon_[H][Cu] = epsilon_[Cu][H];
-
-    sigma_[Au][C]  = (sigma_[Au][Au] + sigma_[C][C])/2;
-    sigma_[C][Au] = sigma_[Au][C];
-    sigma_[Au][H]  = (sigma_[Au][Au] + sigma_[H][H])/2;
-    sigma_[H][Au] = sigma_[Au][H];
-
-    epsilon_[Au][C]  = sqrt(epsilon_[Au][Au]*epsilon_[C][C]);
-    epsilon_[C][Au] = epsilon_[Au][C];
-    epsilon_[Au][H]  = sqrt(epsilon_[Au][Au]*epsilon_[H][H]);
-    epsilon_[H][Au] = epsilon_[Au][H];
-  }
-
-  if (0) // disable this set of parameters
-  {
-//  Lorentz–Berthelot mixing rules 1
-//  S.-P. Huang et al. / Surface Science 545 (2003) 163–179
-
-    sigma_[Cu][Cu] = 3.05*Ao;
-    epsilon_[Cu][Cu] = 0.165565*eV;
-    sigma_[C][C]   = 3.4*Ao;
-    epsilon_[C][C]   = 0.002413*eV;
-    sigma_[Au][Au] = 2.569*Ao; // < Cu-Cu ???, should be > Cu-Cu
-    epsilon_[Au][Au] = 0.408*eV;
-    sigma_[H][H]   = 2.81*Ao; // M.P. Allen, D.J. Tildesley, 1987
-    epsilon_[H][H]   = 8.6*K*kb; // M.P. Allen, D.J. Tildesley, 1987
-
-/*
-//  http://dx.doi.org/10.1088/0957-4484/18/42/424007
-    sigma_[Au][Au] = 2.934*Ao; // < Cu-Cu ???, should be > Cu-Cu
-    epsilon_[Au][Au] = 0.039*kcal/mol^-1;
-*/
 
     sigma_[Cu][C]  = (sigma_[Cu][Cu] + sigma_[C][C])/2; // should be ~ 3.225*Ao
     sigma_[C][Cu] = sigma_[Cu][C];
@@ -190,43 +134,19 @@ FLJ::FLJ(Rcutoff rcutoff):
     epsilon_[C][Au] = epsilon_[Au][C];
     epsilon_[Au][H]  = sqrt(epsilon_[Au][Au]*epsilon_[H][H]);
     epsilon_[H][Au] = epsilon_[Au][H];
-  }
 
-  if (0) // disable this set of parameters
-  {
-//  Lorentz–Berthelot mixing rules 2
-
-    sigma_[Cu][Cu] = 2.27*Ao; // http://web.mse.uiuc.edu/courses/mse485/projects/2001/team5/node13.html
-    epsilon_[Cu][Cu] = 6765.4*K*kb; // http://web.mse.uiuc.edu/courses/mse485/projects/2001/team5/node13.html
-    sigma_[C][C]   = 3.35*Ao; // M.P. Allen, D.J. Tildesley, 1987
-    epsilon_[C][C]   = 51.2*K*kb; // M.P. Allen, D.J. Tildesley, 1987
-    sigma_[H][H]   = 2.81*Ao; // M.P. Allen, D.J. Tildesley, 1987
-    epsilon_[H][H]   = 8.6*K*kb; // M.P. Allen, D.J. Tildesley, 1987
-    throw Exception("LJ Lorentz–Berthelot mixing rules paramset 2 is incomplete");
-    sigma_[Au][Au] = 0*Ao;
-    epsilon_[Au][Au] = 0*eV;
-    sigma_[H][H]   = 0*Ao;
-    epsilon_[H][H]   = 0*eV;
-
-    sigma_[Cu][C]  = (sigma_[Cu][Cu] + sigma_[C][C])/2;
-    sigma_[C][Cu] = sigma_[Cu][C];
-    sigma_[Cu][H]  = (sigma_[Cu][Cu] + sigma_[H][H])/2;
-    sigma_[H][Cu] = sigma_[Cu][H];
-
-    epsilon_[Cu][C]  = sqrt(epsilon_[Cu][Cu]*epsilon_[C][C]);
-    epsilon_[C][Cu] = epsilon_[Cu][C];
-    epsilon_[Cu][H]  = sqrt(epsilon_[Cu][Cu]*epsilon_[H][H]);
-    epsilon_[H][Cu] = epsilon_[Cu][H];
-
-    sigma_[Au][C]  = (sigma_[Au][Au] + sigma_[C][C])/2;
-    sigma_[C][Au] = sigma_[Au][C];
-    sigma_[Au][H]  = (sigma_[Au][Au] + sigma_[H][H])/2;
-    sigma_[H][Au] = sigma_[Au][H];
-
-    epsilon_[Au][C]  = sqrt(epsilon_[Au][Au]*epsilon_[C][C]);
-    epsilon_[C][Au] = epsilon_[Au][C];
-    epsilon_[Au][H]  = sqrt(epsilon_[Au][Au]*epsilon_[H][H]);
-    epsilon_[H][Au] = epsilon_[Au][H];
+    if (0)
+    {
+      TRACE(sigma_[C][Cu]/Ao);
+      TRACE(epsilon_[C][Cu]/eV);
+      TRACE(sigma_[C][Au]/Ao);
+      TRACE(epsilon_[C][Au]/eV);
+      TRACE(sigma_[H][Cu]/Ao);
+      TRACE(epsilon_[H][Cu]/eV);
+      TRACE(sigma_[H][Au]/Ao);
+      TRACE(epsilon_[H][Au]/eV);
+      exit(1);
+    }
   }
 
   fillR_concat_();
