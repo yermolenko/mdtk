@@ -41,7 +41,7 @@ FLJ::FLJ(Rcutoff rcutoff):
   std::vector<ElementID> elements2;
   elements2.push_back(Cu_EL);
 //  elements2.push_back(Ag_EL);
-//  elements2.push_back(Au_EL);
+  elements2.push_back(Au_EL);
 
   for(size_t i = 0; i < elements1.size(); ++i)
     handledElements.insert(elements1[i]);
@@ -56,29 +56,178 @@ FLJ::FLJ(Rcutoff rcutoff):
       handledElementPairs.insert(std::make_pair(elements2[j],elements1[i]));
     }
 
+  if (0) // disable this set of parameters
+  {
 //  See [D.E. Ellis et al., Materials Science in Semiconductor
 //  Processing 3, 123 (2000)]
 
-  Float C6_CuC = 41.548*eV*pow(Ao,6);
-  Float C12_CuC = 2989.105*eV*pow(Ao,12);
+    Float C6_CuC = 41.548*eV*pow(Ao,6);
+    Float C12_CuC = 2989.105*eV*pow(Ao,12);
 
-  sigma_[Cu][Cu] = 0.0*Ao;
-  sigma_[C][C]   = 0.0*Ao;
-  sigma_[Cu][C]  = pow(C12_CuC/C6_CuC,1.0/6.0);
+    sigma_[Cu][Cu] = 0.0*Ao;
+    sigma_[C][C]   = 0.0*Ao;
+    sigma_[Cu][C]  = pow(C12_CuC/C6_CuC,1.0/6.0); // ~ 2.039*Ao
+      sigma_[C][Cu] = sigma_[Cu][C];
+    sigma_[H][H]   = 0.0*Ao;
+    sigma_[Cu][H]  = 2.049067052*Ao;
+      sigma_[H][Cu] = sigma_[Cu][H];
+
+    epsilon_[Cu][Cu] = 0.0*eV;
+    epsilon_[C][C]   = 0.0*eV;
+    epsilon_[Cu][C]  = pow(C6_CuC,2)/(4.0*C12_CuC); // ~ 0.14438*eV
+      epsilon_[C][Cu] = epsilon_[Cu][C];
+    epsilon_[H][H]   = 0.0*eV;
+    epsilon_[Cu][H]  = 0.01*eV;
+      epsilon_[H][Cu] = epsilon_[Cu][H];
+  }
+
+  if (0) // disable this set of parameters
+  {
+//  See [Arnaud Delcorte, Barbara J. Garrison, Nuclear Instruments and
+//  Methods in Physics Research B 269, 1572 (2011)]
+
+    sigma_[Au][Au] = 0.0*Ao;
+    sigma_[C][C]   = 0.0*Ao;
+    sigma_[Au][C]  = 3.172*Ao;
+      sigma_[C][Au] = sigma_[Au][C];
+    sigma_[H][H]   = 0.0*Ao;
+    sigma_[Au][H]  = 2.746*Ao;
+      sigma_[H][Au] = sigma_[Au][H];
+
+    epsilon_[Au][Au] = 0.0*eV;
+    epsilon_[C][C]   = 0.0*eV;
+    epsilon_[Au][C]  = 0.00277*eV;
+      epsilon_[C][Au] = epsilon_[Au][C];
+    epsilon_[H][H]   = 0.0*eV;
+    epsilon_[Au][H]  = 0.00179*eV;
+      epsilon_[H][Au] = epsilon_[Au][H];
+  }
+
+  {
+//  Lorentz–Berthelot mixing rules 1
+
+//  S.-P. Huang et al. / Surface Science 545 (2003) 163–179
+    sigma_[Cu][Cu] = 3.05*Ao;
+    epsilon_[Cu][Cu] = 0.165565*eV;
+    sigma_[C][C]   = 3.4*Ao;
+    epsilon_[C][C]   = 0.002413*eV;
+
+//  loose extrapolation of Au-Au from Cu-Cu
+    Float Z_F = 9;
+    Float sigma_F = 2.83*Ao;
+    Float epsilon_F = 52.8*K*kb;
+    Float Z_Br = 35;
+    Float sigma_Br = 3.54*Ao;
+    Float epsilon_Br = 257.2*K*kb;
+    Float Z_Cu = 29;
+    Float Z_Au = 79;
+    Float a = (sigma_Br - sigma_F)/(Z_Br - Z_F)*(Z_Au - Z_Cu);
+    sigma_[Au][Au] = sigma_[Cu][Cu]*(1 + a);
+    Float b = (epsilon_Br - epsilon_F)/(Z_Br - Z_F)*(Z_Au - Z_Cu);
+    epsilon_[Au][Au] = epsilon_[Cu][Cu]*(1 + b);
+
+//  M.P. Allen, D.J. Tildesley, 1987
+    sigma_[H][H]   = 2.81*Ao;
+    epsilon_[H][H]   = 8.6*K*kb;
+
+    sigma_[Cu][C]  = (sigma_[Cu][Cu] + sigma_[C][C])/2; // should be ~ 3.225*Ao
     sigma_[C][Cu] = sigma_[Cu][C];
-  sigma_[Cu][Cu] = 0.0*Ao;
-  sigma_[H][H]   = 0.0*Ao;
-  sigma_[Cu][H]  = 2.049067052*Ao;
+    sigma_[Cu][H]  = (sigma_[Cu][Cu] + sigma_[H][H])/2;
     sigma_[H][Cu] = sigma_[Cu][H];
 
-  zeta_[Cu][Cu] = 0.0*eV;
-  zeta_[C][C]   = 0.0*eV;
-  zeta_[Cu][C]  = pow(C6_CuC,2)/(4.0*C12_CuC);
-    zeta_[C][Cu] = zeta_[Cu][C];
-  zeta_[Cu][Cu] = 0.0*eV;
-  zeta_[H][H]   = 0.0*eV;
-  zeta_[Cu][H]  = 0.01*eV;
-    zeta_[H][Cu] = zeta_[Cu][H];
+    epsilon_[Cu][C]  = sqrt(epsilon_[Cu][Cu]*epsilon_[C][C]); // should be ~ 0.019996*eV
+    epsilon_[C][Cu] = epsilon_[Cu][C];
+    epsilon_[Cu][H]  = sqrt(epsilon_[Cu][Cu]*epsilon_[H][H]);
+    epsilon_[H][Cu] = epsilon_[Cu][H];
+
+    sigma_[Au][C]  = (sigma_[Au][Au] + sigma_[C][C])/2;
+    sigma_[C][Au] = sigma_[Au][C];
+    sigma_[Au][H]  = (sigma_[Au][Au] + sigma_[H][H])/2;
+    sigma_[H][Au] = sigma_[Au][H];
+
+    epsilon_[Au][C]  = sqrt(epsilon_[Au][Au]*epsilon_[C][C]);
+    epsilon_[C][Au] = epsilon_[Au][C];
+    epsilon_[Au][H]  = sqrt(epsilon_[Au][Au]*epsilon_[H][H]);
+    epsilon_[H][Au] = epsilon_[Au][H];
+  }
+
+  if (0) // disable this set of parameters
+  {
+//  Lorentz–Berthelot mixing rules 1
+//  S.-P. Huang et al. / Surface Science 545 (2003) 163–179
+
+    sigma_[Cu][Cu] = 3.05*Ao;
+    epsilon_[Cu][Cu] = 0.165565*eV;
+    sigma_[C][C]   = 3.4*Ao;
+    epsilon_[C][C]   = 0.002413*eV;
+    sigma_[Au][Au] = 2.569*Ao; // < Cu-Cu ???, should be > Cu-Cu
+    epsilon_[Au][Au] = 0.408*eV;
+    sigma_[H][H]   = 2.81*Ao; // M.P. Allen, D.J. Tildesley, 1987
+    epsilon_[H][H]   = 8.6*K*kb; // M.P. Allen, D.J. Tildesley, 1987
+
+/*
+//  http://dx.doi.org/10.1088/0957-4484/18/42/424007
+    sigma_[Au][Au] = 2.934*Ao; // < Cu-Cu ???, should be > Cu-Cu
+    epsilon_[Au][Au] = 0.039*kcal/mol^-1;
+*/
+
+    sigma_[Cu][C]  = (sigma_[Cu][Cu] + sigma_[C][C])/2; // should be ~ 3.225*Ao
+    sigma_[C][Cu] = sigma_[Cu][C];
+    sigma_[Cu][H]  = (sigma_[Cu][Cu] + sigma_[H][H])/2;
+    sigma_[H][Cu] = sigma_[Cu][H];
+
+    epsilon_[Cu][C]  = sqrt(epsilon_[Cu][Cu]*epsilon_[C][C]); // should be ~ 0.019996*eV
+    epsilon_[C][Cu] = epsilon_[Cu][C];
+    epsilon_[Cu][H]  = sqrt(epsilon_[Cu][Cu]*epsilon_[H][H]);
+    epsilon_[H][Cu] = epsilon_[Cu][H];
+
+    sigma_[Au][C]  = (sigma_[Au][Au] + sigma_[C][C])/2; // should be ~ 2.985*Ao
+    sigma_[C][Au] = sigma_[Au][C];
+    sigma_[Au][H]  = (sigma_[Au][Au] + sigma_[H][H])/2;
+    sigma_[H][Au] = sigma_[Au][H];
+
+    epsilon_[Au][C]  = sqrt(epsilon_[Au][Au]*epsilon_[C][C]); // should be ~ 0.033244*eV
+    epsilon_[C][Au] = epsilon_[Au][C];
+    epsilon_[Au][H]  = sqrt(epsilon_[Au][Au]*epsilon_[H][H]);
+    epsilon_[H][Au] = epsilon_[Au][H];
+  }
+
+  if (0) // disable this set of parameters
+  {
+//  Lorentz–Berthelot mixing rules 2
+
+    sigma_[Cu][Cu] = 2.27*Ao; // http://web.mse.uiuc.edu/courses/mse485/projects/2001/team5/node13.html
+    epsilon_[Cu][Cu] = 6765.4*K*kb; // http://web.mse.uiuc.edu/courses/mse485/projects/2001/team5/node13.html
+    sigma_[C][C]   = 3.35*Ao; // M.P. Allen, D.J. Tildesley, 1987
+    epsilon_[C][C]   = 51.2*K*kb; // M.P. Allen, D.J. Tildesley, 1987
+    sigma_[H][H]   = 2.81*Ao; // M.P. Allen, D.J. Tildesley, 1987
+    epsilon_[H][H]   = 8.6*K*kb; // M.P. Allen, D.J. Tildesley, 1987
+    throw Exception("LJ Lorentz–Berthelot mixing rules paramset 2 is incomplete");
+    sigma_[Au][Au] = 0*Ao;
+    epsilon_[Au][Au] = 0*eV;
+    sigma_[H][H]   = 0*Ao;
+    epsilon_[H][H]   = 0*eV;
+
+    sigma_[Cu][C]  = (sigma_[Cu][Cu] + sigma_[C][C])/2;
+    sigma_[C][Cu] = sigma_[Cu][C];
+    sigma_[Cu][H]  = (sigma_[Cu][Cu] + sigma_[H][H])/2;
+    sigma_[H][Cu] = sigma_[Cu][H];
+
+    epsilon_[Cu][C]  = sqrt(epsilon_[Cu][Cu]*epsilon_[C][C]);
+    epsilon_[C][Cu] = epsilon_[Cu][C];
+    epsilon_[Cu][H]  = sqrt(epsilon_[Cu][Cu]*epsilon_[H][H]);
+    epsilon_[H][Cu] = epsilon_[Cu][H];
+
+    sigma_[Au][C]  = (sigma_[Au][Au] + sigma_[C][C])/2;
+    sigma_[C][Au] = sigma_[Au][C];
+    sigma_[Au][H]  = (sigma_[Au][Au] + sigma_[H][H])/2;
+    sigma_[H][Au] = sigma_[Au][H];
+
+    epsilon_[Au][C]  = sqrt(epsilon_[Au][Au]*epsilon_[C][C]);
+    epsilon_[C][Au] = epsilon_[Au][C];
+    epsilon_[Au][H]  = sqrt(epsilon_[Au][Au]*epsilon_[H][H]);
+    epsilon_[H][Au] = epsilon_[Au][H];
+  }
 
   fillR_concat_();
 }
@@ -88,10 +237,11 @@ FLJ::fillR_concat_()
 {
   Float r;
 
-  AtomsArray atoms(3);
-  atoms[0].ID = Cu_EL;
-  atoms[1].ID = C_EL;
-  atoms[2].ID = H_EL;
+  AtomsArray atoms(ECOUNT);
+  atoms[Cu].ID = Cu_EL;
+  atoms[H].ID = C_EL;
+  atoms[C].ID = H_EL;
+  atoms[Au].ID = Au_EL;
   atoms.setAttributesByElementID();
 
 for(size_t i = 0; i < atoms.size(); i++)
@@ -145,15 +295,15 @@ Atom& atom2 = atoms[j];
   Float DerVLJ = 0.0;
   {
     Float sigma_ij=     this->sigma(ij);
-    Float zeta_ij =     this->zeta(ij);
+    Float epsilon_ij =     this->epsilon(ij);
 
     Float s_div_r    = sigma_ij/r;
     Float s_div_r_6  = s_div_r;
     int i;
     for(i = 2; i <= 6; i++) s_div_r_6 *= s_div_r;
     Float s_div_r_12 = s_div_r_6*s_div_r_6;
-    DerVLJ = 4.0*zeta_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
-    VLJ = 4.0*zeta_ij*(s_div_r_12-s_div_r_6);
+    DerVLJ = 4.0*epsilon_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
+    VLJ = 4.0*epsilon_ij*(s_div_r_12-s_div_r_6);
   }
 
   v[1] = VLJ;
@@ -213,7 +363,7 @@ FLJ::VLJ(AtomsPair& ij)
 #endif
 
   Float sigma_ij=     this->sigma(ij);
-  Float zeta_ij =     this->zeta(ij);
+  Float epsilon_ij =     this->epsilon(ij);
 
   Float s_div_r    = sigma_ij/r;
 
@@ -222,14 +372,14 @@ FLJ::VLJ(AtomsPair& ij)
   for(i = 2; i <= 6; i++) s_div_r_6 *= s_div_r;
   Float s_div_r_12 = s_div_r_6*s_div_r_6;
 
-  Float Val = 4.0*zeta_ij*(s_div_r_12-s_div_r_6);
+  Float Val = 4.0*epsilon_ij*(s_div_r_12-s_div_r_6);
 
 
   Float f = ij.f();
 
 // if (V != 0)
   {
-    Float Der = 4.0*zeta_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
+    Float Der = 4.0*epsilon_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
     ij.r(Der*f);
     ij.f(Val);
   }

@@ -38,20 +38,21 @@ private:
 public:
   Float VLJ(AtomsPair& ij);
 
-  enum {ECOUNT = 3};
+  enum {ECOUNT = 4};
   enum {Cu = 0};
   enum {H = 1};
   enum {C = 2};
+  enum {Au = 3};
 
   Float sigma_[ECOUNT][ECOUNT];
-  Float zeta_[ECOUNT][ECOUNT];
+  Float epsilon_[ECOUNT][ECOUNT];
   Float sigma(const AtomsPair& ij) const
   {
     return sigma_[e2i(ij.atom1)][e2i(ij.atom2)];
   }
-  Float zeta(const AtomsPair& ij) const
+  Float epsilon(const AtomsPair& ij) const
   {
-    return zeta_[e2i(ij.atom1)][e2i(ij.atom2)];
+    return epsilon_[e2i(ij.atom1)][e2i(ij.atom2)];
   }
   size_t e2i(const Atom &atom) const
   {
@@ -60,6 +61,7 @@ public:
       case H_EL : return H; break;
       case C_EL : return C; break;
       case Cu_EL : return Cu; break;
+      case Au_EL : return Au; break;
       default : throw Exception("e2i() : unknown element");
     };
   }
