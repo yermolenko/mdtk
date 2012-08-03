@@ -106,7 +106,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
   ERRTRACE(freezingEnergy/eV);
 
   for(Float maxHeatUpEnergy = 0.0001*eV;
-      maxHeatUpEnergy <= 0.75*eV;
+      maxHeatUpEnergy <= 5.00*eV;
       maxHeatUpEnergy += 0.05*eV)
   {
     modloop->simTimeSaveTrajInterval = 1000.0*ps;
