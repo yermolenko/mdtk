@@ -109,6 +109,15 @@ buildCommands()
       sl.saveToMDE(fomde);
       fomde.close();
     }
+//    if (0)
+    {
+      mdtk::SimLoop sl;
+      sl.atoms = mdbuilder::cluster(Au_EL,200);
+
+      yaatk::text_ofstream fomde("Au200.mde");
+      sl.saveToMDE(fomde);
+      fomde.close();
+    }
     if (0)
     {
       mdtk::AtomsArray C60 = mdbuilder::C60();
@@ -375,7 +384,7 @@ buildCommands()
                                                          3,3,3);
       }
     }
-//    if (0)
+    if (0)
     {
       glLoadIdentity();
       {
