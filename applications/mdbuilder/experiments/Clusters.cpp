@@ -325,7 +325,7 @@ cluster(ElementID id, int clusterSize)
 }
 
 AtomsArray
-clusterFromCrystal(const AtomsArray& atoms, int clusterSize)
+clusterFromCrystal(const AtomsArray& atoms, int clusterSize, Vector3D c)
 {
   REQUIRE(atoms.size() >= clusterSize);
 
@@ -348,15 +348,19 @@ clusterFromCrystal(const AtomsArray& atoms, int clusterSize)
   if (clusterSize == 0) return sl.atoms;
 
   {
-    Vector3D c = atoms.geomCenter();
+    if (c == NO_PBC)
+      c = atoms.geomCenter();
 
     Float cutRadius = 0.01*Ao;
+    std::vector<bool> alreadyAdded(atoms.size());
     while (1)
     {
-      sl.atoms.clear();
       for(size_t i = 0; i < atoms.size() && sl.atoms.size() < clusterSize; ++i)
-        if ((atoms[i].coords - c).module() <= cutRadius)
+        if ((atoms[i].coords - c).module() <= cutRadius && !alreadyAdded[i])
+        {
           sl.atoms.push_back(atoms[i]);
+          alreadyAdded[i] = true;
+        }
       if (sl.atoms.size() == clusterSize)
         break;
       cutRadius += 0.1*Ao;
@@ -404,6 +408,9 @@ clusterFromFCCCrystal(ElementID id, int clusterSize)
 {
   int num = ceil(pow(clusterSize/4.0,1.0/3.0));
   REQUIRE(num >= 1 && num <= 100);
+  num++;
+  if (num%2 != 0)
+    num++;
   double a;
   switch (id)
   {
@@ -415,7 +422,7 @@ clusterFromFCCCrystal(ElementID id, int clusterSize)
   AtomsArray atoms;
   place_FCC_lattice(atoms,num,num,num,id,false,a,a,a);
 
-  return clusterFromCrystal(atoms,clusterSize);
+  return clusterFromCrystal(atoms,clusterSize,num/2*a);
 }
 
 AtomsArray

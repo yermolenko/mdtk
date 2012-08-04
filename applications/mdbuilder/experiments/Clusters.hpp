@@ -43,7 +43,7 @@ AtomsArray
 cluster(ElementID id, int clusterSize);
 
 AtomsArray
-clusterFromCrystal(const AtomsArray& atoms, int clusterSize);
+clusterFromCrystal(const AtomsArray& atoms, int clusterSize, Vector3D c = NO_PBC);
 
 AtomsArray
 clusterFromFCCCrystal(ElementID id, int clusterSize);
