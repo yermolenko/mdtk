@@ -43,6 +43,12 @@ AtomsArray
 cluster(ElementID id, int clusterSize);
 
 AtomsArray
+clusterFromCrystal(const AtomsArray& atoms, int clusterSize);
+
+AtomsArray
+clusterFromFCCCrystal(ElementID id, int clusterSize);
+
+AtomsArray
 embed(AtomsArray cluster, AtomsArray shell);
 
 void

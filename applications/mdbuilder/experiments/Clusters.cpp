@@ -325,6 +325,100 @@ cluster(ElementID id, int clusterSize)
 }
 
 AtomsArray
+clusterFromCrystal(const AtomsArray& atoms, int clusterSize)
+{
+  REQUIRE(atoms.size() >= clusterSize);
+
+  const gsl_rng_type * T;
+  gsl_rng * r;
+
+  T = gsl_rng_ranlxd2;
+  r = gsl_rng_alloc (T);
+  REQUIRE(r != NULL);
+
+  gsl_rng_set(r, 123);
+
+  REQUIRE(gsl_rng_min(r) == 0);
+  REQUIRE(gsl_rng_max(r) > 1000);
+
+  SimLoop sl;
+  REQUIRE(!sl.atoms.PBCEnabled());
+  initialize_simloop(sl);
+
+  if (clusterSize == 0) return sl.atoms;
+
+  {
+    Vector3D c = atoms.geomCenter();
+
+    Float cutRadius = 0.01*Ao;
+    while (1)
+    {
+      sl.atoms.clear();
+      for(size_t i = 0; i < atoms.size() && sl.atoms.size() < clusterSize; ++i)
+        if ((atoms[i].coords - c).module() <= cutRadius)
+          sl.atoms.push_back(atoms[i]);
+      if (sl.atoms.size() == clusterSize)
+        break;
+      cutRadius += 0.1*Ao;
+      REQUIRE(cutRadius <= 1000.0*Ao);
+    }
+  }
+
+  yaatk::mkdir("_tmp-clusters");
+  yaatk::chdir("_tmp-clusters");
+
+  std::ofstream foGlobal("energy.min.all",std::ios::app);
+
+  {
+    ERRTRACE(sl.atoms.size());
+
+    sl.executeDryRun();
+
+    char dirname[100];
+    sprintf(dirname,"%03lu",sl.atoms.size());
+    yaatk::mkdir(dirname);
+    yaatk::chdir(dirname);
+
+    Float minPotEnergyOf = optimize_single(&sl, r);
+
+    foGlobal << std::setw (10) << sl.atoms.size() << " "
+             << std::setw (20) << minPotEnergyOf/eV << " "
+             << std::setw (20) << minPotEnergyOf/eV/sl.atoms.size() << std::endl;
+
+    yaatk::chdir("..");
+  }
+
+  foGlobal.close();
+
+  yaatk::chdir("..");
+
+  gsl_rng_free (r);
+
+  sl.atoms.shiftToOrigin();
+
+  return sl.atoms;
+}
+
+AtomsArray
+clusterFromFCCCrystal(ElementID id, int clusterSize)
+{
+  int num = ceil(pow(clusterSize/4.0,1.0/3.0));
+  REQUIRE(num >= 1 && num <= 100);
+  double a;
+  switch (id)
+  {
+  case Cu_EL : a = 3.615*Ao; break;
+  case Au_EL : a = 4.0781*Ao; break;
+  default: throw Exception("Unknown FCC element.");
+  }
+
+  AtomsArray atoms;
+  place_FCC_lattice(atoms,num,num,num,id,false,a,a,a);
+
+  return clusterFromCrystal(atoms,clusterSize);
+}
+
+AtomsArray
 embed(AtomsArray cluster, AtomsArray shell)
 {
   cluster.shiftToOrigin();

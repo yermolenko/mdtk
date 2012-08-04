@@ -111,12 +111,46 @@ buildCommands()
     }
 //    if (0)
     {
-      mdtk::SimLoop sl;
-      sl.atoms = mdbuilder::cluster(Au_EL,200);
+      {
+        mdtk::SimLoop sl;
+        sl.atoms = mdbuilder::clusterFromFCCCrystal(Au_EL,13);
 
-      yaatk::text_ofstream fomde("Au200.mde");
-      sl.saveToMDE(fomde);
-      fomde.close();
+        yaatk::text_ofstream fomde("Au13.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+      {
+        mdtk::SimLoop sl;
+        sl.atoms = mdbuilder::clusterFromFCCCrystal(Au_EL,27);
+
+        yaatk::text_ofstream fomde("Au27.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+      {
+        mdtk::SimLoop sl;
+        sl.atoms = mdbuilder::clusterFromFCCCrystal(Au_EL,39);
+
+        yaatk::text_ofstream fomde("Au39.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+      {
+        mdtk::SimLoop sl;
+        sl.atoms = mdbuilder::clusterFromFCCCrystal(Au_EL,75);
+
+        yaatk::text_ofstream fomde("Au75.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+      {
+        mdtk::SimLoop sl;
+        sl.atoms = mdbuilder::clusterFromFCCCrystal(Au_EL,195);
+
+        yaatk::text_ofstream fomde("Au195.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
     }
     if (0)
     {
