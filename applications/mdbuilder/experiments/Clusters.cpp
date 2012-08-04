@@ -356,11 +356,21 @@ clusterFromCrystal(const AtomsArray& atoms, int clusterSize, Vector3D c)
     while (1)
     {
       for(size_t i = 0; i < atoms.size() && sl.atoms.size() < clusterSize; ++i)
-        if ((atoms[i].coords - c).module() <= cutRadius && !alreadyAdded[i])
+      {
+        for(int k = -1; k <= +1 && sl.atoms.size() < clusterSize; ++k)
         {
-          sl.atoms.push_back(atoms[i]);
-          alreadyAdded[i] = true;
+          if (k == 0)
+            continue;
+          size_t ind = i;
+          if (k == -1)
+            ind = atoms.size()-1-i;
+          if ((atoms[ind].coords - c).module() <= cutRadius && !alreadyAdded[ind])
+          {
+            sl.atoms.push_back(atoms[ind]);
+            alreadyAdded[ind] = true;
+          }
         }
+      }
       if (sl.atoms.size() == clusterSize)
         break;
       cutRadius += 0.1*Ao;
