@@ -724,7 +724,7 @@ build_Cluster_Landed_on_Substrate(
   int clusterSize
   )
 {
-  AtomsArray Cluster = cluster(id,clusterSize);
+  AtomsArray Cluster = clusterFromFCCCrystal(id,clusterSize);
   Cluster.removeMomentum();
 
   SimLoop sl;
