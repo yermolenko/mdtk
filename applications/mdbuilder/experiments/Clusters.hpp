@@ -62,7 +62,8 @@ SimLoop
 build_target_by_cluster_bombardment(
   const SimLoop& sl_target,
   AtomsArray sl_cluster,
-  Float clusterEnergy = 100*eV
+  Float clusterEnergy = 100*eV,
+  Float interactionDistance = 3.3*Ao
   );
 
 void

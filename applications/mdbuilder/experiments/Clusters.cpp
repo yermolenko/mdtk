@@ -500,7 +500,8 @@ SimLoop
 build_target_by_cluster_bombardment(
   const SimLoop& sl_target,
   AtomsArray cluster,
-  Float clusterEnergy
+  Float clusterEnergy,
+  Float interactionDistance
   )
 {
   cluster.shiftToOrigin();
@@ -528,7 +529,7 @@ build_target_by_cluster_bombardment(
       {
         Atom& clusterAtom = cluster[cli];
         const Atom& surfaceAtom = sl_target.atoms[surfi];
-        if (depos(clusterAtom,surfaceAtom).module() < (/*(clusterEnergy==0.0)?3.0*Ao:*/6.0*Ao))
+        if (depos(clusterAtom,surfaceAtom).module() < (/*(clusterEnergy==0.0)?3.0*Ao:*/ /*6.0*Ao*/interactionDistance))
         {
           areInteracting = true;
         }
@@ -729,7 +730,7 @@ build_Cluster_Landed_on_Substrate(
 
   SimLoop sl;
   initialize_simloop(sl);
-  sl = build_target_by_cluster_bombardment(sl_Substrate,Cluster,0.2*eV*clusterSize);
+  sl = build_target_by_cluster_bombardment(sl_Substrate,Cluster,0.0*eV,3.3*Ao);
 
   TRACE(sl.energyKin()/eV);
 
