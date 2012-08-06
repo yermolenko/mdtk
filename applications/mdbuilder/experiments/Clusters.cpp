@@ -885,8 +885,8 @@ bomb_Cluster_with_Ions(
     sl.simTimeFinal = 10.0*ps;
     sl.simTimeSaveTrajInterval = 0.1*ps;
 
-    yaatk::text_ofstream fomde("in.mde");
-    sl.saveToMDE(fomde);
+    yaatk::text_ofstream fomde("mde_init");
+    sl.saveToStream(fomde);
     fomde.close();
     yaatk::chdir("..");
 
