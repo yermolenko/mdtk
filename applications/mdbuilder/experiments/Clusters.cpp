@@ -726,6 +726,7 @@ build_Cluster_Landed_on_Substrate(
   )
 {
   AtomsArray Cluster = clusterFromFCCCrystal(id,clusterSize);
+  Cluster.tag(ATOMTAG_CLUSTER);
   Cluster.removeMomentum();
 
   SimLoop sl;
@@ -774,6 +775,7 @@ bomb_Cluster_with_Ions(
   yaatk::chdir(dirname.c_str());
 
   SimLoop sl(target);
+  sl.atoms.tag(ATOMTAG_TARGET);
 
   std::ofstream rngout("rng.out");
   REQUIRE(rngout != NULL);
@@ -874,6 +876,7 @@ bomb_Cluster_with_Ions(
     projectile.V = Vector3D(0,0,sqrt(2.0*ionEnergy/(projectile.M)));
 //    projectile->apply_PBC=false;
     projectile.apply_ThermalBath=false;
+    projectile.tag(ATOMTAG_PROJECTILE);
     sl.atoms.push_back(projectile);
 
     char trajDirName[1024];
@@ -915,6 +918,7 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
 {
   SimLoop sl_Polyethylene =
     build_Polyethylene_lattice_with_folds(a_num,b_num,c_num);
+  sl_Polyethylene.atoms.tag(ATOMTAG_SUBSTRATE);
   for(size_t clusterElementIndex = 0;
       clusterElementIndex < clusterElements.size();
       ++clusterElementIndex)
