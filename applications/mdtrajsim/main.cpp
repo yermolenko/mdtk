@@ -359,10 +359,8 @@ try
 
   if (mdloop.simTime >= mdloop.simTimeFinal) // is simulation really finished ?
   {
-    yaatk::text_ofstream fo2("mde""_final");
-    mdloop.saveToStream(fo2);
+    yaatk::text_ofstream fo2("completed.ok");
     fo2.close();
-    mdloop.writetrajXVA();
   }
 }  
 catch(mdtk::Exception& e)
@@ -385,7 +383,7 @@ bool
 isAlreadyFinished()
 {
   {
-    if (yaatk::exists("mde_final")) return true;
+    if (yaatk::exists("completed.ok")) return true;
   }
   {
     std::ifstream ifinal("in.mde.after_crash");
