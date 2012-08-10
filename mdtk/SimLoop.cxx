@@ -421,6 +421,11 @@ SimLoop::executeMain()
     writetrajXVA();
     if (verboseTrace) cout << "done. " << endl;
   };
+  {
+    if (verboseTrace) cout << "Writing state ... " ;
+    writestate();
+    if (verboseTrace) cout << "done. " << endl;
+  }
 
   curWallTime = time(NULL);
   if (verboseTrace)
