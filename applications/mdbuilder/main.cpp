@@ -35,6 +35,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include "applications/common.h"
 #include "experiments/H2.hpp"
@@ -44,6 +45,8 @@
 #include "experiments/Clusters.hpp"
 #include "experiments/Fullerite.hpp"
 #include "experiments/Fulleride.hpp"
+
+static int clusterSize = 0;
 
 void
 buildCommands()
@@ -311,14 +314,18 @@ buildCommands()
     }
 //    if (0)
     {
+      TRACE(clusterSize);
       glLoadIdentity();
       std::vector<int> clusterSizes;
+      clusterSizes.push_back(clusterSize);
+/*
       clusterSizes.push_back(1);
       clusterSizes.push_back(13);
       clusterSizes.push_back(27);
       clusterSizes.push_back(39);
       clusterSizes.push_back(75);
       clusterSizes.push_back(195);
+*/
       std::vector<ElementID> clusterElements;
       clusterElements.push_back(Cu_EL);
       clusterElements.push_back(Au_EL);
@@ -554,6 +561,22 @@ MDBuilderWindow::draw()
 
 int main(int argc, char *argv[])
 {
+  if (argc > 1 && !strcmp(argv[1],"--cluster-size"))
+  {
+    if (!(argc > 2))
+    {
+      std::cerr << "You should specify cluster size, e.g. --cluster-size 13\n";
+      return -1;
+    }
+    std::istringstream iss(argv[2]);
+    iss >> clusterSize;
+    if (!(clusterSize > 0 && clusterSize <= 200))
+    {
+      std::cerr << "Unsupported cluster size\n";
+      return -1;
+    }
+  }
+
   if (argc > 1 && !strcmp(argv[1],"--version"))
   {
     std::cout << "mdbuilder (molecular dynamics experiments preparation tool) ";
@@ -569,10 +592,17 @@ Prepares molecular dynamics experiments.\n\
 \n\
       --help     display this help and exit\n\
       --version  output version information and exit\n\
+      --cluster-size  <cluster size>  generate experiment for a specified cluster size\n\
 \n\
 Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 ";
     return 0;
+  }
+
+  if (clusterSize == 0)
+  {
+    std::cerr << "You should specify cluster size with --cluster-size option\n";
+    return -1;
   }
 
   srand(12345);
