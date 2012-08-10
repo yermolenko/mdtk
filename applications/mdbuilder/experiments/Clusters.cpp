@@ -743,6 +743,7 @@ build_Cluster_Landed_on_Substrate(
 
 
   std::vector<size_t> fixedAtoms = sl.atoms.fixUnfixedCHAtoms(0,sl.atoms.size());
+  if (0)
   {
     Float tb_zMin_bak = sl.thermalBath.zMin;
     sl.thermalBath.zMin = -1.0*Ao;
