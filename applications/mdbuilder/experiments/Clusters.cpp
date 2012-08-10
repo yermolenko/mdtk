@@ -872,6 +872,9 @@ bomb_Cluster_with_Ions(
     }while ( (cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) || !allowBomb);
     rngout << cell_part_x << " " << cell_part_y << "\n";
 
+    REQUIRE(bombX > 0.0 + sl.thermalBath.dBoundary && bombX < sl.atoms.PBC().x - sl.thermalBath.dBoundary);
+    REQUIRE(bombY > 0.0 + sl.thermalBath.dBoundary && bombY < sl.atoms.PBC().y - sl.thermalBath.dBoundary);
+
     Atom projectile(ionElement,Vector3D(bombX,bombY,clusterZMin-5.5*Ao));
 
     projectile.V = Vector3D(0,0,sqrt(2.0*ionEnergy/(projectile.M)));
