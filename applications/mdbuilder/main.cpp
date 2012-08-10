@@ -109,7 +109,7 @@ buildCommands()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-//    if (0)
+    if (0)
     {
       {
         mdtk::SimLoop sl;
@@ -309,7 +309,7 @@ buildCommands()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-    if (0)
+//    if (0)
     {
       glLoadIdentity();
       std::vector<int> clusterSizes;
@@ -317,11 +317,11 @@ buildCommands()
       clusterSizes.push_back(13);
       clusterSizes.push_back(27);
       clusterSizes.push_back(39);
-//      clusterSizes.push_back(75);
-//      clusterSizes.push_back(195);
+      clusterSizes.push_back(75);
+      clusterSizes.push_back(195);
       std::vector<ElementID> clusterElements;
       clusterElements.push_back(Cu_EL);
-//      clusterElements.push_back(Au_EL);
+      clusterElements.push_back(Au_EL);
       std::vector<ElementID> ionElements;
       ionElements.push_back(Ar_EL);
       ionElements.push_back(Xe_EL);
@@ -330,7 +330,8 @@ buildCommands()
       ionEnergies.push_back(200*eV);
       ionEnergies.push_back(300*eV);
       ionEnergies.push_back(400*eV);
-      mdbuilder::bomb_MetalCluster_on_Polyethylene_with_Ions(4,6,10,
+      ionEnergies.push_back(500*eV);
+      mdbuilder::bomb_MetalCluster_on_Polyethylene_with_Ions(8,12,15,/*6,9,15,*/
                                                              clusterSizes,
                                                              clusterElements,
                                                              ionElements,
