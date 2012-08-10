@@ -884,6 +884,7 @@ bomb_Cluster_with_Ions(
     yaatk::mkdir(trajDirName);
     yaatk::chdir(trajDirName);
 
+    sl.iteration = 0;
     sl.simTime = 0.0*ps;
     sl.simTimeFinal = 10.0*ps;
     sl.simTimeSaveTrajInterval = 0.1*ps;
