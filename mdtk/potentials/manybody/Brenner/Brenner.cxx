@@ -32,15 +32,7 @@ Float
 Brenner::operator()(AtomsArray& gl)
 {
   Float Ei = 0;
-  if (gl.size() != pairs.size()) pairs.resize(gl.size());
-  size_t ii;
-  for(ii = 0; ii < gl.size(); ii++)
-  {
-    size_t prevSize = pairs[ii].size();
-    pairs[ii].clear();
-    pairs[ii].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
-  }
-  for(ii = 0; ii < gl.size(); ii++)
+  for(size_t ii = 0; ii < gl.size(); ii++)
   {
     Atom &atom_i = gl[ii];
     if (isHandled(atom_i))

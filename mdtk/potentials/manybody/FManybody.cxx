@@ -29,7 +29,7 @@ namespace mdtk
 {
 
 FManybody::FManybody():
-  FGeneral(),pairs(),currentPairPtr(NULL)
+  FGeneral()
 {
 }
 

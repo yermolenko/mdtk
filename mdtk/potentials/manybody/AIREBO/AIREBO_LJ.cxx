@@ -34,26 +34,8 @@ namespace mdtk
 Float
 AIREBO::operator()(AtomsArray& gl)
 {
-  std::vector<std::vector<AtomPair> > backup = rebo.pairs;
-  if (gl.size() != rebo.pairs.size()) rebo.pairs.resize(gl.size());
-  size_t iir;
-  for(iir = 0; iir < gl.size(); iir++)
-  {
-    size_t prevSize = rebo.pairs[iir].size();
-    rebo.pairs[iir].clear();
-    rebo.pairs[iir].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
-  }
-
   Float Ei = 0;
-  if (gl.size() != pairs.size()) pairs.resize(gl.size());
-  size_t ii;
-  for(ii = 0; ii < gl.size(); ii++)
-  {
-    size_t prevSize = pairs[ii].size();
-    pairs[ii].clear();
-    pairs[ii].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
-  }
-  for(ii = 0; ii < gl.size(); ii++)
+  for(size_t ii = 0; ii < gl.size(); ii++)
   {
     Atom &atom_i = gl[ii];
     if (isHandled(atom_i))
