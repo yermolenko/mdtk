@@ -56,6 +56,7 @@ NeighbourList::Update(AtomsArray& atoms_)
       Atom& atom_j = atoms_[j];
 
       if (!fpot->isHandled(atom_j)) continue;
+      if (!fpot->isHandledPair(atom_i,atom_j)) continue;
 
       Float dij_squared = depos(atom_i,atom_j).module_squared();
       if (dij_squared < range_squared)
