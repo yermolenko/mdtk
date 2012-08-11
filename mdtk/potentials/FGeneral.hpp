@@ -58,8 +58,8 @@ public:
 
   std::set<ElementID> handledElements;
   std::set<std::pair<ElementID,ElementID> > handledElementPairs;
-  bool isHandled(Atom& atom) const;
-  bool isHandledPair(Atom& atom1, Atom& atom2) const;
+  bool isHandled(const Atom& atom) const;
+  bool isHandledPair(const Atom& atom1, const Atom& atom2) const;
 protected:
   NeighbourList nl;
 public:
@@ -108,7 +108,7 @@ public:
 
 inline
 bool
-FGeneral::isHandled(Atom& atom) const
+FGeneral::isHandled(const Atom& atom) const
 {
   if (handledElements.find(atom.ID) != handledElements.end())
     return true;
@@ -118,7 +118,7 @@ FGeneral::isHandled(Atom& atom) const
 
 inline
 bool
-FGeneral::isHandledPair(Atom& atom1, Atom& atom2) const
+FGeneral::isHandledPair(const Atom& atom1, const Atom& atom2) const
 {
   if (handledElementPairs.find(std::make_pair(atom1.ID,atom2.ID)) != handledElementPairs.end() )
     return true;
