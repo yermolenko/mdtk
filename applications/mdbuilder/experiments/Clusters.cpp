@@ -725,6 +725,11 @@ build_Cluster_Landed_on_Substrate(
   int clusterSize
   )
 {
+  std::ostringstream sbuildSubdir;
+  sbuildSubdir << "_build_" << ElementIDtoString(id) << clusterSize << "_on_PE";
+  yaatk::mkdir(sbuildSubdir.str().c_str());
+  yaatk::chdir(sbuildSubdir.str().c_str());
+
   AtomsArray Cluster = clusterFromFCCCrystal(id,clusterSize);
   Cluster.tag(ATOMTAG_CLUSTER);
   Cluster.removeMomentum();
@@ -757,6 +762,8 @@ build_Cluster_Landed_on_Substrate(
   relax/*_flush*/(sl,15.0*ps,"_tmp-X-landing-unfixed-CH-relax_flush");
 
   quench(sl,0.01*K,200*ps,0.01*ps,"_tmp-X-landing-quench");
+
+  yaatk::chdir("..");
 
   return sl;
 }
