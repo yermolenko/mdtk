@@ -35,24 +35,26 @@ NeighbourList::Update(AtomsArray& atoms_)
   PVLOG("NL update\n");
   Float range_squared = SQR((1.0+NLSKIN_FACTOR)*Rcutoff);
   size_t N = atoms_.size();
+
   for(size_t i = 0; i < N; i++)
   {
     displacements[i] = Vector3D(0,0,0);
 
     AtomRefsContainer& nl_ = nl[i];
-    Atom& atom_i = atoms_[i];
 
     size_t nl_size_prev = nl_.size();
     nl_.clear();
+    nl_.reserve(nl_size_prev+MDTK_NB_RESERVE_ADD);
+  }
+
+  for(size_t i = 0; i < N; i++)
+  {
+    Atom& atom_i = atoms_[i];
 
     if (!fpot->isHandled(atom_i)) continue;
 
-    nl_.reserve(nl_size_prev+MDTK_NB_RESERVE_ADD);
-
-    for(size_t j = 0; j < N; j++)
+    for(size_t j = i+1; j < N; j++)
     {
-      if (i == j) continue;
-
       Atom& atom_j = atoms_[j];
 
       if (!fpot->isHandled(atom_j)) continue;
@@ -60,7 +62,10 @@ NeighbourList::Update(AtomsArray& atoms_)
 
       Float dij_squared = depos(atom_i,atom_j).module_squared();
       if (dij_squared < range_squared)
-        nl_.push_back(&atom_j);
+      {
+        nl[i].push_back(&atom_j);
+        nl[j].push_back(&atom_i);
+      }
     }
   }
 }
