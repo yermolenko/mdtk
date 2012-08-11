@@ -834,6 +834,8 @@ REBO::REBO(ParamSet /*parSet*/):
   handledElements.insert(C_EL);
   handledElementPairs.insert(std::make_pair(H_EL,C_EL));
   handledElementPairs.insert(std::make_pair(C_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(H_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(C_EL,C_EL));
   setupPotential1();
 
   nl.Rcutoff = getRcutoff();

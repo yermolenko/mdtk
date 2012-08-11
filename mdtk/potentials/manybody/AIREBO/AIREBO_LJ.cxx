@@ -216,6 +216,8 @@ AIREBO::setupPotential()
   handledElements.insert(C_EL);
   handledElementPairs.insert(std::make_pair(H_EL,C_EL));
   handledElementPairs.insert(std::make_pair(C_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(H_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(C_EL,C_EL));
 
   sigma_[C][C] = 3.40*Ao;
   sigma_[H][H] = 2.65*Ao;

@@ -482,6 +482,8 @@ Brenner::Brenner(ParamSet parSet):
   handledElements.insert(C_EL);
   handledElementPairs.insert(std::make_pair(H_EL,C_EL));
   handledElementPairs.insert(std::make_pair(C_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(H_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(C_EL,C_EL));
   switch (paramSet)
   {
     case POTENTIAL1:  setupPotential1(); break;
