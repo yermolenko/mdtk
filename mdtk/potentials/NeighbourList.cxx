@@ -42,19 +42,14 @@ NeighbourList::Update(AtomsArray& atoms_)
     displacements[i] = Vector3D(0,0,0);
 
     AtomRefsContainer& nl_ = nl[i];
-    AtomRefsContainer& nl_with_self_ = nl_with_self[i];
-    
     Atom& atom_i = atoms_[i];
 
     size_t nl_size_prev = nl_.size();
     nl_.clear();
-    size_t nl_with_self_size_prev = nl_with_self_.size();
-    nl_with_self_.clear();
 
     if (!fpot->isHandled(atom_i)) continue;
 
     nl_.reserve(nl_size_prev+MDTK_NB_RESERVE_ADD /*50+1*/);
-    nl_with_self_.reserve(nl_with_self_size_prev+MDTK_NB_RESERVE_ADD /*50+1*/);
 
     for(j = 0; j < N; j++)
     {
@@ -68,13 +63,8 @@ NeighbourList::Update(AtomsArray& atoms_)
         if (dij_squared < range_squared) 
         {
           nl_.push_back(&atom_j);
-          nl_with_self_.push_back(&atom_j);
         }
       }
-      else
-      {
-        nl_with_self_.push_back(&atom_j);
-      }  
     }
   }
 }

@@ -67,10 +67,6 @@ public:
   {
     return nl.nl[atom.globalIndex];
   }
-  AtomRefsContainer& NL_with_self(const Atom& atom)
-  {
-    return nl.nl_with_self[atom.globalIndex];
-  }
 
   virtual
   void NL_checkRequestUpdate(AtomsArray& atoms) {nl.checkRequestUpdate(atoms);}
