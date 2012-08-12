@@ -431,6 +431,9 @@ REBO::Nt(AtomsPair& ij, const Float V)
   Float N = Nts[ij.atom1.globalIndex];
   if (ij.r() < R(1,ij))
     N -= ij.f();
+  REQUIRE(N > -1e-15);
+  if (N < 0)
+    N = 0;
   return N;
 }
 
@@ -456,6 +459,9 @@ REBO::NH(AtomsPair& ij, const Float V)
   {
     N -= ij.f();
   }
+  REQUIRE(N > -1e-15);
+  if (N < 0)
+    N = 0;
   return N;
 }
 
@@ -480,6 +486,9 @@ REBO::NC(AtomsPair& ij, const Float V)
   {
     N -= ij.f();
   }
+  REQUIRE(N > -1e-15);
+  if (N < 0)
+    N = 0;
   return N;
 }
 
