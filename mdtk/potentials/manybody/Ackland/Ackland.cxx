@@ -403,7 +403,7 @@ Ackland::fillR_concat_()
 {
   Float r;
 
-  AtomsArray atoms(3);
+  AtomsArray atoms(ECOUNT);
   atoms[0].ID = Cu_EL;
   atoms[1].ID = Ag_EL;
   atoms[2].ID = Au_EL;
