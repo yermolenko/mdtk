@@ -722,7 +722,8 @@ SimLoop
 build_Cluster_Landed_on_Substrate(
   const SimLoop sl_Substrate,
   ElementID id,
-  int clusterSize
+  int clusterSize,
+  bool applyPBCtoCluster
   )
 {
   std::ostringstream sbuildSubdir;
@@ -764,6 +765,21 @@ build_Cluster_Landed_on_Substrate(
   quench(sl,0.01*K,200*ps,0.01*ps,"_tmp-X-landing-quench");
 
   yaatk::chdir("..");
+
+  if (!applyPBCtoCluster)
+  {
+    for(size_t i = 0; i < sl.atoms.size(); ++i)
+    {
+      Atom& a = sl.atoms[i];
+      if (a.ID == id)
+      {
+        REQUIRE(a.PBC_count.x == 0);
+        REQUIRE(a.PBC_count.y == 0);
+        REQUIRE(a.PBC_count.z == 0);
+        a.PBC = NO_PBC;
+      }
+    }
+  }
 
   return sl;
 }

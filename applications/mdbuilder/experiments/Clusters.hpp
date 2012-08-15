@@ -76,7 +76,8 @@ SimLoop
 build_Cluster_Landed_on_Substrate(
   const mdtk::SimLoop sl_Substrate,
   ElementID id,
-  int clusterSize
+  int clusterSize,
+  bool applyPBCtoCluster = false
   );
 
 void
