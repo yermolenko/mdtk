@@ -358,8 +358,12 @@ SimLoop::executeMain()
       Float v = atom.V.module();
       if (v > v_max &&
           fpot.hasNB(atom) &&
-          atom.coords.z > thermalBath.zMinOfFreeZone &&
-          atom.coords.module() < 500.0*Ao)
+          atom.coords.z > -20.0*Ao &&
+          abs(atom.PBC_count.x) < 2 &&
+          abs(atom.PBC_count.y) < 2 &&
+          abs(atom.PBC_count.z) < 2 &&
+          atom.coords.module() < 500.0*Ao
+         )
         v_max = v;
     }
 
