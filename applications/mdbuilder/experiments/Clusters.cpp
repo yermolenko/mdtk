@@ -913,7 +913,7 @@ bomb_Cluster_with_Ions(
 
     sl.iteration = 0;
     sl.simTime = 0.0*ps;
-    sl.simTimeFinal = 10.0*ps;
+    sl.simTimeFinal = 6.0*ps;
     sl.simTimeSaveTrajInterval = 0.1*ps;
 
     yaatk::text_ofstream fomde("mde_init");
