@@ -781,6 +781,8 @@ build_Cluster_Landed_on_Substrate(
     }
   }
 
+  sl.atoms.removeMomentum();
+
   return sl;
 }
 
