@@ -99,8 +99,9 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
   std::vector<int> clusterSizes,
   std::vector<ElementID> clusterElements,
   std::vector<ElementID> ionElements,
-  std::vector<Float> ionEnergies
-  );
+  std::vector<Float> ionEnergies,
+  size_t numberOfImpacts = 1024
+);
 
 void
 bomb_orthorhombic_with_clusters(

@@ -943,7 +943,8 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
   std::vector<int> clusterSizes,
   std::vector<ElementID> clusterElements,
   std::vector<ElementID> ionElements,
-  std::vector<Float> ionEnergies
+  std::vector<Float> ionEnergies,
+  size_t numberOfImpacts
   )
 {
   SimLoop sl_Polyethylene =
@@ -994,7 +995,8 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
                                  sl_Landed,
                                  clusterAtomIndices,
                                  ionElement, ionEnergy,
-                                 halo);
+                                 halo,
+                                 numberOfImpacts);
         }
       }
     }

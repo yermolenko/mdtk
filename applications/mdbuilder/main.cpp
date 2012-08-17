@@ -47,6 +47,7 @@
 #include "experiments/Fulleride.hpp"
 
 static int clusterSize = 0;
+static size_t numberOfImpacts = 1024;
 
 void
 buildCommands()
@@ -342,7 +343,8 @@ buildCommands()
                                                              clusterSizes,
                                                              clusterElements,
                                                              ionElements,
-                                                             ionEnergies);
+                                                             ionEnergies,
+                                                             numberOfImpacts);
     }
     if (0)
     {
@@ -561,49 +563,72 @@ MDBuilderWindow::draw()
 
 int main(int argc, char *argv[])
 {
-  if (argc > 1 && !strcmp(argv[1],"--cluster-size"))
+  for(int argi = 0; argi < argc; ++argi)
   {
-    if (!(argc > 2))
+    if (!strcmp(argv[argi],"--cluster-size") || !std::strcmp(argv[argi],"-s"))
     {
-      std::cerr << "You should specify cluster size, e.g. --cluster-size 13\n";
-      return -1;
+      if (!(argi+1 < argc))
+      {
+        std::cerr << "You should specify cluster size, e.g. --cluster-size 13\n";
+        return -1;
+      }
+      std::istringstream iss(argv[argi+1]);
+      iss >> clusterSize;
+      if (!(clusterSize > 0 && clusterSize <= 200))
+      {
+        std::cerr << "Unsupported cluster size\n";
+        return -1;
+      }
     }
-    std::istringstream iss(argv[2]);
-    iss >> clusterSize;
-    if (!(clusterSize > 0 && clusterSize <= 200))
+
+    if (!strcmp(argv[argi],"--number-of-impacts") || !std::strcmp(argv[argi],"-i"))
     {
-      std::cerr << "Unsupported cluster size\n";
-      return -1;
+      if (!(argi+1 < argc))
+      {
+        std::cerr << "You should specify number of impacts, e.g. --number-of-impacts 300\n";
+        return -1;
+      }
+      std::istringstream iss(argv[argi+1]);
+      iss >> numberOfImpacts;
+      if (!(numberOfImpacts > 0 && numberOfImpacts <= 2048))
+      {
+        std::cerr << "Unsupported number of impacts\n";
+        return -1;
+      }
     }
-  }
 
-  if (argc > 1 && !strcmp(argv[1],"--version"))
-  {
-    std::cout << "mdbuilder (molecular dynamics experiments preparation tool) ";
-    mdtk::release_info.print();
-    return 0;
-  }
+    if (!strcmp(argv[argi],"--version"))
+    {
+      std::cout << "mdbuilder (molecular dynamics experiments preparation tool) ";
+      mdtk::release_info.print();
+      return 0;
+    }
 
-  if (argc > 1 && (!std::strcmp(argv[1],"--help") || !std::strcmp(argv[1],"-h")))
-  {
-    std::cout << "\
+    if (!std::strcmp(argv[argi],"--help") || !std::strcmp(argv[argi],"-h"))
+    {
+      std::cout << "\
 Usage: mdbuilder [OPTION]... \n\
 Prepares molecular dynamics experiments.\n\
 \n\
       --help     display this help and exit\n\
       --version  output version information and exit\n\
       --cluster-size  <cluster size>  generate experiment for a specified cluster size\n\
+      --number-of-impacts  <number of impacts>  generate specific number of impacts for each experiment (default : 1024)\n\
 \n\
 Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 ";
-    return 0;
+      return 0;
+    }
   }
 
   if (clusterSize == 0)
   {
-    std::cerr << "You should specify cluster size with --cluster-size option\n";
+    std::cerr << "You should specify cluster size with --cluster-size option. Run with -h option for details.\n";
     return -1;
   }
+
+  TRACE(clusterSize);
+  TRACE(numberOfImpacts);
 
   srand(12345);
 
