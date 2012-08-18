@@ -89,7 +89,8 @@ checkOnEnergyPotMin(SimLoop& simloop, Float& minPotEnergy)
          << minPotEnergy/eV/simloop.atoms.size() << std::endl;
       fo.close();
     }
-    ERRTRACE(minPotEnergy/eV/simloop.atoms.size());
+    if (mdtk::verboseTrace)
+      ERRTRACE(minPotEnergy/eV/simloop.atoms.size());
   }
 }
 
@@ -103,7 +104,8 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
 
   Float freezingEnergy = 0.0001*2.5*eV*modloop->atoms.size();
   TRACE(freezingEnergy/eV);
-  ERRTRACE(freezingEnergy/eV);
+  if (mdtk::verboseTrace)
+    ERRTRACE(freezingEnergy/eV);
 
   for(Float maxHeatUpEnergy = 0.0001*eV;
       maxHeatUpEnergy <= 5.00*eV;
@@ -117,17 +119,21 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->simTimeFinal = 1.0*ps;
     modloop->dt = 1e-20;
     modloop->iteration = 0;
-    cerr << "Heating up every atom to " << maxHeatUpEnergy/eV << " eV" << std::endl;
+    if (mdtk::verboseTrace)
+      cerr << "Heating up every atom to " << maxHeatUpEnergy/eV << " eV" << std::endl;
     modloop->heatUpEveryAtom(maxHeatUpEnergy, rng);
     TRACE(modloop->atoms.PBC());
     int retval;
-    cerr << "Releasing..." << std::endl;
+    if (mdtk::verboseTrace)
+      cerr << "Releasing..." << std::endl;
     retval = modloop->execute();
     if (retval) return ENERGYINF;
-    ERRTRACE(modloop->simTime/ps);
+    if (mdtk::verboseTrace)
+      ERRTRACE(modloop->simTime/ps);
     checkOnEnergyPotMin(*modloop,minPotEnergy);
 
-    cerr << "Cooling..." << std::endl;
+    if (mdtk::verboseTrace)
+      cerr << "Cooling..." << std::endl;
 
     modloop->thermalBath.zMin = -100000.0*Ao;
     modloop->simTime = 0.0*ps;
@@ -139,7 +145,8 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     {
       modloop->simTimeFinal += 0.05*ps;
       retval = modloop->execute();
-      ERRTRACE(modloop->simTime/ps);
+      if (mdtk::verboseTrace)
+        ERRTRACE(modloop->simTime/ps);
       if (modloop->energyKin() < freezingEnergy) break;
     }
     if (retval) return ENERGYINF;
@@ -231,11 +238,14 @@ add1atom(AtomsArray& atoms, ElementID id, gsl_rng* r)
   Float& xM = xm[xi][xs];
   size_t& xMIndex = xmi[xi][xs];
 
-  ERRTRACE(xi);
-  ERRTRACE(xs);
-  ERRTRACE(sign);
-  ERRTRACE(xM/Ao);
-  ERRTRACE(xMIndex);
+  if (mdtk::verboseTrace)
+  {
+    ERRTRACE(xi);
+    ERRTRACE(xs);
+    ERRTRACE(sign);
+    ERRTRACE(xM/Ao);
+    ERRTRACE(xMIndex);
+  }
 
   Atom newAtom;
   newAtom.ID  = id;
@@ -247,13 +257,16 @@ add1atom(AtomsArray& atoms, ElementID id, gsl_rng* r)
 
   Vector3D dv(0,0,0);
   dv.X(xi) = 2.29*Ao*sign;
-  ERRTRACE(dv);
+  if (mdtk::verboseTrace)
+    ERRTRACE(dv);
   dv += 0.03*Ao*vn;
-  ERRTRACE(dv);
+  if (mdtk::verboseTrace)
+    ERRTRACE(dv);
 
   newAtom.coords = atoms[xMIndex].coords + dv;
 
-  ERRTRACE(newAtom.coords/Ao);
+  if (mdtk::verboseTrace)
+    ERRTRACE(newAtom.coords/Ao);
 
   atoms.push_back(newAtom);
 }
@@ -292,7 +305,8 @@ cluster(ElementID id, int clusterSize)
       atomsCount <= clusterSize;
       atomsCount++)
   {
-    ERRTRACE(sl.atoms.size());
+    if (mdtk::verboseTrace)
+      ERRTRACE(sl.atoms.size());
 
     sl.executeDryRun();
 
@@ -374,7 +388,8 @@ clusterFromCrystal(const AtomsArray& atoms, int clusterSize, Vector3D c)
   std::ofstream foGlobal("energy.min.all",std::ios::app);
 
   {
-    ERRTRACE(sl.atoms.size());
+    if (mdtk::verboseTrace)
+      ERRTRACE(sl.atoms.size());
 
     sl.executeDryRun();
 

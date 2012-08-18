@@ -315,6 +315,7 @@ buildCommands()
     }
 //    if (0)
     {
+      verboseTrace = false;
       TRACE(clusterSize);
       glLoadIdentity();
       std::vector<int> clusterSizes;
