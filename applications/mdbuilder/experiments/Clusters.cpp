@@ -855,6 +855,9 @@ bomb_Cluster_with_Ions(
   Float a = clusterXMax - clusterXMin;
   Float b = clusterYMax - clusterYMin;
 
+  REQUIRE(clusterXMin > 0.0 + sl.thermalBath.dBoundary && clusterXMax < sl.atoms.PBC().x - sl.thermalBath.dBoundary);
+  REQUIRE(clusterYMin > 0.0 + sl.thermalBath.dBoundary && clusterYMax < sl.atoms.PBC().y - sl.thermalBath.dBoundary);
+
   gsl_qrng * coord2d_qrng = gsl_qrng_alloc (/*gsl_qrng_sobol*/ gsl_qrng_niederreiter_2, 2);
   REQUIRE(coord2d_qrng != NULL);
 
