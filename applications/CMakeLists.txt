@@ -21,12 +21,6 @@
 
 add_subdirectory (mdtrajsim)
 
-IF(WIN32)
-  message("Molecular Dynamics Postprocessor will not be compiled on Win32. Use *nix to build it.")
-ELSE(WIN32)
-  add_subdirectory (mdpp)
-ENDIF(WIN32)
-
 add_subdirectory (selftest)
 
 IF(MSVC)
@@ -41,7 +35,6 @@ FIND_PACKAGE(OpenGL)
 
 IF(OPENGL_FOUND AND FLTK_FOUND)
   add_subdirectory (mdtrajview)
-  add_subdirectory (mdbuilder)
 ELSE(OPENGL_FOUND AND FLTK_FOUND)
   message("FLTK or OpenGL not found! Install it in order to visualize MD trajectories and prepare experiments using mdbuilder.")
 ENDIF(OPENGL_FOUND AND FLTK_FOUND)
