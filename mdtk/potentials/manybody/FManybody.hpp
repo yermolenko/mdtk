@@ -33,8 +33,6 @@ namespace mdtk
 class FManybody : public FGeneral
 {
 public:
-  std::vector<std::vector<AtomPair> > pairs;
-  AtomPair *currentPairPtr;
   FManybody();
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {

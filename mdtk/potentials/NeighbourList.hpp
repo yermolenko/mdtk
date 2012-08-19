@@ -45,22 +45,19 @@ class NeighbourList
 public:
   Float Rcutoff;
   std::vector<AtomRefsContainer> nl;
-  std::vector<AtomRefsContainer> nl_with_self;
   std::vector<Vector3D> displacements;
   NeighbourList(const FGeneral* pot)
    : fpot(pot), ListUpdateRequested(true),
      Rcutoff(0.0),
-     nl(), nl_with_self(), displacements()
+     nl(), displacements()
   {
   }  
 
   void init(AtomsArray& atoms)
   {
     nl.clear();
-    nl_with_self.clear();
     displacements.clear();
     nl.resize(atoms.size());
-    nl_with_self.resize(atoms.size());
 
     displacements.resize(atoms.size());
     ListUpdateRequested = true;

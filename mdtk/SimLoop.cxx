@@ -322,10 +322,7 @@ SimLoop::executeMain()
         if (To_by_T < -max_To_by_T) To_by_T = -max_To_by_T;
         if (To_by_T > +max_To_by_T) To_by_T = +max_To_by_T;
 
-        Float gamma = 1.0e13;
-//        Float gamma = 1.0/(1000.0*dt);
-
-        Vector3D dforce = -atom.V*atom.M*gamma*(1.0-sqrt(To_by_T));
+        Vector3D dforce = -atom.V*atom.M*thermalBath.gamma*(1.0-sqrt(To_by_T));
 
         // try to account energy transfered to thermalbath
         // only required to perform energy conservation check
@@ -361,7 +358,12 @@ SimLoop::executeMain()
       Float v = atom.V.module();
       if (v > v_max &&
           fpot.hasNB(atom) &&
-          atom.coords.module() < 500.0*Ao)
+          atom.coords.z > -20.0*Ao &&
+          abs(atom.PBC_count.x) < 2 &&
+          abs(atom.PBC_count.y) < 2 &&
+          abs(atom.PBC_count.z) < 2 &&
+          atom.coords.module() < 500.0*Ao
+         )
         v_max = v;
     }
 
@@ -424,6 +426,11 @@ SimLoop::executeMain()
     writetrajXVA();
     if (verboseTrace) cout << "done. " << endl;
   };
+  {
+    if (verboseTrace) cout << "Writing state ... " ;
+    writestate();
+    if (verboseTrace) cout << "done. " << endl;
+  }
 
   curWallTime = time(NULL);
   if (verboseTrace)
@@ -1236,7 +1243,7 @@ ThermalBath::disableGlobally()
 */
 
 SimLoop::ThermalBath::ThermalBath(Float zMin_, Float dBoundary_, Float zMinOfFreeZone_)
-  :zMin(zMin_), dBoundary(dBoundary_), zMinOfFreeZone(zMinOfFreeZone_), To(0.0)
+  :zMin(zMin_), dBoundary(dBoundary_), zMinOfFreeZone(zMinOfFreeZone_), To(0.0), gamma(1.0e13)
 {
 }
 
@@ -1247,6 +1254,7 @@ SimLoop::ThermalBath::saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_WRITE(os,dBoundary,smode);
   YAATK_FSTREAM_WRITE(os,zMinOfFreeZone,smode);
   YAATK_FSTREAM_WRITE(os,To,smode);
+  YAATK_FSTREAM_WRITE(os,gamma,smode);
 }
 
 void
@@ -1256,6 +1264,7 @@ SimLoop::ThermalBath::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_READ(is,dBoundary,smode);
   YAATK_FSTREAM_READ(is,zMinOfFreeZone,smode);
   YAATK_FSTREAM_READ(is,To,smode);
+  YAATK_FSTREAM_READ(is,gamma,smode);
 }
 
 bool

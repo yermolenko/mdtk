@@ -34,15 +34,7 @@ REBO::operator()(AtomsArray& gl)
 {
   countNeighbours(gl);
   Float Ei = 0;
-  if (gl.size() != pairs.size()) pairs.resize(gl.size());
-  size_t ii;
-  for(ii = 0; ii < gl.size(); ii++)
-  {
-    size_t prevSize = pairs[ii].size();
-    pairs[ii].clear();
-    pairs[ii].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
-  }
-  for(ii = 0; ii < gl.size(); ii++)
+  for(size_t ii = 0; ii < gl.size(); ii++)
   {
     Atom &atom_i = gl[ii];
     if (isHandled(atom_i))
@@ -439,6 +431,9 @@ REBO::Nt(AtomsPair& ij, const Float V)
   Float N = Nts[ij.atom1.globalIndex];
   if (ij.r() < R(1,ij))
     N -= ij.f();
+  REQUIRE(N > -1e-15);
+  if (N < 0)
+    N = 0;
   return N;
 }
 
@@ -464,6 +459,9 @@ REBO::NH(AtomsPair& ij, const Float V)
   {
     N -= ij.f();
   }
+  REQUIRE(N > -1e-15);
+  if (N < 0)
+    N = 0;
   return N;
 }
 
@@ -488,6 +486,9 @@ REBO::NC(AtomsPair& ij, const Float V)
   {
     N -= ij.f();
   }
+  REQUIRE(N > -1e-15);
+  if (N < 0)
+    N = 0;
   return N;
 }
 
@@ -842,6 +843,8 @@ REBO::REBO(ParamSet /*parSet*/):
   handledElements.insert(C_EL);
   handledElementPairs.insert(std::make_pair(H_EL,C_EL));
   handledElementPairs.insert(std::make_pair(C_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(H_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(C_EL,C_EL));
   setupPotential1();
 
   nl.Rcutoff = getRcutoff();

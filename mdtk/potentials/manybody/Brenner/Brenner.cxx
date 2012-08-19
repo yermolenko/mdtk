@@ -32,15 +32,7 @@ Float
 Brenner::operator()(AtomsArray& gl)
 {
   Float Ei = 0;
-  if (gl.size() != pairs.size()) pairs.resize(gl.size());
-  size_t ii;
-  for(ii = 0; ii < gl.size(); ii++)
-  {
-    size_t prevSize = pairs[ii].size();
-    pairs[ii].clear();
-    pairs[ii].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
-  }
-  for(ii = 0; ii < gl.size(); ii++)
+  for(size_t ii = 0; ii < gl.size(); ii++)
   {
     Atom &atom_i = gl[ii];
     if (isHandled(atom_i))
@@ -490,6 +482,8 @@ Brenner::Brenner(ParamSet parSet):
   handledElements.insert(C_EL);
   handledElementPairs.insert(std::make_pair(H_EL,C_EL));
   handledElementPairs.insert(std::make_pair(C_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(H_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(C_EL,C_EL));
   switch (paramSet)
   {
     case POTENTIAL1:  setupPotential1(); break;
