@@ -21,8 +21,6 @@
 
 add_subdirectory (mdtrajsim)
 
-add_subdirectory (selftest)
-
 IF(MSVC)
   SET(FLTK_LIBRARIES fltk fltkgl)
   SET(FLTK_FOUND true)
