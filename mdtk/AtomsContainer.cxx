@@ -109,7 +109,7 @@ AtomsArray::prepareForSimulatation()
   REQUIRE(size() > 0);
   for(size_t i = 0; i < size(); i++)
   {
-    at(i).PBC = arrayPBC;
+//    at(i).PBC = arrayPBC;
     at(i).applyPBC();
     at(i).globalIndex = i;
   }
