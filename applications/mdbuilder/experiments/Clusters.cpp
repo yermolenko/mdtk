@@ -832,7 +832,7 @@ bomb_Cluster_with_Ions(
     Atom& clusterAtom = sl.atoms[clusterAtomIndices[i]];
 
 //    clusterAtom.apply_PBC = false;
-    clusterAtom.apply_ThermalBath = false;
+//    clusterAtom.apply_ThermalBath = false;
   }
 
   const Atom& clusterAtom = target.atoms[clusterAtomIndices[0]];
@@ -922,7 +922,7 @@ bomb_Cluster_with_Ions(
 
     projectile.V = Vector3D(0,0,sqrt(2.0*ionEnergy/(projectile.M)));
 //    projectile->apply_PBC=false;
-    projectile.apply_ThermalBath=false;
+//    projectile.apply_ThermalBath=false;
     projectile.tag(ATOMTAG_PROJECTILE);
     sl.atoms.push_back(projectile);
 
