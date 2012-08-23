@@ -157,7 +157,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
  
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(580,380,105,30,
+      = new Fl_Light_Button(570,360,115,20,
 			    "Auto rescale");
     t->callback((Fl_Callback*)btn_rescale_cb);
     t->value(false);
@@ -165,7 +165,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(700,320,105,30,
+      = new Fl_Light_Button(195,460,105,20,
 			    "Unfold PBC");
     t->callback(btn_bool_toggle_cb,
 		&renderBox->unfoldPBC);
@@ -179,7 +179,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Button* t
-      = new Fl_Button(580,320,105,30,
+      = new Fl_Button(570,320,115,20,
 		      "Scale Up");
     t->tooltip(btn_scale_up_tooltip);
     t->callback((Fl_Callback*)btn_scale_up_cb);
@@ -187,7 +187,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Button* t
-      = new Fl_Button(580,350,105,30,
+      = new Fl_Button(570,340,115,20,
 		      "Scale Down");
     t->tooltip(btn_scale_down_tooltip);
     t->callback((Fl_Callback*)btn_scale_down_cb);
@@ -195,8 +195,8 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(160,320,165,30,
-			    "Colored atoms");
+      = new Fl_Light_Button(15,480,135,20,
+			    "Multicolor atoms");
     t->tooltip(btn_colored_atoms_tooltip);
     t->callback(btn_bool_toggle_cb,
 		&renderBox->nativeVertexColors);
@@ -205,7 +205,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Button* t
-      = new Fl_Button(160,350,165,30,
+      = new Fl_Button(15,500,135,20,
 		      "Atoms color");
     t->tooltip(btn_atoms_color_tooltip);
     t->callback((Fl_Callback*)btn_atoms_color_cb);
@@ -213,15 +213,15 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Button* t
-      = new Fl_Button(160,380,165,30,
-		      "Background color");
+      = new Fl_Button(15,520,135,20,
+		      "BG color");
     t->tooltip(btn_bg_color_tooltip);
     t->callback((Fl_Callback*)btn_bg_color_cb);
   }
 
   {
     Fl_Slider* t
-      = new Fl_Slider(350, 320, 25, 125, 
+      = new Fl_Slider(160, 320, 25, 185,
 		      "Render\nquality");
     t->labelsize(12);
     t->minimum(16);
@@ -246,15 +246,15 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   {
     Fl_Box* t 
       = new Fl_Box(FL_EMBOSSED_FRAME,
-		   695,35,270,280,
-		   "Collision Tree");
+		   695,35,290,140,
+		   "Collision tree / Motion trace");
     t->align(FL_ALIGN_TOP | FL_ALIGN_INSIDE);
   }
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(695+15, 40+20, 150, 26,
-			    "Show Atoms");
+      = new Fl_Light_Button(300,320,105,20,
+			    "Atoms");
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showAtoms);
     t->value(renderBox->showAtoms);
@@ -262,8 +262,8 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(695+15, 40+20+26, 150, 26,
-			    "Show Tree");
+      = new Fl_Light_Button(695+10, 40+15, 135, 20,
+			    "Show trace");
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showCTree);
     t->value(renderBox->showCTree);
@@ -271,8 +271,8 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(695+15, 40+20+26+26, 150, 26,
-			    "Show All Times");
+      = new Fl_Light_Button(695+10+135, 40+15, 135, 20,
+			    "All times at once");
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showCTreeAllTimes);
     t->value(renderBox->showCTreeAllTimes);
@@ -280,15 +280,15 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Counter* t
-      = new Fl_Counter(695+15, 40+20+26+26+26+12, 150, 26,
-		       "Energy Threshold, eV");
+      = new Fl_Counter(695+10+135, 40+15+20+5, 135, 20,
+		       "Energy threshold, eV: ");
     t->labelsize(12);
     t->minimum(0.1);
     t->maximum(900);
     t->value(renderBox->energyThresholdCTree);
     t->lstep(5);
     t->step(0.1);
-    t->align(FL_ALIGN_TOP);
+    t->align(FL_ALIGN_LEFT);
 //   t->type(FL_SIMPLE_COUNTER);
     t->callback(set_double_cb,
 		&renderBox->energyThresholdCTree);
@@ -296,8 +296,8 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(695+15, 40+20+26+26+26+12+26, 150, 26,
-			    "Connected Tree");
+      = new Fl_Light_Button(695+10, 40+15+20+5+20+5, 270, 20,
+			    "Interpolate using lines");
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showCTreeConnected);
     t->value(renderBox->showCTreeConnected);
@@ -305,8 +305,8 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
     
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(695+15, 40+20+26+26+26+12+26+26, 150, 26,
-			    "Show Atoms on Tree");
+      = new Fl_Light_Button(695+10, 40+15+20+5+20+5+20+20, 270, 20,
+			    "'Phantom' atoms in keyframes");
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showCTreeAtoms);
     t->value(renderBox->showCTreeAtoms);
@@ -314,23 +314,23 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Counter* t;
-    t = new Fl_Counter(695+15, 40+20+26+26+26+12+26+26+12+26, 150, 26,
-		       "CTree Scaledown");
+    t = new Fl_Counter(695+10+135, 40+15+20+5+20+5+20, 135, 20,
+		       "Narrowness of lines: ");
     t->labelsize(12);
     t->minimum(1);
     t->maximum(900);
     t->value(renderBox->downscaleCTree);
     t->lstep(10);
     t->step(1);
-    t->align(FL_ALIGN_TOP);
+    t->align(FL_ALIGN_LEFT);
     t->callback(set_double_cb,
 		&renderBox->downscaleCTree);
   }
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(160,420,165,30,
-			    "Show axes");
+      = new Fl_Light_Button(195,340,105,20,
+			    "Axes");
     t->tooltip(btn_show_axes_tooltip);
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showAxes);
@@ -339,8 +339,8 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(160,450,165,30,
-			    "Show thermal bath");
+      = new Fl_Light_Button(195,360,210,20,
+			    "Thermal bath borders");
     t->tooltip(btn_show_bath_tooltip);
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showBath);
@@ -349,8 +349,8 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(160,480,165,30,
-			    "Show tb sketch");
+      = new Fl_Light_Button(195,380,210,20,
+			    "Thermal bath sketch");
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showBathSketch);
     t->value(renderBox->showBathSketch);
@@ -358,8 +358,8 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(15,480,135,30,
-			    "Show bonds");
+      = new Fl_Light_Button(195,320,105,20,
+			    "Bonds");
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showBonds);
     t->value(renderBox->showBonds);
@@ -367,8 +367,8 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(160,510,165,15,
-			    "Show Custom1");
+      = new Fl_Light_Button(195,400,105,20,
+			    "Custom1");
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showCustom1);
     t->value(renderBox->showCustom1);
@@ -376,8 +376,8 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(160,525,165,15,
-			    "Show Custom2");
+      = new Fl_Light_Button(195,420,105,20,
+			    "Custom2");
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showCustom2);
     t->value(renderBox->showCustom2);
@@ -385,8 +385,8 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(160+165,510,165,15,
-			    "Show Custom3");
+      = new Fl_Light_Button(195+105,400,105,20,
+			    "Custom3");
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showCustom3);
     t->value(renderBox->showCustom3);
@@ -394,7 +394,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(160+165,525,165,15,
+      = new Fl_Light_Button(300,340,105,20,
 			    "Tiny Atoms");
     t->callback(btn_bool_toggle_cb,
 		&renderBox->tinyAtoms);
@@ -449,14 +449,14 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Button* t
-      = new Fl_Button(415,320,125,30,
+      = new Fl_Button(415,320,145,20,
 		      "Save video");
     t->callback((Fl_Callback*)btn_quick_save_image_cb);
   }
 
   {
     Fl_Button* t
-      = new Fl_Button(415,350,125,15,
+      = new Fl_Button(415,340,145,20,
 		      "Save image");
     t->tooltip(btn_save_image_tooltip);
     t->callback((Fl_Callback*)btn_save_image_cb);
@@ -464,15 +464,15 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Button* t
-      = new Fl_Button(415,365,125,15,
-		      "Save Tiled Image");
+      = new Fl_Button(415,360,145,20,
+		      "Save hi-res image");
     t->callback((Fl_Callback*)btn_save_tiled_image_cb);
   }
 
   {
     Fl_Button* t
-      = new Fl_Button(415,380,125,30,
-		      "Save in.mde.gz");
+      = new Fl_Button(415,380,145,20,
+		      "Save current state");
     t->callback((Fl_Callback*)btn_save_mde_cb);
   }
 
@@ -483,7 +483,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
     t->align(FL_ALIGN_TOP | FL_ALIGN_INSIDE);
   }
 
-  roll_x = new Fl_Roller(455, 60, 20, 235, "X");
+  roll_x = new Fl_Roller(455, 80, 20, 215, "X");
   roll_x->tooltip(roll_x_tooltip);
   roll_x->type(0);
   roll_x->labelsize(12);
@@ -493,7 +493,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   roll_x->step(1);
   roll_x->callback((Fl_Callback*)roll_x_cb);
 
-  val_xmin = new Fl_Slider(430, 60, 25, 235, "min");
+  val_xmin = new Fl_Slider(430, 80, 25, 215, "min");
   val_xmin->type(FL_VERT_NICE_SLIDER);
   val_xmin->labelsize(12);
   val_xmin->minimum(101);
@@ -503,7 +503,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   val_xmin->when(FL_WHEN_RELEASE);
   val_xmin->callback((Fl_Callback*)val_xminmax_cb);
 
-  val_xmax = new Fl_Slider(475, 60, 25, 235, "max");
+  val_xmax = new Fl_Slider(475, 80, 25, 215, "max");
   val_xmax->type(FL_VERT_NICE_SLIDER);
   val_xmax->labelsize(12);
   val_xmax->minimum(101);
@@ -513,7 +513,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   val_xmax->when(FL_WHEN_RELEASE);
   val_xmax->callback((Fl_Callback*)val_xminmax_cb);
 
-  roll_y = new Fl_Roller(540, 60, 20, 235, "Y");
+  roll_y = new Fl_Roller(540, 80, 20, 215, "Y");
   roll_y->tooltip(roll_y_tooltip);
   roll_y->type(0);
   roll_y->labelsize(12);
@@ -523,7 +523,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   roll_y->step(1);
   roll_y->callback((Fl_Callback*)roll_y_cb);
 
-  val_ymin = new Fl_Slider(515, 60, 25, 235, "min");
+  val_ymin = new Fl_Slider(515, 80, 25, 215, "min");
   val_ymin->type(FL_VERT_NICE_SLIDER);
   val_ymin->labelsize(12);
   val_ymin->minimum(101);
@@ -533,7 +533,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   val_ymin->when(FL_WHEN_RELEASE);
   val_ymin->callback((Fl_Callback*)val_xminmax_cb);
 
-  val_ymax = new Fl_Slider(560, 60, 25, 235, "max");
+  val_ymax = new Fl_Slider(560, 80, 25, 215, "max");
   val_ymax->type(FL_VERT_NICE_SLIDER);
   val_ymax->labelsize(12);
   val_ymax->minimum(101);
@@ -543,7 +543,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   val_ymax->when(FL_WHEN_RELEASE);
   val_ymax->callback((Fl_Callback*)val_xminmax_cb);
 
-  roll_z = new Fl_Roller(625, 60, 20, 235, "Z");
+  roll_z = new Fl_Roller(625, 80, 20, 215, "Z");
   roll_z->tooltip(roll_z_tooltip);
   roll_z->type(0);
   roll_z->labelsize(12);
@@ -553,7 +553,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   roll_z->step(1);
   roll_z->callback((Fl_Callback*)roll_z_cb);
 
-  val_zmin = new Fl_Slider(600, 60, 25, 235, "min");
+  val_zmin = new Fl_Slider(600, 80, 25, 215, "min");
   val_zmin->type(FL_VERT_NICE_SLIDER);
   val_zmin->labelsize(12);
   val_zmin->minimum(101);
@@ -563,7 +563,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   val_zmin->when(FL_WHEN_RELEASE);
   val_zmin->callback((Fl_Callback*)val_xminmax_cb);
 
-  val_zmax = new Fl_Slider(645, 60, 25, 235, "max");
+  val_zmax = new Fl_Slider(645, 80, 25, 215, "max");
   val_zmax->type(FL_VERT_NICE_SLIDER);
   val_zmax->labelsize(12);
   val_zmax->minimum(101);
@@ -575,36 +575,36 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Button* t
-      = new Fl_Button(430, 45, 25*2+20, 10,
-		      "x view");
+      = new Fl_Button(430, 55, 25*2+20, 20,
+		      "45\xB0 rot");
     t->callback(btn_view_cb,roll_x);
   }
 
   {
     Fl_Button* t
-      = new Fl_Button(515, 45, 25*2+20, 10,
-		      "y view");
+      = new Fl_Button(515, 55, 25*2+20, 20,
+		      "45\xB0 rot");
     t->callback(btn_view_cb,roll_y);
   }
 
   {
     Fl_Button* t
-      = new Fl_Button(600, 45, 25*2+20, 10,
-		      "z view");
+      = new Fl_Button(600, 55, 25*2+20, 20,
+		      "45\xB0 rot");
     t->callback(btn_view_cb,roll_z);
   }
 
   {
-    new Fl_Box(FL_UP_FRAME,15,35,385,235+45,NULL);
+    new Fl_Box(FL_UP_FRAME,15,35,385+5,235+45,NULL);
   }
 
-  atom_info = new Fl_Multiline_Output(25,55,365,215,
+  atom_info = new Fl_Multiline_Output(25,55,370,225,
 				      "Selected Atom info");
   atom_info->textcolor(FL_BLUE);
   atom_info->align(FL_ALIGN_TOP);
   atom_info->value(""); 
 
-  current_atomindex = new Fl_Counter(25,275,220,30,NULL);
+  current_atomindex = new Fl_Counter(25,285,220,20,NULL);
   current_atomindex->align(FL_ALIGN_LEFT);
   current_atomindex->lstep(100);
   current_atomindex->step(1);
@@ -615,7 +615,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 
   {
     Fl_Light_Button* t
-      = new Fl_Light_Button(255,275,130,30,
+      = new Fl_Light_Button(255,285,140,20,
 			    "Show selected");
     t->callback(btn_bool_toggle_cb,
 		&renderBox->showSelected);
