@@ -125,6 +125,7 @@ class MainWindow : public Fl_Window
   static void btn_quick_save_image_cb(Fl_Widget *, void *);
   static void btn_save_mel_cb(Fl_Widget *, void *);
   static void btn_save_mde_cb(Fl_Widget *, void *);
+  static void btn_save_state_cb(Fl_Widget *, void *);
   
   static void btn_scale_up_cb(Fl_Widget *, void *);
   static void btn_scale_down_cb(Fl_Widget *, void *);

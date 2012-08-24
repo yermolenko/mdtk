@@ -156,7 +156,8 @@ public:
   void saveImageToFile(char* filename);
   void saveTiledImageToFile(char* filename);
   void saveToMDE(char* filename);
-	
+  void saveState(char* filename);
+
   static void window_cb(Fl_Widget *, void *);
 
   bool tiledMode;

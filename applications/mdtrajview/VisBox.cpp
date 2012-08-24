@@ -1204,6 +1204,20 @@ VisBox::saveToMDE(char* filename)
 }  
 
 void
+VisBox::saveState(char* filename)
+{
+  if (yaatk::exists(filename))
+  {
+    if (fl_choice("File exists. Do you really want to overwrite it?","No","Yes",NULL)!=1)
+      return;
+  }
+
+  yaatk::text_ofstream fo(filename);
+  ml_->saveToStream(fo);
+  fo.close();
+}
+
+void
 VisBox::saveImageToFile(char* filename)
 {
   hqMode = true;

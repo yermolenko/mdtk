@@ -515,7 +515,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
     Fl_Button* t
       = new Fl_Button(415,380,145,20,
 		      "Save current state");
-    t->callback((Fl_Callback*)btn_save_mde_cb);
+    t->callback((Fl_Callback*)btn_save_state_cb);
   }
 
   {
@@ -897,6 +897,28 @@ MainWindow::btn_save_mde_cb(Fl_Widget *w, void *)
   {
     VisBox_Ptr->saveToMDE(tmp_filename);
   }  
+}
+
+void
+MainWindow::btn_save_state_cb(Fl_Widget *w, void *)
+{
+  MainWindow* MainWindow_Ptr;
+  MainWindow_Ptr =
+    (MainWindow*)(w->parent()->parent()->parent());
+
+  VisBox* VisBox_Ptr;
+  VisBox_Ptr = MainWindow_Ptr->renderBox;
+
+  char *tmp_filename = fl_file_chooser
+    (
+      "Choose a file to save SimLoop state to ...",
+      "",
+      "mde_init",0
+      );
+  if (tmp_filename && (!fl_filename_isdir(tmp_filename)))
+  {
+    VisBox_Ptr->saveState(tmp_filename);
+  }
 }
 
 void
