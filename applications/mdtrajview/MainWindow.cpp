@@ -66,9 +66,9 @@ MainWindow::set_atom_properties_cb(Fl_Widget *w, void *)
   a->coords.y = MainWindow_Ptr->atom_coords_y->value()*Ao;
   a->coords.z = MainWindow_Ptr->atom_coords_z->value()*Ao;
 
-  a->V.x = MainWindow_Ptr->atom_v_x->value()*Ao;
-  a->V.y = MainWindow_Ptr->atom_v_y->value()*Ao;
-  a->V.z = MainWindow_Ptr->atom_v_z->value()*Ao;
+  a->V.x = MainWindow_Ptr->atom_v_x->value();
+  a->V.y = MainWindow_Ptr->atom_v_y->value();
+  a->V.z = MainWindow_Ptr->atom_v_z->value();
 
   MainWindow_Ptr->renderBox->reArrange(-1,101,-1,101,-1,101);
 /*
@@ -133,9 +133,9 @@ MainWindow::setAtomViewIndex(int index)
   atom_coords_y->value(a->coords.y/Ao);
   atom_coords_z->value(a->coords.z/Ao);
 
-  atom_v_x->value(a->V.x/Ao);
-  atom_v_y->value(a->V.y/Ao);
-  atom_v_z->value(a->V.z/Ao);
+  atom_v_x->value(a->V.x);
+  atom_v_y->value(a->V.y);
+  atom_v_z->value(a->V.z);
 
   clear_out();
 
