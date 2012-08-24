@@ -640,45 +640,45 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
     new Fl_Box(FL_UP_FRAME,15,35,385+5,235+45,NULL);
   }
 
-  atom_info = new Fl_Multiline_Output(25,55,370,105,
+  atom_info = new Fl_Multiline_Output(25,55,370,165,
 				      "Selected Atom info");
   atom_info->textcolor(FL_BLUE);
   atom_info->align(FL_ALIGN_TOP);
   atom_info->value(""); 
 
-  atom_coords_x = new Fl_Value_Input(25+40,175,110,20,"Pos:");
+  atom_coords_x = new Fl_Value_Input(25+40,235,110,20,"Pos:");
   atom_coords_x->range(-10000,+10000);
   atom_coords_x->precision(4);
   atom_coords_x->align(FL_ALIGN_LEFT);
   atom_coords_x->callback(set_atom_properties_cb);
 
-  atom_coords_y = new Fl_Value_Input(25+40+110*1,175,110,20,"");
+  atom_coords_y = new Fl_Value_Input(25+40+110*1,235,110,20,"");
   atom_coords_y->range(-10000,+10000);
   atom_coords_y->precision(4);
   atom_coords_y->align(FL_ALIGN_LEFT);
   atom_coords_y->callback(set_atom_properties_cb);
 
-  atom_coords_z = new Fl_Value_Input(25+40+110*2,175,110,20,"");
+  atom_coords_z = new Fl_Value_Input(25+40+110*2,235,110,20,"");
   atom_coords_z->range(-10000,+10000);
   atom_coords_z->precision(4);
   atom_coords_z->align(FL_ALIGN_LEFT);
   atom_coords_z->callback(set_atom_properties_cb);
 
-  atom_v_x = new Fl_Value_Input(25+40,175+20,110,20,"Vel:");
+  atom_v_x = new Fl_Value_Input(25+40,235+20,110,20,"Vel:");
   atom_v_x->range(-1e10,+1e10);
-  atom_v_x->precision(4);
+  atom_v_x->precision(2);
   atom_v_x->align(FL_ALIGN_LEFT);
   atom_v_x->callback(set_atom_properties_cb);
 
-  atom_v_y = new Fl_Value_Input(25+40+110*1,175+20,110,20,"");
+  atom_v_y = new Fl_Value_Input(25+40+110*1,235+20,110,20,"");
   atom_v_y->range(-1e10,+1e10);
-  atom_v_y->precision(4);
+  atom_v_y->precision(2);
   atom_v_y->align(FL_ALIGN_LEFT);
   atom_v_y->callback(set_atom_properties_cb);
 
-  atom_v_z = new Fl_Value_Input(25+40+110*2,175+20,110,20,"");
+  atom_v_z = new Fl_Value_Input(25+40+110*2,235+20,110,20,"");
   atom_v_z->range(-1e10,+1e10);
-  atom_v_z->precision(4);
+  atom_v_z->precision(2);
   atom_v_z->align(FL_ALIGN_LEFT);
   atom_v_z->callback(set_atom_properties_cb);
 
