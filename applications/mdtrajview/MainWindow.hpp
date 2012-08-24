@@ -97,6 +97,14 @@ class MainWindow : public Fl_Window
   static void current_atomindex_cb(Fl_Widget *, void *);
   static void current_stateindex_cb(Fl_Widget *, void *);
 
+  Fl_Value_Input* atom_coords_x;
+  Fl_Value_Input* atom_coords_y;
+  Fl_Value_Input* atom_coords_z;
+  Fl_Value_Input* atom_v_x;
+  Fl_Value_Input* atom_v_y;
+  Fl_Value_Input* atom_v_z;
+  static void set_atom_properties_cb(Fl_Widget *, void *);
+
   static void roll_x_cb(Fl_Widget *, void *);
   static void roll_y_cb(Fl_Widget *, void *);
   static void roll_z_cb(Fl_Widget *, void *);
