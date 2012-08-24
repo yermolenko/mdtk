@@ -124,6 +124,7 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     showAtoms(true),
     showBath(false),
     showBathSketch(false),
+    showBonds(true),
     unfoldPBC(false),
     showCustom1(false),
     showCustom2(false),
@@ -366,6 +367,10 @@ VisBox::drawObjects()
 
   if (showCTree)
     listCTree();
+
+  if (showBonds)
+    listBonds();
+
   if (showAxes)
   {
 //    glDisable(GL_LIGHTING);
@@ -659,13 +664,13 @@ _relAngle(const Vector3D& a, const Vector3D& b)
 
 void
 VisBox::drawEdge(const Vector3D& vi, const Vector3D& vj, 
-		 unsigned int color, double radius)
+		 unsigned int color, double radius, GLubyte alpha)
 {
   Vector3D TempRotVector;
   double    TempRotAngle;
 
   glPushMatrix();
-  myglColor(color);
+  myglColor(color, alpha);
   glTranslated(vi.x,vi.y,vi.z);
   TempRotVector=_vectorMul(Vector3D(0,0,1.0L),vj-vi);
   TempRotAngle=(_relAngle(Vector3D(0,0,1.0L),vj-vi)/M_PI)*180.0L;
@@ -815,6 +820,35 @@ VisBox::listCTree()
     }
 
     ++t;
+  }
+}
+
+void
+VisBox::listBonds()
+{
+  Color c = 0x00FF00;
+  for(size_t i = 0; i < R.size(); i++)
+  {
+    for(size_t j = 0; j < R.size(); j++)
+    {
+      if (i == j) continue;
+      if (R[i].ID != C_EL || R[j].ID != C_EL) continue;
+      glPushMatrix();
+      Float bmin = 1.5*Ao;
+      Float bmax = 1.7*Ao;
+      Float b = (R[i].coords - R[j].coords).module();
+      Float strength = 1.0;
+      if (b >= bmax)
+        strength = 0.0;
+      else
+      {
+        if (b > bmin)
+          strength = (b-bmin)*255/(bmax-bmin);
+      }
+      if (strength > 0.0)
+        drawEdge(R[i].coords,R[j].coords, c, vertexRadius/3, GLubyte(strength*255));
+      glPopMatrix();
+    }
   }
 }
 

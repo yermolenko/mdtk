@@ -355,7 +355,16 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 		&renderBox->showBathSketch);
     t->value(renderBox->showBathSketch);
   }
-  
+
+  {
+    Fl_Light_Button* t
+      = new Fl_Light_Button(15,480,135,30,
+			    "Show bonds");
+    t->callback(btn_bool_toggle_cb,
+		&renderBox->showBonds);
+    t->value(renderBox->showBonds);
+  }
+
   {
     Fl_Light_Button* t
       = new Fl_Light_Button(160,510,165,15,
