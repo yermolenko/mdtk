@@ -318,7 +318,7 @@ public:
         }
         mdt[s.time] = s;
       }
-      Fl::wait();
+      Fl::check();
       if (!MainWindow_GlobalPtr->btn_simulate->value())
         breakSimLoop = true;
     }
