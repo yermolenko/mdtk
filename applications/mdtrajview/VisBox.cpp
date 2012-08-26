@@ -95,7 +95,7 @@ VisBox::VisBox(int x,int y,int w,int h)
     showAtoms(true),
     showBath(false),
     showBathSketch(false),
-    showBonds(true),
+    showBonds(false),
     unfoldPBC(false),
     showCustom1(false),
     showCustom2(false),
