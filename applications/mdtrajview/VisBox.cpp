@@ -224,6 +224,8 @@ VisBox::reArrange(double xmin, double xmax,
       };
   };
 
+  TRACE(XMin/Ao);
+  TRACE(XMax/Ao);
   if (allowRescale)
   {
     XCenter=(XMin+XMax)/2;
@@ -234,10 +236,12 @@ VisBox::reArrange(double xmin, double xmax,
   //	VertexRadius=DistMin/4;
   vertexRadius = 2.57*mdtk::Ao/2.0/3.0/2.0;
   axesRadius = vertexRadius*3;
+  TRACE(scale);
   if (allowRescale)
   {
     scale=(2.0*nRange)/(DistMax+2.0*vertexRadius);
   }  
+  TRACE(scale);
   maxScale=2.0*(scale);
   redraw();
 }  
