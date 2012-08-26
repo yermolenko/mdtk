@@ -130,6 +130,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
   std::vector<std::string> fileList;
   std::string baseFile;
+  bool loadPartialSnapshots = false;
 
   if (argc > 2)
     {
@@ -159,18 +160,9 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 	}
       if (argc > 1 && !strcmp(argv[1],"-s"))
       {
-        SnapshotList shots;
-        shots.loadstate();
-        if (shots.snapshots.size() > 0) fileList.push_back("shot");
-        for(size_t i = 1; i < shots.snapshots.size(); ++i)
-        {
-          ostringstream os; os << "shot" << i;
-          fileList.push_back(os.str());
-        }
-        findIntermediateStates("./",fileList);
+        loadPartialSnapshots = true;
       }
-      else
-        findIntermediateStates("./",fileList);
+      findIntermediateStates("./",fileList);
     }
 
   if (baseFile.size() <= 3/* || fileList.size()==0*/)
@@ -202,7 +194,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
   xmde::VisBox avb(15,35,500,500);
   avb.set_non_modal();
-  avb.loadDataFromFiles(baseFile,fileList);
+  avb.loadDataFromFiles(baseFile,fileList,loadPartialSnapshots);
 
   xmde::MainWindow w(&avb, instantAnimate);
   MainWindow_GlobalPtr = &w;

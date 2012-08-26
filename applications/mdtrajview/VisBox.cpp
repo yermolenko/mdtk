@@ -130,7 +130,8 @@ VisBox::VisBox(int x,int y,int w,int h)
 
 void
 VisBox::loadDataFromFiles(std::string base_state_filename,
-                          const std::vector<std::string>& xvas)
+                          const std::vector<std::string>& xvas,
+                          bool loadPartialSnapshots)
 {
   std::string baseStateFilename = base_state_filename;
   using mdtk::Exception;
@@ -164,20 +165,15 @@ VisBox::loadDataFromFiles(std::string base_state_filename,
 
   if (xvas.size() > 0)
   {
-    std::vector<std::string> xvas_wo_shots;
-    for(size_t xi = 0; xi < xvas.size(); xi++)
-      if (xvas[xi][0] != 's')
-        xvas_wo_shots.push_back(xvas[xi]);
-
-    if (yaatk::exists("snapshots.conf") && xvas.size() != xvas_wo_shots.size())
+    if (yaatk::exists("snapshots.conf") && loadPartialSnapshots)
     {
       MDTrajectory_read_from_SnapshotList(mdt,base_state_filename);
-      MDTrajectory_read(mdt,base_state_filename,xvas_wo_shots);
+      MDTrajectory_read(mdt,base_state_filename,xvas);
       MDTrajectory_read_from_basefiles(mdt);
     }
     else
     {
-      MDTrajectory_read(mdt,base_state_filename,xvas_wo_shots);
+      MDTrajectory_read(mdt,base_state_filename,xvas);
     }
   }
 //    ctree = new CollisionTree(*(ml_->atoms.back()),mdt.begin(),mdt);
