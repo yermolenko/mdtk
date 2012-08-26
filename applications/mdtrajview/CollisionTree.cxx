@@ -291,8 +291,16 @@ class InteractiveSimLoop : public SimLoop
     }
 public:
   MDTrajectory mdt;
-  InteractiveSimLoop():SimLoop(),mdt() { verboseTrace = false; }
-  InteractiveSimLoop(const SimLoop &c):SimLoop(c),mdt(){}
+  InteractiveSimLoop():SimLoop(),mdt()
+    {
+//      verboseTrace = false;
+      preventFileOutput = true;
+    }
+  InteractiveSimLoop(const SimLoop &c):SimLoop(c),mdt()
+    {
+//      verboseTrace = false;
+      preventFileOutput = true;
+    }
 
   void doBeforeIteration() {}
   void doAfterIteration()

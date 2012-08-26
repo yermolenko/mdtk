@@ -39,6 +39,7 @@ using namespace std;
 
 SimLoop::SimLoop()
   : allowToFreePotentials(true),
+    preventFileOutput(false),
     atoms(),
     check(),
     simTime(0.0),
@@ -63,6 +64,7 @@ SimLoop::SimLoop()
 
 SimLoop::SimLoop(const SimLoop &c)
   : allowToFreePotentials(true),
+    preventFileOutput(false),
     atoms(c.atoms),
     check(c.check),
     simTime(c.simTime),
@@ -93,6 +95,7 @@ SimLoop::operator =(const SimLoop &c)
   atoms.clear();
 
   allowToFreePotentials = true;
+  preventFileOutput = false;
   atoms = c.atoms;
   check = c.check;
   simTime = c.simTime;
@@ -569,6 +572,8 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
 void
 SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
 {
+  if (preventFileOutput) return;
+
   std::streamsize prevStreamSize = os.precision();
   os.precision(FLOAT_PRECISION);
 
@@ -645,6 +650,8 @@ SimLoop::loadFromStreamXVA(istream& is)
 void
 SimLoop::saveToStreamXVA(ostream& os)
 {
+  if (preventFileOutput) return;
+
   Float XVA_VELOCITY_SCALE = 0.0;//1.0e3;
   for(size_t i = 0; i < atoms.size(); i++)
   {
@@ -747,6 +754,8 @@ SimLoop::loadFromStreamXVA_bin(istream& is)
 void
 SimLoop::saveToStreamXVA_bin(ostream& os)
 {
+  if (preventFileOutput) return;
+
   int i,atoms_count = atoms.size();
   YAATK_BIN_WRITE(os,atoms_count);
   for(i = 0; i < atoms_count; i++)
@@ -767,6 +776,8 @@ SimLoop::saveToStreamXVA_bin(ostream& os)
 void
 SimLoop::writetraj()
 {
+  if (preventFileOutput) return;
+
   static char s[1024];
   sprintf(s,"mde""%010ld",iteration);
   yaatk::text_ofstream fo1(s);
@@ -777,6 +788,8 @@ SimLoop::writetraj()
 void
 SimLoop::writetrajXVA()
 {
+  if (preventFileOutput) return;
+
   static char s[1024];
   sprintf(s,"mde""%010ld.xva",iteration);
   yaatk::text_ofstream fo1(s);
@@ -787,6 +800,8 @@ SimLoop::writetrajXVA()
 void
 SimLoop::writetrajXVA_bin()
 {
+  if (preventFileOutput) return;
+
   static char s[1024];
   sprintf(s,"mde""%010ld.xva.bin",iteration);
   yaatk::binary_ofstream fo1(s);
@@ -797,6 +812,8 @@ SimLoop::writetrajXVA_bin()
 void
 SimLoop::writetrajXYZ()
 {
+  if (preventFileOutput) return;
+
   static char s[1024];
   sprintf(s,"mde""%010ld.xyz",iteration);
   yaatk::text_ofstream os(s);
@@ -819,6 +836,8 @@ SimLoop::writetrajXYZ()
 void
 SimLoop::writetrajAccumulated(const std::vector<size_t>& atomIndices)
 {
+  if (preventFileOutput) return;
+
   Float XVA_VELOCITY_SCALE = 0.0;//1.0e3;
   Float XVA_DISTANCE_SCALE = Ao;
   {
@@ -931,6 +950,8 @@ SimLoop::writetrajAccumulated(const std::vector<size_t>& atomIndices)
 void
 SimLoop::writetrajAccumulated_bin(const std::vector<size_t>& atomIndices)
 {
+  if (preventFileOutput) return;
+
   yaatk::binary_ifstream accPrev("acc.bin");
   yaatk::binary_ofstream acc("acc_next.bin");
 
@@ -1020,6 +1041,8 @@ SimLoop::writetrajAccumulated_bin(const std::vector<size_t>& atomIndices)
 void
 SimLoop::writestate()
 {
+  if (preventFileOutput) return;
+
   {
     yaatk::binary_ofstream fo1("simloop.conf.bak");
     saveToStream(fo1,YAATK_FSTREAM_BIN);
@@ -1104,6 +1127,8 @@ void SimLoop::doEnergyConservationCheck()
 void
 SimLoop::saveToMDE(std::ostream& fo)
 {
+  if (preventFileOutput) return;
+
   fo << atoms.size() << std::endl;
   for(size_t i = 0; i < atoms.size(); i++)
   {
@@ -1122,6 +1147,8 @@ SimLoop::saveToMDE(std::ostream& fo)
 void
 SimLoop::saveToNanoHive(std::ostream& fo)
 {
+  if (preventFileOutput) return;
+
   for(size_t i = 0; i < atoms.size(); i++)
   {
     Atom& Ro_i = atoms[i];

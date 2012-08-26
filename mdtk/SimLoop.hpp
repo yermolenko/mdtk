@@ -46,6 +46,7 @@ public:
   virtual void doBeforeIteration() {};
   virtual void doAfterIteration() {};
   bool allowToFreePotentials;
+  bool preventFileOutput;
   void freePotentials()
   {
     if (!allowToFreePotentials) return;
