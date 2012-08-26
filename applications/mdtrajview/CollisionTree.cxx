@@ -341,6 +341,8 @@ void MDTrajectory_add_from_simulation(
 
   InteractiveSimLoop sl(slInit);
   setupPotentials(sl);
+  if (sl.simTimeFinal < sl.simTime + 4.0*ps)
+    sl.simTimeFinal = sl.simTime + 4.0*ps;
   sl.execute();
 }
 
