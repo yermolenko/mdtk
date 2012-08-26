@@ -23,6 +23,10 @@
 #include "CollisionTree.hpp"
 #include <mdtk/SimLoop.hpp>
 
+#include <FL/Fl.H>
+#include "MainWindow.hpp"
+#include "applications/common.h"
+
 namespace xmde
 {
 
@@ -277,38 +281,68 @@ void MDTrajectory_read_from_basefiles(
   }
 }
 
+class InteractiveSimLoop : public SimLoop
+{
+  bool
+  isItTimeToSave(Float interval)
+    {
+      return (simTime == 0.0 ||
+              int(simTime/interval) != int((simTime - dt_prev)/interval));
+    }
+public:
+  MDTrajectory mdt;
+  InteractiveSimLoop():SimLoop(),mdt() { verboseTrace = false; }
+  InteractiveSimLoop(const SimLoop &c):SimLoop(c),mdt(){}
+
+  void doBeforeIteration() {}
+  void doAfterIteration()
+    {
+      if (isItTimeToSave(5e-16/**5*/))
+      {
+        TRACE("***Saving simulated state");
+        MDSnapshot s(*this);
+        {
+          std::ostringstream slabel;
+          slabel << std::fixed << std::setprecision(5)
+                 << s.time/ps << " ps : "
+                 << "simulated";
+          s.name = slabel.str();
+        }
+        mdt[s.time] = s;
+      }
+      Fl::wait();
+      if (!MainWindow_GlobalPtr->btn_simulate->value())
+        breakSimLoop = true;
+    }
+};
+
 void MDTrajectory_add_from_simulation(
   MDTrajectory& mdt,
-  Float time
+  SimLoop slInit
   )
 {
   {
     MDTrajectory::iterator t = mdt.begin();
     while(t != mdt.end())
     {
-      if (t->first > time)
+      if (t->first > slInit.simTime)
         mdt.erase(t++);
       else
         ++t;
     }
   }
 
+  InteractiveSimLoop sl(slInit);
+  setupPotentials(sl);
+  sl.execute();
+
   {
-    MDTrajectory::const_iterator t = mdt.begin();
-//    while(t != mdt.end())
-    for(int x = 1 ; x < 10; ++x)
+    MDTrajectory::const_iterator t = sl.mdt.begin();
+    while (t != sl.mdt.end())
     {
       MDSnapshot s = t->second;
-      s.time += x*10.0*ps;
-      {
-        std::ostringstream slabel;
-        slabel << std::fixed << std::setprecision(5)
-               << s.time/ps << " ps : "
-               << "simulated";
-        s.name = slabel.str();
-      }
-
       mdt[s.time] = s;
+      ++t;
     }
   }
 }

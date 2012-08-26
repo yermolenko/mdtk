@@ -70,8 +70,10 @@ class MainWindow : public Fl_Window
   Fl_Light_Button* btn_animate;
   Fl_Counter *animate_delay;
 
+public:
   Fl_Light_Button* btn_simulate;
 
+private:
   Fl_Counter* current_atomindex;
   Fl_Counter* current_stateindex;
 

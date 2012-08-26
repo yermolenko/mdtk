@@ -68,7 +68,7 @@ void MDTrajectory_read_from_basefiles(
 
 void MDTrajectory_add_from_simulation(
   MDTrajectory& mdt,
-  Float time
+  SimLoop slInit
   );
 
 class CollisionTree

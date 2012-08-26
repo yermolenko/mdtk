@@ -1148,14 +1148,20 @@ MainWindow::btn_simulate_cb(Fl_Widget *w, void *)
 
   bool v = ((Fl_Light_Button *)w)->value();
 
-  MainWindow_Ptr->renderBox->loadDataFromSimulation();
+  if (v)
+  {
+    MainWindow_Ptr->renderBox->loadDataFromSimulation();
 
-  int lastStateIndex = MainWindow_Ptr->current_stateindex->value();
+    int lastStateIndex = MainWindow_Ptr->current_stateindex->value();
 
-  MainWindow_Ptr->updateStateList();
+    MainWindow_Ptr->updateStateList();
 
+/*
   if (lastStateIndex < MainWindow_Ptr->stateList.size())
     MainWindow_Ptr->loadNewSnapshot(lastStateIndex);
+*/
+    MainWindow_Ptr->loadNewSnapshot(MainWindow_Ptr->stateList.size()-1);
+  }
 }
 
 void
