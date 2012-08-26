@@ -70,6 +70,8 @@ class MainWindow : public Fl_Window
   Fl_Light_Button* btn_animate;
   Fl_Counter *animate_delay;
 
+  Fl_Light_Button* btn_simulate;
+
   Fl_Counter* current_atomindex;
   Fl_Counter* current_stateindex;
 
@@ -116,6 +118,8 @@ class MainWindow : public Fl_Window
   static void btn_rescale_cb(Fl_Widget *, void *);
   static void timer_callback(void *);
   static void btn_animate_cb(Fl_Widget *, void *);
+
+  static void btn_simulate_cb(Fl_Widget *, void *);
 
   static void btn_bg_color_cb(Fl_Widget *, void *);
   static void btn_atoms_color_cb(Fl_Widget *, void *);

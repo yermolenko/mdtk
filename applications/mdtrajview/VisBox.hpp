@@ -149,6 +149,7 @@ public:
   void loadDataFromFiles(std::string base_state_filename,
                          const std::vector<std::string>& xvas,
                          bool loadPartialSnapshots = false);
+  void loadDataFromSimulation();
   virtual ~VisBox(){delete ml_;};
 
   void setData(mdtk::SimLoop &);

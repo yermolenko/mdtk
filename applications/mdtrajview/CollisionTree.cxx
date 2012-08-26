@@ -277,6 +277,42 @@ void MDTrajectory_read_from_basefiles(
   }
 }
 
+void MDTrajectory_add_from_simulation(
+  MDTrajectory& mdt,
+  Float time
+  )
+{
+  {
+    MDTrajectory::iterator t = mdt.begin();
+    while(t != mdt.end())
+    {
+      if (t->first > time)
+        mdt.erase(t++);
+      else
+        ++t;
+    }
+  }
+
+  {
+    MDTrajectory::const_iterator t = mdt.begin();
+//    while(t != mdt.end())
+    for(int x = 1 ; x < 10; ++x)
+    {
+      MDSnapshot s = t->second;
+      s.time += x*10.0*ps;
+      {
+        std::ostringstream slabel;
+        slabel << std::fixed << std::setprecision(5)
+               << s.time/ps << " ps : "
+               << "simulated";
+        s.name = slabel.str();
+      }
+
+      mdt[s.time] = s;
+    }
+  }
+}
+
 Atom getNearestAtom(const Atom& a,const std::vector<Atom>& atoms)
 {
   Atom an;

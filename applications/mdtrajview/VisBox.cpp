@@ -157,6 +157,13 @@ VisBox::loadDataFromFiles(std::string base_state_filename,
 }
 
 void
+VisBox::loadDataFromSimulation()
+{
+  MDTrajectory_add_from_simulation(mdt, ml_->simTime);
+  size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
+}
+
+void
 VisBox::reArrange(double xmin, double xmax,
 		  double ymin, double ymax,
 		  double zmin, double zmax)

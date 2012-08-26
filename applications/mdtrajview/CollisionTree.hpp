@@ -66,6 +66,11 @@ void MDTrajectory_read_from_basefiles(
   MDTrajectory& mdt
   );
 
+void MDTrajectory_add_from_simulation(
+  MDTrajectory& mdt,
+  Float time
+  );
+
 class CollisionTree
 {
 public:

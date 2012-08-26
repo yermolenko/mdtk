@@ -212,6 +212,11 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   btn_animate->callback((Fl_Callback*)btn_animate_cb);
   btn_animate->value(instantAnimate);
 
+  btn_simulate = new Fl_Light_Button(580,500,105,30,
+				    "Simulate");
+  btn_simulate->callback((Fl_Callback*)btn_simulate_cb);
+  btn_simulate->value(false);
+
   {
     Fl_Button* t
       = new Fl_Button(570,320,115,20,
@@ -749,6 +754,8 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
 void
 MainWindow::updateStateList()
 {
+  stateList.clear();
+
   MDTrajectory::const_iterator t = renderBox->mdt.begin();
   while (t != renderBox->mdt.end())
   {
@@ -1133,6 +1140,25 @@ MainWindow::btn_animate_cb(Fl_Widget *w, void *)
 }
 
 void
+MainWindow::btn_simulate_cb(Fl_Widget *w, void *)
+{
+  MainWindow* MainWindow_Ptr;
+  MainWindow_Ptr =
+    (MainWindow*)(w->parent()->parent()->parent());
+
+  bool v = ((Fl_Light_Button *)w)->value();
+
+  MainWindow_Ptr->renderBox->loadDataFromSimulation();
+
+  int lastStateIndex = MainWindow_Ptr->current_stateindex->value();
+
+  MainWindow_Ptr->updateStateList();
+
+  if (lastStateIndex < MainWindow_Ptr->stateList.size())
+    MainWindow_Ptr->loadNewSnapshot(lastStateIndex);
+}
+
+void
 MainWindow::timer_callback(void*)
 {
   puts("TICK");
@@ -1239,6 +1265,10 @@ MainWindow::loadNewSnapshot(int index)
   label((std::string("MDTK Trajectory Viewer [Control Window] - ")+stateList[stateIndex]).c_str());
   renderBox -> label((std::string("MDTK 3D View - ")+stateList[stateIndex]).c_str());
   renderBox -> loadNewSnapshot(stateIndex);
+
+  if (stateIndex != current_stateindex->value())
+    current_stateindex->value(stateIndex);
+
   setAtomViewIndex(int(current_atomindex->value())/*-1*/);
 }  
 
