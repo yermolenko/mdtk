@@ -136,6 +136,7 @@ class MainWindow : public Fl_Window
 public:
   int  handle(int);
   MainWindow(VisBox* ,bool);
+  void updateStateList();
   ~MainWindow();
   void redrawGL();
   void setAtomViewIndex(int index);

@@ -169,13 +169,6 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   stateList(),
   stateIndex(0)
 {
-  MDTrajectory::const_iterator t = avb->mdt.begin();
-  while (t != avb->mdt.end())
-  {
-    stateList.push_back(t->second.name);
-    ++t;
-  }
-
   log_buffer = new char[MAX_LOG_BUFFER_LEN];
   log_buffer[0]='\0';
   log_pos = 0;
@@ -193,7 +186,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   current_stateindex->lstep(10);
   current_stateindex->step(1);
   current_stateindex->precision(0);
-  current_stateindex->bounds(0,stateList.size()-1);
+//  current_stateindex->bounds(0,stateList.size()-1);
   current_stateindex->value(0);
   current_stateindex->callback((Fl_Callback*)current_stateindex_cb);
  
@@ -687,7 +680,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   current_atomindex->lstep(100);
   current_atomindex->step(1);
   current_atomindex->precision(0);
-  current_atomindex->bounds(0,renderBox->getAtomsCount()-1);
+//  current_atomindex->bounds(0,renderBox->getAtomsCount()-1);
   current_atomindex->value(0);
   current_atomindex->callback((Fl_Callback*)current_atomindex_cb);
 
@@ -735,8 +728,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   renderBox->hide();
   renderBox->show();
 
-  if (stateList.size() > 0)
-    loadNewSnapshot(0);
+  updateStateList();
 
   renderBox->allowRescale = false;
 //  renderBox->reArrange(-1,101,-1,101,-1,101);
@@ -752,6 +744,27 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
     }
   }
   if (btn_animate->value()) Fl::add_timeout(1.0, timer_callback);
+}
+
+void
+MainWindow::updateStateList()
+{
+  MDTrajectory::const_iterator t = renderBox->mdt.begin();
+  while (t != renderBox->mdt.end())
+  {
+    stateList.push_back(t->second.name);
+    ++t;
+  }
+
+  current_stateindex->bounds(0,stateList.size()-1);
+
+  current_atomindex->bounds(0,renderBox->getAtomsCount()-1);
+
+  if (stateList.size() > 0)
+    loadNewSnapshot(0);
+
+  REQUIRE(renderBox->selectedAtomIndex < renderBox->getAtomsCount());
+  setAtomViewIndex(renderBox->selectedAtomIndex);
 }
 
 MainWindow::~MainWindow()
