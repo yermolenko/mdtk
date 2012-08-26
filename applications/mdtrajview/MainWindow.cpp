@@ -739,7 +739,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
     loadNewSnapshot(0);
 
   renderBox->allowRescale = false;
-  renderBox->reArrange(-1,101,-1,101,-1,101);
+//  renderBox->reArrange(-1,101,-1,101,-1,101);
   renderBox->redraw();
 
   callback(window_cb);

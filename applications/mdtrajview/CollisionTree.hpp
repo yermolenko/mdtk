@@ -51,7 +51,7 @@ public:
 
 typedef std::map<Float, MDSnapshot> MDTrajectory;
 
-void MDTrajectory_read(
+SimLoop MDTrajectory_read(
   MDTrajectory& mdt,
   const std::string basefile,
   const std::vector<std::string>& xvas

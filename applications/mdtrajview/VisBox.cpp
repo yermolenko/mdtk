@@ -43,35 +43,40 @@ VisBox::loadNewSnapshot(size_t index)
 
   TRACE(index);
 
+  TRACE("********* UPDATING FROM MDT ***********");
+  MDTrajectory::const_iterator t = mdt.begin();
+  for(size_t count = 0; count < index; count++)
   {
-    TRACE("********* UPDATING FROM MDT ***********");
-    MDTrajectory::const_iterator t = mdt.begin();
-    for(size_t count = 0; count < index; count++)
+    ++t;
+  }
+  const std::vector<Atom>& atoms = t->second.atoms;
+  size_t old_atoms_count = ml_->atoms.size();
+  completeInfoPresent = t->second.upToDate;
+  TRACE(atoms.size());
+  ml_->atoms.resize(atoms.size());
+  REQUIRE(atoms.size() == ml_->atoms.size());
+  for(size_t i = 0; i < ml_->atoms.size(); ++i)
+  {
+    if (completeInfoPresent[i])
+      ml_->atoms[i] = atoms[i];
+  }
+  ml_->simTime = t->first;
+
+  {
+    bool allowRescale_bak = allowRescale;
+    if (old_atoms_count != atoms.size())
     {
-      ++t;
+      cout << "Atoms number changed. Rescaling." << endl;
+      allowRescale = true;
     }
-    const std::vector<Atom>& atoms = t->second.atoms;
-    completeInfoPresent = t->second.upToDate;
-    TRACE(atoms.size());
-    TRACE(ml_->atoms.size());
-    REQUIRE(atoms.size() == ml_->atoms.size());
-    for(size_t i = 0; i < ml_->atoms.size(); ++i)
-    {
-      if (completeInfoPresent[i])
-        ml_->atoms[i] = atoms[i];
-    }
-    ml_->simTime = t->first;
+
+    setData(*ml_);
+
+    allowRescale = allowRescale_bak;
   }
 
-  Float sc = scale;
-  Float msc = maxScale;
-
-  setData(*ml_);
-
-  if (maxScale < msc) maxScale = msc;
-  scale = sc;
   redraw();
-}  
+}
 
 VisBox::VisBox(int x,int y,int w,int h)
   : Fl_Gl_Window(x,y,w,h,"MDTK Trajectory Viewer - 3D View"),
@@ -125,6 +130,9 @@ VisBox::VisBox(int x,int y,int w,int h)
   light0_dir[2] = -1.0;
   light0_dir[3] = 0.0;
 
+  ml_ = new mdtk::SimLoop();
+  setupPotentials(*ml_);
+
   callback(window_cb);
 }
 
@@ -133,51 +141,18 @@ VisBox::loadDataFromFiles(std::string base_state_filename,
                           const std::vector<std::string>& xvas,
                           bool loadPartialSnapshots)
 {
-  std::string baseStateFilename = base_state_filename;
-  using mdtk::Exception;
-
-  ml_ = new mdtk::SimLoop();
-
-  setupPotentials(*ml_);
-  if (base_state_filename != "")
+  if (yaatk::exists("snapshots.conf") && loadPartialSnapshots)
   {
-  if (base_state_filename.find("simloop.conf") != std::string::npos) 
-  {
-    ml_->loadstate();
+    MDTrajectory_read_from_SnapshotList(mdt,base_state_filename);
+    if (xvas.size() > 0)
+      *ml_ = MDTrajectory_read(mdt,base_state_filename,xvas);
+    MDTrajectory_read_from_basefiles(mdt);
   }
   else
   {
-    ml_->initNLafterLoading = false;
-    yaatk::text_ifstream fi(base_state_filename.c_str()); 
-    if (base_state_filename.find("mde_init") != std::string::npos)
-      ml_->loadFromStream(fi);
-    else
-      ml_->loadFromMDE(fi);
-//	  ml_->loadFromMDE_OLD(fi);
-    ml_->allowPartialLoading = true; // hack, disables essential checks
-    ml_->atoms.prepareForSimulatation();
-    fi.close(); 
+    *ml_ = MDTrajectory_read(mdt,base_state_filename,xvas);
   }
-  setData(*ml_);
 
-  completeInfoPresent.resize(ml_->atoms.size());
-  completeInfoPresent.assign(completeInfoPresent.size(),true);
-
-  {
-    if (yaatk::exists("snapshots.conf") && loadPartialSnapshots)
-    {
-      MDTrajectory_read_from_SnapshotList(mdt,base_state_filename);
-      if (xvas.size() > 0)
-        MDTrajectory_read(mdt,base_state_filename,xvas);
-      MDTrajectory_read_from_basefiles(mdt);
-    }
-    else
-    {
-      MDTrajectory_read(mdt,base_state_filename,xvas);
-    }
-  }
-//    ctree = new CollisionTree(*(ml_->atoms.back()),mdt.begin(),mdt);
-  }
   size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
 }
 

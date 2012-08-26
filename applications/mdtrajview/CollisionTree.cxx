@@ -141,7 +141,7 @@ MDSnapshot::updateFromSimLoop(
 }
 */
 
-void MDTrajectory_read(
+SimLoop MDTrajectory_read(
   MDTrajectory& mdt,
   const std::string basefile,
   const std::vector<std::string>& xvas
@@ -180,6 +180,8 @@ void MDTrajectory_read(
     MDSnapshot s_xva(ml,xvas[i]);
     mdt[s_xva.time] = s_xva;
   }
+
+  return ml;
 }
 
 void MDTrajectory_read_from_SnapshotList(
