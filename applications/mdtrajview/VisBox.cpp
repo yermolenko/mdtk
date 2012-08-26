@@ -163,12 +163,12 @@ VisBox::loadDataFromFiles(std::string base_state_filename,
   completeInfoPresent.resize(ml_->atoms.size());
   completeInfoPresent.assign(completeInfoPresent.size(),true);
 
-  if (xvas.size() > 0)
   {
     if (yaatk::exists("snapshots.conf") && loadPartialSnapshots)
     {
       MDTrajectory_read_from_SnapshotList(mdt,base_state_filename);
-      MDTrajectory_read(mdt,base_state_filename,xvas);
+      if (xvas.size() > 0)
+        MDTrajectory_read(mdt,base_state_filename,xvas);
       MDTrajectory_read_from_basefiles(mdt);
     }
     else
