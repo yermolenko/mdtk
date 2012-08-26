@@ -344,6 +344,8 @@ void MDTrajectory_add_from_simulation(
   if (sl.simTimeFinal < sl.simTime + 4.0*ps)
     sl.simTimeFinal = sl.simTime + 4.0*ps;
   sl.execute();
+  if (sl.simTimeFinal <= sl.simTime)
+    MainWindow_GlobalPtr->btn_simulate->value(0);
 }
 
 Atom getNearestAtom(const Atom& a,const std::vector<Atom>& atoms)
