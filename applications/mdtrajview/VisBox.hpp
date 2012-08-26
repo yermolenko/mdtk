@@ -76,6 +76,7 @@ public:
   bool hqMode;
   size_t selectedAtomIndex;
   Atom* getSelectedAtomPtr() {return &(Ro[selectedAtomIndex]);}
+  void saveSelectedAtomProperies();
 
   GLfloat nRange;
   Float vertexRadius, axesRadius, scale, maxScale,

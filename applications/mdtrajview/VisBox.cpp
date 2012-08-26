@@ -164,6 +164,23 @@ VisBox::loadDataFromSimulation()
 }
 
 void
+VisBox::saveSelectedAtomProperies()
+{
+/*
+  MDTrajectory::iterator t = mdt.begin();
+  while(t != mdt.end())
+  {
+    if (ml_->simTime == t->first)
+    {
+      t->second.atoms[selectedAtomIndex] = Ro[selectedAtomIndex];
+    }
+    ++t;
+  }
+*/
+  ml_->atoms[selectedAtomIndex] = Ro[selectedAtomIndex];
+}
+
+void
 VisBox::reArrange(double xmin, double xmax,
 		  double ymin, double ymax,
 		  double zmin, double zmax)

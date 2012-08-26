@@ -70,6 +70,8 @@ MainWindow::set_atom_properties_cb(Fl_Widget *w, void *)
   a->V.y = MainWindow_Ptr->atom_v_y->value();
   a->V.z = MainWindow_Ptr->atom_v_z->value();
 
+  MainWindow_Ptr->renderBox->saveSelectedAtomProperies();
+
   MainWindow_Ptr->renderBox->reArrange(-1,101,-1,101,-1,101);
 /*
   MainWindow_Ptr->renderBox->
