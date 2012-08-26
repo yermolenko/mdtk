@@ -290,13 +290,12 @@ class InteractiveSimLoop : public SimLoop
               int(simTime/interval) != int((simTime - dt_prev)/interval));
     }
 public:
-  MDTrajectory mdt;
-  InteractiveSimLoop():SimLoop(),mdt()
+  InteractiveSimLoop():SimLoop()
     {
 //      verboseTrace = false;
       preventFileOutput = true;
     }
-  InteractiveSimLoop(const SimLoop &c):SimLoop(c),mdt()
+  InteractiveSimLoop(const SimLoop &c):SimLoop(c)
     {
 //      verboseTrace = false;
       preventFileOutput = true;
@@ -316,7 +315,7 @@ public:
                  << "simulated";
           s.name = slabel.str();
         }
-        mdt[s.time] = s;
+        MainWindow_GlobalPtr->addMDSnapshot(s);
       }
       Fl::check();
       if (!MainWindow_GlobalPtr->btn_simulate->value())
@@ -343,16 +342,6 @@ void MDTrajectory_add_from_simulation(
   InteractiveSimLoop sl(slInit);
   setupPotentials(sl);
   sl.execute();
-
-  {
-    MDTrajectory::const_iterator t = sl.mdt.begin();
-    while (t != sl.mdt.end())
-    {
-      MDSnapshot s = t->second;
-      mdt[s.time] = s;
-      ++t;
-    }
-  }
 }
 
 Atom getNearestAtom(const Atom& a,const std::vector<Atom>& atoms)

@@ -57,6 +57,7 @@
 
 #include "bmpImage.hpp"
 #include "VisBox.hpp"
+#include "CollisionTree.hpp"
 
 #include <vector>
 
@@ -72,6 +73,7 @@ class MainWindow : public Fl_Window
 
 public:
   Fl_Light_Button* btn_simulate;
+  void addMDSnapshot(const MDSnapshot& s);
 
 private:
   Fl_Counter* current_atomindex;

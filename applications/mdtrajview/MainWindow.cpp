@@ -1151,17 +1151,17 @@ MainWindow::btn_simulate_cb(Fl_Widget *w, void *)
   if (v)
   {
     MainWindow_Ptr->renderBox->loadDataFromSimulation();
-
-    int lastStateIndex = MainWindow_Ptr->current_stateindex->value();
-
-    MainWindow_Ptr->updateStateList();
-
-/*
-  if (lastStateIndex < MainWindow_Ptr->stateList.size())
-    MainWindow_Ptr->loadNewSnapshot(lastStateIndex);
-*/
-    MainWindow_Ptr->loadNewSnapshot(MainWindow_Ptr->stateList.size()-1);
   }
+}
+
+void
+MainWindow::addMDSnapshot(const MDSnapshot& s)
+{
+  renderBox->mdt[s.time] = s;
+
+  int lastStateIndex = current_stateindex->value();
+  updateStateList();
+  loadNewSnapshot(stateList.size()-1);
 }
 
 void
