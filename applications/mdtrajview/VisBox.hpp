@@ -94,7 +94,6 @@ public:
   mdtk::SimLoop* ml_;
   MDTrajectory mdt;
 private:
-  std::string baseStateFilename;
   CollisionTree *ctree;
 private:
   mdtk::Float zbar;
@@ -146,8 +145,9 @@ public:
   double RZ(int i) {return R[i].coords.z;}
 	
 public:
-  VisBox(int x,int y,int w,int h,std::string base_state_filename,
-	 const std::vector<std::string>& xvas);
+  VisBox(int x,int y,int w,int h);
+  void loadDataFromFiles(std::string base_state_filename,
+                    const std::vector<std::string>& xvas);
   virtual ~VisBox(){delete ml_;};
 
   void setData(mdtk::SimLoop &);

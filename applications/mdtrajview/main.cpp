@@ -200,8 +200,9 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
   const size_t maxsize = 2000;
   if (fileList.size() > maxsize && fileList[0] != "shot") fileList.resize(maxsize);
 
-  xmde::VisBox avb(15,35,500,500,baseFile,fileList);
+  xmde::VisBox avb(15,35,500,500);
   avb.set_non_modal();
+  avb.loadDataFromFiles(baseFile,fileList);
 
   xmde::MainWindow w(&avb, instantAnimate);
   MainWindow_GlobalPtr = &w;

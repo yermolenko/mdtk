@@ -43,39 +43,6 @@ VisBox::loadNewSnapshot(size_t index)
 
   TRACE(index);
 
-  if (index == 0)
-  {
-    
-    TRACE("*********LOADING INITIAL STATE *******");
-    
-    TRACE(baseStateFilename);
-
-    if (baseStateFilename.find("simloop.conf") != std::string::npos) 
-    {
-      ml_->loadstate();
-    }
-    else
-    {
-      yaatk::text_ifstream fi(baseStateFilename.c_str()); 
-
-      ml_->initNLafterLoading = false;
-
-      if (baseStateFilename.find("mde_init") != std::string::npos)
-	ml_->loadFromStream(fi);
-      else
-      {
-	ml_->loadFromMDE(fi);
-//	  ml_->loadFromMDE_OLD(fi);
-	ml_->allowPartialLoading = true; // hack, disables essential checks
-	ml_->atoms.prepareForSimulatation();
-      }
-      fi.close(); 
-    }
-
-    // assume the first xva has always actual info
-    completeInfoPresent.assign(ml_->atoms.size(),true);
-  }
-
   {
     TRACE("********* UPDATING FROM MDT ***********");
     MDTrajectory::const_iterator t = mdt.begin();
@@ -106,8 +73,7 @@ VisBox::loadNewSnapshot(size_t index)
   redraw();
 }  
 
-VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
-	       const std::vector<std::string>& xvas)
+VisBox::VisBox(int x,int y,int w,int h)
   : Fl_Gl_Window(x,y,w,h,"MDTK Trajectory Viewer - 3D View"),
     allowRescale(true),
     vertexColor(combineRGB(255,255,255)),
@@ -142,7 +108,6 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     completeInfoPresent(),
     ml_(NULL),
     mdt(),
-    baseStateFilename(base_state_filename),
     ctree(NULL),
     zbar(0.0),
     lstBall(0),
@@ -160,6 +125,14 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
   light0_dir[2] = -1.0;
   light0_dir[3] = 0.0;
 
+  callback(window_cb);
+}
+
+void
+VisBox::loadDataFromFiles(std::string base_state_filename,
+                          const std::vector<std::string>& xvas)
+{
+  std::string baseStateFilename = base_state_filename;
   using mdtk::Exception;
 
   ml_ = new mdtk::SimLoop();
@@ -180,6 +153,8 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     else
       ml_->loadFromMDE(fi);
 //	  ml_->loadFromMDE_OLD(fi);
+    ml_->allowPartialLoading = true; // hack, disables essential checks
+    ml_->atoms.prepareForSimulatation();
     fi.close(); 
   }
   setData(*ml_);
@@ -208,9 +183,6 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
 //    ctree = new CollisionTree(*(ml_->atoms.back()),mdt.begin(),mdt);
   }
   size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
-
-
-  callback(window_cb);
 }
 
 void
