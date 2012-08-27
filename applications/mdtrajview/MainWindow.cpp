@@ -797,14 +797,25 @@ MainWindow::btn_save_image_cb(Fl_Widget *w, void *)
   VisBox_Ptr = MainWindow_Ptr->renderBox;
 
   char fname[1000];
-  sprintf(fname,"%010d-small.bmp",int(MainWindow_Ptr->
-				     current_stateindex->value()));
+#ifdef MDTRAJVIEW_PNG
+  sprintf(fname,"%010d-small.png",
+          int(MainWindow_Ptr->current_stateindex->value()));
+  char *tmp_filename = fl_file_chooser
+    (
+      "Choose a file to save image to ...",
+      "PNG files (*.png)",
+      fname,0
+      );
+#else
+  sprintf(fname,"%010d-small.bmp",
+          int(MainWindow_Ptr->current_stateindex->value()));
   char *tmp_filename = fl_file_chooser
     (
       "Choose a file to save image to ...",
       "Windows Bitmap Files (*.bmp)",
       fname,0
       );
+#endif
   if (tmp_filename && (!fl_filename_isdir(tmp_filename)))
   {
     VisBox_Ptr->saveImageToFile(tmp_filename);
@@ -826,14 +837,25 @@ MainWindow::btn_save_tiled_image_cb(Fl_Widget *w, void *)
   VisBox_Ptr = MainWindow_Ptr->renderBox;
 
   char fname[1000];
-  sprintf(fname,"%010d.bmp",int(MainWindow_Ptr->
-				     current_stateindex->value()));
+#ifdef MDTRAJVIEW_PNG
+  sprintf(fname,"%010d.png",
+          int(MainWindow_Ptr->current_stateindex->value()));
+  char *tmp_filename = fl_file_chooser
+    (
+      "Choose a file to save image to ...",
+      "PNG files (*.png)",
+      fname,0
+      );
+#else
+  sprintf(fname,"%010d.bmp",
+          int(MainWindow_Ptr->current_stateindex->value()));
   char *tmp_filename = fl_file_chooser
     (
       "Choose a file to save image to ...",
       "Windows Bitmap Files (*.bmp)",
       fname,0
       );
+#endif
   if (tmp_filename && (!fl_filename_isdir(tmp_filename)))
   {
     VisBox_Ptr->saveTiledImageToFile(tmp_filename);
@@ -849,7 +871,11 @@ MainWindow::quickSaveBitmap()
 {
   char tmp_filename[4096];
 
+#ifdef MDTRAJVIEW_PNG
+  sprintf(tmp_filename,"%010d__%.5f_ps__.png",stateIndex,renderBox->ml_->simTime/ps);
+#else
   sprintf(tmp_filename,"%010d__%.5f_ps__.bmp",stateIndex,renderBox->ml_->simTime/ps);
+#endif
 
   if (!fl_filename_isdir(tmp_filename))
   {

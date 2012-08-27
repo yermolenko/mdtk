@@ -22,6 +22,10 @@
 
 #include <FL/Fl.H>
 
+#ifdef MDTRAJVIEW_PNG
+#include <png.h>
+#endif
+
 #include "VisBox.hpp"
 
 #include <iostream>
@@ -1157,6 +1161,81 @@ VisBox::saveState(char* filename)
   fo.close();
 }
 
+#ifdef MDTRAJVIEW_PNG
+int writePNGImage(char* filename, int width, int height, unsigned char *buffer, char* title)
+{
+  int retcode = 0;
+  FILE *fp;
+  png_structp png_ptr;
+  png_infop info_ptr;
+  png_bytep row;
+
+  try
+  {
+    fp = fopen(filename, "wb");
+    if (fp == NULL)
+      throw Exception("Error opening output file.");
+
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if (png_ptr == NULL)
+      throw Exception("Could not allocate png write struct.");
+
+    info_ptr = png_create_info_struct(png_ptr);
+    if (info_ptr == NULL)
+      throw Exception("Could not allocate png info struct.");
+
+    if (setjmp(png_jmpbuf(png_ptr)))
+      throw Exception("Error during png creation.");
+
+    png_init_io(png_ptr, fp);
+
+    png_set_IHDR(png_ptr, info_ptr, width, height,
+                 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+                 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+    if (title != NULL)
+    {
+      png_text title_text;
+      title_text.compression = PNG_TEXT_COMPRESSION_NONE;
+      title_text.key = "Title";
+      title_text.text = title;
+      png_set_text(png_ptr, info_ptr, &title_text, 1);
+    }
+
+    png_write_info(png_ptr, info_ptr);
+
+    row = (png_bytep) malloc(3 * width * sizeof(png_byte));
+
+    if (!row)
+      throw Exception("Memory allocation error");
+
+//    for(int y = 0; y < height; y++)
+    for(int y = height-1; y >= 0; y--)
+    {
+      for (int x = 0; x < width; x++)
+      {
+        memcpy(&(row[x*3]),&(buffer[(y*width + x)*3]),3);
+      }
+      png_write_row(png_ptr, row);
+    }
+
+    png_write_end(png_ptr, NULL);
+  }
+  catch (Exception& e)
+  {
+    std::cerr << "Caught mdtk Exception: " << e.what() << std::endl;
+    retcode = -1;
+  }
+
+  if (row != NULL) free(row);
+  if (info_ptr != NULL) png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
+  if (png_ptr != NULL) png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+  if (fp != NULL) fclose(fp);
+
+  return retcode;
+}
+#endif
+
 void
 VisBox::saveImageToFile(char* filename)
 {
@@ -1168,6 +1247,9 @@ VisBox::saveImageToFile(char* filename)
   REQUIRE(d!=NULL);
 
   glReadPixels(0,0,width,height,GL_RGB,GL_UNSIGNED_BYTE,d);
+#ifdef MDTRAJVIEW_PNG
+  writePNGImage(filename,width,height,d,filename);
+#else
   for(unsigned long i = 0;i < width*height*3; i++)
   {
     if (i % 3 == 0)
@@ -1178,13 +1260,13 @@ VisBox::saveImageToFile(char* filename)
       d[i+2] = t;
     }	 
   }
+
   grctk::bmpImage* bmp = new grctk::bmpImage(width,height,d);
-
   bmp->SaveToFile(filename);
-
+  delete bmp;
+#endif
 
   delete [] d;
-  delete bmp;
 
   hqMode = false;
 }
@@ -1217,6 +1299,8 @@ VisBox::saveTiledImageToFile(char* filename)
 
       glReadPixels(0,0,w(),h(),GL_RGB,GL_UNSIGNED_BYTE,dtile);
 
+#ifdef MDTRAJVIEW_PNG
+#else
       for(unsigned long i = 0;i < ((unsigned long) w())*h()*3; i++)
       {
 	if (i % 3 == 0)
@@ -1227,6 +1311,7 @@ VisBox::saveTiledImageToFile(char* filename)
 	  dtile[i+2] = t;
 	}	 
       }
+#endif
 
       grctk::bmpImage* tilebmp = new grctk::bmpImage(w(),h(),dtile);
 //      tilebmp->SaveToFile("xxx.bmp");
@@ -1237,7 +1322,11 @@ VisBox::saveTiledImageToFile(char* filename)
     }
   }
 
+#ifdef MDTRAJVIEW_PNG
+  writePNGImage(filename,width,height,bmp->getRawDataPtr(),filename);
+#else
   bmp->SaveToFile(filename);
+#endif
 
   delete [] dtile;
   delete [] d;

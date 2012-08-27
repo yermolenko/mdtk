@@ -41,6 +41,14 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   ENDIF(WIN32)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
+IF(PNG_FOUND)
+  MESSAGE("libpng found. Using libpng in mdtrajview.")
+  target_link_libraries (${MDTK_CurrentTarget} ${PNG_LIBRARIES})
+  SET_TARGET_PROPERTIES(${MDTK_CurrentTarget} PROPERTIES COMPILE_FLAGS "-DMDTRAJVIEW_PNG")
+ELSE(PNG_FOUND)
+  MESSAGE("libpng not found. mdtrajview will write BMP files instead of PNG.")
+ENDIF(PNG_FOUND)
+
 install(TARGETS ${MDTK_CurrentTarget}
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
