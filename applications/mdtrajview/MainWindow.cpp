@@ -711,7 +711,7 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
       "MDTK" + " " +
       mdtk::release_info.PRODUCT_VERSION + 
       "\n\n" + 
-      "Copyright (C) 2003-2010 Oleksandr Yermolenko\n <oleksandr.yermolenko@@gmail.com>\n\n" +
+      "Copyright (C) 2003-2012 Oleksandr Yermolenko\n <oleksandr.yermolenko@@gmail.com>\n\n" +
       "Run the program with --version or --help options for details."
       ;
     
