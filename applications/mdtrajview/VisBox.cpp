@@ -113,7 +113,6 @@ VisBox::VisBox(int x,int y,int w,int h)
     completeInfoPresent(),
     ml_(NULL),
     mdt(),
-    ctree(NULL),
     zbar(0.0),
     lstBall(0),
     lstBallHQ(0),
@@ -697,38 +696,8 @@ VisBox::drawArrow(const Vector3D& vi, const Vector3D& vj,
 }
 
 void
-VisBox::drawCTree(CollisionTree* ct)
-{
-  Atom& a = ct->a;
-  if (ct->t1)
-  {
-    Atom& a1 = ct->t1->a;
-    drawEdge(a.coords,a1.coords,
-	     0xFF0000,vertexRadius*pow(a.M/mdtk::amu,1.0/3.0));
-    TRACE(a.globalIndex);
-    TRACE(a1.globalIndex);
-    drawCTree(ct->t1);
-  }
-  if (ct->t2)
-  {
-    Atom& a2 = ct->t2->a;
-    drawEdge(a.coords,a2.coords,
-	     0xFF0000,vertexRadius*pow(a.M/mdtk::amu,1.0/3.0));
-    TRACE(a.globalIndex);
-    TRACE(a2.globalIndex);
-    drawCTree(ct->t2);
-  }
-}
-
-void
 VisBox::listCTree()
 {
-//  CTree_List(ctree);
-/*
-  size_t i = 0;
-  size_t j = 10695;
-  Draw_Edge(R[i].coords,R[j].coords,0xFF0000);
-*/
   std::vector<bool> ignore(mdt.begin()->second.atoms.size());
   std::vector<bool> hadEnteredCollision(mdt.begin()->second.atoms.size());
 

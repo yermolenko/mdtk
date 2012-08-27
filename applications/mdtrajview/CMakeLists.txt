@@ -1,6 +1,6 @@
 #  CMakeLists.txt file for the Molecular Dynamics Trajectory Viewer
 #
-#  Copyright (C) 2007, 2008, 2009, 2010 Oleksandr Yermolenko
+#  Copyright (C) 2007, 2008, 2009, 2010, 2012 Oleksandr Yermolenko
 #  <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -25,7 +25,7 @@ include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
 
 link_directories (${MDTK_BINARY_DIR})
 
-add_executable (${MDTK_CurrentTarget} main.cpp MainWindow.cpp VisBox.cpp bmpImage.cxx CollisionTree.cxx)
+add_executable (${MDTK_CurrentTarget} main.cpp MainWindow.cpp VisBox.cpp bmpImage.cxx MDTrajectory.cxx)
 
 IF(WIN32)
   target_link_libraries (${MDTK_CurrentTarget} mdtk ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES} ${ZLIB_LIBRARIES} ${GSL_LIBRARIES} ole32 uuid comctl32 wsock32 gdi32)

@@ -1,5 +1,5 @@
 /*
-   Collision Tree class (implementation)
+   MDTrajectory data structure (implementation)
 
    Copyright (C) 2010, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
@@ -20,7 +20,7 @@
    along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "CollisionTree.hpp"
+#include "MDTrajectory.hpp"
 #include <mdtk/SimLoop.hpp>
 
 #include <FL/Fl.H>
@@ -346,72 +346,6 @@ void MDTrajectory_add_from_simulation(
   sl.execute();
   if (sl.simTimeFinal <= sl.simTime)
     MainWindow_GlobalPtr->btn_simulate->value(0);
-}
-
-Atom getNearestAtom(const Atom& a,const std::vector<Atom>& atoms)
-{
-  Atom an;
-  Float dmin = 100000.0*Ao;
-
-  int atomFound = 0;
-  
-  for(size_t i = 0; i < atoms.size(); ++i)
-  {
-    const Atom& ai = atoms[i];
-    if (ai.globalIndex == a.globalIndex) atomFound++;
-    if (ai.globalIndex == a.globalIndex) continue;
-    Float d = depos(ai,a).module();
-    if (d < dmin)
-    {
-      an = ai;
-      dmin = d;
-    }
-  }
-
-  REQUIRE(atomFound == 1);
-  return an;
-}
-
-CollisionTree::CollisionTree(const Atom& atom, 
-			     MDTrajectory::const_iterator time, 
-			     const MDTrajectory& mdt)
-  :a(atom),t(time->first),t1(NULL),t2(NULL)
-{
-  if (a.globalIndex != 10695) return;
-  TRACE("*******BEGIN*******");
-  TRACE(time->first/ps);
-  TRACE(a.globalIndex);
-  if (time == mdt.end()) return;
-  Float distance = 10000.0*Ao;
-  Atom an;
-  MDTrajectory::const_iterator t = time;
-  while (t != mdt.end())
-  {
-    a = t->second.atoms[a.globalIndex];
-    an = getNearestAtom(a,t->second.atoms);
-    ++t;
-//    TRACE(an.globalIndex);
-//    TRACE(distance/Ao);
-//    TRACE(t->first/ps);
-//    TRACE(depos(a,an).module()/Ao);
-//    TRACE(distance/Ao);
-    
-//    TRACE(depos(a,an).module() > distance && distance < 3.0*Ao);
-    if (depos(a,an).module() > distance && distance < 3.0*Ao)
-      break;
-    distance = depos(a,an).module();
-  }
-  TRACE(t != mdt.end());
-  TRACE(t->first/ps);
-  TRACE(an.globalIndex);
-  TRACE(depos(a,an).module()/Ao);
-
-  if (t != mdt.end())
-  {
-    t1 = new CollisionTree(a, t,mdt);
-    t2 = new CollisionTree(an,t,mdt);
-  }
-  TRACE("*******END*******");
 }
 
 }

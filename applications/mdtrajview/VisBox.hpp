@@ -37,7 +37,7 @@
 #include "mdtk/consts.hpp"
 #include "mdtk/SimLoop.hpp"
 
-#include "CollisionTree.hpp"
+#include "MDTrajectory.hpp"
 #include "MainWindow.hpp"
 
 namespace xmde
@@ -95,8 +95,6 @@ public:
   mdtk::SimLoop* ml_;
   MDTrajectory mdt;
 private:
-  CollisionTree *ctree;
-private:
   mdtk::Float zbar;
 
   void draw();
@@ -123,7 +121,6 @@ private:
   void listCustom1();
   void listCustom2();
   void listCustom3();
-  void drawCTree(CollisionTree* ct);
   void drawEdge(const Vector3D& vi, const Vector3D& vj, 
 		unsigned int color, double radius, GLubyte alpha = 255);
   void drawArrow(const Vector3D& vi, const Vector3D& vj, 

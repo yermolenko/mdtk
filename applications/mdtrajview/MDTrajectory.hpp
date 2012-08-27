@@ -1,5 +1,5 @@
 /*
-   Collision Tree class (header file)
+   MDTrajectory data structure (header file)
 
    Copyright (C) 2010, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
@@ -70,18 +70,6 @@ void MDTrajectory_add_from_simulation(
   MDTrajectory& mdt,
   SimLoop slInit
   );
-
-class CollisionTree
-{
-public:
-  Atom a;
-  Float t;
-  CollisionTree *t1,*t2;
-
-  CollisionTree(const Atom& atom, 
-		MDTrajectory::const_iterator time, 
-		const MDTrajectory& mdt);
-};
 
 }
 

@@ -57,7 +57,7 @@
 
 #include "bmpImage.hpp"
 #include "VisBox.hpp"
-#include "CollisionTree.hpp"
+#include "MDTrajectory.hpp"
 
 #include <vector>
 
