@@ -162,7 +162,7 @@ SimLoop MDTrajectory_read(
 
     ml.initNLafterLoading = false;
 
-    if (basefile.find("mde_init") != std::string::npos)
+    if (basefile.find(".xva") == std::string::npos)
       ml.loadFromStream(fi);
     else
     {
@@ -204,7 +204,7 @@ void MDTrajectory_read_from_SnapshotList(
 
     ml.initNLafterLoading = false;
 
-    if (basefile.find("mde_init") != std::string::npos)
+    if (basefile.find(".xva") == std::string::npos)
       ml.loadFromStream(fi);
     else
     {
