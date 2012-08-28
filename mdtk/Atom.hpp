@@ -121,24 +121,25 @@ depos(const Atom &a1, const Atom &a2)
 
   Vector3D r;
 
-  for(size_t i = 0; i < 3; ++i)
-  {
-    if (a1.PBC.X(i) == NO_PBC.X(i) && a2.PBC.X(i) != NO_PBC.X(i))
-      c2.X(i) += a2.PBC.X(i)*a2.PBC_count.X(i);
-    if (a2.PBC.X(i) == NO_PBC.X(i) && a1.PBC.X(i) != NO_PBC.X(i))
-      c1.X(i) += a1.PBC.X(i)*a1.PBC_count.X(i);
-
-    r.X(i) = c1.X(i) - c2.X(i);
-
-    if (a1.PBC.X(i) == a2.PBC.X(i))
-    {
-      if(fabs(r.X(i)) > a1.PBC.X(i)*0.5)
-      {
-        REQUIRE(a1.PBC.X(i) != NO_PBC.X(i));
-        r.X(i) += (r.X(i) > 0)?(-a1.PBC.X(i)):(a1.PBC.X(i));
-      }
-    }
+#define DEPOS_COORD(xi)                                         \
+  if (a1.PBC.xi == NO_PBC.xi && a2.PBC.xi != NO_PBC.xi)         \
+    c2.xi += a2.PBC.xi*a2.PBC_count.xi;                         \
+  if (a2.PBC.xi == NO_PBC.xi && a1.PBC.xi != NO_PBC.xi)         \
+    c1.xi += a1.PBC.xi*a1.PBC_count.xi;                         \
+                                                                \
+  r.xi = c1.xi - c2.xi;                                         \
+                                                                \
+  if (a1.PBC.xi == a2.PBC.xi)                                   \
+  {                                                             \
+    if(fabs(r.xi) > a1.PBC.xi*0.5)                              \
+    {                                                           \
+      r.xi += (r.xi > 0)?(-a1.PBC.xi):(a1.PBC.xi);              \
+    }                                                           \
   }
+
+  DEPOS_COORD(x);
+  DEPOS_COORD(y);
+  DEPOS_COORD(z);
 
   return r;
 }
