@@ -116,18 +116,13 @@ inline
 Vector3D
 depos(const Atom &a1, const Atom &a2)
 {
-  Vector3D c1(a1.coords);
-  Vector3D c2(a2.coords);
-
-  Vector3D r;
+  Vector3D r(a1.coords - a2.coords);
 
 #define DEPOS_COORD(xi)                                         \
   if (a1.PBC.xi == NO_PBC.xi && a2.PBC.xi != NO_PBC.xi)         \
-    c2.xi += a2.PBC.xi*a2.PBC_count.xi;                         \
+    r.xi -= a2.PBC.xi*a2.PBC_count.xi;                          \
   if (a2.PBC.xi == NO_PBC.xi && a1.PBC.xi != NO_PBC.xi)         \
-    c1.xi += a1.PBC.xi*a1.PBC_count.xi;                         \
-                                                                \
-  r.xi = c1.xi - c2.xi;                                         \
+    r.xi += a1.PBC.xi*a1.PBC_count.xi;                          \
                                                                 \
   if (a1.PBC.xi == a2.PBC.xi)                                   \
   {                                                             \
