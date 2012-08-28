@@ -1,5 +1,5 @@
 /*
-   Collision Tree class (header file)
+   MDTrajectory data structure (header file)
 
    Copyright (C) 2010, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
@@ -51,13 +51,13 @@ public:
 
 typedef std::map<Float, MDSnapshot> MDTrajectory;
 
-void MDTrajectory_read(
+SimLoop MDTrajectory_read(
   MDTrajectory& mdt,
   const std::string basefile,
   const std::vector<std::string>& xvas
   );
 
-void MDTrajectory_read_from_SnapshotList(
+SimLoop MDTrajectory_read_from_SnapshotList(
   MDTrajectory& mdt,
   const std::string basefile
   );
@@ -66,17 +66,11 @@ void MDTrajectory_read_from_basefiles(
   MDTrajectory& mdt
   );
 
-class CollisionTree
-{
-public:
-  Atom a;
-  Float t;
-  CollisionTree *t1,*t2;
-
-  CollisionTree(const Atom& atom, 
-		MDTrajectory::const_iterator time, 
-		const MDTrajectory& mdt);
-};
+void MDTrajectory_add_from_simulation(
+  MDTrajectory& mdt,
+  SimLoop slInit,
+  bool quench
+  );
 
 }
 

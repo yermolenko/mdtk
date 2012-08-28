@@ -76,6 +76,8 @@ ELSE(WIN32 AND CMAKE_COMPILER_IS_GNUCXX)
   FIND_PACKAGE(ZLIB REQUIRED)
 ENDIF(WIN32 AND CMAKE_COMPILER_IS_GNUCXX)
 
+FIND_PACKAGE(PNG)
+
 add_subdirectory (mdtk)
 add_subdirectory (applications)
 add_subdirectory (examples)

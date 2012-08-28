@@ -1,7 +1,7 @@
 /*
    The BMP image class header file.
 
-   Copyright (C) 2004, 2009, 2010 Oleksandr Yermolenko
+   Copyright (C) 2004, 2009, 2010, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -63,6 +63,7 @@ namespace grctk
 	data_[(i*w_+j)*3+2] = (c & (1<<32-1)) >> 16;
 */
       }
+    unsigned char* getRawDataPtr() {return data_;}
   };
 
 }

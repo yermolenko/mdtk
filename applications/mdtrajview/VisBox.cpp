@@ -22,6 +22,10 @@
 
 #include <FL/Fl.H>
 
+#ifdef MDTRAJVIEW_PNG
+#include <png.h>
+#endif
+
 #include "VisBox.hpp"
 
 #include <iostream>
@@ -43,71 +47,42 @@ VisBox::loadNewSnapshot(size_t index)
 
   TRACE(index);
 
-  if (index == 0)
+  TRACE("********* UPDATING FROM MDT ***********");
+  MDTrajectory::const_iterator t = mdt.begin();
+  for(size_t count = 0; count < index; count++)
   {
-    
-    TRACE("*********LOADING INITIAL STATE *******");
-    
-    TRACE(baseStateFilename);
-
-    if (baseStateFilename.find("simloop.conf") != std::string::npos) 
-    {
-      ml_->loadstate();
-    }
-    else
-    {
-      yaatk::text_ifstream fi(baseStateFilename.c_str()); 
-
-      ml_->initNLafterLoading = false;
-
-      if (baseStateFilename.find("mde_init") != std::string::npos)
-	ml_->loadFromStream(fi);
-      else
-      {
-	ml_->loadFromMDE(fi);
-//	  ml_->loadFromMDE_OLD(fi);
-	ml_->allowPartialLoading = true; // hack, disables essential checks
-	ml_->atoms.prepareForSimulatation();
-      }
-      fi.close(); 
-    }
-
-    // assume the first xva has always actual info
-    completeInfoPresent.assign(ml_->atoms.size(),true);
+    ++t;
   }
+  const std::vector<Atom>& atoms = t->second.atoms;
+  size_t old_atoms_count = ml_->atoms.size();
+  completeInfoPresent = t->second.upToDate;
+  TRACE(atoms.size());
+  ml_->atoms.resize(atoms.size());
+  REQUIRE(atoms.size() == ml_->atoms.size());
+  for(size_t i = 0; i < ml_->atoms.size(); ++i)
+  {
+    if (completeInfoPresent[i])
+      ml_->atoms[i] = atoms[i];
+  }
+  ml_->simTime = t->first;
 
   {
-    TRACE("********* UPDATING FROM MDT ***********");
-    MDTrajectory::const_iterator t = mdt.begin();
-    for(size_t count = 0; count < index; count++)
+    bool allowRescale_bak = allowRescale;
+    if (old_atoms_count != atoms.size())
     {
-      ++t;
+      cout << "Atoms number changed. Rescaling." << endl;
+      allowRescale = true;
     }
-    const std::vector<Atom>& atoms = t->second.atoms;
-    completeInfoPresent = t->second.upToDate;
-    TRACE(atoms.size());
-    TRACE(ml_->atoms.size());
-    REQUIRE(atoms.size() == ml_->atoms.size());
-    for(size_t i = 0; i < ml_->atoms.size(); ++i)
-    {
-      if (completeInfoPresent[i])
-        ml_->atoms[i] = atoms[i];
-    }
-    ml_->simTime = t->first;
+
+    setData(*ml_);
+
+    allowRescale = allowRescale_bak;
   }
 
-  Float sc = scale;
-  Float msc = maxScale;
-
-  setData(*ml_);
-
-  if (maxScale < msc) maxScale = msc;
-  scale = sc;
   redraw();
-}  
+}
 
-VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
-	       const std::vector<std::string>& xvas)
+VisBox::VisBox(int x,int y,int w,int h)
   : Fl_Gl_Window(x,y,w,h,"MDTK Trajectory Viewer - 3D View"),
     allowRescale(true),
     vertexColor(combineRGB(255,255,255)),
@@ -124,6 +99,7 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     showAtoms(true),
     showBath(false),
     showBathSketch(false),
+    showBonds(false),
     unfoldPBC(false),
     showCustom1(false),
     showCustom2(false),
@@ -141,8 +117,6 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
     completeInfoPresent(),
     ml_(NULL),
     mdt(),
-    baseStateFilename(base_state_filename),
-    ctree(NULL),
     zbar(0.0),
     lstBall(0),
     lstBallHQ(0),
@@ -159,57 +133,54 @@ VisBox::VisBox(int x,int y,int w,int h,std::string base_state_filename,
   light0_dir[2] = -1.0;
   light0_dir[3] = 0.0;
 
-  using mdtk::Exception;
-
   ml_ = new mdtk::SimLoop();
-
   setupPotentials(*ml_);
-  if (base_state_filename != "")
+
+  callback(window_cb);
+}
+
+void
+VisBox::loadDataFromFiles(std::string base_state_filename,
+                          const std::vector<std::string>& xvas,
+                          bool loadPartialSnapshots)
+{
+  if (yaatk::exists("snapshots.conf") && loadPartialSnapshots)
   {
-  if (base_state_filename.find("simloop.conf") != std::string::npos) 
-  {
-    ml_->loadstate();
+    *ml_ = MDTrajectory_read_from_SnapshotList(mdt,base_state_filename);
+    if (xvas.size() > 0)
+      MDTrajectory_read(mdt,base_state_filename,xvas);
+    MDTrajectory_read_from_basefiles(mdt);
   }
   else
   {
-    ml_->initNLafterLoading = false;
-    yaatk::text_ifstream fi(base_state_filename.c_str()); 
-    if (base_state_filename.find("mde_init") != std::string::npos)
-      ml_->loadFromStream(fi);
-    else
-      ml_->loadFromMDE(fi);
-//	  ml_->loadFromMDE_OLD(fi);
-    fi.close(); 
+    *ml_ = MDTrajectory_read(mdt,base_state_filename,xvas);
   }
-  setData(*ml_);
 
-  completeInfoPresent.resize(ml_->atoms.size());
-  completeInfoPresent.assign(completeInfoPresent.size(),true);
-
-  if (xvas.size() > 0)
-  {
-    std::vector<std::string> xvas_wo_shots;
-    for(size_t xi = 0; xi < xvas.size(); xi++)
-      if (xvas[xi][0] != 's')
-        xvas_wo_shots.push_back(xvas[xi]);
-
-    if (yaatk::exists("snapshots.conf") && xvas.size() != xvas_wo_shots.size())
-    {
-      MDTrajectory_read_from_SnapshotList(mdt,base_state_filename);
-      MDTrajectory_read(mdt,base_state_filename,xvas_wo_shots);
-      MDTrajectory_read_from_basefiles(mdt);
-    }
-    else
-    {
-      MDTrajectory_read(mdt,base_state_filename,xvas_wo_shots);
-    }
-  }
-//    ctree = new CollisionTree(*(ml_->atoms.back()),mdt.begin(),mdt);
-  }
   size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
+}
 
+void
+VisBox::loadDataFromSimulation(bool quench)
+{
+  MDTrajectory_add_from_simulation(mdt, *ml_, quench);
+  size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
+}
 
-  callback(window_cb);
+void
+VisBox::saveSelectedAtomProperies()
+{
+/*
+  MDTrajectory::iterator t = mdt.begin();
+  while(t != mdt.end())
+  {
+    if (ml_->simTime == t->first)
+    {
+      t->second.atoms[selectedAtomIndex] = Ro[selectedAtomIndex];
+    }
+    ++t;
+  }
+*/
+  ml_->atoms[selectedAtomIndex] = Ro[selectedAtomIndex];
 }
 
 void
@@ -280,6 +251,8 @@ VisBox::reArrange(double xmin, double xmax,
       };
   };
 
+  TRACE(XMin/Ao);
+  TRACE(XMax/Ao);
   if (allowRescale)
   {
     XCenter=(XMin+XMax)/2;
@@ -290,10 +263,12 @@ VisBox::reArrange(double xmin, double xmax,
   //	VertexRadius=DistMin/4;
   vertexRadius = 2.57*mdtk::Ao/2.0/3.0/2.0;
   axesRadius = vertexRadius*3;
+  TRACE(scale);
   if (allowRescale)
   {
     scale=(2.0*nRange)/(DistMax+2.0*vertexRadius);
   }  
+  TRACE(scale);
   maxScale=2.0*(scale);
   redraw();
 }  
@@ -366,6 +341,10 @@ VisBox::drawObjects()
 
   if (showCTree)
     listCTree();
+
+  if (showBonds)
+    listBonds();
+
   if (showAxes)
   {
 //    glDisable(GL_LIGHTING);
@@ -659,13 +638,13 @@ _relAngle(const Vector3D& a, const Vector3D& b)
 
 void
 VisBox::drawEdge(const Vector3D& vi, const Vector3D& vj, 
-		 unsigned int color, double radius)
+		 unsigned int color, double radius, GLubyte alpha)
 {
   Vector3D TempRotVector;
   double    TempRotAngle;
 
   glPushMatrix();
-  myglColor(color);
+  myglColor(color, alpha);
   glTranslated(vi.x,vi.y,vi.z);
   TempRotVector=_vectorMul(Vector3D(0,0,1.0L),vj-vi);
   TempRotAngle=(_relAngle(Vector3D(0,0,1.0L),vj-vi)/M_PI)*180.0L;
@@ -721,38 +700,8 @@ VisBox::drawArrow(const Vector3D& vi, const Vector3D& vj,
 }
 
 void
-VisBox::drawCTree(CollisionTree* ct)
-{
-  Atom& a = ct->a;
-  if (ct->t1)
-  {
-    Atom& a1 = ct->t1->a;
-    drawEdge(a.coords,a1.coords,
-	     0xFF0000,vertexRadius*pow(a.M/mdtk::amu,1.0/3.0));
-    TRACE(a.globalIndex);
-    TRACE(a1.globalIndex);
-    drawCTree(ct->t1);
-  }
-  if (ct->t2)
-  {
-    Atom& a2 = ct->t2->a;
-    drawEdge(a.coords,a2.coords,
-	     0xFF0000,vertexRadius*pow(a.M/mdtk::amu,1.0/3.0));
-    TRACE(a.globalIndex);
-    TRACE(a2.globalIndex);
-    drawCTree(ct->t2);
-  }
-}
-
-void
 VisBox::listCTree()
 {
-//  CTree_List(ctree);
-/*
-  size_t i = 0;
-  size_t j = 10695;
-  Draw_Edge(R[i].coords,R[j].coords,0xFF0000);
-*/
   std::vector<bool> ignore(mdt.begin()->second.atoms.size());
   std::vector<bool> hadEnteredCollision(mdt.begin()->second.atoms.size());
 
@@ -815,6 +764,35 @@ VisBox::listCTree()
     }
 
     ++t;
+  }
+}
+
+void
+VisBox::listBonds()
+{
+  Color c = 0x00FF00;
+  for(size_t i = 0; i < R.size(); i++)
+  {
+    for(size_t j = 0; j < R.size(); j++)
+    {
+      if (i == j) continue;
+      if (R[i].ID != C_EL || R[j].ID != C_EL) continue;
+      glPushMatrix();
+      Float bmin = 1.5*Ao;
+      Float bmax = 1.7*Ao;
+      Float b = (R[i].coords - R[j].coords).module();
+      Float strength = 1.0;
+      if (b >= bmax)
+        strength = 0.0;
+      else
+      {
+        if (b > bmin)
+          strength = (b-bmin)*255/(bmax-bmin);
+      }
+      if (strength > 0.0)
+        drawEdge(R[i].coords,R[j].coords, c, vertexRadius/3, GLubyte(strength*255));
+      glPopMatrix();
+    }
   }
 }
 
@@ -1170,6 +1148,95 @@ VisBox::saveToMDE(char* filename)
 }  
 
 void
+VisBox::saveState(char* filename)
+{
+  if (yaatk::exists(filename))
+  {
+    if (fl_choice("File exists. Do you really want to overwrite it?","No","Yes",NULL)!=1)
+      return;
+  }
+
+  yaatk::text_ofstream fo(filename);
+  ml_->saveToStream(fo);
+  fo.close();
+}
+
+#ifdef MDTRAJVIEW_PNG
+int writePNGImage(char* filename, int width, int height, unsigned char *buffer, char* title)
+{
+  int retcode = 0;
+  FILE *fp;
+  png_structp png_ptr;
+  png_infop info_ptr;
+  png_bytep row;
+
+  try
+  {
+    fp = fopen(filename, "wb");
+    if (fp == NULL)
+      throw Exception("Error opening output file.");
+
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if (png_ptr == NULL)
+      throw Exception("Could not allocate png write struct.");
+
+    info_ptr = png_create_info_struct(png_ptr);
+    if (info_ptr == NULL)
+      throw Exception("Could not allocate png info struct.");
+
+    if (setjmp(png_jmpbuf(png_ptr)))
+      throw Exception("Error during png creation.");
+
+    png_init_io(png_ptr, fp);
+
+    png_set_IHDR(png_ptr, info_ptr, width, height,
+                 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+                 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+    if (title != NULL)
+    {
+      png_text title_text;
+      title_text.compression = PNG_TEXT_COMPRESSION_NONE;
+      title_text.key = "Title";
+      title_text.text = title;
+      png_set_text(png_ptr, info_ptr, &title_text, 1);
+    }
+
+    png_write_info(png_ptr, info_ptr);
+
+    row = (png_bytep) malloc(3 * width * sizeof(png_byte));
+
+    if (!row)
+      throw Exception("Memory allocation error");
+
+//    for(int y = 0; y < height; y++)
+    for(int y = height-1; y >= 0; y--)
+    {
+      for (int x = 0; x < width; x++)
+      {
+        memcpy(&(row[x*3]),&(buffer[(y*width + x)*3]),3);
+      }
+      png_write_row(png_ptr, row);
+    }
+
+    png_write_end(png_ptr, NULL);
+  }
+  catch (Exception& e)
+  {
+    std::cerr << "Caught mdtk Exception: " << e.what() << std::endl;
+    retcode = -1;
+  }
+
+  if (row != NULL) free(row);
+  if (info_ptr != NULL) png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
+  if (png_ptr != NULL) png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+  if (fp != NULL) fclose(fp);
+
+  return retcode;
+}
+#endif
+
+void
 VisBox::saveImageToFile(char* filename)
 {
   hqMode = true;
@@ -1180,6 +1247,9 @@ VisBox::saveImageToFile(char* filename)
   REQUIRE(d!=NULL);
 
   glReadPixels(0,0,width,height,GL_RGB,GL_UNSIGNED_BYTE,d);
+#ifdef MDTRAJVIEW_PNG
+  writePNGImage(filename,width,height,d,filename);
+#else
   for(unsigned long i = 0;i < width*height*3; i++)
   {
     if (i % 3 == 0)
@@ -1190,13 +1260,13 @@ VisBox::saveImageToFile(char* filename)
       d[i+2] = t;
     }	 
   }
+
   grctk::bmpImage* bmp = new grctk::bmpImage(width,height,d);
-
   bmp->SaveToFile(filename);
-
+  delete bmp;
+#endif
 
   delete [] d;
-  delete bmp;
 
   hqMode = false;
 }
@@ -1229,6 +1299,8 @@ VisBox::saveTiledImageToFile(char* filename)
 
       glReadPixels(0,0,w(),h(),GL_RGB,GL_UNSIGNED_BYTE,dtile);
 
+#ifdef MDTRAJVIEW_PNG
+#else
       for(unsigned long i = 0;i < ((unsigned long) w())*h()*3; i++)
       {
 	if (i % 3 == 0)
@@ -1239,6 +1311,7 @@ VisBox::saveTiledImageToFile(char* filename)
 	  dtile[i+2] = t;
 	}	 
       }
+#endif
 
       grctk::bmpImage* tilebmp = new grctk::bmpImage(w(),h(),dtile);
 //      tilebmp->SaveToFile("xxx.bmp");
@@ -1249,7 +1322,11 @@ VisBox::saveTiledImageToFile(char* filename)
     }
   }
 
+#ifdef MDTRAJVIEW_PNG
+  writePNGImage(filename,width,height,bmp->getRawDataPtr(),filename);
+#else
   bmp->SaveToFile(filename);
+#endif
 
   delete [] dtile;
   delete [] d;

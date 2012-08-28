@@ -37,7 +37,7 @@
 #include "mdtk/consts.hpp"
 #include "mdtk/SimLoop.hpp"
 
-#include "CollisionTree.hpp"
+#include "MDTrajectory.hpp"
 #include "MainWindow.hpp"
 
 namespace xmde
@@ -63,6 +63,7 @@ public:
   bool showAtoms;
   bool showBath;
   bool showBathSketch;
+  bool showBonds;
   bool unfoldPBC;
   bool showCustom1;
   bool showCustom2;
@@ -74,6 +75,8 @@ public:
   int  atomsQualityInHQMode;
   bool hqMode;
   size_t selectedAtomIndex;
+  Atom* getSelectedAtomPtr() {return &(Ro[selectedAtomIndex]);}
+  void saveSelectedAtomProperies();
 
   GLfloat nRange;
   Float vertexRadius, axesRadius, scale, maxScale,
@@ -91,9 +94,6 @@ private:
 public:
   mdtk::SimLoop* ml_;
   MDTrajectory mdt;
-private:
-  std::string baseStateFilename;
-  CollisionTree *ctree;
 private:
   mdtk::Float zbar;
 
@@ -117,12 +117,12 @@ private:
   void listThermalBath();
   void listThermalBathSketch();
   void listCTree();
+  void listBonds();
   void listCustom1();
   void listCustom2();
   void listCustom3();
-  void drawCTree(CollisionTree* ct);
   void drawEdge(const Vector3D& vi, const Vector3D& vj, 
-		unsigned int color, double radius);
+		unsigned int color, double radius, GLubyte alpha = 255);
   void drawArrow(const Vector3D& vi, const Vector3D& vj, 
 		 unsigned int color, double radius, 
                  Float arrowPart = 0.2);
@@ -143,8 +143,11 @@ public:
   double RZ(int i) {return R[i].coords.z;}
 	
 public:
-  VisBox(int x,int y,int w,int h,std::string base_state_filename,
-	 const std::vector<std::string>& xvas);
+  VisBox(int x,int y,int w,int h);
+  void loadDataFromFiles(std::string base_state_filename,
+                         const std::vector<std::string>& xvas,
+                         bool loadPartialSnapshots = false);
+  void loadDataFromSimulation(bool quench);
   virtual ~VisBox(){delete ml_;};
 
   void setData(mdtk::SimLoop &);
@@ -153,7 +156,8 @@ public:
   void saveImageToFile(char* filename);
   void saveTiledImageToFile(char* filename);
   void saveToMDE(char* filename);
-	
+  void saveState(char* filename);
+
   static void window_cb(Fl_Widget *, void *);
 
   bool tiledMode;
