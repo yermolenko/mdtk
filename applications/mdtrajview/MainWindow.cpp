@@ -219,6 +219,10 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   btn_simulate->callback((Fl_Callback*)btn_simulate_cb);
   btn_simulate->value(false);
 
+  checkbtn_quench = new Fl_Check_Button(475,500,105,30,
+                                        "Quench");
+  checkbtn_quench->value(false);
+
   {
     Fl_Button* t
       = new Fl_Button(570,320,115,20,
@@ -1178,7 +1182,8 @@ MainWindow::btn_simulate_cb(Fl_Widget *w, void *)
 
   if (v)
   {
-    MainWindow_Ptr->renderBox->loadDataFromSimulation();
+    bool quench = MainWindow_Ptr->checkbtn_quench->value();
+    MainWindow_Ptr->renderBox->loadDataFromSimulation(quench);
   }
 }
 

@@ -73,6 +73,7 @@ class MainWindow : public Fl_Window
 
 public:
   Fl_Light_Button* btn_simulate;
+  Fl_Check_Button* checkbtn_quench;
   void addMDSnapshot(const MDSnapshot& s);
 
 private:

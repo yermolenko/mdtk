@@ -68,7 +68,8 @@ void MDTrajectory_read_from_basefiles(
 
 void MDTrajectory_add_from_simulation(
   MDTrajectory& mdt,
-  SimLoop slInit
+  SimLoop slInit,
+  bool quench
   );
 
 }

@@ -327,7 +327,8 @@ public:
 
 void MDTrajectory_add_from_simulation(
   MDTrajectory& mdt,
-  SimLoop slInit
+  SimLoop slInit,
+  bool quench
   )
 {
   {
@@ -343,6 +344,8 @@ void MDTrajectory_add_from_simulation(
 
   InteractiveSimLoop sl(slInit);
   setupPotentials(sl);
+  if (quench)
+    sl.thermalBath.zMin = -100000.0*Ao;
   if (sl.simTimeFinal < sl.simTime + 4.0*ps)
     sl.simTimeFinal = sl.simTime + 4.0*ps;
   sl.execute();

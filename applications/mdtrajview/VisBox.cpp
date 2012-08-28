@@ -160,9 +160,9 @@ VisBox::loadDataFromFiles(std::string base_state_filename,
 }
 
 void
-VisBox::loadDataFromSimulation()
+VisBox::loadDataFromSimulation(bool quench)
 {
-  MDTrajectory_add_from_simulation(mdt, *ml_);
+  MDTrajectory_add_from_simulation(mdt, *ml_, quench);
   size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
 }
 
