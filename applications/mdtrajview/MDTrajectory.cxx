@@ -188,7 +188,7 @@ SimLoop MDTrajectory_read(
   return ml;
 }
 
-void MDTrajectory_read_from_SnapshotList(
+SimLoop MDTrajectory_read_from_SnapshotList(
   MDTrajectory& mdt,
   const std::string basefile
   )
@@ -229,6 +229,8 @@ void MDTrajectory_read_from_SnapshotList(
     MDSnapshot s_shots(ml,shots,i);
     mdt[s_shots.time] = s_shots;
   }
+
+  return ml;
 }
 
 void MDTrajectory_read_from_basefiles(

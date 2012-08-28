@@ -57,7 +57,7 @@ SimLoop MDTrajectory_read(
   const std::vector<std::string>& xvas
   );
 
-void MDTrajectory_read_from_SnapshotList(
+SimLoop MDTrajectory_read_from_SnapshotList(
   MDTrajectory& mdt,
   const std::string basefile
   );
