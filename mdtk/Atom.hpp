@@ -126,7 +126,7 @@ depos(const Atom &a1, const Atom &a2)
                                                                 \
   if (a1.PBC.xi == a2.PBC.xi)                                   \
   {                                                             \
-    if(fabs(r.xi) > a1.PBC.xi*0.5)                              \
+    if(a1.PBC.xi != NO_PBC.xi && fabs(r.xi) > a1.PBC.xi*0.5)    \
     {                                                           \
       r.xi += (r.xi > 0)?(-a1.PBC.xi):(a1.PBC.xi);              \
     }                                                           \
