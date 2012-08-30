@@ -100,15 +100,27 @@ Atom::applyPBC()
     while(c.x < 0)      {c.x += PBC.x;--PBC_count.x;}
     while(c.x >= PBC.x) {c.x -= PBC.x;++PBC_count.x;}
   }
+  else
+  {
+    REQUIRE(PBC_count.x == 0);
+  }
   if (PBC.y != NO_PBC.y)
   {
     while(c.y < 0)      {c.y += PBC.y;--PBC_count.y;}
     while(c.y >= PBC.y) {c.y -= PBC.y;++PBC_count.y;}
   }
+  else
+  {
+    REQUIRE(PBC_count.y == 0);
+  }
   if (PBC.z != NO_PBC.z)
   {
     while(c.z < 0)      {c.z += PBC.z;--PBC_count.z;}
     while(c.z >= PBC.z) {c.z -= PBC.z;++PBC_count.z;}
+  }
+  else
+  {
+    REQUIRE(PBC_count.z == 0);
   }
 }
 
@@ -122,15 +134,27 @@ Atom::unfoldPBC()
     c.x += PBC.x*PBC_count.x;
     PBC_count.x = 0;
   }
+  else
+  {
+    REQUIRE(PBC_count.x == 0);
+  }
   if (PBC.y != NO_PBC.y)
   {
     coords.y += PBC.y*PBC_count.y;
     PBC_count.y = 0;
   }
+  else
+  {
+    REQUIRE(PBC_count.y == 0);
+  }
   if (PBC.z != NO_PBC.z)
   {
     coords.z += PBC.z*PBC_count.z;
     PBC_count.z = 0;
+  }
+  else
+  {
+    REQUIRE(PBC_count.z == 0);
   }
 }
 
