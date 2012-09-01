@@ -145,12 +145,14 @@ MainWindow::setAtomViewIndex(int index)
   os << "Atom " << index << ":" << std::endl; 
   
   mdtk::Atom &atom = renderBox->getAtoms()->operator[](index);
+
+  using namespace mdtk;
   
   os TRACESS(int(atom.ID));
-  os TRACESS(atom.Z/mdtk::e);
-  os TRACESS(atom.M/mdtk::amu);
+  os TRACESS(atom.Z/e);
+  os TRACESS(atom.M/amu);
   os TRACESS(atom.V);
-  os TRACESS(atom.coords/mdtk::Ao);
+  os TRACESS(atom.coords/Ao);
 //    os TRACESS(atom.an);
 //    os TRACESS(atom.apply_barrier);
   os TRACESS(atom.PBCEnabled());
