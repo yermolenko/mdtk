@@ -773,9 +773,8 @@ VisBox::listBonds()
   Color c = 0x00FF00;
   for(size_t i = 0; i < R.size(); i++)
   {
-    for(size_t j = 0; j < R.size(); j++)
+    for(size_t j = i+1; j < R.size(); j++)
     {
-      if (i == j) continue;
       if (R[i].ID != C_EL || R[j].ID != C_EL) continue;
       glPushMatrix();
       Float bmin = 1.5*Ao;
