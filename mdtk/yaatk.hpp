@@ -129,6 +129,7 @@ namespace yaatk
 
 
 #define TRACESS(x) << #x << " : " << (x) << std::endl;
+#define TRACESS_NO_ENDL(x,delim) << #x << " : " << (x) << delim;
 
 
 #define YAATK_BIN_WRITE(FSTREAM_INST,VAR_INST) \
