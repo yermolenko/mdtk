@@ -60,7 +60,7 @@ MainWindow::set_atom_properties_cb(Fl_Widget *w, void *)
   MainWindow_Ptr =
     (MainWindow*)(w->parent()->parent()->parent());
 
-  Atom* a = MainWindow_Ptr->renderBox->getSelectedAtomPtr();
+  mdtk::Atom* a = MainWindow_Ptr->renderBox->getSelectedAtomPtr();
 
   a->coords.x = MainWindow_Ptr->atom_coords_x->value()*Ao;
   a->coords.y = MainWindow_Ptr->atom_coords_y->value()*Ao;
@@ -129,7 +129,7 @@ MainWindow::setAtomViewIndex(int index)
   renderBox->selectedAtomIndex = index;
   current_atomindex->value(index/*+1*/);
 
-  Atom* a = renderBox->getSelectedAtomPtr();
+  mdtk::Atom* a = renderBox->getSelectedAtomPtr();
 
   atom_coords_x->value(a->coords.x/Ao);
   atom_coords_y->value(a->coords.y/Ao);
