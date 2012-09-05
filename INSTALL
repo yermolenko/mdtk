@@ -18,6 +18,10 @@ Also you need development files of
   * The OpenGL Utility Library (GLU), implementation from Mesa 3D
     works fine
 
+Optional dependencies:
+  * libpng for ability to save images in PNG format
+  * OSMesa (Mesa's off-screen rendering) for ability to run mdbuilder
+    without GUI
 
 After unpacking the distribution tarball, cd to mdtk-x.y.z directory.
 The Makefiles can be prepared using the command,
