@@ -110,7 +110,7 @@ MDSnapshot::MDSnapshot(SimLoop ml, const SnapshotList& snapshots, size_t index)
     const SnapshotList::AtomSnapshot& as =
       snapshots.snapshots[index].second[ai];
     size_t atomIndex = snapshots.atomsSelectedForSaving[ai];
-    Atom& a = ml.atoms[atomIndex];
+    mdtk::Atom& a = ml.atoms[atomIndex];
     as.restoreToAtom(a);
     upToDate[atomIndex] = true;
     accurate[atomIndex] = true;

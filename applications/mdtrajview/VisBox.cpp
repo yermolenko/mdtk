@@ -53,7 +53,7 @@ VisBox::loadNewSnapshot(size_t index)
   {
     ++t;
   }
-  const std::vector<Atom>& atoms = t->second.atoms;
+  const std::vector<mdtk::Atom>& atoms = t->second.atoms;
   size_t old_atoms_count = ml_->atoms.size();
   completeInfoPresent = t->second.upToDate;
   TRACE(atoms.size());
@@ -600,7 +600,7 @@ VisBox::listVertexes()
     if (atomsQuality > 2)
     {
       glTranslated(R[i].coords.x,R[i].coords.y,R[i].coords.z);
-      Atom a = R[i]; a.setAttributesByElementID();
+      mdtk::Atom a = R[i]; a.setAttributesByElementID();
       Float scale = 1.0*vertexRadius*pow(a.M/mdtk::amu,1.0/3.0);
       if (tinyAtoms || !completeInfoPresent[i]) scale /= 5;
       glScaled(scale,scale,scale);
@@ -711,15 +711,15 @@ VisBox::listCTree()
     if (!showCTreeAllTimes && t->first > ml_->simTime)
       break;
 
-    const std::vector<Atom>& atoms = t->second.atoms;
+    const std::vector<mdtk::Atom>& atoms = t->second.atoms;
 
     MDTrajectory::const_iterator t_prev = t;
     if (t != mdt.begin()) --t_prev;
-    const std::vector<Atom>& atoms_prev = t_prev->second.atoms;
+    const std::vector<mdtk::Atom>& atoms_prev = t_prev->second.atoms;
 
     for(size_t i = 0; i < atoms.size(); ++i)
     {
-      const Atom& a = atoms[i];
+      const mdtk::Atom& a = atoms[i];
       if (a.ID == Cu_EL && showCustom3) continue;
       Float Ek = a.M*SQR(a.V.module())/2.0;
       if (Ek > energyThresholdCTree*eV && !ignore[i])
@@ -750,7 +750,7 @@ VisBox::listCTree()
 
 	if (showCTreeConnected)
 	{
-	  const Atom& a_prev = atoms_prev[i];
+	  const mdtk::Atom& a_prev = atoms_prev[i];
 	  if (t != mdt.begin())
 	    drawEdge(a.coords,a_prev.coords,c,
 		     vertexRadius*pow(a.M/mdtk::amu,1.0/3.0)/downscaleCTree);
@@ -800,10 +800,10 @@ VisBox::listBonds()
 void
 VisBox::listCustom1()
 {
-  std::vector<Atom> cluster;
+  std::vector<mdtk::Atom> cluster;
   for(size_t i = 0; i < ml_->atoms.size(); i++)
   {
-    Atom& a = ml_->atoms[i];
+    mdtk::Atom& a = ml_->atoms[i];
     if (a.ID == Cu_EL) cluster.push_back(a);
   }
 
@@ -855,7 +855,7 @@ void
 VisBox::listCustom2()
 {
   {
-    const Atom& a = R.back();
+    const mdtk::Atom& a = R.back();
     Vector3D c1 = a.coords;
     Vector3D c2 = c1; c1.z += 5.0*Ao;
     drawArrow(c1,c2,0xFF0000,
@@ -872,11 +872,11 @@ VisBox::listCustom3()
     if (!showCTreeAllTimes && t->first > ml_->simTime)
       break;
 
-    const std::vector<Atom>& atoms = t->second.atoms;
+    const std::vector<mdtk::Atom>& atoms = t->second.atoms;
 
     MDTrajectory::const_iterator t_prev = t;
     if (t != mdt.begin()) --t_prev;
-    const std::vector<Atom>& atoms_prev = t_prev->second.atoms;
+    const std::vector<mdtk::Atom>& atoms_prev = t_prev->second.atoms;
     
     Vector3D clusterMassCenter;
     {
