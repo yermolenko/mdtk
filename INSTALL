@@ -90,9 +90,17 @@ MDTK compiles with MinGW/MSYS, and should compile with GNU C++ under
 Cygwin on Microsoft Windows (but do not forget to install all
 dependencies and libraries at first).
 
-For standard MinGW/MSYS installation type,
-  cmake -G "MSYS Makefiles" .
+For standard MinGW/MSYS installation you should type something like
+
+  cmake -G "MSYS Makefiles" -D MINGW_ROOT_PATH="C:/msys/mingw" -D EXTRA_ROOT_PATH="C:/msys/local" .
   make
+
+For standalone MinGW installation you should type something like
+
+  cmake -G "MinGW Makefiles" -D MINGW_ROOT_PATH="C:/mingw" -D EXTRA_ROOT_PATH="C:/mydevroot" .
+  mingw32-make
+
+The dot is required. It specifies where the source files are located.
 
 MDTK may also compile using Microsoft Visual C++. Project files can
 be generated using appropriate -G cmake option. For example:
