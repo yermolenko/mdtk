@@ -1,8 +1,8 @@
 /*
    Yet another auxiliary toolkit.
 
-   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -33,9 +33,53 @@ namespace yaatk
 {
 #define MDTK_GZ_BUFFER_SIZE 10000
 
-Stream::ZipInvokeInfo Stream::zipInvokeInfoGlobal=ZipInvokeInfo("xz",".xz");
+Stream::ZipInvokeInfo Stream::zipInvokeInfoGlobal =
+  ZipInvokeInfo("xz",".xz").works()?
+  ZipInvokeInfo("xz",".xz"):
+  ZipInvokeInfo("gzip_internal",".gz");
 
 std::vector<Stream::ZipInvokeInfo> Stream::zipInvokeInfoList = Stream::initZipInvokeInfoList();
+
+bool
+Stream::ZipInvokeInfo::works()
+{
+  if (command == "gzip_internal")
+    return true;
+
+  bool itWorks = true;
+
+  const char testdata[] = "ABCD";
+  const int resultdata_maxlen = 100;
+  char resultdata[resultdata_maxlen];
+
+  FILE* pipe;
+  char cmd[2000];sprintf(cmd,"echo %s | %s -c | %s -dc",testdata,command.c_str(),command.c_str());
+#ifndef __WIN32__
+  pipe = popen(cmd,"r");
+#else
+  pipe = _popen(cmd,"rb");
+#endif
+
+  if(pipe)
+  {
+    fread(resultdata,1,resultdata_maxlen,pipe);
+
+    if (strncmp(resultdata,testdata,strlen(testdata)))
+      itWorks=false;
+
+#ifndef __WIN32__
+    int pclose_status = pclose(pipe);
+#else
+    int pclose_status = _pclose(pipe);
+#endif
+    if(pclose_status)
+      itWorks = false;
+  }
+  else
+    itWorks = false;
+
+  return itWorks;
+}
 
 std::vector<Stream::ZipInvokeInfo> 
 Stream::initZipInvokeInfoList()

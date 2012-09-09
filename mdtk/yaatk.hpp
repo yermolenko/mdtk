@@ -218,6 +218,7 @@ void rename(const char *oldname, const char *newname)
       std::string extension;
       ZipInvokeInfo(std::string c, std::string e)
 	:command(c),extension(e){}
+      bool works();
     };
     static std::vector<ZipInvokeInfo> zipInvokeInfoList;
     static std::vector<ZipInvokeInfo> initZipInvokeInfoList();
