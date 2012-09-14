@@ -116,7 +116,12 @@ buildWithOSMesa()
     glGetIntegerv(GL_DEPTH_BITS, &z);
     glGetIntegerv(GL_STENCIL_BITS, &s);
     glGetIntegerv(GL_ACCUM_RED_BITS, &a);
-    printf("Depth=%d Stencil=%d Accum=%d\n", z, s, a);
+    if (z != 16 || s != 0 || a != 0)
+    {
+      fprintf(stderr,"Something is wrong with OSMesa setup\n");
+      fprintf(stderr,"Depth=%d Stencil=%d Accum=%d\n", z, s, a);
+      exit(1);
+    }
   }
 
 
