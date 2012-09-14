@@ -1,5 +1,5 @@
 /*
-   Collision Tree class (implementation)
+   MDTrajectory data structure (implementation)
 
    Copyright (C) 2010, 2011, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
@@ -20,8 +20,12 @@
    along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "CollisionTree.hpp"
+#include "MDTrajectory.hpp"
 #include <mdtk/SimLoop.hpp>
+
+#include <FL/Fl.H>
+#include "MainWindow.hpp"
+#include "applications/common.h"
 
 namespace xmde
 {
@@ -106,7 +110,7 @@ MDSnapshot::MDSnapshot(SimLoop ml, const SnapshotList& snapshots, size_t index)
     const SnapshotList::AtomSnapshot& as =
       snapshots.snapshots[index].second[ai];
     size_t atomIndex = snapshots.atomsSelectedForSaving[ai];
-    Atom& a = ml.atoms[atomIndex];
+    mdtk::Atom& a = ml.atoms[atomIndex];
     as.restoreToAtom(a);
     upToDate[atomIndex] = true;
     accurate[atomIndex] = true;
@@ -141,7 +145,7 @@ MDSnapshot::updateFromSimLoop(
 }
 */
 
-void MDTrajectory_read(
+SimLoop MDTrajectory_read(
   MDTrajectory& mdt,
   const std::string basefile,
   const std::vector<std::string>& xvas
@@ -158,7 +162,7 @@ void MDTrajectory_read(
 
     ml.initNLafterLoading = false;
 
-    if (basefile.find("mde_init") != std::string::npos)
+    if (basefile.find(".xva") == std::string::npos)
       ml.loadFromStream(fi);
     else
     {
@@ -180,9 +184,11 @@ void MDTrajectory_read(
     MDSnapshot s_xva(ml,xvas[i]);
     mdt[s_xva.time] = s_xva;
   }
+
+  return ml;
 }
 
-void MDTrajectory_read_from_SnapshotList(
+SimLoop MDTrajectory_read_from_SnapshotList(
   MDTrajectory& mdt,
   const std::string basefile
   )
@@ -198,7 +204,7 @@ void MDTrajectory_read_from_SnapshotList(
 
     ml.initNLafterLoading = false;
 
-    if (basefile.find("mde_init") != std::string::npos)
+    if (basefile.find(".xva") == std::string::npos)
       ml.loadFromStream(fi);
     else
     {
@@ -223,6 +229,8 @@ void MDTrajectory_read_from_SnapshotList(
     MDSnapshot s_shots(ml,shots,i);
     mdt[s_shots.time] = s_shots;
   }
+
+  return ml;
 }
 
 void MDTrajectory_read_from_basefiles(
@@ -275,70 +283,74 @@ void MDTrajectory_read_from_basefiles(
   }
 }
 
-Atom getNearestAtom(const Atom& a,const std::vector<Atom>& atoms)
+class InteractiveSimLoop : public SimLoop
 {
-  Atom an;
-  Float dmin = 100000.0*Ao;
-
-  int atomFound = 0;
-  
-  for(size_t i = 0; i < atoms.size(); ++i)
-  {
-    const Atom& ai = atoms[i];
-    if (ai.globalIndex == a.globalIndex) atomFound++;
-    if (ai.globalIndex == a.globalIndex) continue;
-    Float d = depos(ai,a).module();
-    if (d < dmin)
+  bool
+  isItTimeToSave(Float interval)
     {
-      an = ai;
-      dmin = d;
+      return (simTime == 0.0 ||
+              int(simTime/interval) != int((simTime - dt_prev)/interval));
+    }
+public:
+  InteractiveSimLoop():SimLoop()
+    {
+//      verboseTrace = false;
+      preventFileOutput = true;
+    }
+  InteractiveSimLoop(const SimLoop &c):SimLoop(c)
+    {
+//      verboseTrace = false;
+      preventFileOutput = true;
+    }
+
+  void doBeforeIteration() {}
+  void doAfterIteration()
+    {
+      if (isItTimeToSave(5e-16/**5*/))
+      {
+        TRACE("***Saving simulated state");
+        MDSnapshot s(*this);
+        {
+          std::ostringstream slabel;
+          slabel << std::fixed << std::setprecision(5)
+                 << s.time/ps << " ps : "
+                 << "simulated";
+          s.name = slabel.str();
+        }
+        MainWindow_GlobalPtr->addMDSnapshot(s);
+      }
+      Fl::check();
+      if (!MainWindow_GlobalPtr->btn_simulate->value())
+        breakSimLoop = true;
+    }
+};
+
+void MDTrajectory_add_from_simulation(
+  MDTrajectory& mdt,
+  SimLoop slInit,
+  bool quench
+  )
+{
+  {
+    MDTrajectory::iterator t = mdt.begin();
+    while(t != mdt.end())
+    {
+      if (t->first > slInit.simTime)
+        mdt.erase(t++);
+      else
+        ++t;
     }
   }
 
-  REQUIRE(atomFound == 1);
-  return an;
-}
-
-CollisionTree::CollisionTree(const Atom& atom, 
-			     MDTrajectory::const_iterator time, 
-			     const MDTrajectory& mdt)
-  :a(atom),t(time->first),t1(NULL),t2(NULL)
-{
-  if (a.globalIndex != 10695) return;
-  TRACE("*******BEGIN*******");
-  TRACE(time->first/ps);
-  TRACE(a.globalIndex);
-  if (time == mdt.end()) return;
-  Float distance = 10000.0*Ao;
-  Atom an;
-  MDTrajectory::const_iterator t = time;
-  while (t != mdt.end())
-  {
-    a = t->second.atoms[a.globalIndex];
-    an = getNearestAtom(a,t->second.atoms);
-    ++t;
-//    TRACE(an.globalIndex);
-//    TRACE(distance/Ao);
-//    TRACE(t->first/ps);
-//    TRACE(depos(a,an).module()/Ao);
-//    TRACE(distance/Ao);
-    
-//    TRACE(depos(a,an).module() > distance && distance < 3.0*Ao);
-    if (depos(a,an).module() > distance && distance < 3.0*Ao)
-      break;
-    distance = depos(a,an).module();
-  }
-  TRACE(t != mdt.end());
-  TRACE(t->first/ps);
-  TRACE(an.globalIndex);
-  TRACE(depos(a,an).module()/Ao);
-
-  if (t != mdt.end())
-  {
-    t1 = new CollisionTree(a, t,mdt);
-    t2 = new CollisionTree(an,t,mdt);
-  }
-  TRACE("*******END*******");
+  InteractiveSimLoop sl(slInit);
+  setupPotentials(sl);
+  if (quench)
+    sl.thermalBath.zMin = -100000.0*Ao;
+  if (sl.simTimeFinal < sl.simTime + 4.0*ps)
+    sl.simTimeFinal = sl.simTime + 4.0*ps;
+  sl.execute();
+  if (sl.simTimeFinal <= sl.simTime)
+    MainWindow_GlobalPtr->btn_simulate->value(0);
 }
 
 }

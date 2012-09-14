@@ -118,13 +118,23 @@ depos(const Atom &a1, const Atom &a2)
 {
   Vector3D r(a1.coords - a2.coords);
 
-//  if (!(a1.PBCEnabled() && a2.PBCEnabled())) return r;
-  if (a1.PBC.x == a2.PBC.x && a1.PBC.y == a2.PBC.y && a1.PBC.z == a2.PBC.z)
-  {
-    if(fabs(r.x) > a1.PBC.x*0.5) {r.x += (r.x > 0)?(-a1.PBC.x):(a1.PBC.x);}
-    if(fabs(r.y) > a1.PBC.y*0.5) {r.y += (r.y > 0)?(-a1.PBC.y):(a1.PBC.y);}
-    if(fabs(r.z) > a1.PBC.z*0.5) {r.z += (r.z > 0)?(-a1.PBC.z):(a1.PBC.z);}
+#define DEPOS_COORD(xi)                                         \
+  if (a1.PBC.xi == NO_PBC.xi && a2.PBC.xi != NO_PBC.xi)         \
+    r.xi -= a2.PBC.xi*a2.PBC_count.xi;                          \
+  if (a2.PBC.xi == NO_PBC.xi && a1.PBC.xi != NO_PBC.xi)         \
+    r.xi += a1.PBC.xi*a1.PBC_count.xi;                          \
+                                                                \
+  if (a1.PBC.xi == a2.PBC.xi)                                   \
+  {                                                             \
+    if(a1.PBC.xi != NO_PBC.xi && fabs(r.xi) > a1.PBC.xi*0.5)    \
+    {                                                           \
+      r.xi += (r.xi > 0)?(-a1.PBC.xi):(a1.PBC.xi);              \
+    }                                                           \
   }
+
+  DEPOS_COORD(x);
+  DEPOS_COORD(y);
+  DEPOS_COORD(z);
 
   return r;
 }

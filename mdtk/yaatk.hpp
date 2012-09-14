@@ -130,6 +130,7 @@ namespace yaatk
 
 
 #define TRACESS(x) << #x << " : " << (x) << std::endl;
+#define TRACESS_NO_ENDL(x,delim) << #x << " : " << (x) << delim;
 
 
 #define YAATK_BIN_WRITE(FSTREAM_INST,VAR_INST) \
@@ -218,6 +219,7 @@ void rename(const char *oldname, const char *newname)
       std::string extension;
       ZipInvokeInfo(std::string c, std::string e)
 	:command(c),extension(e){}
+      bool works();
     };
     static std::vector<ZipInvokeInfo> zipInvokeInfoList;
     static std::vector<ZipInvokeInfo> initZipInvokeInfoList();

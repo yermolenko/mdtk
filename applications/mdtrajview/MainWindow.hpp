@@ -57,6 +57,7 @@
 
 #include "bmpImage.hpp"
 #include "VisBox.hpp"
+#include "MDTrajectory.hpp"
 
 #include <vector>
 
@@ -70,6 +71,12 @@ class MainWindow : public Fl_Window
   Fl_Light_Button* btn_animate;
   Fl_Counter *animate_delay;
 
+public:
+  Fl_Light_Button* btn_simulate;
+  Fl_Check_Button* checkbtn_quench;
+  void addMDSnapshot(const MDSnapshot& s);
+
+private:
   Fl_Counter* current_atomindex;
   Fl_Counter* current_stateindex;
 
@@ -97,6 +104,14 @@ class MainWindow : public Fl_Window
   static void current_atomindex_cb(Fl_Widget *, void *);
   static void current_stateindex_cb(Fl_Widget *, void *);
 
+  Fl_Value_Input* atom_coords_x;
+  Fl_Value_Input* atom_coords_y;
+  Fl_Value_Input* atom_coords_z;
+  Fl_Value_Input* atom_v_x;
+  Fl_Value_Input* atom_v_y;
+  Fl_Value_Input* atom_v_z;
+  static void set_atom_properties_cb(Fl_Widget *, void *);
+
   static void roll_x_cb(Fl_Widget *, void *);
   static void roll_y_cb(Fl_Widget *, void *);
   static void roll_z_cb(Fl_Widget *, void *);
@@ -109,6 +124,8 @@ class MainWindow : public Fl_Window
   static void timer_callback(void *);
   static void btn_animate_cb(Fl_Widget *, void *);
 
+  static void btn_simulate_cb(Fl_Widget *, void *);
+
   static void btn_bg_color_cb(Fl_Widget *, void *);
   static void btn_atoms_color_cb(Fl_Widget *, void *);
 
@@ -117,6 +134,7 @@ class MainWindow : public Fl_Window
   static void btn_quick_save_image_cb(Fl_Widget *, void *);
   static void btn_save_mel_cb(Fl_Widget *, void *);
   static void btn_save_mde_cb(Fl_Widget *, void *);
+  static void btn_save_state_cb(Fl_Widget *, void *);
   
   static void btn_scale_up_cb(Fl_Widget *, void *);
   static void btn_scale_down_cb(Fl_Widget *, void *);
@@ -127,6 +145,7 @@ class MainWindow : public Fl_Window
 public:
   int  handle(int);
   MainWindow(VisBox* ,bool);
+  void updateStateList();
   ~MainWindow();
   void redrawGL();
   void setAtomViewIndex(int index);

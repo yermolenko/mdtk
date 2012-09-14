@@ -102,93 +102,97 @@ findBaseFiles(std::string trajDir,std::vector<std::string>& states)
 
 int main(int argc, char *argv[])
 {
-  if (argc > 1 && !strcmp(argv[1],"--version"))
-  {
-    std::cout << "mdtrajview (Molecular dynamics trajectory viewer) ";
-    mdtk::release_info.print();
-    return 0;
-  }
+  bool instantAnimate = false;
+  std::vector<std::string> fileList;
+  std::string baseFile;
+  bool loadPartialSnapshots = false;
+  bool xvasSpecified = false;
 
-  if (argc > 1 && (!std::strcmp(argv[1],"--help") || !std::strcmp(argv[1],"-h")))
+  for(int argi = 1; argi < argc; ++argi)
   {
-    std::cout << "\
-Usage: mdtrajview [OPTION]... \n\
+    if ((argv[argi][0] != '-'))
+    {
+      baseFile = argv[argi];
+      argi++;
+      while (argi < argc && argv[argi][0] != '-')
+      {
+        fileList.push_back(argv[argi]);
+        xvasSpecified = true;
+        argi++;
+      }
+      if (argi == argc)
+        break;
+    }
+
+    if (!strcmp(argv[argi],"--partial-snapshots") || !std::strcmp(argv[argi],"-s"))
+    {
+      loadPartialSnapshots = true;
+    }
+
+    if (!strcmp(argv[argi],"--instant-animation") || !std::strcmp(argv[argi],"-a"))
+    {
+      instantAnimate = true;
+    }
+
+    if (!strcmp(argv[argi],"--version"))
+    {
+      std::cout << "mdtrajview (Molecular dynamics trajectory viewer) ";
+      mdtk::release_info.print();
+      return 0;
+    }
+
+    if (!std::strcmp(argv[argi],"--help") || !std::strcmp(argv[argi],"-h"))
+    {
+      std::cout << "\
+Usage: mdtrajview [OPTION] [base file with complete info] [XVA files with incomplete info]... \n\
 Visualizes molecular dynamics trajectory previously simulated by mdtrajsim.\n\
 Operates on results of mdtrajsim's run in the current directory.\n\
 \n\
-      -a         start animation immediately\n\
-      --help     display this help and exit\n\
-      --version  output version information and exit\n\
+      -a, --instant-animation  start animation immediately\n\
+      -s, --partial-snapshots  try to load partial snapshots file (snapshots.conf)\n\
+      -h, --help               display this help and exit\n\
+      --version                output version information and exit\n\
 \n\
 Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 ";
-    return 0;
+      return 0;
+    }
   }
 
-
-  bool instantAnimate = false;
-
-  std::vector<std::string> fileList;
-  std::string baseFile;
-
-  if (argc > 2)
-    {
-      baseFile = argv[1];
-      for(int i = 2; i < argc; i++)
-	{
-	  fileList.push_back(argv[i]);
-	}
-    }  
-  else
-    {
-      if (argc > 1 && !strcmp(argv[1],"-a")) instantAnimate = true;
-      std::vector<std::string> basefiles;
-      if (argc > 1 && strcmp(argv[1],"-a"))
-        basefiles.push_back(argv[1]);
-      basefiles.push_back("in.mde");
-      findBaseFiles("./",basefiles);
-      basefiles.push_back("mde_init");
-      basefiles.push_back("simloop.conf");
-      basefiles.push_back("mde_final");
-      for(size_t i = 0; i < basefiles.size(); i++)
-	{
-	  if (yaatk::exists(basefiles[i])) 
-	    {baseFile = basefiles[i];break;}
-	  else
-	    {baseFile = "";}
-	}
-      if (argc > 1 && !strcmp(argv[1],"-s"))
-      {
-        SnapshotList shots;
-        shots.loadstate();
-        if (shots.snapshots.size() > 0) fileList.push_back("shot");
-        for(size_t i = 1; i < shots.snapshots.size(); ++i)
-        {
-          ostringstream os; os << "shot" << i;
-          fileList.push_back(os.str());
-        }
-        findIntermediateStates("./",fileList);
-      }
-      else
-        findIntermediateStates("./",fileList);
-    }
-
-  if (baseFile.size() <= 3/* || fileList.size()==0*/)
+  if (!xvasSpecified && baseFile == "")
   {
-    std::cerr << "Can't find output of successful mdtrajsim run in the current directory.\n";
+    std::vector<std::string> basefiles;
+    basefiles.push_back("in.mde");
+    findBaseFiles("./",basefiles);
+    basefiles.push_back("mde_init");
+    basefiles.push_back("simloop.conf");
+    basefiles.push_back("mde_final");
+    for(size_t i = 0; i < basefiles.size(); i++)
+    {
+      if (yaatk::exists(basefiles[i]))
+      {baseFile = basefiles[i];break;}
+      else
+      {baseFile = "";}
+    }
+    findIntermediateStates("./",fileList);
+  }
+
+  if (baseFile == "")
+  {
+    std::cerr << "Can't find output of successful mdtrajsim run in the current directory. But you can specify files directly. Run with -h option for details.\n";
     return 1;
   }
 
-  //  baseFile.resize(baseFile.size()-3);
+  TRACE(loadPartialSnapshots);
+  TRACE(xvasSpecified);
   TRACE(baseFile);
   for(size_t i = 0; i < fileList.size(); i++)
-    {
-      //      fileList[i].resize(fileList[i].size()-3);
-      TRACE(fileList[i]);
-    }
+  {
+    TRACE(fileList[i]);
+  }
 
   std::vector<std::string> fileList_tmp = fileList;
-  if (fileList.size() > 5000 && fileList[0] != "shot")
+  if (fileList.size() > 5000)
   {
     fileList.clear();
     for(size_t i = 0; i < fileList_tmp.size(); ++i)
@@ -198,10 +202,11 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
   }
 
   const size_t maxsize = 2000;
-  if (fileList.size() > maxsize && fileList[0] != "shot") fileList.resize(maxsize);
+  if (fileList.size() > maxsize) fileList.resize(maxsize);
 
-  xmde::VisBox avb(15,35,500,500,baseFile,fileList);
+  xmde::VisBox avb(15,35,500,500);
   avb.set_non_modal();
+  avb.loadDataFromFiles(baseFile,fileList,loadPartialSnapshots);
 
   xmde::MainWindow w(&avb, instantAnimate);
   MainWindow_GlobalPtr = &w;
