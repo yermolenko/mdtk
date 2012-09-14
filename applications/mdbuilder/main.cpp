@@ -46,8 +46,8 @@
 #include "experiments/Fullerite.hpp"
 #include "experiments/Fulleride.hpp"
 
-static mdtk::Float impactEnergy = -1;
 static size_t numberOfImpacts = 1024;
+std::vector<mdtk::Float> impactEnergies;
 
 void
 buildCommands()
@@ -59,15 +59,11 @@ buildCommands()
     {
       glLoadIdentity();
       {
-        TRACE(impactEnergy/mdtk::eV);
+        for(size_t i = 0; i < impactEnergies.size(); ++i)
+          TRACE(impactEnergies[i]/mdtk::eV);
+
         TRACE(numberOfImpacts);
 
-        std::vector<Float> impactEnergies;
-        impactEnergies.push_back(impactEnergy);
-//        impactEnergies.push_back(25*eV);
-//        impactEnergies.push_back(50*eV);
-//        impactEnergies.push_back(100*eV);
-//        impactEnergies.push_back(200*eV);
         mdbuilder::build_metal_C60_mixing(impactEnergies,Cu_EL,numberOfImpacts);
       }
     }
@@ -201,19 +197,31 @@ int main(int argc, char *argv[])
 {
   for(int argi = 0; argi < argc; ++argi)
   {
-    if (!strcmp(argv[argi],"--impact-energy") || !std::strcmp(argv[argi],"-e"))
+    if (!strcmp(argv[argi],"--impact-energies") || !std::strcmp(argv[argi],"-e"))
     {
-      if (!(argi+1 < argc))
+      while(argi+1 < argc && argv[argi+1][0] != '-')
       {
-        std::cerr << "You should specify impact energy (in eV), e.g. --impact-energy 100\n";
-        return -1;
+        std::istringstream iss(argv[argi+1]);
+        mdtk::Float impactEnergy_eV;
+        iss >> impactEnergy_eV;
+        if (!iss)
+        {
+          std::cerr << "Can't parse energy value \"" << argv[argi+1] << "\". Exiting.\n";
+          return -1;
+        }
+        if (!(impactEnergy_eV > 0 && impactEnergy_eV <= 1000))
+        {
+          std::cerr << "Unsupported impact energy value "
+                    << impactEnergy_eV << " eV. Exiting.\n";
+          return -1;
+        }
+        impactEnergies.push_back(impactEnergy_eV*mdtk::eV);
+        argi++;
       }
-      std::istringstream iss(argv[argi+1]);
-      iss >> impactEnergy;
-      impactEnergy *= mdtk::eV;
-      if (!(impactEnergy >= 0 && impactEnergy <= 1000*mdtk::eV))
+
+      if (impactEnergies.size() == 0)
       {
-        std::cerr << "Unsupported impact energy value\n";
+        std::cerr << "You should specify impact energies (in eV, space-separated), e.g. --impact-energies 25 50 100 200\n";
         return -1;
       }
     }
@@ -227,6 +235,11 @@ int main(int argc, char *argv[])
       }
       std::istringstream iss(argv[argi+1]);
       iss >> numberOfImpacts;
+      if (!iss)
+      {
+        std::cerr << "Can't parse number of impacts value \"" << argv[argi+1] << "\". Exiting.\n";
+        return -1;
+      }
       if (!(numberOfImpacts > 0 && numberOfImpacts <= 2048))
       {
         std::cerr << "Unsupported number of impacts\n";
@@ -249,7 +262,7 @@ Prepares molecular dynamics experiments.\n\
 \n\
       --help     display this help and exit\n\
       --version  output version information and exit\n\
-      --impact-energy  <energy in eV>  generate experiment for a specified impact energy\n\
+      --impact-energies  <space-separated energies in eV>  generate experiment for a specified impact energies\n\
       --number-of-impacts  <number of impacts>  generate specific number of impacts for each experiment (default : 1024)\n\
 \n\
 Report bugs to <oleksandr.yermolenko@gmail.com>\n\
@@ -258,9 +271,9 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     }
   }
 
-  if (impactEnergy < 0)
+  if (impactEnergies.size() == 0)
   {
-    std::cerr << "You should specify impact energy (in eV) with --impact-energy option. Run with -h option for details.\n";
+    std::cerr << "You should specify impact energies (in eV, space-separated) with --impact-energies option. Run with -h option for details.\n";
     return -1;
   }
 
