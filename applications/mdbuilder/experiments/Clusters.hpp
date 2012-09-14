@@ -156,7 +156,8 @@ build_fullerite_bombardment_with_ions(
 void
 build_metal_C60_mixing(
   std::vector<Float> impactEnergies,
-  ElementID metalElement = Cu_EL
+  ElementID metalElement = Cu_EL,
+  size_t numberOfImpacts = 1024
   );
 
 }

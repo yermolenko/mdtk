@@ -46,7 +46,7 @@
 #include "experiments/Fullerite.hpp"
 #include "experiments/Fulleride.hpp"
 
-static int clusterSize = 0;
+static mdtk::Float impactEnergy = -1;
 static size_t numberOfImpacts = 1024;
 
 void
@@ -59,12 +59,16 @@ buildCommands()
     {
       glLoadIdentity();
       {
+        TRACE(impactEnergy/mdtk::eV);
+        TRACE(numberOfImpacts);
+
         std::vector<Float> impactEnergies;
-        impactEnergies.push_back(25*eV);
-        impactEnergies.push_back(50*eV);
-        impactEnergies.push_back(100*eV);
-        impactEnergies.push_back(200*eV);
-        mdbuilder::build_metal_C60_mixing(impactEnergies);
+        impactEnergies.push_back(impactEnergy);
+//        impactEnergies.push_back(25*eV);
+//        impactEnergies.push_back(50*eV);
+//        impactEnergies.push_back(100*eV);
+//        impactEnergies.push_back(200*eV);
+        mdbuilder::build_metal_C60_mixing(impactEnergies,Cu_EL,numberOfImpacts);
       }
     }
   }
@@ -192,18 +196,19 @@ int main(int argc, char *argv[])
 {
   for(int argi = 0; argi < argc; ++argi)
   {
-    if (!strcmp(argv[argi],"--cluster-size") || !std::strcmp(argv[argi],"-s"))
+    if (!strcmp(argv[argi],"--impact-energy") || !std::strcmp(argv[argi],"-e"))
     {
       if (!(argi+1 < argc))
       {
-        std::cerr << "You should specify cluster size, e.g. --cluster-size 13\n";
+        std::cerr << "You should specify impact energy (in eV), e.g. --impact-energy 100\n";
         return -1;
       }
       std::istringstream iss(argv[argi+1]);
-      iss >> clusterSize;
-      if (!(clusterSize > 0 && clusterSize <= 200))
+      iss >> impactEnergy;
+      impactEnergy *= mdtk::eV;
+      if (!(impactEnergy >= 0 && impactEnergy <= 1000*mdtk::eV))
       {
-        std::cerr << "Unsupported cluster size\n";
+        std::cerr << "Unsupported impact energy value\n";
         return -1;
       }
     }
@@ -239,7 +244,7 @@ Prepares molecular dynamics experiments.\n\
 \n\
       --help     display this help and exit\n\
       --version  output version information and exit\n\
-      --cluster-size  <cluster size>  generate experiment for a specified cluster size\n\
+      --impact-energy  <energy in eV>  generate experiment for a specified impact energy\n\
       --number-of-impacts  <number of impacts>  generate specific number of impacts for each experiment (default : 1024)\n\
 \n\
 Report bugs to <oleksandr.yermolenko@gmail.com>\n\
@@ -248,14 +253,11 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     }
   }
 
-  if (clusterSize == 0)
+  if (impactEnergy < 0)
   {
-    std::cerr << "You should specify cluster size with --cluster-size option. Run with -h option for details.\n";
+    std::cerr << "You should specify impact energy (in eV) with --impact-energy option. Run with -h option for details.\n";
     return -1;
   }
-
-  TRACE(clusterSize);
-  TRACE(numberOfImpacts);
 
   srand(12345);
 

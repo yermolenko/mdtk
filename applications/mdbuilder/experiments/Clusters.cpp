@@ -1305,11 +1305,10 @@ metal_C60_mixing_id(std::string what,
 void
 build_metal_C60_mixing(
   std::vector<Float> impactEnergies,
-  ElementID metalElement
+  ElementID metalElement,
+  size_t numberOfImpacts
   )
 {
-  size_t numberOfImpacts = 128;
-
   AtomsArray fullerene = mdbuilder::C60();
   fullerene.removeMomentum();
   fullerene.shiftToOrigin();
