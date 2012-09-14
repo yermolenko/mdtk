@@ -313,7 +313,7 @@ buildCommands()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-//    if (0)
+    if (0)
     {
       verboseTrace = false;
       TRACE(clusterSize);
@@ -429,7 +429,7 @@ buildCommands()
                                                          3,3,3);
       }
     }
-    if (0)
+//    if (0)
     {
       glLoadIdentity();
       {
