@@ -25,6 +25,8 @@
 #include <mdtk/potentials/pairwise/FLJ.hpp>
 #include <mdtk/potentials/manybody/TightBinding/TightBinding.hpp>
 #include <mdtk/potentials/manybody/Ackland/Ackland.hpp>
+#include <mdtk/potentials/manybody/AIREBO/REBO.hpp>
+#include <mdtk/potentials/manybody/Brenner/Brenner.hpp>
 #include <fstream>
 
 using namespace mdtk;
@@ -33,15 +35,18 @@ using namespace std;
 void
 pairtest()
 {
+  mdtk::verboseTrace = false;
+
   SimLoop mdloop;
 
   mdtk::FGeneral* pot = NULL;
 
-  pot = new mdtk::TightBinding();
+  pot = new mdtk::REBO();
   mdloop.fpot.addPotential(pot);
 
-  mdloop.atoms.push_back(Atom(Cu_EL,Vector3D(0.0*Ao,0.0*Ao,0.0*Ao)));
-  mdloop.atoms.push_back(Atom(Cu_EL,Vector3D(0.5*Ao,0.0*Ao,0.0*Ao)));
+  mdloop.atoms.push_back(Atom(C_EL,Vector3D(0.0*Ao,0.0*Ao,0.0*Ao)));
+  mdloop.atoms.push_back(Atom(C_EL,Vector3D(0.5*Ao,1.0*Ao,0.0*Ao)));
+  mdloop.atoms.push_back(Atom(C_EL,Vector3D(0.5*Ao,0.0*Ao,0.0*Ao)));
 
   mdloop.executeDryRun();
 
@@ -50,10 +55,10 @@ pairtest()
   while (mdloop.atoms.back().coords.x < 6.0*Ao)
   {
     foe << mdloop.atoms.back().coords.x/Ao 
-        << " " << (*pot)(mdloop.atoms)/eV
+        << " " << mdloop.energy()/eV
         << "\n";
     fof << mdloop.atoms.back().coords.x/Ao 
-        << " " << (*pot).grad(mdloop.atoms.back(),mdloop.atoms).module() 
+        << " " << mdloop.atoms.back().grad.module() 
         << "\n";
     mdloop.atoms.back().coords.x += 0.001*Ao;
   }

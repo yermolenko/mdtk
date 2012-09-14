@@ -28,44 +28,126 @@ namespace mdtk
 
 using std::fabs;
 using std::exp;
-using std::sqrt; 
-using std::pow; 
+using std::sqrt;
+using std::pow;
 
 FLJ::FLJ(Rcutoff rcutoff):
   FPairwise(rcutoff)
 {
-  handledElements.insert(Cu_EL);
-  handledElements.insert(C_EL);
-  handledElements.insert(H_EL);
+  std::vector<ElementID> elements1;
+  elements1.push_back(H_EL);
+  elements1.push_back(C_EL);
 
-  handledElementPairs.insert(std::make_pair(Cu_EL,C_EL));
-  handledElementPairs.insert(std::make_pair(Cu_EL,H_EL));
-  handledElementPairs.insert(std::make_pair(C_EL,Cu_EL));
-  handledElementPairs.insert(std::make_pair(H_EL,Cu_EL));
+  std::vector<ElementID> elements2;
+  elements2.push_back(Cu_EL);
+//  elements2.push_back(Ag_EL);
+  elements2.push_back(Au_EL);
 
+  for(size_t i = 0; i < elements1.size(); ++i)
+    handledElements.insert(elements1[i]);
+
+  for(size_t i = 0; i < elements2.size(); ++i)
+    handledElements.insert(elements2[i]);
+
+  for(size_t i = 0; i < elements1.size(); ++i)
+    for(size_t j = 0; j < elements2.size(); ++j)
+    {
+      handledElementPairs.insert(std::make_pair(elements1[i],elements2[j]));
+      handledElementPairs.insert(std::make_pair(elements2[j],elements1[i]));
+    }
+
+  if (0) // disable this set of parameters
+  {
 //  See [D.E. Ellis et al., Materials Science in Semiconductor
 //  Processing 3, 123 (2000)]
 
-  Float C6_CuC = 41.548*eV*pow(Ao,6);
-  Float C12_CuC = 2989.105*eV*pow(Ao,12);
+    Float C6_CuC = 41.548*eV*pow(Ao,6);
+    Float C12_CuC = 2989.105*eV*pow(Ao,12);
 
-  sigma_[Cu][Cu] = 0.0*Ao;
-  sigma_[C][C]   = 0.0*Ao;
-  sigma_[Cu][C]  = pow(C12_CuC/C6_CuC,1.0/6.0);
+    sigma_[Cu][Cu] = 0.0*Ao;
+    sigma_[C][C]   = 0.0*Ao;
+    sigma_[Cu][C]  = pow(C12_CuC/C6_CuC,1.0/6.0); // ~ 2.039*Ao
+      sigma_[C][Cu] = sigma_[Cu][C];
+    sigma_[H][H]   = 0.0*Ao;
+    sigma_[Cu][H]  = 2.049067052*Ao;
+      sigma_[H][Cu] = sigma_[Cu][H];
+
+    epsilon_[Cu][Cu] = 0.0*eV;
+    epsilon_[C][C]   = 0.0*eV;
+    epsilon_[Cu][C]  = pow(C6_CuC,2)/(4.0*C12_CuC); // ~ 0.14438*eV
+      epsilon_[C][Cu] = epsilon_[Cu][C];
+    epsilon_[H][H]   = 0.0*eV;
+    epsilon_[Cu][H]  = 0.01*eV;
+      epsilon_[H][Cu] = epsilon_[Cu][H];
+
+//  See [Arnaud Delcorte, Barbara J. Garrison, Nuclear Instruments and
+//  Methods in Physics Research B 269, 1572 (2011)]
+
+    sigma_[Au][Au] = 0.0*Ao;
+    sigma_[C][C]   = 0.0*Ao;
+    sigma_[Au][C]  = 3.172*Ao;
+      sigma_[C][Au] = sigma_[Au][C];
+    sigma_[H][H]   = 0.0*Ao;
+    sigma_[Au][H]  = 2.746*Ao;
+      sigma_[H][Au] = sigma_[Au][H];
+
+    epsilon_[Au][Au] = 0.0*eV;
+    epsilon_[C][C]   = 0.0*eV;
+    epsilon_[Au][C]  = 0.00277*eV;
+      epsilon_[C][Au] = epsilon_[Au][C];
+    epsilon_[H][H]   = 0.0*eV;
+    epsilon_[Au][H]  = 0.00179*eV;
+      epsilon_[H][Au] = epsilon_[Au][H];
+  }
+
+  {
+//  Lorentz–Berthelot mixing rules 1
+
+//  S.-P. Huang et al. / Surface Science 545 (2003) 163
+    sigma_[Cu][Cu] = 3.05*Ao;
+    epsilon_[Cu][Cu] = 0.165565*eV;
+    sigma_[C][C]   = 3.4*Ao;
+    epsilon_[C][C]   = 0.002413*eV;
+    sigma_[Au][Au] = 2.569*Ao;
+    epsilon_[Au][Au] = 0.408*eV;
+
+//  M.P. Allen, D.J. Tildesley, 1987
+    sigma_[H][H]   = 2.81*Ao;
+    epsilon_[H][H]   = 8.6*K*kb;
+
+    sigma_[Cu][C]  = (sigma_[Cu][Cu] + sigma_[C][C])/2; // should be ~ 3.225*Ao
     sigma_[C][Cu] = sigma_[Cu][C];
-  sigma_[Cu][Cu] = 0.0*Ao;
-  sigma_[H][H]   = 0.0*Ao;
-  sigma_[Cu][H]  = 2.049067052*Ao;
+    sigma_[Cu][H]  = (sigma_[Cu][Cu] + sigma_[H][H])/2;
     sigma_[H][Cu] = sigma_[Cu][H];
-  
-  zeta_[Cu][Cu] = 0.0*eV;
-  zeta_[C][C]   = 0.0*eV;
-  zeta_[Cu][C]  = pow(C6_CuC,2)/(4.0*C12_CuC);
-    zeta_[C][Cu] = zeta_[Cu][C];
-  zeta_[Cu][Cu] = 0.0*eV;
-  zeta_[H][H]   = 0.0*eV;
-  zeta_[Cu][H]  = 0.01*eV;
-    zeta_[H][Cu] = zeta_[Cu][H];
+
+    epsilon_[Cu][C]  = sqrt(epsilon_[Cu][Cu]*epsilon_[C][C]); // should be ~ 0.019996*eV
+    epsilon_[C][Cu] = epsilon_[Cu][C];
+    epsilon_[Cu][H]  = sqrt(epsilon_[Cu][Cu]*epsilon_[H][H]);
+    epsilon_[H][Cu] = epsilon_[Cu][H];
+
+    sigma_[Au][C]  = (sigma_[Au][Au] + sigma_[C][C])/2; // should be ~ 2.985*Ao
+    sigma_[C][Au] = sigma_[Au][C];
+    sigma_[Au][H]  = (sigma_[Au][Au] + sigma_[H][H])/2;
+    sigma_[H][Au] = sigma_[Au][H];
+
+    epsilon_[Au][C]  = sqrt(epsilon_[Au][Au]*epsilon_[C][C]); // should be ~ 0.033244*eV
+    epsilon_[C][Au] = epsilon_[Au][C];
+    epsilon_[Au][H]  = sqrt(epsilon_[Au][Au]*epsilon_[H][H]);
+    epsilon_[H][Au] = epsilon_[Au][H];
+
+    if (0)
+    {
+      TRACE(sigma_[C][Cu]/Ao);
+      TRACE(epsilon_[C][Cu]/eV);
+      TRACE(sigma_[C][Au]/Ao);
+      TRACE(epsilon_[C][Au]/eV);
+      TRACE(sigma_[H][Cu]/Ao);
+      TRACE(epsilon_[H][Cu]/eV);
+      TRACE(sigma_[H][Au]/Ao);
+      TRACE(epsilon_[H][Au]/eV);
+      exit(1);
+    }
+  }
 
   fillR_concat_();
 }
@@ -75,10 +157,11 @@ FLJ::fillR_concat_()
 {
   Float r;
 
-  AtomsArray atoms(3);
-  atoms[0].ID = Cu_EL;
-  atoms[1].ID = C_EL;
-  atoms[2].ID = H_EL;
+  AtomsArray atoms(ECOUNT);
+  atoms[Cu].ID = Cu_EL;
+  atoms[H].ID = C_EL;
+  atoms[C].ID = H_EL;
+  atoms[Au].ID = Au_EL;
   atoms.setAttributesByElementID();
 
 for(size_t i = 0; i < atoms.size(); i++)
@@ -95,6 +178,8 @@ Atom& atom2 = atoms[j];
 //d2vdxdx[1] = 0;
 
 {
+  AtomsPair ij(atom1,atom2,false);
+
   r = x[0];
 
   Float VZBL = 0.0;
@@ -129,16 +214,16 @@ Atom& atom2 = atoms[j];
   Float VLJ = 0.0;
   Float DerVLJ = 0.0;
   {
-    Float sigma_ij=     this->sigma(atom1,atom2);
-    Float zeta_ij =     this->zeta(atom1,atom2);
+    Float sigma_ij=     this->sigma(ij);
+    Float epsilon_ij =     this->epsilon(ij);
 
     Float s_div_r    = sigma_ij/r;
     Float s_div_r_6  = s_div_r;
     int i;
     for(i = 2; i <= 6; i++) s_div_r_6 *= s_div_r;
     Float s_div_r_12 = s_div_r_6*s_div_r_6;
-    DerVLJ = 4.0*zeta_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
-    VLJ = 4.0*zeta_ij*(s_div_r_12-s_div_r_6);
+    DerVLJ = 4.0*epsilon_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
+    VLJ = 4.0*epsilon_ij*(s_div_r_12-s_div_r_6);
   }
 
   v[1] = VLJ;
@@ -152,29 +237,34 @@ splines[e2i(atom1)][e2i(atom2)] = new Spline(x,v,dvdx/*,d2vdxdx*/);
 }
 
 Float
-FLJ::VLJ(Atom &atom1,Atom &atom2)
+FLJ::VLJ(AtomsPair& ij)
 {
-  Float fvar = f(atom1,atom2);
-
-#ifdef FLJ_OPTIMIZED  
-  if (fvar == 0.0) return 0.0;
-#endif
-
-  Float r = r_vec_module(atom1,atom2);
+  Float r = ij.r();
 
 #ifndef  LJ_HANDLE_SHORTRANGE
-  Spline& spline = *(splines[e2i(atom1)][e2i(atom2)]);
+  Spline& spline = *(splines[e2i(ij.atom1)][e2i(ij.atom2)]);
   if (r < spline.x1())
   {
   Float AB_ = 0.53e-8;
 
-  Float ZA = atom1.Z; Float ZB = atom2.Z;
+  Float ZA = ij.atom1.Z; Float ZB = ij.atom2.Z;
 
   Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
 
   Float Y=r/AS;
 
-  if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
+//  if (V != 0.0)
+  {
+    Float Der =
+          -ZA*ZB/(r*r)*(0.18175*exp(-3.1998*Y)+
+          0.50986*exp(-0.94229*Y)+
+          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y))-
+          ZA*ZB/(r*AS)*(0.18175*3.1998*exp(-3.1998*Y)+
+          0.50986*0.94229*exp(-0.94229*Y)+0.28022*0.4029*exp(-0.4029*Y)+
+          0.02817*0.20162*exp(-0.20162*Y));
+
+    ij.r(Der);
+  }
 
   return  ZA*ZB/r*(0.18175*exp(-3.1998*Y)+
           0.50986*exp(-0.94229*Y)+
@@ -184,79 +274,38 @@ FLJ::VLJ(Atom &atom1,Atom &atom2)
   {
     if (r < spline.x2())
     {
-      if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
+//  if (V != 0.0)
+      ij.r(spline.der(r));
 
       return spline(r);
     }
   }
 #endif
 
-  Float sigma_ij=     this->sigma(atom1,atom2);
-  Float zeta_ij =     this->zeta(atom1,atom2);
+  Float sigma_ij=     this->sigma(ij);
+  Float epsilon_ij =     this->epsilon(ij);
 
   Float s_div_r    = sigma_ij/r;
-  
+
   Float s_div_r_6  = s_div_r;
   int i;
   for(i = 2; i <= 6; i++) s_div_r_6 *= s_div_r;
   Float s_div_r_12 = s_div_r_6*s_div_r_6;
 
-  return fvar*4.0*zeta_ij*(s_div_r_12-s_div_r_6);
+  Float Val = 4.0*epsilon_ij*(s_div_r_12-s_div_r_6);
+
+
+  Float f = ij.f();
+
+// if (V != 0)
+  {
+    Float Der = 4.0*epsilon_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
+    ij.r(Der*f);
+    ij.f(Val);
+  }
+
+  return f*Val;
 }
-
-Vector3D
-FLJ::dVLJ(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  Vector3D dfvar = df(atom1,atom2,datom);
-  Vector3D drmodvar = dr_vec_module(atom1,atom2,datom);
-
-#ifdef FLJ_OPTIMIZED  
-  if (dfvar == 0.0 && drmodvar == 0.0)  return 0.0;
-#endif
-
-  Float r = r_vec_module(atom1,atom2);
-
-#ifndef  LJ_HANDLE_SHORTRANGE
-  Spline& spline = *(splines[e2i(atom1)][e2i(atom2)]);
-  if (r < spline.x1())
-  {
-  Float AB_ = 0.53e-8;
-
-  Float ZA = atom1.Z; Float ZB = atom2.Z;
-  Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
-  Float Y=r/AS;
-  Float Der =
-          -ZA*ZB/(r*r)*(0.18175*exp(-3.1998*Y)+
-          0.50986*exp(-0.94229*Y)+
-          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y))-
-          ZA*ZB/(r*AS)*(0.18175*3.1998*exp(-3.1998*Y)+
-          0.50986*0.94229*exp(-0.94229*Y)+0.28022*0.4029*exp(-0.4029*Y)+
-          0.02817*0.20162*exp(-0.20162*Y));
-
-  return Der*drmodvar;
-  }
-  else
-  {
-    if (r < spline.x2()) return spline.der(r)*drmodvar;
-  }
-#endif
-
-  Float sigma_ij=     this->sigma(atom1,atom2);
-  Float zeta_ij =     this->zeta(atom1,atom2);
-
-  Float s_div_r    = sigma_ij/r;
-  Float s_div_r_6  = s_div_r;
-  int i;
-  for(i = 2; i <= 6; i++) s_div_r_6 *= s_div_r;
-  Float s_div_r_12 = s_div_r_6*s_div_r_6;
-  Float Der = 4.0*zeta_ij*(-12.0*s_div_r_12/r+6.0*s_div_r_6/r);
-#ifdef FLJ_OPTIMIZED  
-  if (dfvar == 0.0) return Der*f(atom1,atom2)*drmodvar;
-#endif
-  Float Val = 4.0*zeta_ij*(s_div_r_12-s_div_r_6);
-  
-  return  Der*f(atom1,atom2)*drmodvar+Val*dfvar;
-}  
 
 Float
 FLJ::operator()(AtomsArray& gl)
@@ -274,31 +323,13 @@ for(size_t i = 0; i < gl.size(); i++)
     if (isHandledPair(atom,atom_j))
     if (&atom != &atom_j)
     {
-      Ei += VLJ(atom,atom_j);
-    }  
-  }  
-}  
+      if (!probablyAreNeighbours(atom,atom_j)) continue;
+      AtomsPair ij(atom,atom_j,R(0),R(1));
+      Ei += VLJ(ij);
+    }
+  }
+}
   return Ei;
 }
 
-Vector3D
-FLJ::grad(Atom &atom,AtomsArray&)
-{
-  Index j;
-  Vector3D dEi(0.0,0.0,0.0);
-  for(j = 0; j < NL(atom).size(); j++)
-  {
-    Atom &atom_j = *(NL(atom)[j]);
-    if (isHandledPair(atom,atom_j))
-    if (&atom != &atom_j)
-    {
-      dEi += dVLJ(atom,atom_j,atom);
-    }  
-  }  
-  return dEi;
-}
-
-
 } // namespace mdtk
-
-

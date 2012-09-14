@@ -46,15 +46,6 @@ setupPotentials(mdtk::SimLoop& simloop)
   simloop.fpot.addPotential(pot);
 
   pot = new mdtk::FLJ(Rcutoff(5.0*Ao,5.5*Ao));
-  pot->handledElements.clear();
-  pot->handledElements.insert(Cu_EL);
-  pot->handledElements.insert(C_EL);
-  pot->handledElements.insert(H_EL);
-  pot->handledElementPairs.clear();
-  pot->handledElementPairs.insert(std::make_pair(Cu_EL,C_EL));
-  pot->handledElementPairs.insert(std::make_pair(Cu_EL,H_EL));
-  pot->handledElementPairs.insert(std::make_pair(C_EL,Cu_EL));
-  pot->handledElementPairs.insert(std::make_pair(H_EL,Cu_EL));
   simloop.fpot.addPotential(pot);
 
 #ifdef  AIREBO_USING_BRENNER

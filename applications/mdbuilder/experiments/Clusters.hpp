@@ -43,6 +43,12 @@ AtomsArray
 cluster(ElementID id, int clusterSize);
 
 AtomsArray
+clusterFromCrystal(const AtomsArray& atoms, int clusterSize, Vector3D c = NO_PBC);
+
+AtomsArray
+clusterFromFCCCrystal(ElementID id, int clusterSize);
+
+AtomsArray
 embed(AtomsArray cluster, AtomsArray shell);
 
 void
@@ -56,7 +62,8 @@ SimLoop
 build_target_by_cluster_bombardment(
   const SimLoop& sl_target,
   AtomsArray sl_cluster,
-  Float clusterEnergy = 100*eV
+  Float clusterEnergy = 100*eV,
+  Float interactionDistance = 3.3*Ao
   );
 
 void
@@ -69,7 +76,8 @@ SimLoop
 build_Cluster_Landed_on_Substrate(
   const mdtk::SimLoop sl_Substrate,
   ElementID id,
-  int clusterSize
+  int clusterSize,
+  bool applyPBCtoCluster = false
   );
 
 void
@@ -91,8 +99,9 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
   std::vector<int> clusterSizes,
   std::vector<ElementID> clusterElements,
   std::vector<ElementID> ionElements,
-  std::vector<Float> ionEnergies
-  );
+  std::vector<Float> ionEnergies,
+  size_t numberOfImpacts = 1024
+);
 
 void
 bomb_orthorhombic_with_clusters(

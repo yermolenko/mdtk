@@ -29,53 +29,40 @@
 namespace mdtk
 {
 
-  Float  REBO::buildPairs(AtomsArray& gl)
+Float
+REBO::operator()(AtomsArray& gl)
+{
+  countNeighbours(gl);
+  Float Ei = 0;
+  for(size_t ii = 0; ii < gl.size(); ii++)
   {
-    Float Ei = 0;
-    if (gl.size() != pairs.size()) pairs.resize(gl.size());    
-    size_t ii;
-    for(ii = 0; ii < gl.size(); ii++)
+    Atom &atom_i = gl[ii];
+    if (isHandled(atom_i))
     {
-      size_t prevSize = pairs[ii].size();
-      pairs[ii].clear();
-      pairs[ii].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
-    }  
-    for(ii = 0; ii < gl.size(); ii++)
-    {
-      Atom &atom_i = gl[ii];
-      if (isHandled(atom_i))
-      for(size_t jj = 0; jj < NL(atom_i).size(); jj++)
+      AtomRefsContainer& nli = NL(atom_i);
+      for(size_t jj = 0; jj < nli.size(); jj++)
       {
-        Atom &atom_j = *(NL(atom_i)[jj]);
+        Atom &atom_j = *(nli[jj]);
         if (atom_i.globalIndex > atom_j.globalIndex) continue;
-        std::pair<int,int> sample_pair(atom_i.globalIndex,atom_j.globalIndex);
         if (&atom_i != &atom_j)
-        if (r_vec_module(atom_i,atom_j) < R(1,atom_i,atom_j))
         {
+          if (!probablyAreNeighbours(atom_i,atom_j)) continue;
+          AtomsPair ij(atom_i,atom_j,R(0,atom_i,atom_j),R(1,atom_i,atom_j));
 
-    currentPairPtr = &sample_pair;
-    ontouch_enabled = true;
+          Float VAvar = VA(ij);
+          Ei += VR(ij,1.0);
+          if (VAvar != 0.0)
+          {
+            Float BaverVal = Baver(ij,VAvar);
+            Ei += BaverVal*VA(ij,BaverVal);
+          }
+        }
+      }
+    }
+  }
 
-#ifdef REBO_OPTIMIZED  
-        Float VAvar = VA(atom_i,atom_j);
-        if (VAvar != 0.0)
-          Ei += VR(atom_i,atom_j) + Baver(atom_i,atom_j)*VAvar;
-        else
-          Ei += VR(atom_i,atom_j);
-#else
-        Ei += VR(atom_i,atom_j) + Baver(atom_i,atom_j)*VA(atom_i,atom_j);
-#endif      
-
-    currentPairPtr = NULL;
-    ontouch_enabled = false;
-        }  
-      }  
-    }  
-
-return Ei;
-  }  
-
-
+  return Ei;
+}
 
 inline
 Float
@@ -95,15 +82,15 @@ REBO::Sprime(Float arg, Float arg_min, Float arg_max) const
   {
     return (1.0+cos(M_PI*(arg-arg_min)
             /(arg_max-arg_min)))/2.0;
-  }  
-}  
+  }
+}
 
 inline
 Float
 REBO::dSprime(Float arg, Float arg_min, Float arg_max) const
 {
   REQUIRE(arg_min < arg_max);
-          
+
   if (arg<arg_min)
   {
     return 0.0;
@@ -115,516 +102,403 @@ REBO::dSprime(Float arg, Float arg_min, Float arg_max) const
   else
   {
     return (-(M_PI/(arg_max-arg_min))*sin(M_PI*(arg-arg_min)/(arg_max-arg_min)))/2.0;
-  }  
-}  
-
-
-inline
-Float
-REBO::fprime(Atom &atom1,Atom &atom2)
-{
-  Float r = r_vec_module(atom1,atom2);
-
-  Float R1=Rprime(0,atom1,atom2);
-  Float R2=Rprime(1,atom1,atom2);
-
-  return Sprime(r,R1,R2);
-}
-
-inline
-Vector3D
-REBO::dfprime(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  if (&datom != &atom1 && &datom != &atom2) return 0.0;
-
-  Float r = r_vec_module(atom1,atom2);
-
-  Float R1=Rprime(0,atom1,atom2);
-  Float R2=Rprime(1,atom1,atom2);
-
-#ifdef FGENERAL_OPTIMIZED  
-  Vector3D dvar = dr_vec_module(atom1,atom2,datom);
-  if (dvar != 0.0)
-    return dSprime(r,R1,R2)*dvar;
-  else
-    return 0.0;
-#else
-  return dSprime(r,R1,R2)*dr_vec_module(atom1,atom2,datom);  
-#endif
+  }
 }
 
 inline
 Float
-REBO::VR(Atom &atom1,Atom &atom2)
+REBO::fprime(AtomsPair& ij, const Float V)
 {
-  return VR_Exp(atom1, atom2);
-}  
+  Float R1=Rprime(0,ij);
+  Float R2=Rprime(1,ij);
 
-inline
-Vector3D
-REBO::dVR(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  return dVR_Exp(atom1, atom2, datom);
+  Float r = ij.r();
+
+  Float Val = Sprime(r,R1,R2);
+
+  if (V != 0.0 && r >= R1 && r <= R2)
+  {
+    ij.r(dSprime(r,R1,R2)*V);
+  }
+
+  return Val;
 }
-  
+
 inline
 Float
-REBO::VR_Exp(Atom &atom1,Atom &atom2)
+REBO::VR(AtomsPair& ij, const Float V)
 {
-  Float fvar = f(atom1,atom2);
-
-#ifdef REBO_OPTIMIZED  
-  if (fvar == 0.0) return 0.0;
-#endif
-
-  Float r = r_vec_module(atom1,atom2);
-
-  Float Q=     this->Q(atom1,atom2);
-  Float A=     this->A(atom1,atom2);
-  Float alpha= this->alpha(atom1,atom2);
-  
-  return fvar*(1+Q/r)*A*exp(-alpha*r);
+  return VR_Exp(ij,V);
 }
 
 inline
-Vector3D
-REBO::dVR_Exp(Atom &atom1,Atom &atom2, Atom &datom)
+Float
+REBO::VR_Exp(AtomsPair& ij, const Float V)
 {
-  Vector3D dfvar = df(atom1,atom2,datom);
-  Vector3D drmodvar = dr_vec_module(atom1,atom2,datom);
+  Float f = ij.f();
 
-#ifdef REBO_OPTIMIZED  
-  if (dfvar == 0.0 && drmodvar == 0.0)  return 0.0;
+#ifdef REBO_OPTIMIZED
+  if (f == 0.0) return 0.0;
 #endif
 
-  Float r = r_vec_module(atom1,atom2);
+  Float r = ij.r();
 
-  Float Q=     this->Q(atom1,atom2);
-  Float A=     this->A(atom1,atom2);
-  Float alpha= this->alpha(atom1,atom2);
+  Float Q=     this->Q(ij);
+  Float A=     this->A(ij);
+  Float alpha= this->alpha(ij);
 
   Float t1 = A*exp(-alpha*r);
 
-  return (
-           df(atom1,atom2,datom)
-           *(1+Q/r)*t1
-           +
-           f(atom1,atom2)       
-           *(-t1*(Q+alpha*r*r+alpha*r*Q)/(r*r))*dr_vec_module(atom1,atom2,datom)
-         );
+  Float Val = (1+Q/r)*t1;
+
+  if (V != 0)
+  {
+    Float Der = -t1*(Q+alpha*r*r+alpha*r*Q)/(r*r);
+    ij.r(Der*f*V);
+    ij.f(Val*V);
+  }
+
+  return f*Val;
 }
 
 inline
 Float
-REBO::VA(Atom &atom1,Atom &atom2)
+REBO::VA(AtomsPair& ij, const Float V)
 {
-  Float fvar = f(atom1,atom2);
+  Float f = ij.f();
 
-#ifdef REBO_OPTIMIZED  
-  if (fvar == 0.0) return 0.0;
+#ifdef REBO_OPTIMIZED
+  if (f == 0.0) return 0.0;
 #endif
 
-  Float r = r_vec_module(atom1,atom2);
+  Float r = ij.r();
 
-  Float B1=   this->B(1,atom1,atom2);
-  Float B2=   this->B(2,atom1,atom2);
-  Float B3=   this->B(3,atom1,atom2);
+  Float B1=   this->B(1,ij);
+  Float B2=   this->B(2,ij);
+  Float B3=   this->B(3,ij);
 
-  Float beta1=   this->beta(1,atom1,atom2);
-  Float beta2=   this->beta(2,atom1,atom2);
-  Float beta3=   this->beta(3,atom1,atom2);
-  
-  return -fvar*(
-          B1*exp(-beta1*r)+
-          B2*exp(-beta2*r)+
-          B3*exp(-beta3*r)
-          );
-}
-
-inline
-Vector3D
-REBO::dVA(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  Vector3D dfvar = df(atom1,atom2,datom);
-  Vector3D drmodvar = dr_vec_module(atom1,atom2,datom);
-
-#ifdef REBO_OPTIMIZED  
-  if (dfvar == 0.0 && drmodvar == 0.0)  return 0.0;
-#endif
-
-  Float r = r_vec_module(atom1,atom2);
-
-  Float B1=   this->B(1,atom1,atom2);
-  Float B2=   this->B(2,atom1,atom2);
-  Float B3=   this->B(3,atom1,atom2);
-
-  Float beta1=   this->beta(1,atom1,atom2);
-  Float beta2=   this->beta(2,atom1,atom2);
-  Float beta3=   this->beta(3,atom1,atom2);
+  Float beta1=   this->beta(1,ij);
+  Float beta2=   this->beta(2,ij);
+  Float beta3=   this->beta(3,ij);
 
   Float t1 = B1*exp(-beta1*r);
   Float t2 = B2*exp(-beta2*r);
   Float t3 = B3*exp(-beta3*r);
-  
-  return -dfvar*(
-          t1+
-          t2+
-          t3
-          )
-         -f(atom1,atom2)*(
-          (-beta1)*t1+
-          (-beta2)*t2+
-          (-beta3)*t3
-         )*drmodvar;
-}
 
-Float
-REBO::operator()(AtomsArray& gl)
-{
-  return buildPairs(gl);
-}  
+  Float Val = t1+t2+t3;
 
- 
- 
-Vector3D
-REBO::grad(Atom &atom,AtomsArray &gl)
-{
-  Vector3D dEi(0.0,0.0,0.0);
-
-  if (isHandled(atom))
+  if (V != 0)
   {
-    Index i;
+    Float Der = (-beta1)*t1+(-beta2)*t2+(-beta3)*t3;
+    ij.r(-Der*f*V);
+    ij.f(-Val*V);
+  }
 
-    std::vector<std::pair<int,int> >& acnt = pairs[atom.globalIndex];
-
-    for(i = 0; i < acnt.size(); i++)
-    {
-      Atom &atom_i = gl[acnt[i].first];
-      {
-        Atom &atom_j = gl[acnt[i].second];
-
-        REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
-#if defined(REBO_OPTIMIZED_EVEN_BETTER)
-        if (r_vec_module(atom_i,atom_j) < R(1,atom_i,atom_j))
-#endif
-        {
-          Vector3D dEij;
-#ifdef REBO_OPTIMIZED  
-          dEij = dVR(atom_i,atom_j,atom);
-          Float VAvar = VA(atom_i,atom_j);
-          Vector3D dVAvar = dVA(atom_i,atom_j,atom);
-
-          if (VAvar != 0.0) dEij += dBaver(atom_i,atom_j,atom)* VAvar;
-          if (dVAvar != 0.0) dEij += Baver(atom_i,atom_j)*dVAvar;
-#else
-          dEij = 
-                 (dVR(atom_i,atom_j,atom) + 
-                (dBaver(atom_i,atom_j,atom)* VA(atom_i,atom_j) + 
-                  Baver(atom_i,atom_j)*dVA(atom_i,atom_j,atom)));
-#endif
-          dEi += dEij;
-
-        }  
-      }
-    }    
-  }  
-
-  return  dEi;
-}  
-
-Float
-REBO::Baver(Atom &atom1,Atom &atom2)
-{
-  return (p_sigma_pi(atom1,atom2)+p_sigma_pi(atom2,atom1))/2.0
-         +pi_rc(atom1,atom2)
-#ifdef REBO_DIHEDRAL
-         +pi_dh(atom1,atom2)
-#endif
-         ;   
+  return -f*Val;
 }
 
-Vector3D
-REBO::dBaver(Atom &atom1,Atom &atom2, Atom &datom)
+Float
+REBO::Baver(AtomsPair& ij, const Float V)
 {
-  return (dp_sigma_pi(atom1,atom2,datom)+dp_sigma_pi(atom2,atom1,datom))/2.0
-         +dpi_rc(atom1,atom2,datom)
+  AtomsPair ji(-ij);
+
+  return (p_sigma_pi(ij,V/2.0)+p_sigma_pi(ji,V/2.0))/2.0
+    +pi_rc(ij,V)
 #ifdef REBO_DIHEDRAL
-         +dpi_dh(atom1,atom2,datom)
+    +pi_dh(ij,V)
 #endif
-         ; 
+    ;
 }
 
 inline
 Float
-REBO::ExpTerm(Atom &atom_i,Atom &atom_j,Atom &atom_k)
+REBO::ExpTerm(AtomsPair& ij, AtomsPair& ik, const Float V)
 {
-  if (atom_i.ID != H_EL) return 1.0;
+  if (ij.atom1.ID != H_EL) return 1.0;
 
-  Float r_ij = r_vec_module(atom_i,atom_j);
-  Float r_ik = r_vec_module(atom_i,atom_k);
+  Float r_ij = ij.r_alter();
+  Float r_ik = ik.r();
 
-  return exp(
-             (4.0/Ao)*(
-             (rho(atom_i, atom_k) - r_ik)
-            -(rho(atom_i, atom_j) - r_ij)
-             )
-            );
-}
+  Float Val = exp((4.0/Ao)*((rho(ik) - r_ik)-(rho(ij) - r_ij)));
 
-inline
-Vector3D
-REBO::dExpTerm(Atom &atom_i,Atom &atom_j,Atom &atom_k, Atom &datom)
-{
-  if (atom_i.ID != H_EL) return 0.0;
+  Float Dertmp = Val*(4.0/Ao);
 
-  return  ExpTerm(atom_i,atom_j,atom_k)
-          *(
-            (4.0/Ao)
-            *(
-              dr_vec_module(atom_i,atom_j,datom)-dr_vec_module(atom_i,atom_k,datom)
-             )
-           );
+  if (V != 0.0)
+  {
+    ij.r_alter(Dertmp*V);
+    ik.r(-Dertmp*V);
+  }
+
+  return Val;
 }
 
 Float
-REBO::D(Atom &atom1,Atom &atom2)
+REBO::D(AtomsPair& ij, const Float V)
 {
-  Index k;
   Float Dij = 1.0;
-  for(k = 0; k < NL(atom1).size(); k++)
+  AtomRefsContainer& nli = NL(ij.atom1);
+  for(size_t k = 0; k < nli.size(); k++)
   {
-    Atom& atom_k = *(NL(atom1)[k]);
-    if (&atom_k != &atom2/* && &atom_k != &atom1*/)
+    Atom& atom_k = *(nli[k]);
+    if (&atom_k != &ij.atom2/* && &atom_k != &atom1*/)
     {
-#ifdef REBO_OPTIMIZED  
-      Float fvar = f(atom1,atom_k);
-      if (fvar != 0.0)
+      if (!probablyAreNeighbours(ij.atom1,atom_k)) continue;
+      AtomsPair ik(ij.atom1,atom_k,R(0,ij.atom1,atom_k),R(1,ij.atom1,atom_k));
+
+      Float ExpTermvar = ExpTerm(ij,ik);
+      if (ExpTermvar != 0.0)
       {
-        Float ExpTermvar = ExpTerm(atom1,atom2,atom_k);
-        if (ExpTermvar != 0.0)
-          Dij += G(atom1,atom2,atom_k)*fvar*ExpTermvar;
-      }    
-#else
-      Dij += G(atom1,atom2,atom_k)*f(atom1,atom_k)*ExpTerm(atom1,atom2,atom_k);
-#endif
-    }  
-  }  
-  Dij += P(atom1,atom2);  
+        Float Gvar = G(ij,ik);
+        Float fvar = ik.f();
+        if (V != 0.0)
+        {
+          G(ij,ik,fvar*ExpTermvar*V);
+          ik.f(Gvar*ExpTermvar*V);
+          ExpTerm(ij,ik,Gvar*fvar*V);
+        }
+        Dij += Gvar*fvar*ExpTermvar;
+      }
+    }
+  }
+  Dij += P(ij,V);
   return Dij;
 }
 
-Vector3D
-REBO::dD(Atom &atom1,Atom &atom2, Atom &datom)
+inline
+Float
+REBO::p_sigma_pi(AtomsPair& ij, const Float V)
 {
-  Vector3D DerD = 0.0;
-  for(Index k = 0; k < NL(atom1).size(); k++)
+  Float DVal = D(ij);
+  if (V != 0)
   {
-    Atom& atom_k = *(NL(atom1)[k]);
-    if (&atom_k != &atom2/* && &atom_k != &atom1*/)
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module(atom1,atom_k) < R(1,atom1,atom_k))
-#endif
-    {
-#ifdef REBO_OPTIMIZED  
-      Float ExpTermvar = ExpTerm(atom1,atom2,atom_k);
-      Vector3D dExpTermvar = dExpTerm(atom1,atom2,atom_k,datom);
-
-      if (ExpTermvar != 0.0 || dExpTermvar != 0.0)
-      {
-      Float fvar = f(atom1,atom_k);
-      Float Gvar = G(atom1,atom2,atom_k);
-      Vector3D dfvar = df(atom1,atom_k,datom);
-      Vector3D dGvar = dG(atom1,atom2,atom_k,datom);
-
-      DerD += dGvar* fvar* ExpTermvar;
-      DerD +=  Gvar*dfvar* ExpTermvar;
-      DerD +=  Gvar* fvar*dExpTermvar;
-      }  
-#else
-      DerD += dG(atom1,atom2,atom_k,datom)* f(atom1,atom_k)* ExpTerm(atom1,atom2,atom_k);
-      DerD +=  G(atom1,atom2,atom_k)*df(atom1,atom_k,datom)* ExpTerm(atom1,atom2,atom_k);
-      DerD +=  G(atom1,atom2,atom_k)* f(atom1,atom_k)*dExpTerm(atom1,atom2,atom_k,datom);
-#endif
-    }  
-  }  
-  DerD += dP(atom1,atom2,datom); 
-
-  return DerD;
+    Float Der = -0.5*pow(DVal,-0.5-1.0);
+    D(ij,Der*V);
+  };
+  return pow(DVal,-0.5);
 }
 
 inline
 Float
-REBO::p_sigma_pi(Atom &atom1,Atom &atom2)
+REBO::G(AtomsPair& ij, AtomsPair& ik, const Float V)
 {
-  return pow(D(atom1,atom2),-0.5);
-}
+  Float CosT = CosTheta(ij,ik);
 
-inline
-Vector3D
-REBO::dp_sigma_pi(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  return -0.5*pow(D(atom1,atom2),-0.5-1.0)*dD(atom1,atom2,datom);
-}
-
-inline
-Float
-REBO::G(Atom &atom_i,Atom &atom_j,Atom &atom_k)
-{
-  Float CosT = CosThetaJIK(atom_i,atom_j,atom_k);
-
-  if (atom_i.ID == C_EL)
+  if (ij.atom1.ID == C_EL)
   {
     Float Nt1=Ntot_[0];
     Float Nt2=Ntot_[1];
 
-    Float N = Nt(atom_i,atom_j);
+    Float N = Nt(ij);
+    Float Sp = Sprime(N,Nt1,Nt2);
 
-    return funcG_C2(CosT)+Sprime(N,Nt1,Nt2)*(funcG_C1(CosT) - funcG_C2(CosT));    
+    Float funcGC1 = funcG_C1(CosT);
+    Float funcGC2 = funcG_C2(CosT);
+
+    if (V != 0.0)
+    {
+      Float SpDer = dSprime(N,Nt1,Nt2);
+      Float funcGC1Der = funcG_C1.dCosT(CosT);
+      Float funcGC2Der = funcG_C2.dCosT(CosT);
+
+      if (funcGC2Der != 0.0 || funcGC1Der != 0.0)
+        CosTheta(ij,ik,funcGC2Der*V + funcGC1Der*Sp*V + (-funcGC2Der*Sp*V));
+
+      if ((funcGC2 != 0.0 || funcGC1 != 0.0) && SpDer != 0.0)
+        Nt_donly(ij,funcGC1*SpDer*V + (-funcGC2*SpDer*V));
+    }
+
+    return funcGC2+Sp*(funcGC1 - funcGC2);
   }
-  else if (atom_i.ID == H_EL)
+  else if (ij.atom1.ID == H_EL)
   {
+    if (V != 0.0)
+    {
+      Float funcGHDer = funcG_H.dCosT(CosT);
+      if (funcGHDer != 0.0)
+        CosTheta(ij,ik,funcGHDer*V);
+    }
     return funcG_H(CosT);
-  }  
+  }
   else
   {
     throw Exception("REBO::G() : unknown element");
-  }  
+  }
 }
 
+void
+REBO::countNeighbours(AtomsArray& gl)
+{
+  Nts.clear();
+  Nts.resize(gl.size());
+  Nts2touch.clear();
+  Nts2touch.resize(gl.size());
+
+  NCs.clear();
+  NCs.resize(gl.size());
+  NCs2touch.resize(gl.size());
+  NCs2touch.clear();
+
+  NHs.clear();
+  NHs.resize(gl.size());
+  NHs2touch.clear();
+  NHs2touch.resize(gl.size());
+
+  for(size_t i = 0; i < gl.size(); i++)
+  {
+    Atom &atom_i = gl[i];
+    if (!isHandled(atom_i)) continue;
+    AtomRefsContainer& nli = NL(atom_i);
+    for(size_t k = 0; k < nli.size(); k++)
+    {
+      Atom &atom_k = *nli[k];
+
+      Float fval = 0.0;
+      bool  touchNeeded = false;
+
+      Float r = depos(atom_i,atom_k).module();
+      Float R2 = R(1,atom_i,atom_k);
+      if (r>R2)
+        continue;
+      else
+      {
+        Float R1=R(0,atom_i,atom_k);
+        if (r<R1)
+          fval = 1.0;
+        else
+        {
+          touchNeeded = true;
+          fval = (1.0+cos(M_PI*(r-R1)/(R2-R1)))/2.0;
+        }
+      }
+
+      {
+        Nts[i] += fval;
+        if (touchNeeded)
+          Nts2touch[i].push_back(&atom_k);
+      }
+      if (atom_k.ID == H_EL)
+      {
+        NHs[i] += fval;
+        if (touchNeeded)
+          NHs2touch[i].push_back(&atom_k);
+      }
+      if (atom_k.ID == C_EL)
+      {
+        NCs[i] += fval;
+        if (touchNeeded)
+          NCs2touch[i].push_back(&atom_k);
+      }
+    }
+  }
+}
 
 inline
-Vector3D
-REBO::dG(Atom &atom_i,Atom &atom_j,Atom &atom_k, Atom &datom)
+bool
+REBO::areNeighbours(Atom &atom_i, Atom &atom_j)
 {
-  Float CosT = CosThetaJIK(atom_i,atom_j,atom_k);
-  Vector3D dCosT = dCosThetaJIK(atom_i,atom_j,atom_k,datom);
-
-  if (atom_i.ID == C_EL)
+  AtomRefsContainer& nli = NL(atom_i);
+  for(size_t k = 0; k < nli.size(); k++)
   {
-    Float Nt1=Ntot_[0];
-    Float Nt2=Ntot_[1];
-
-    Float N = Nt(atom_i,atom_j);
-    Vector3D dN = dNt(atom_i,atom_j,datom);
-
-    return funcG_C2.dCosT(CosT)*dCosT
-           + 
-           (
-           (dN!=0.0)?
-           (
-           dSprime(N,Nt1,Nt2)*dN*(funcG_C1(CosT) - funcG_C2(CosT))
-           ):(0.0)
-           )
-           +
-           Sprime(N,Nt1,Nt2)*(funcG_C1.dCosT(CosT) - funcG_C2.dCosT(CosT))*dCosT
-           ;    
+    Atom &atom_k = *nli[k];
+    if (&atom_k == &atom_j)
+      return true;
   }
-  else if (atom_i.ID == H_EL)
-  {
-    return funcG_H.dCosT(CosT)*dCosT;
-  }  
-  else
-  {
-    throw Exception("REBO::dG() : unknown element");
-  }  
+  return false;
+}
+
+inline
+void
+REBO::dfThem(const std::vector<std::vector<Atom*> >& patoms, AtomsPair& ij, const Float V)
+{
+  if (V == 0.0) return;
+  const std::vector<Atom*>& they = patoms[ij.atom1.globalIndex];
+  for(size_t k = 0; k < they.size(); k++)
+    if (they[k] != &ij.atom2)
+    {
+      AtomsPair ik(ij.atom1,*they[k],R(0,ij.atom1,*they[k]),R(1,ij.atom1,*they[k]));
+      ik.f(V);
+    }
 }
 
 Float
-REBO::Nt(Atom &atom_i, Atom &atom_j)
+REBO::Nt(AtomsPair& ij, const Float V)
 {
-  Float Nt_i = 0;
-
-  for(Index k = 0; k < NL(atom_i).size(); k++)  
+//  REQUIRE(areNeighbours(atom_i,atom_j));
+  if (V != 0.0)
   {
-    Atom &atom_k = *NL(atom_i)[k];
-    if (&atom_k != &atom_j)
-    {
-      Nt_i += f(atom_i,atom_k);
-    }  
-  }     
+    dfThem(Nts2touch,ij,V);
+  }
+  Float N = Nts[ij.atom1.globalIndex];
+  if (ij.r() < R(1,ij))
+    N -= ij.f();
+  REQUIRE(N > -1e-15);
+  if (N < 0)
+    N = 0;
+  return N;
+}
 
-  return Nt_i;
-} 
-
-Vector3D
-REBO::dNt(Atom &atom_i, Atom &atom_j, Atom &datom)
+void
+REBO::Nt_donly(AtomsPair& ij, const Float V)
 {
-  Vector3D Nt_i = 0;
-
-  for(Index k = 0; k < NL(atom_i).size(); k++)  
+//  REQUIRE(areNeighbours(atom_i,atom_j));
+  if (V != 0.0)
   {
-    Atom &atom_k = *NL(atom_i)[k];
-    if (&atom_k != &atom_j)
-    {
-      Nt_i += df(atom_i,atom_k,datom);
-    }  
-  }     
-
-  return Nt_i;
+    dfThem(Nts2touch,ij,V);
+  }
 }
 
 Float
-REBO::NH(Atom &atom_i, Atom &atom_j)
-{ 
-  Float NH_i = 0;
-  for(Index k = 0; k < NL(atom_i).size(); k++)  
+REBO::NH(AtomsPair& ij, const Float V)
+{
+  if (V != 0.0)
   {
-    Atom &atom_k = *NL(atom_i)[k];
-    if (atom_k.ID == H_EL && &atom_k != &atom_j)
-    {
-      NH_i += f(atom_i,atom_k);
-    }  
-  }    
-
-  return NH_i;
+    dfThem(NHs2touch,ij,V);
+  }
+  Float N = NHs[ij.atom1.globalIndex];
+  if (ij.atom2.ID == H_EL && ij.r() < R(1,ij))
+  {
+    N -= ij.f();
+  }
+  REQUIRE(N > -1e-15);
+  if (N < 0)
+    N = 0;
+  return N;
 }
 
-Vector3D
-REBO::dNH(Atom &atom_i, Atom &atom_j, Atom &datom)
-{ 
-  Vector3D NH_i = 0;
-  for(Index k = 0; k < NL(atom_i).size(); k++)  
+void
+REBO::NH_donly(AtomsPair& ij, const Float V)
+{
+  if (V != 0.0)
   {
-    Atom &atom_k = *NL(atom_i)[k];
-    if (atom_k.ID == H_EL && &atom_k != &atom_j)
-    {
-      NH_i += df(atom_i,atom_k,datom);
-    }  
-  }    
-
-  return NH_i;
+    dfThem(NHs2touch,ij,V);
+  }
 }
 
 Float
-REBO::NC(Atom &atom_i, Atom &atom_j)
+REBO::NC(AtomsPair& ij, const Float V)
 {
-  Float NC_i = 0;
-  for(Index k = 0; k < NL(atom_i).size(); k++)  
+  if (V != 0.0)
   {
-    Atom &atom_k = *NL(atom_i)[k];
-    if (atom_k.ID == C_EL && &atom_k != &atom_j)
-    {
-      NC_i += f(atom_i,atom_k);
-    }  
-  }    
-
-  return NC_i;
+    dfThem(NCs2touch,ij,V);
+  }
+  Float N = NCs[ij.atom1.globalIndex];
+  if (ij.atom2.ID == C_EL && ij.r() < R(1,ij))
+  {
+    N -= ij.f();
+  }
+  REQUIRE(N > -1e-15);
+  if (N < 0)
+    N = 0;
+  return N;
 }
 
-Vector3D
-REBO::dNC(Atom &atom_i, Atom &atom_j, Atom &datom)
+void
+REBO::NC_donly(AtomsPair& ij, const Float V)
 {
-  Vector3D NC_i = 0;
-  for(Index k = 0; k < NL(atom_i).size(); k++)  
+  if (V != 0.0)
   {
-    Atom &atom_k = *NL(atom_i)[k];
-    if (atom_k.ID == C_EL && &atom_k != &atom_j)
-    {
-      NC_i += df(atom_i,atom_k,datom);
-    }  
-  }    
-
-  return NC_i;
+    dfThem(NCs2touch,ij,V);
+  }
 }
 
 inline
@@ -642,7 +516,7 @@ REBO::F(Float x) const
   else
   {
     return (1.0+cos(M_PI*(x-2.0)))/2.0;
-  }     
+  }
 }
 
 inline
@@ -660,429 +534,283 @@ REBO::dF(Float x) const
   else
   {
     return (-M_PI*sin(M_PI*(x-2.0)))/2.0;
-  }     
+  }
 }
 
 Float
-REBO::Nconj(Atom &atom1,Atom &atom2)
+REBO::NconjSum1(AtomsPair& ij, const Float V)
+{
+  Float sum1 = 0.0;
+  AtomRefsContainer& nli = NL(ij.atom1);
+  for(Index k = 0; k < nli.size(); k++)
+  {
+    Atom& atom_k = *(nli[k]);
+    if (&atom_k != &ij.atom2 && atom_k.ID == C_EL)
+    {
+      if (!probablyAreNeighbours(ij.atom1,atom_k)) continue;
+//      AtomsPair ik(ij.atom1,atom_k,R(0,ij.atom1,atom_k),R(1,ij.atom1,atom_k));
+      AtomsPair ik(atom_k,ij.atom1,R(0,ij.atom1,atom_k),R(1,ij.atom1,atom_k));
+      Float f_ik = ik.f();
+
+      Float N   = Nt(ik);
+      Float Nt1 = Ntot_[0];
+      Float Nt2 = Ntot_[1];
+
+      Float Sp = Sprime(N,Nt1,Nt2);
+
+      if (V != 0.0)
+      {
+        ik.f(Sp*V);
+        Nt_donly(ik,f_ik*dSprime(N,Nt1,Nt2)*V);
+      }
+
+      sum1 += f_ik*Sp;
+    }
+  }
+
+  return sum1;
+}
+
+Float
+REBO::NconjSum2(AtomsPair& ij, const Float V)
+{
+  Float sum2 = 0.0;
+  AtomRefsContainer& nlj = NL(ij.atom2);
+  for(Index l = 0; l < nlj.size(); l++)
+  {
+    Atom& atom_l = *(nlj[l]);
+    if (&atom_l != &ij.atom1 && atom_l.ID == C_EL)
+    {
+      if (!probablyAreNeighbours(ij.atom2,atom_l)) continue;
+//      AtomsPair jl(ij.atom2,atom_l,R(0,ij.atom2,atom_l),R(1,ij.atom2,atom_l));
+      AtomsPair jl(atom_l,ij.atom2,R(0,ij.atom2,atom_l),R(1,ij.atom2,atom_l));
+      Float f_jl = jl.f();
+
+      Float N   = Nt(jl);
+      Float Nt1 = Ntot_[0];
+      Float Nt2 = Ntot_[1];
+
+      Float Sp = Sprime(N,Nt1,Nt2);
+
+      if (V != 0.0)
+      {
+        jl.f(Sp*V);
+        Nt_donly(jl,f_jl*dSprime(N,Nt1,Nt2)*V);
+      }
+
+      sum2 += f_jl*Sp;
+    }
+  }
+
+  return sum2;
+}
+
+Float
+REBO::Nconj(AtomsPair& ij, const Float V)
 {
   Float Nconj_ij = 1.0;
 
-  Float sum1 = 0.0;
-  for(Index k = 0; k < NL(atom1).size(); k++)
-  {
-    Atom& atom_k = *(NL(atom1)[k]);
-    if (&atom_k != &atom2 && 
-        atom_k.ID == C_EL)
-    {
-      Float f_ik = f(atom_k,atom1);
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-      if (f_ik == 0.0) continue;
-#endif
-
-      Float N   = Nt(atom_k,atom1);
-      Float Nt1 = Ntot_[0];
-      Float Nt2 = Ntot_[1];
-      sum1 += f_ik*Sprime(N,Nt1,Nt2);
-    }  
-  }    
+  Float sum1 = NconjSum1(ij);
+  if (V != 0.0 && sum1 != 0.0)
+    NconjSum1(ij,2.0*sum1*V);
   Nconj_ij += SQR(sum1);
 
-  Float sum2 = 0.0;
-  for(Index l = 0; l < NL(atom2).size(); l++)
-  {
-    Atom& atom_l = *(NL(atom2)[l]);
-    if (&atom_l != &atom1 &&
-        atom_l.ID == C_EL)
-    {
-      Float f_jl = f(atom_l,atom2);
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-      if (f_jl == 0.0) continue;
-#endif
-
-      Float N   = Nt(atom_l,atom2);
-      Float Nt1 = Ntot_[0];
-      Float Nt2 = Ntot_[1];
-      sum2 += f_jl*Sprime(N,Nt1,Nt2);
-    }  
-  }    
+  Float sum2 = NconjSum2(ij);
+  if (V != 0.0 && sum2 != 0.0)
+    NconjSum2(ij,2.0*sum2*V);
   Nconj_ij += SQR(sum2);
 
-  return Nconj_ij; 
+  return Nconj_ij;
 }
 
-
-Vector3D
-REBO::dNconj(Atom &atom1,Atom &atom2, Atom &datom)
+inline
+Float
+REBO::P(AtomsPair& ij, const Float V)
 {
-  Vector3D dNconj = 0.0;
+RETURN_REBO_0;
 
-  Float    sum1 = 0.0;
-  Vector3D dsum1 = 0.0;
-  for(Index k = 0; k < NL(atom1).size(); k++)
+  if (ij.atom1.ID == C_EL && ij.atom2.ID == C_EL)
   {
-    Atom& atom_k = *(NL(atom1)[k]);
-
-    if (&atom_k != &atom2 && 
-        atom_k.ID == C_EL)
+    Float NHVar = NH(ij);
+    Float NCVar = NC(ij);
+    Float Val = P_CC_num(NHVar,NCVar);
+    if (V != 0.0)
     {
-      Float f_ik = f(atom_k,atom1);
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-      if (f_ik == 0.0) continue;
-#endif
-      Vector3D df_ik = df(atom_k,atom1,datom);
-      
-      Float N   = Nt(atom_k,atom1);
-      Float Nt1 = Ntot_[0];
-      Float Nt2 = Ntot_[1];
-      Vector3D dN  = dNt(atom_k,atom1,datom);
-
-       sum1 += f_ik*Sprime(N,Nt1,Nt2);
-
-      dsum1 += df_ik* Sprime(N,Nt1,Nt2)+
-               (
-               (dN!=0.0)?(f_ik*dSprime(N,Nt1,Nt2)*dN):(0.0)
-               );
-    }  
-  }    
-  dNconj += 2.0*sum1*dsum1;
-
-  Float     sum2 = 0.0;
-  Vector3D dsum2 = 0.0;
-  for(Index l = 0; l < NL(atom2).size(); l++)
+      NH_donly(ij,P_CC_dH_num(NHVar,NCVar)*V);
+      NC_donly(ij,P_CC_dC_num(NHVar,NCVar)*V);
+    }
+    return Val;
+  }
+  else if (ij.atom1.ID == C_EL && ij.atom2.ID == H_EL)
   {
-    Atom& atom_l = *(NL(atom2)[l]);
-
-    if (&atom_l != &atom1 &&
-        atom_l.ID == C_EL)
+    Float NHVar = NH(ij);
+    Float NCVar = NC(ij);
+    Float Val = P_CH_num(NHVar,NCVar);
+    if (V != 0.0)
     {
-      Float f_jl = f(atom_l,atom2);
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-      if (f_jl == 0.0) continue;
-#endif
-      Vector3D df_jl = df(atom_l,atom2,datom);
+      NH_donly(ij,P_CH_dH_num(NHVar,NCVar)*V);
+      NC_donly(ij,P_CH_dC_num(NHVar,NCVar)*V);
+    }
+    return Val;
+  }
+  else return 0.0;
+}
 
-      Float N   = Nt(atom_l,atom2);
-      Float Nt1 = Ntot_[0];
-      Float Nt2 = Ntot_[1];
-      Vector3D dN  = dNt(atom_l,atom2,datom);
+inline
+Float
+REBO::pi_rc(AtomsPair& ij, const Float V)
+{
+  RETURN_REBO_0;
 
-       sum2 +=  f_jl* Sprime(N,Nt1,Nt2);
-      dsum2 += df_jl* Sprime(N,Nt1,Nt2)+
-               (
-               (dN!=0.0)?(f_jl*dSprime(N,Nt1,Nt2)*dN):(0.0)
-               );
+  AtomsPair ji(-ij);
+
+  if (ij.atom1.ID == C_EL && ij.atom2.ID == C_EL)
+  {
+    Float Nti = Nt(ij);
+    Float Ntj = Nt(ji);
+    Float Nconj_ij = Nconj(ij);
+    Float Val = pi_rc_CC_num(Nti,Ntj,Nconj_ij);
+    if (V != 0.0)
+    {
+      Nt_donly(ij,pi_rc_CC_dNt_i_num(Nti,Ntj,Nconj_ij)*V);
+      Nt_donly(ji,pi_rc_CC_dNt_j_num(Nti,Ntj,Nconj_ij)*V);
+      Nconj(ij,pi_rc_CC_dNconj_num(Nti,Ntj,Nconj_ij)*V);
+    }
+    return Val;
+  }
+  if (ij.atom1.ID == C_EL && ij.atom2.ID == H_EL)
+  {
+    Float Nti = Nt(ij);
+    Float Ntj = Nt(ji);
+    Float Nconj_ij = Nconj(ij);
+    Float Val = pi_rc_CH_num(Nti,Ntj,Nconj_ij);
+    if (V != 0.0)
+    {
+      Nt_donly(ij,pi_rc_CH_dNt_i_num(Nti,Ntj,Nconj_ij)*V);
+      Nt_donly(ji,pi_rc_CH_dNt_j_num(Nti,Ntj,Nconj_ij)*V);
+      Nconj(ij,pi_rc_CH_dNconj_num(Nti,Ntj,Nconj_ij)*V);
+    }
+    return Val;
+  }
+  if (ij.atom1.ID == H_EL && ij.atom2.ID == C_EL)
+  {
+    return pi_rc(ji,V);
+  }
+  if (ij.atom1.ID == H_EL && ij.atom2.ID == H_EL)
+  {
+    Float Nti = Nt(ij);
+    Float Ntj = Nt(ji);
+    Float Nconj_ij = Nconj(ij);
+    Float Val = pi_rc_HH_num(Nti,Ntj,Nconj_ij);
+    if (V != 0.0)
+    {
+      Nt_donly(ij,pi_rc_HH_dNt_i_num(Nti,Ntj,Nconj_ij)*V);
+      Nt_donly(ji,pi_rc_HH_dNt_j_num(Nti,Ntj,Nconj_ij)*V);
+      Nconj(ij,pi_rc_HH_dNconj_num(Nti,Ntj,Nconj_ij)*V);
+    }
+    return Val;
+  }
+  return 0.0;
+}
+
+Float
+REBO::pi_dh_sum(AtomsPair& ij, const Float V)
+{
+RETURN_REBO_0;
+
+  Float  temp_sum = 0.0;
+  AtomRefsContainer& nli = NL(ij.atom1);
+  for(Index k = 0; k < nli.size(); k++)
+  {
+    Atom& atom_k = *(nli[k]);
+    if (&atom_k == &ij.atom2 /* && atom_k.ID == C_EL*/) continue;
+    if (!probablyAreNeighbours(ij.atom1,atom_k)) continue;
+    AtomRefsContainer& nlj = NL(ij.atom2);
+    for(Index l = 0; l < nlj.size(); l++)
+    {
+      Atom& atom_l = *(nlj[l]);
+      if (&atom_l == &ij.atom1 /* && atom_l.ID == C_EL*/) continue;
+      if (!probablyAreNeighbours(ij.atom2,atom_l)) continue;
+      if (&atom_k != &atom_l) // otherwise cos=1 -> temp_sum=0
+      {
+        AtomsPair ik(atom_k,ij.atom1,R(0,ij.atom1,atom_k),R(1,ij.atom1,atom_k));
+        if (fabs(SinTheta(ij,ik))<0.1) continue;
+        AtomsPair ki(-ik);
+        Float f_ik = fprime(ik);
+        AtomsPair jl(atom_l,ij.atom2,R(0,ij.atom2,atom_l),R(1,ij.atom2,atom_l));
+        if (fabs(SinTheta(ij,jl))<0.1) continue;
+        AtomsPair lj(-jl);
+        Float f_jl = fprime(jl);
+        Float CosDh = - CosDihedral(ij,ki,lj);
+
+        if (V != 0)
+        {
+          CosDihedral(ij,ki,lj,+1.0*2*CosDh*f_ik*f_jl*V);
+          fprime(ik,(1.0-SQR(CosDh))*f_jl*V);
+          fprime(jl,(1.0-SQR(CosDh))*f_ik*V);
+        }
+
+        temp_sum += (1.0-SQR(CosDh))*f_ik*f_jl;
+      }
     }
   }
-  dNconj += 2.0*sum2*dsum2;
 
-  return dNconj;
-}
-
-inline
-Float
-REBO::P(Atom &atom_i, Atom &atom_j)
-{
-RETURN_REBO_0;
-
-  if (atom_i.ID == C_EL && atom_j.ID == C_EL)
-    return P_CC_num(NH(atom_i,atom_j),NC(atom_i,atom_j));
-  else if (atom_i.ID == C_EL && atom_j.ID == H_EL)
-    return P_CH_num(NH(atom_i,atom_j),NC(atom_i,atom_j));  
-  else return 0.0;  
-}
-
-inline
-Vector3D
-REBO::dP(Atom &atom_i, Atom &atom_j, Atom &datom)
-{
-RETURN_REBO_0;
-
-#ifdef REBO_OPTIMIZED  
-  Vector3D RESULT = 0.0;
-  if (atom_i.ID == C_EL && atom_j.ID == C_EL)
-  {
-    Float NHvar = NH(atom_i,atom_j);
-    Float NCvar = NC(atom_i,atom_j);
-
-    Float p1 = P_CC_dH_num (NHvar,NCvar);
-    Float p2 = P_CC_dC_num (NHvar,NCvar);
-
-    if (p1 != 0.0) 
-      RESULT += p1*dNH(atom_i,atom_j,datom);
-    if (p2 != 0.0) 
-      RESULT += p2*dNC(atom_i,atom_j,datom);
-  }  
-  else if (atom_i.ID == C_EL && atom_j.ID == H_EL)
-  {
-    Float NHvar = NH(atom_i,atom_j);
-    Float NCvar = NC(atom_i,atom_j);
-
-    Float p1 = P_CH_dH_num (NHvar,NCvar);
-    Float p2 = P_CH_dC_num (NHvar,NCvar);
-
-    if (p1 != 0.0) 
-      RESULT += p1*dNH(atom_i,atom_j,datom);
-    if (p2 != 0.0) 
-      RESULT += p2*dNC(atom_i,atom_j,datom);
-  }
-  else RESULT = 0.0;
-  return RESULT;
-#else
-  if (atom_i.ID == C_EL && atom_j.ID == C_EL)
-    return P_CC_dH_num(NH(atom_i,atom_j),NC(atom_i,atom_j))*dNH(atom_i,atom_j,datom)+
-           P_CC_dC_num(NH(atom_i,atom_j),NC(atom_i,atom_j))*dNC(atom_i,atom_j,datom);
-  else if (atom_i.ID == C_EL && atom_j.ID == H_EL)         
-    return P_CH_dH_num(NH(atom_i,atom_j),NC(atom_i,atom_j))*dNH(atom_i,atom_j,datom)+
-           P_CH_dC_num(NH(atom_i,atom_j),NC(atom_i,atom_j))*dNC(atom_i,atom_j,datom);
-  else return 0.0;
-#endif  
-}
-
-inline
-Float
-REBO::pi_rc(Atom &atom_i, Atom &atom_j)
-{
-RETURN_REBO_0;
-  
-  if (atom_i.ID == C_EL && atom_j.ID == C_EL)
-    return pi_rc_CC_num(Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j));
-  if (atom_i.ID == C_EL && atom_j.ID == H_EL)
-    return pi_rc_CH_num(Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j));
-  if (atom_i.ID == H_EL && atom_j.ID == C_EL)
-  {
-    Atom& atom_i_new = atom_j;
-    Atom& atom_j_new = atom_i;
-    return pi_rc(atom_i_new,atom_j_new);
-  };
-  if (atom_i.ID == H_EL && atom_j.ID == H_EL)
-    return pi_rc_HH_num(Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j));
-  return 0.0;
-}
-
-inline
-Vector3D
-REBO::dpi_rc(Atom &atom_i, Atom &atom_j, Atom &datom)
-{
-RETURN_REBO_0;
-  if (atom_i.ID == C_EL && atom_j.ID == C_EL)
-#ifdef REBO_OPTIMIZED  
-{
-  Vector3D RESULT = 0.0;
-  {  
-    Float Ntijvar = Nt(atom_i,atom_j);
-    Float Ntjivar = Nt(atom_j,atom_i);
-    Float Nconjvar = Nconj(atom_i,atom_j);
-
-    Float p1 = pi_rc_CC_dNt_i_num (Ntijvar,Ntjivar,Nconjvar);
-    Float p2 = pi_rc_CC_dNt_j_num (Ntijvar,Ntjivar,Nconjvar);
-    Float p3 = pi_rc_CC_dNconj_num(Ntijvar,Ntjivar,Nconjvar);
-
-    if (p1 != 0.0) 
-      RESULT += p1*dNt   (atom_i,atom_j,datom);
-    if (p2 != 0.0) 
-      RESULT += p2*dNt   (atom_j,atom_i,datom);
-    if (p3 != 0.0)
-      RESULT += p3*dNconj(atom_i,atom_j,datom);
-  }  
-  return RESULT;
-}  
-#else
-    return pi_rc_CC_dNt_i_num (Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNt   (atom_i,atom_j,datom)+
-           pi_rc_CC_dNt_j_num (Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNt   (atom_j,atom_i,datom)+
-           pi_rc_CC_dNconj_num(Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNconj(atom_i,atom_j,datom);
-#endif
-  if (atom_i.ID == C_EL && atom_j.ID == H_EL)
-#ifdef REBO_OPTIMIZED  
-{
-  Vector3D RESULT = 0.0;
-  {  
-    Float Ntijvar = Nt(atom_i,atom_j);
-    Float Ntjivar = Nt(atom_j,atom_i);
-    Float Nconjvar = Nconj(atom_i,atom_j);
-
-    Float p1 = pi_rc_CH_dNt_i_num (Ntijvar,Ntjivar,Nconjvar);
-    Float p2 = pi_rc_CH_dNt_j_num (Ntijvar,Ntjivar,Nconjvar);
-    Float p3 = pi_rc_CH_dNconj_num(Ntijvar,Ntjivar,Nconjvar);
-
-    if (p1 != 0.0) 
-      RESULT += p1*dNt   (atom_i,atom_j,datom);
-    if (p2 != 0.0) 
-      RESULT += p2*dNt   (atom_j,atom_i,datom);
-    if (p3 != 0.0)
-      RESULT += p3*dNconj(atom_i,atom_j,datom);
-  }  
-  return RESULT;
-}  
-#else
-    return pi_rc_CH_dNt_i_num (Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNt   (atom_i,atom_j,datom)+
-           pi_rc_CH_dNt_j_num (Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNt   (atom_j,atom_i,datom)+
-           pi_rc_CH_dNconj_num(Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNconj(atom_i,atom_j,datom);
-#endif
-  if (atom_i.ID == H_EL && atom_j.ID == C_EL)
-  {
-    Atom& atom_i_new = atom_j;
-    Atom& atom_j_new = atom_i;
-    return dpi_rc(atom_i_new,atom_j_new,datom);
-  }; 
-  if (atom_i.ID == H_EL && atom_j.ID == H_EL)
-#ifdef REBO_OPTIMIZED  
-{
-  Vector3D RESULT = 0.0;
-  {  
-    Float Ntijvar = Nt(atom_i,atom_j);
-    Float Ntjivar = Nt(atom_j,atom_i);
-    Float Nconjvar = Nconj(atom_i,atom_j);
-
-    Float p1 = pi_rc_HH_dNt_i_num (Ntijvar,Ntjivar,Nconjvar);
-    Float p2 = pi_rc_HH_dNt_j_num (Ntijvar,Ntjivar,Nconjvar);
-    Float p3 = pi_rc_HH_dNconj_num(Ntijvar,Ntjivar,Nconjvar);
-
-    if (p1 != 0.0) 
-      RESULT += p1*dNt   (atom_i,atom_j,datom);
-    if (p2 != 0.0) 
-      RESULT += p2*dNt   (atom_j,atom_i,datom);
-    if (p3 != 0.0)
-      RESULT += p3*dNconj(atom_i,atom_j,datom);
-  }  
-  return RESULT;
-}  
-#else
-    return pi_rc_HH_dNt_i_num (Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNt   (atom_i,atom_j,datom)+
-           pi_rc_HH_dNt_j_num (Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNt   (atom_j,atom_i,datom)+
-           pi_rc_HH_dNconj_num(Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNconj(atom_i,atom_j,datom);
-#endif
-
-  return 0.0;
+  return temp_sum;
 }
 
 Float
-REBO::pi_dh(Atom &atom_i, Atom &atom_j)
+REBO::pi_dh_Tij(AtomsPair& ij, const Float V)
 {
 RETURN_REBO_0;
 
-  if (atom_i.ID == H_EL || atom_j.ID == H_EL) return 0.0;
+  AtomsPair ji(-ij);
 
-  Float  pi_dh_val = 1.0;
-  pi_dh_val *= Tij_num(Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j));
-  if (pi_dh_val == 0.0) return 0.0;
+  if (ij.atom1.ID == H_EL || ij.atom2.ID == H_EL) return 0.0;
 
-  Float  temp_sum = 0.0;
-  for(Index k = 0; k < NL(atom_i).size(); k++)
-  for(Index l = 0; l < NL(atom_j).size(); l++)
+  Float Nti = Nt(ij);
+  Float Ntj = Nt(ji);
+  Float Nconj_ij = Nconj(ij);
+  Float Tij_num_val = Tij_num(Nti,Ntj,Nconj_ij);
+  if (V != 0.0)
   {
-    Atom& atom_k = *(NL(atom_i)[k]);
-    Atom& atom_l = *(NL(atom_j)[l]);
-    if (&atom_k != &atom_l) // otherwise cos=1 -> temp_sum=0
-    if (&atom_k != &atom_j /* && atom_k.ID == C_EL*/)
-    if (&atom_l != &atom_i /* && atom_l.ID == C_EL*/)
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-    if (probablyAreNeighbours(atom_i,atom_k))
-#endif
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-    if (probablyAreNeighbours(atom_j,atom_l))
-#endif
-    {
-      if (fabs(SinTheta(atom_i,atom_j,atom_k))<0.1) continue;
-      if (fabs(SinTheta(atom_i,atom_j,atom_l))<0.1) continue;
-      Float f_ik = fprime(atom_k,atom_i);
-      Float f_jl = fprime(atom_l,atom_j);
-      
-      Float CosDh = - CosDihedral(atom_i,atom_j,atom_k,atom_l);
-
-      temp_sum += (1.0-SQR(CosDh))
-                  *f_ik 
-                  *f_jl 
-/*                  *Heaviside(sin_jik-smin)
-                  *Heaviside(sin_ijl-smin)*/;
-    }  
-  }    
-
-  pi_dh_val *= temp_sum;
-
-  return pi_dh_val;
-}
-
-Vector3D
-REBO::dpi_dh(Atom &atom_i, Atom &atom_j, Atom &datom)
-{
-RETURN_REBO_0;
-
-  if (atom_i.ID == H_EL || atom_j.ID == H_EL) return 0.0;
-
-  Vector3D  dpi_dh_val = 0.0;
-
-    Float Nt_i = Nt(atom_i,atom_j);
-    Float Nt_j = Nt(atom_j,atom_i);
-    Float Nconj_ij = Nconj(atom_i,atom_j);
-
-    Float Tij_num_val = Tij_num(Nt_i,Nt_j,Nconj_ij);
-
-    Float Tij_dNt_i_num_val = Tij_dNt_i_num (Nt_i,Nt_j,Nconj_ij);
-    Float Tij_dNt_j_num_val = Tij_dNt_j_num (Nt_i,Nt_j,Nconj_ij);
-    Float Tij_dNconj_num_val = Tij_dNconj_num(Nt_i,Nt_j,Nconj_ij);
+    Float Tij_dNt_i_num_val = Tij_dNt_i_num (Nti,Ntj,Nconj_ij);
+    Float Tij_dNt_j_num_val = Tij_dNt_j_num (Nti,Ntj,Nconj_ij);
+    Float Tij_dNconj_num_val = Tij_dNconj_num(Nti,Ntj,Nconj_ij);
 
     if (
-        Tij_num_val == 0.0 &&
-        Tij_dNt_i_num_val == 0.0 &&
-        Tij_dNt_j_num_val == 0.0 &&
-        Tij_dNconj_num_val == 0.0
-       ) return 0.0;
+      Tij_num_val == 0.0 &&
+      Tij_dNt_i_num_val == 0.0 &&
+      Tij_dNt_j_num_val == 0.0 &&
+      Tij_dNconj_num_val == 0.0
+      ) return 0.0;
 
-  Float  temp_sum = 0.0;
-  Vector3D  dtemp_sum = 0.0;
-  for(Index k = 0; k < NL(atom_i).size(); k++)
-  for(Index l = 0; l < NL(atom_j).size(); l++)
+    if (Tij_dNt_i_num_val != 0.0)
+      Nt_donly(ij,Tij_dNt_i_num_val*V);
+    if (Tij_dNt_j_num_val != 0.0)
+      Nt_donly(ji,Tij_dNt_j_num_val*V);
+    if (Tij_dNconj_num_val != 0.0)
+      Nconj(ij,Tij_dNconj_num_val*V);
+  }
+
+  return Tij_num_val;
+}
+
+Float
+REBO::pi_dh(AtomsPair& ij, const Float V)
+{
+  Float  TijVal = pi_dh_Tij(ij);
+  if (TijVal == 0.0) return 0.0;
+
+  Float temp_sum = pi_dh_sum(ij);
+
+  if (V != 0.0)
   {
-    Atom& atom_k = *(NL(atom_i)[k]);
-    Atom& atom_l = *(NL(atom_j)[l]);
-    if (&atom_k != &atom_l) // otherwise cos=1 -> temp_sum=0
-    if (&atom_k != &atom_j /* && atom_k.ID == C_EL*/)
-    if (&atom_l != &atom_i /* && atom_l.ID == C_EL*/)
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-    if (probablyAreNeighbours(atom_i,atom_k))
-#endif
-#ifdef REBO_OPTIMIZED_EVEN_BETTER
-    if (probablyAreNeighbours(atom_j,atom_l))
-#endif
-    {
-      if (fabs(SinTheta(atom_i,atom_j,atom_k))<0.1) continue;
-      if (fabs(SinTheta(atom_i,atom_j,atom_l))<0.1) continue;
-      Float f_ik = fprime(atom_k,atom_i);
-      Float f_jl = fprime(atom_l,atom_j);
+    if (temp_sum != 0.0)
+      pi_dh_Tij(ij,temp_sum*V);
+    pi_dh_sum(ij,TijVal*V);
+  }
 
-      Float CosDh = - CosDihedral(atom_i,atom_j,atom_k,atom_l);
-
-      temp_sum += (1.0-SQR(CosDh))  *f_ik   *f_jl 
-/*                  *Heaviside(sin_jik-smin)
-                  *Heaviside(sin_ijl-smin)*/;
-                  
-      Vector3D df_ik = dfprime(atom_k,atom_i,datom);
-      Vector3D df_jl = dfprime(atom_l,atom_j,datom);
-      
-      Vector3D dCosDh = - dCosDihedral(atom_i,atom_j,atom_k,atom_l,datom);
-
-      dtemp_sum += (-2.0*CosDh*dCosDh) * f_ik   * f_jl 
-                  +(1.0-SQR(CosDh)   ) *df_ik   * f_jl 
-                  +(1.0-SQR(CosDh)   ) * f_ik   *df_jl 
-/*                  *Heaviside(sin_jik-smin)
-                  *Heaviside(sin_ijl-smin)*/;
-    }  
-  }    
-
-    dpi_dh_val += 
-            Tij_num_val
-            *dtemp_sum;
-  if (temp_sum != 0.0)
-    dpi_dh_val += 
-            (
-             Tij_dNt_i_num_val*dNt   (atom_i,atom_j,datom)+
-             Tij_dNt_j_num_val*dNt   (atom_j,atom_i,datom)+
-             Tij_dNconj_num_val*dNconj(atom_i,atom_j,datom)
-            )
-            *temp_sum;
-
-  return dpi_dh_val;
+  return TijVal*temp_sum;
 }
 
 REBO::REBO(ParamSet /*parSet*/):
@@ -1095,7 +823,10 @@ REBO::REBO(ParamSet /*parSet*/):
   funcG_C1(),
   funcG_C2(),
   funcG_H(),
-  func_Tij()
+  func_Tij(),
+  Nts(),
+  NCs(),
+  NHs()
 {
 
   func_pi_rc_CC.init(0);
@@ -1112,6 +843,8 @@ REBO::REBO(ParamSet /*parSet*/):
   handledElements.insert(C_EL);
   handledElementPairs.insert(std::make_pair(H_EL,C_EL));
   handledElementPairs.insert(std::make_pair(C_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(H_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(C_EL,C_EL));
   setupPotential1();
 
   nl.Rcutoff = getRcutoff();

@@ -29,183 +29,90 @@
 namespace mdtk
 {
 
-  Float  ETors::buildPairs(AtomsArray& gl)
-  {
-
-#ifdef VERBOSE_LOG
-    std::cout << "Building Tors ... " << std::flush;
-#endif
-    Float Ei = 0;
-    if (gl.size() != pairs.size()) pairs.resize(gl.size());    
-    size_t ii;
-    for(ii = 0; ii < gl.size(); ii++)
-    {
-      size_t prevSize = pairs[ii].size();
-      pairs[ii].clear();
-      pairs[ii].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
-    }  
-    for(ii = 0; ii < gl.size(); ii++)
-    {
-      Atom &atom_i = gl[ii];
-      if (isHandled(atom_i))
-      for(size_t jj = 0; jj < NL(atom_i).size(); jj++)
-      {
-        Atom &atom_j = *(NL(atom_i)[jj]);
-        if (atom_i.globalIndex > atom_j.globalIndex) continue;
-        std::pair<int,int> sample_pair(atom_i.globalIndex,atom_j.globalIndex);
-        if (&atom_i != &atom_j)
-        if (r_vec_module(atom_i,atom_j) < R(1,atom_i,atom_j))
-        {
-    currentPairPtr = &sample_pair;
-    ontouch_enabled = true;
-
-      {
-  for(Index k = 0; k < EREBO::NL(atom_i).size(); k++)
-  {
-    Atom &atom_k = *(EREBO::NL(atom_i)[k]);
-    if (&atom_k != &atom_i && &atom_k != &atom_j)
-    if (r_vec_module_no_touch(atom_k,atom_i) < EREBO::R(1,atom_k,atom_i))
-    for(Index l = 0; l < EREBO::NL(atom_j).size(); l++)
-    {
-      Atom &atom_l = *(EREBO::NL(atom_j)[l]);
-      if (&atom_l != &atom_i && &atom_l != &atom_j &&  &atom_l != &atom_k )
-      {
-        Float wki  = EREBO::f(atom_k,atom_i);
-        Float wij  = EREBO::f(atom_i,atom_j);
-        if (r_vec_module_no_touch(atom_j,atom_l) < EREBO::R(1,atom_j,atom_l))
-        {
-          if (fabs(SinTheta(atom_i,atom_j,atom_k))<0.1) continue;
-          if (fabs(SinTheta(atom_i,atom_j,atom_l))<0.1) continue;
-          Float wjl  = EREBO::f(atom_j,atom_l);
-          Ei += wki*wij*wjl*Vtors(atom_i,atom_j,atom_k,atom_l);
-        }  
-      }  
-    }
-  }    
-
-      }  
-
-    currentPairPtr = NULL;
-    ontouch_enabled = false;
-        }  
-      }  
-    }  
-
-#ifdef VERBOSE_LOG
-    std::cout << "done." << std::endl;
-#endif
-    return Ei;
-  }  
-
-
-Float
-ETors::Vtors(Atom &ai,Atom &aj,Atom &ak,Atom &al)
-{
-  if (ai.ID != C_EL || aj.ID != C_EL) return 0.0;
-  Float CosDh = - CosDihedral(ai,aj,ak,al);
-  return (256.0/405.0)*zetaCC(ak,al)*pow(0.5*(1.0+CosDh),5.0)-0.1*zetaCC(ak,al);
-}
-
-Vector3D
-ETors::dVtors(Atom &ai,Atom &aj,Atom &ak,Atom &al, Atom &da)
-{
-  if (ai.ID != C_EL || aj.ID != C_EL) return 0.0;
-
-  Float CosDh = - CosDihedral(ai,aj,ak,al);
-  Vector3D dCosDh = - dCosDihedral(ai,aj,ak,al,da);
-
-  return (256.0/405.0)*zetaCC(ak,al)*pow(0.5*(1.0+CosDh),5.0-1.0)*0.5*dCosDh;
-}  
- 
-
 Float
 ETors::operator()(AtomsArray& gl)
 {
-  Float Ei = 0.0;
-  Ei += ETor(gl);
+  Float Ei = 0;
+  for(size_t ii = 0; ii < gl.size(); ii++)
+  {
+    Atom &atom_i = gl[ii];
+    if (isHandled(atom_i))
+    {
+      AtomRefsContainer& nli = NL(atom_i);
+      for(size_t jj = 0; jj < nli.size(); jj++)
+      {
+        Atom &atom_j = *(nli[jj]);
+        if (atom_i.globalIndex > atom_j.globalIndex) continue;
+        if (&atom_i != &atom_j)
+        {
+          if (!probablyAreNeighbours(atom_i,atom_j)) continue;
+
+          AtomsPair ij(atom_i,atom_j,R(0,atom_i,atom_j),R(1,atom_i,atom_j));
+
+          for(Index k = 0; k < nli.size(); k++)
+          {
+            Atom &atom_k = *(nli[k]);
+            if (&atom_k != &atom_i && &atom_k != &atom_j)
+            {
+              if (!probablyAreNeighbours(atom_i,atom_k)) continue;
+              AtomsPair ki(atom_k,atom_i,R(0,atom_k,atom_i),R(1,atom_k,atom_i));
+              AtomRefsContainer& nlj = NL(atom_j);
+              for(Index l = 0; l < nlj.size(); l++)
+              {
+                Atom &atom_l = *(nlj[l]);
+                if (&atom_l != &atom_i && &atom_l != &atom_j &&  &atom_l != &atom_k )
+                {
+                  if (!probablyAreNeighbours(atom_j,atom_l)) continue;
+                  AtomsPair jl(atom_j,atom_l,R(0,atom_j,atom_l),R(1,atom_j,atom_l));
+
+                  if (fabs(SinTheta(ij,ki))<0.1) continue;
+                  if (fabs(SinTheta(ij,jl))<0.1) continue;
+
+                  Float V = 1.0;
+
+                  AtomsPair ik(-ki);
+
+                  Float wki  = ki.f();
+                  Float wij  = ij.f();
+                  Float wjl  = jl.f();
+                  Float VtorsVal = Vtors(ij,ik,jl,wki*wij*wjl*V);
+
+                  if (V != 0)
+                  {
+                    ki.f(wij*wjl*VtorsVal*V);
+                    ij.f(wki*wjl*VtorsVal*V);
+                    jl.f(wki*wij*VtorsVal*V);
+                  }
+
+                  Ei += wki*wij*wjl*VtorsVal;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   return Ei;
-}  
-
-Vector3D
-ETors::grad(Atom &atom,AtomsArray &gl)
-{
-  Vector3D dEi = 0.0;
-  dEi += dETor(atom, gl);
-  return  dEi;
-}  
-
-Float
-ETors::ETor(AtomsArray& gl)
-{
-  return buildPairs(gl);
 }
 
-Vector3D
-ETors::dETor(Atom &atom,AtomsArray &gl)
+Float
+ETors::Vtors(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V)
 {
-  Vector3D dEi = 0.0;
+  if (ij.atom1.ID != C_EL || ij.atom2.ID != C_EL) return 0.0;
+  Float CosDh = - CosDihedral(ij,ik,jl);
 
-  Index i;
+  Float Val = (256.0/405.0)*zetaCC(ik.atom2,jl.atom2)*pow(0.5*(1.0+CosDh),5.0)-0.1*zetaCC(ik.atom2,jl.atom2);
 
-  if (isHandled(atom))
+  if (Val != 0)
   {
-    std::vector<std::pair<int,int> >& acnt = pairs[atom.globalIndex];
-    
-    for(i = 0; i < acnt.size(); i++)
-    {
-      Atom &atom_i = gl[acnt[i].first];
-      {
-        Atom &atom_j = gl[acnt[i].second];
+    Float Der = (256.0/405.0)*zetaCC(ik.atom2,jl.atom2)*pow(0.5*(1.0+CosDh),5.0-1.0)*0.5;
+    CosDihedral(ij,ik,jl,-1.0*Der*V);
+  }
 
-        REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
-        {
-
-
-  for(Index k = 0; k < EREBO::NL(atom_i).size(); k++)
-  {
-    Atom &atom_k = *(EREBO::NL(atom_i)[k]);
-    if (&atom_k != &atom_i && &atom_k != &atom_j)
-    if (r_vec_module_no_touch(atom_k,atom_i) < EREBO::R(1,atom_k,atom_i))
-    for(Index l = 0; l < EREBO::NL(atom_j).size(); l++)
-    {
-      Atom &atom_l = *(EREBO::NL(atom_j)[l]);
-      if (&atom_l != &atom_i && &atom_l != &atom_j &&  &atom_l != &atom_k )
-      {
-        Float wki     = EREBO::f(atom_k,atom_i);
-        Vector3D dwki = EREBO::df(atom_k,atom_i,atom);
-        Float wij     = EREBO::f(atom_i,atom_j);
-        Vector3D dwij = EREBO::df(atom_i,atom_j,atom);
-
-        if (r_vec_module_no_touch(atom_j,atom_l) < EREBO::R(1,atom_j,atom_l))
-        {
-          if (fabs(SinTheta(atom_i,atom_j,atom_k))<0.1) continue;
-          if (fabs(SinTheta(atom_i,atom_j,atom_l))<0.1) continue;
-          Float wjl     = EREBO::f(atom_j,atom_l);
-          Vector3D dwjl = EREBO::df(atom_j,atom_l,atom);
-
-          Float Vtors_val = Vtors(atom_i,atom_j,atom_k,atom_l);
-          Vector3D dVtors_val = dVtors(atom_i,atom_j,atom_k,atom_l,atom); 
-
-            Vector3D dEij;
-            dEij = dwki* wij* wjl* Vtors_val+
-                    wki*dwij* wjl* Vtors_val+
-                    wki* wij*dwjl* Vtors_val+
-                    wki* wij* wjl*dVtors_val;
-            dEi += dEij;
-        }  
-      }  
-    }
-  }    
- 
-        }  
-          
-      }
-    }    
-    
-  }  
-
-  return  dEi;
-}  
+  return Val;
+}
 
 ETors::ETors():
   EREBO(REBO::POTENTIAL1)

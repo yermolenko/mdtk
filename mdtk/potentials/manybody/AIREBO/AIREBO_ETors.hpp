@@ -44,13 +44,8 @@ class ETors : public EREBO
 {
 public:
   virtual Float operator()(AtomsArray& nl);
-  virtual Vector3D grad(Atom &atom,AtomsArray&);
 
-  Float Vtors(Atom &ai,Atom &aj,Atom &ak,Atom &al);
-  Vector3D dVtors(Atom &ai,Atom &aj,Atom &ak,Atom &al, Atom &da);
-
-  Float ETor(AtomsArray&);
-  Vector3D dETor(Atom &,AtomsArray&);
+  Float Vtors(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V);
 
   ETors();
 //  bool probablyAreNeighbours(Atom& atom1, Atom& atom2) const; not needed because of the same R[][][] values
@@ -60,27 +55,24 @@ private:
   enum {ECOUNT = EREBO::ECOUNT};
   enum {C = EREBO::C};
   enum {H = EREBO::H};
-  
-  Float zetaCC(Atom &atom1,Atom &atom2) const
+
+  Float zetaCC(const Atom& atom1, const Atom& atom2) const
   {
     return zetaCC_[EREBO::e2i(atom1)][EREBO::e2i(atom2)];
-  }  
+  }
 
   Float zetaCC_[ECOUNT][ECOUNT];
 public:
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {
     EREBO::SaveToStream(os,smode);
-  }  
+  }
   void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   {
     EREBO::LoadFromStream(is,smode);
-  }  
-  Float  buildPairs(AtomsArray& gl);
+  }
 };
 
 }
 
 #endif
-
-

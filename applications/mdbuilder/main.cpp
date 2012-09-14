@@ -35,6 +35,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include "applications/common.h"
 #include "experiments/H2.hpp"
@@ -44,6 +45,9 @@
 #include "experiments/Clusters.hpp"
 #include "experiments/Fullerite.hpp"
 #include "experiments/Fulleride.hpp"
+
+static int clusterSize = 0;
+static size_t numberOfImpacts = 1024;
 
 void
 buildCommands()
@@ -108,6 +112,49 @@ buildCommands()
       yaatk::text_ofstream fomde("Cu13.mde");
       sl.saveToMDE(fomde);
       fomde.close();
+    }
+    if (0)
+    {
+      {
+        mdtk::SimLoop sl;
+        sl.atoms = mdbuilder::clusterFromFCCCrystal(Au_EL,13);
+
+        yaatk::text_ofstream fomde("Au13.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+      {
+        mdtk::SimLoop sl;
+        sl.atoms = mdbuilder::clusterFromFCCCrystal(Au_EL,27);
+
+        yaatk::text_ofstream fomde("Au27.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+      {
+        mdtk::SimLoop sl;
+        sl.atoms = mdbuilder::clusterFromFCCCrystal(Au_EL,39);
+
+        yaatk::text_ofstream fomde("Au39.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+      {
+        mdtk::SimLoop sl;
+        sl.atoms = mdbuilder::clusterFromFCCCrystal(Au_EL,75);
+
+        yaatk::text_ofstream fomde("Au75.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
+      {
+        mdtk::SimLoop sl;
+        sl.atoms = mdbuilder::clusterFromFCCCrystal(Au_EL,195);
+
+        yaatk::text_ofstream fomde("Au195.mde");
+        sl.saveToMDE(fomde);
+        fomde.close();
+      }
     }
     if (0)
     {
@@ -266,19 +313,24 @@ buildCommands()
       sl.saveToMDE(fomde);
       fomde.close();
     }
-    if (0)
+//    if (0)
     {
+      verboseTrace = false;
+      TRACE(clusterSize);
       glLoadIdentity();
       std::vector<int> clusterSizes;
+      clusterSizes.push_back(clusterSize);
+/*
       clusterSizes.push_back(1);
       clusterSizes.push_back(13);
       clusterSizes.push_back(27);
       clusterSizes.push_back(39);
-//      clusterSizes.push_back(75);
-//      clusterSizes.push_back(195);
+      clusterSizes.push_back(75);
+      clusterSizes.push_back(195);
+*/
       std::vector<ElementID> clusterElements;
       clusterElements.push_back(Cu_EL);
-//      clusterElements.push_back(Au_EL);
+      clusterElements.push_back(Au_EL);
       std::vector<ElementID> ionElements;
       ionElements.push_back(Ar_EL);
       ionElements.push_back(Xe_EL);
@@ -287,11 +339,13 @@ buildCommands()
       ionEnergies.push_back(200*eV);
       ionEnergies.push_back(300*eV);
       ionEnergies.push_back(400*eV);
-      mdbuilder::bomb_MetalCluster_on_Polyethylene_with_Ions(4,6,10,
+      ionEnergies.push_back(500*eV);
+      mdbuilder::bomb_MetalCluster_on_Polyethylene_with_Ions(/*8,12,15*/6,9,15,
                                                              clusterSizes,
                                                              clusterElements,
                                                              ionElements,
-                                                             ionEnergies);
+                                                             ionEnergies,
+                                                             numberOfImpacts);
     }
     if (0)
     {
@@ -375,7 +429,7 @@ buildCommands()
                                                          3,3,3);
       }
     }
-//    if (0)
+    if (0)
     {
       glLoadIdentity();
       {
@@ -510,26 +564,72 @@ MDBuilderWindow::draw()
 
 int main(int argc, char *argv[])
 {
-  if (argc > 1 && !strcmp(argv[1],"--version"))
+  for(int argi = 0; argi < argc; ++argi)
   {
-    std::cout << "mdbuilder (molecular dynamics experiments preparation tool) ";
-    mdtk::release_info.print();
-    return 0;
-  }
+    if (!strcmp(argv[argi],"--cluster-size") || !std::strcmp(argv[argi],"-s"))
+    {
+      if (!(argi+1 < argc))
+      {
+        std::cerr << "You should specify cluster size, e.g. --cluster-size 13\n";
+        return -1;
+      }
+      std::istringstream iss(argv[argi+1]);
+      iss >> clusterSize;
+      if (!(clusterSize > 0 && clusterSize <= 200))
+      {
+        std::cerr << "Unsupported cluster size\n";
+        return -1;
+      }
+    }
 
-  if (argc > 1 && (!std::strcmp(argv[1],"--help") || !std::strcmp(argv[1],"-h")))
-  {
-    std::cout << "\
+    if (!strcmp(argv[argi],"--number-of-impacts") || !std::strcmp(argv[argi],"-i"))
+    {
+      if (!(argi+1 < argc))
+      {
+        std::cerr << "You should specify number of impacts, e.g. --number-of-impacts 300\n";
+        return -1;
+      }
+      std::istringstream iss(argv[argi+1]);
+      iss >> numberOfImpacts;
+      if (!(numberOfImpacts > 0 && numberOfImpacts <= 2048))
+      {
+        std::cerr << "Unsupported number of impacts\n";
+        return -1;
+      }
+    }
+
+    if (!strcmp(argv[argi],"--version"))
+    {
+      std::cout << "mdbuilder (molecular dynamics experiments preparation tool) ";
+      mdtk::release_info.print();
+      return 0;
+    }
+
+    if (!std::strcmp(argv[argi],"--help") || !std::strcmp(argv[argi],"-h"))
+    {
+      std::cout << "\
 Usage: mdbuilder [OPTION]... \n\
 Prepares molecular dynamics experiments.\n\
 \n\
       --help     display this help and exit\n\
       --version  output version information and exit\n\
+      --cluster-size  <cluster size>  generate experiment for a specified cluster size\n\
+      --number-of-impacts  <number of impacts>  generate specific number of impacts for each experiment (default : 1024)\n\
 \n\
 Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 ";
-    return 0;
+      return 0;
+    }
   }
+
+  if (clusterSize == 0)
+  {
+    std::cerr << "You should specify cluster size with --cluster-size option. Run with -h option for details.\n";
+    return -1;
+  }
+
+  TRACE(clusterSize);
+  TRACE(numberOfImpacts);
 
   srand(12345);
 

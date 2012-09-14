@@ -1,7 +1,7 @@
 /*
    The generalized pairwise interatomic potential class.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -26,13 +26,8 @@
 namespace mdtk
 {
 
-using std::fabs;
-using std::exp;
-using std::sqrt; 
-using std::pow; 
-
 FPairwise::FPairwise(Rcutoff rcutoff):
-  rcutoff_(rcutoff)
+  rc(rcutoff)
 {
   nl.Rcutoff = getRcutoff();
 }

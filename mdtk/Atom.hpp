@@ -47,6 +47,7 @@ public:
 
   Vector3D an;
   Vector3D an_no_tb;
+  Vector3D grad;
 
   bool apply_ThermalBath;
 
@@ -181,7 +182,7 @@ wDeb(Atom &/*atom*/)
 
 inline
 std::string
-ElementString(Atom &atom)
+ElementString(const Atom &atom)
 {
   return ElementIDtoString(atom.ID);
 }

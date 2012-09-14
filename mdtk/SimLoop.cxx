@@ -57,8 +57,6 @@ SimLoop::SimLoop()
     CPUTimeUsed_prev(0),
     CPUTimeUsed_total(0)
 {
-  verboseTrace = true;
-
   check.checkEnergy = true;
   check.checkForce = true;
 }
@@ -83,8 +81,6 @@ SimLoop::SimLoop(const SimLoop &c)
     CPUTimeUsed_prev(0),
     CPUTimeUsed_total(0)
 {
-  verboseTrace = true;
-
   check.checkEnergy = true;
   check.checkForce = true;
 }
@@ -182,7 +178,7 @@ int SimLoop::executeDryRun()
   atoms.prepareForSimulatation();
 //  REQUIRE(atoms.checkMIC(fpot.getRcutoff()*2.0));
 
-  TRACE(initNLafterLoading);
+  PTRACE(initNLafterLoading);
   if (initNLafterLoading)
   {
     fpot.NL_init(atoms);
@@ -232,17 +228,17 @@ SimLoop::executeMain()
 
     if (iteration%iterationFlushStateInterval == 0/* && iteration != 0*/)
     {
-      cout << "Writing state ... " ;
+      if (verboseTrace) cout << "Writing state ... " ;
       writestate();
-      cout << "done. " << endl;
+      if (verboseTrace) cout << "done. " << endl;
     };
 
 
     if (simTime == 0.0 || int(simTime/simTimeSaveTrajInterval) != int((simTime - dt_prev)/simTimeSaveTrajInterval))
     {
-      cout << "Writing trajectory ... " ;
+      if (verboseTrace) cout << "Writing trajectory ... " ;
       writetrajXVA();
-      cout << "done. " << endl;
+      if (verboseTrace) cout << "done. " << endl;
     };
 
     Float actualThermalBathTemp = actualTemperatureOfThermalBath();
@@ -260,11 +256,10 @@ SimLoop::executeMain()
     {
       Atom& atom = atoms[j];
 
+      atom.grad = 0;
+
       if (atom.isFixed())
       {
-        // in presence of fixed atoms net force check does not work
-        // because forces for fixed atoms are not calculated
-        check.checkForce = false;
         REQUIRE(atom.an == Vector3D(0.0,0.0,0.0));
         REQUIRE(atom.an_no_tb == Vector3D(0.0,0.0,0.0));
         REQUIRE(atom.V == Vector3D(0.0,0.0,0.0));
@@ -281,9 +276,11 @@ SimLoop::executeMain()
 
         if (atom.isFixed()) continue;
 
-        Vector3D  force = -fpot.grad(atom,this->atoms);
+        Vector3D  force = -atom.grad;
         atom.an = force/atom.M;
         atom.an_no_tb = force/atom.M;
+
+        atom.grad = 0;
       }
     }
 
@@ -307,14 +304,14 @@ SimLoop::executeMain()
     {
       Atom& atom = atoms[j];
 
-      if (atom.isFixed()) continue;
-
-      Vector3D  vdt2 = atom.V + atom.an*dt/2.0; // eq 2
-
-      Vector3D  force = -fpot.grad(atom,this->atoms);
+      Vector3D  force = -atom.grad;
 
       if (check.checkForce)
         check.netForce += force;
+
+      if (atom.isFixed()) continue;
+
+      Vector3D  vdt2 = atom.V + atom.an*dt/2.0; // eq 2
 
       if (isWithinThermalBath(atom) && atom.apply_ThermalBath)
       {
@@ -325,10 +322,7 @@ SimLoop::executeMain()
         if (To_by_T < -max_To_by_T) To_by_T = -max_To_by_T;
         if (To_by_T > +max_To_by_T) To_by_T = +max_To_by_T;
 
-        Float gamma = 1.0e13;
-//        Float gamma = 1.0/(1000.0*dt);
-
-        Vector3D dforce = -atom.V*atom.M*gamma*(1.0-sqrt(To_by_T));
+        Vector3D dforce = -atom.V*atom.M*thermalBath.gamma*(1.0-sqrt(To_by_T));
 
         // try to account energy transfered to thermalbath
         // only required to perform energy conservation check
@@ -364,7 +358,12 @@ SimLoop::executeMain()
       Float v = atom.V.module();
       if (v > v_max &&
           fpot.hasNB(atom) &&
-          atom.coords.module() < 500.0*Ao)
+          atom.coords.z > -20.0*Ao &&
+          abs(atom.PBC_count.x) < 2 &&
+          abs(atom.PBC_count.y) < 2 &&
+          abs(atom.PBC_count.z) < 2 &&
+          atom.coords.module() < 500.0*Ao
+         )
         v_max = v;
     }
 
@@ -387,14 +386,13 @@ SimLoop::executeMain()
 
     if (check.checkForce)
     {
-      if (verboseTrace)
-      {
-        Float ffmod = check.netForce.module();
-        PTRACE(ffmod);
-      }
-
       if (check.netForce.module() > 1e-8)
       {
+        if (verboseTrace)
+        {
+          Float ffmod = check.netForce.module();
+          PTRACE(ffmod);
+        }
         cerr << "FullForce != 0" << endl << flush;
         cout << "FullForce != 0" << endl << flush;
       }
@@ -404,7 +402,8 @@ SimLoop::executeMain()
       cout << "it : " << iteration << endl;
 
     curWallTime = time(NULL);
-    if (verboseTrace) cout << "tw : " << (curWallTime-startWallTime) << endl;
+    if (verboseTrace)
+      cout << "tw : " << (curWallTime-startWallTime) << endl;
 
     CPUTimeUsed_total = CPUTimeUsed_prev + pmtTotal.getTimeInSeconds();
 
@@ -414,19 +413,28 @@ SimLoop::executeMain()
     iteration = (iteration+1)%2000000000L;
   };
 
-  cout << "Final Modeling time = " << simTime << endl;
-  cout << "Final Time step = " << dt << endl;
-  cout << "Modeling cycle complete " << endl;
-
-  cout << "--------------------------------------------------------- " << endl;
+  if (verboseTrace)
   {
-    cout << "Writing trajectory ... " ;
+    cout << "Final Modeling time = " << simTime << endl;
+    cout << "Final Time step = " << dt << endl;
+    cout << "Modeling cycle complete " << endl;
+
+    cout << "--------------------------------------------------------- " << endl;
+  }
+  {
+    if (verboseTrace) cout << "Writing trajectory ... ";
     writetrajXVA();
-    cout << "done. " << endl;
+    if (verboseTrace) cout << "done. " << endl;
   };
+  {
+    if (verboseTrace) cout << "Writing state ... " ;
+    writestate();
+    if (verboseTrace) cout << "done. " << endl;
+  }
 
   curWallTime = time(NULL);
-  cout << "Wall TIME used = " << (curWallTime-startWallTime) << endl;
+  if (verboseTrace)
+    cout << "Wall TIME used = " << (curWallTime-startWallTime) << endl;
 
   gsl_rng_free (r);
 
@@ -521,7 +529,9 @@ SimLoop::temperatureWithoutFixed()
     }
   };
 
-  REQUIRE(atoms_accounted != 0);
+  if (atoms_accounted == 0)
+    return 0.0;
+
   return energyKinCur/(3.0/2.0*kb*atoms_accounted);
 }
 
@@ -530,7 +540,7 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
 {
   atoms.loadFromStream(is,smode);
 
-  cout << "Reading timing info ... " << endl;
+  if (verboseTrace) cout << "Reading timing info ... " << endl;
 
   check.loadFromStream(is,smode);
 
@@ -549,7 +559,7 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_READ(is,CPUTimeUsed_prev,smode);
   CPUTimeUsed_total = CPUTimeUsed_prev;
 
-  cout << "Parsing of state file done. " << endl;
+  if (verboseTrace) cout << "Parsing of state file done. " << endl;
 
   executeDryRun();
 
@@ -605,7 +615,7 @@ SimLoop::loadFromStreamXVA(istream& is)
   is >> atoms_count;
   REQUIRE(atoms_count == atoms.size());
 
-  cout << "Reading XVA info about " << atoms_count << " atoms..." << endl;
+  if (verboseTrace) cout << "Reading XVA info about " << atoms_count << " atoms..." << endl;
 
   for(i = 0; i < atoms_count; i++)
   {
@@ -616,7 +626,7 @@ SimLoop::loadFromStreamXVA(istream& is)
     atoms[i].V *= XVA_VELOCITY_SCALE;
     atoms[i].coords *= XVA_DISTANCE_SCALE;
   }
-  cout << endl;
+  if (verboseTrace) cout << endl;
 
   check.loadFromStream(is,YAATK_FSTREAM_TEXT);
 
@@ -627,7 +637,7 @@ SimLoop::loadFromStreamXVA(istream& is)
   is >> CPUTimeUsed_prev;
   CPUTimeUsed_total = CPUTimeUsed_prev;
 
-  cout << "Parsing of state file done. " << endl;
+  if (verboseTrace) cout << "Parsing of state file done. " << endl;
 
   executeDryRun();
 }
@@ -709,14 +719,14 @@ SimLoop::loadFromStreamXVA_bin(istream& is)
   YAATK_BIN_READ(is,atoms_count);
   REQUIRE(atoms_count == atoms.size());
 
-  cout << "Reading XVA info about " << atoms_count << " atoms..." << endl;
+  if (verboseTrace) cout << "Reading XVA info about " << atoms_count << " atoms..." << endl;
 
   for(i = 0; i < atoms_count; i++)
   {
     YAATK_BIN_READ(is,atoms[i].V);
     YAATK_BIN_READ(is,atoms[i].coords);
   }
-  cout << endl;
+  if (verboseTrace) cout << endl;
 
   YAATK_BIN_READ(is,check);
 
@@ -729,7 +739,7 @@ SimLoop::loadFromStreamXVA_bin(istream& is)
   YAATK_BIN_READ(is,CPUTimeUsed_prev);
   CPUTimeUsed_total = CPUTimeUsed_prev;
 
-  cout << "Parsing of state file done. " << endl;
+  if (verboseTrace) cout << "Parsing of state file done. " << endl;
 
   executeDryRun();
 }
@@ -909,7 +919,7 @@ SimLoop::writetrajAccumulated(const std::vector<size_t>& atomIndices)
       acc << fixed << setprecision(2) << atoms[atomIndices[ai]].V.X(ci)/XVA_VELOCITY_SCALE << "\n";
     }
   }
-  cout << endl;
+  if (verboseTrace) cout << endl;
 
   accPrev.close();
   acc.close();
@@ -998,7 +1008,7 @@ SimLoop::writetrajAccumulated_bin(const std::vector<size_t>& atomIndices)
       YAATK_BIN_WRITE(acc,atoms[atomIndices[ai]].V.X(ci));
     }
   }
-  cout << endl;
+  if (verboseTrace) cout << endl;
 
   accPrev.close();
   acc.close();
@@ -1056,11 +1066,15 @@ SimLoop::initEnergyConservationCheck()
   check.currentEnergy = check.initialEnergy = energy();
   check.energyTransferredFromBath = 0;
 
-  cout << "Eo : " << showpos << check.initialEnergy/eV << endl;
-  cout << noshowpos;
+  if (verboseTrace)
+  {
+    cout << "Eo : " << showpos << check.initialEnergy/eV << endl;
+    cout << noshowpos;
+  }
 
   if(std::fabs(check.initialEnergy) < 0.001*eV)
-    cerr << "Total energy is less than 0.001*eV." << endl;
+    if (verboseTrace)
+      cerr << "Total energy is less than 0.001*eV." << endl;
 }
 
 void SimLoop::doEnergyConservationCheck()
@@ -1073,7 +1087,7 @@ void SimLoop::doEnergyConservationCheck()
   Float dE_by_Eo_plus_Eb = dE/Eo_plus_Eb;
 
   bool reallyPrintCheck = check.checkEnergy && iteration != 0;
-  if (reallyPrintCheck)
+  if (reallyPrintCheck && verboseTrace)
   {
     cout << "Eb : " << showpos <<
       check.energyTransferredFromBath/eV << endl;
@@ -1083,7 +1097,8 @@ void SimLoop::doEnergyConservationCheck()
   }
 
   if(std::fabs(check.currentEnergy) < 0.001*eV)
-    cerr << "Total energy is less than 0.001*eV." << endl;
+    if (verboseTrace)
+      cerr << "Total energy is less than 0.001*eV." << endl;
 }
 
 void
@@ -1135,7 +1150,7 @@ SimLoop::loadFromMDE(std::istream& fi)
   int atoms_count;
   fi >> atoms_count;
 
-  cout << "Reading " << atoms_count << " atoms...\n";
+  if (verboseTrace) cout << "Reading " << atoms_count << " atoms...\n";
   atoms.resize(atoms_count);
 
   for(int i = 0; i < atoms_count; i++)
@@ -1228,7 +1243,7 @@ ThermalBath::disableGlobally()
 */
 
 SimLoop::ThermalBath::ThermalBath(Float zMin_, Float dBoundary_, Float zMinOfFreeZone_)
-  :zMin(zMin_), dBoundary(dBoundary_), zMinOfFreeZone(zMinOfFreeZone_), To(0.0)
+  :zMin(zMin_), dBoundary(dBoundary_), zMinOfFreeZone(zMinOfFreeZone_), To(0.0), gamma(1.0e13)
 {
 }
 
@@ -1239,6 +1254,7 @@ SimLoop::ThermalBath::saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_WRITE(os,dBoundary,smode);
   YAATK_FSTREAM_WRITE(os,zMinOfFreeZone,smode);
   YAATK_FSTREAM_WRITE(os,To,smode);
+  YAATK_FSTREAM_WRITE(os,gamma,smode);
 }
 
 void
@@ -1248,6 +1264,7 @@ SimLoop::ThermalBath::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_READ(is,dBoundary,smode);
   YAATK_FSTREAM_READ(is,zMinOfFreeZone,smode);
   YAATK_FSTREAM_READ(is,To,smode);
+  YAATK_FSTREAM_READ(is,gamma,smode);
 }
 
 bool

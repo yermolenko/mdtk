@@ -2,7 +2,7 @@
    The Born-Mayer interatomic potential implementation
    (header file).
 
-   Copyright (C) 2004, 2005, 2009 Oleksandr Yermolenko
+   Copyright (C) 2004, 2005, 2009, 2012 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -34,25 +34,22 @@ class FBM : public FPairwise
 private:
   Float A3[EL_ID_size][EL_ID_size];
   Float A4[EL_ID_size][EL_ID_size];
-public:  
-  Float F11(Atom& a1, Atom& a2);
-  Vector3D dF11(Atom& a1, Atom& a2, Atom& da);
+public:
+  Float F11(AtomsPair& ij, const Float V = 0.0);
 public:
   virtual Float operator()(AtomsArray&);
-  virtual Vector3D grad(Atom &,AtomsArray&);
   FBM(Rcutoff = Rcutoff());
 
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {
     FPairwise::SaveToStream(os,smode);
-  }  
+  }
   void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   {
     FPairwise::LoadFromStream(is,smode);
-  }  
+  }
 };
 
 } // namespace mdtk
 
 #endif
-

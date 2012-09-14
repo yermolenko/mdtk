@@ -89,7 +89,8 @@ checkOnEnergyPotMin(SimLoop& simloop, Float& minPotEnergy)
          << minPotEnergy/eV/simloop.atoms.size() << std::endl;
       fo.close();
     }
-    ERRTRACE(minPotEnergy/eV/simloop.atoms.size());
+    if (mdtk::verboseTrace)
+      ERRTRACE(minPotEnergy/eV/simloop.atoms.size());
   }
 }
 
@@ -103,10 +104,11 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
 
   Float freezingEnergy = 0.0001*2.5*eV*modloop->atoms.size();
   TRACE(freezingEnergy/eV);
-  ERRTRACE(freezingEnergy/eV);
+  if (mdtk::verboseTrace)
+    ERRTRACE(freezingEnergy/eV);
 
   for(Float maxHeatUpEnergy = 0.0001*eV;
-      maxHeatUpEnergy <= 0.75*eV;
+      maxHeatUpEnergy <= 5.00*eV;
       maxHeatUpEnergy += 0.05*eV)
   {
     modloop->simTimeSaveTrajInterval = 1000.0*ps;
@@ -117,17 +119,21 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->simTimeFinal = 1.0*ps;
     modloop->dt = 1e-20;
     modloop->iteration = 0;
-    cerr << "Heating up every atom to " << maxHeatUpEnergy/eV << " eV" << std::endl;
+    if (mdtk::verboseTrace)
+      cerr << "Heating up every atom to " << maxHeatUpEnergy/eV << " eV" << std::endl;
     modloop->heatUpEveryAtom(maxHeatUpEnergy, rng);
     TRACE(modloop->atoms.PBC());
     int retval;
-    cerr << "Releasing..." << std::endl;
+    if (mdtk::verboseTrace)
+      cerr << "Releasing..." << std::endl;
     retval = modloop->execute();
     if (retval) return ENERGYINF;
-    ERRTRACE(modloop->simTime/ps);
+    if (mdtk::verboseTrace)
+      ERRTRACE(modloop->simTime/ps);
     checkOnEnergyPotMin(*modloop,minPotEnergy);
 
-    cerr << "Cooling..." << std::endl;
+    if (mdtk::verboseTrace)
+      cerr << "Cooling..." << std::endl;
 
     modloop->thermalBath.zMin = -100000.0*Ao;
     modloop->simTime = 0.0*ps;
@@ -139,7 +145,8 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     {
       modloop->simTimeFinal += 0.05*ps;
       retval = modloop->execute();
-      ERRTRACE(modloop->simTime/ps);
+      if (mdtk::verboseTrace)
+        ERRTRACE(modloop->simTime/ps);
       if (modloop->energyKin() < freezingEnergy) break;
     }
     if (retval) return ENERGYINF;
@@ -231,11 +238,14 @@ add1atom(AtomsArray& atoms, ElementID id, gsl_rng* r)
   Float& xM = xm[xi][xs];
   size_t& xMIndex = xmi[xi][xs];
 
-  ERRTRACE(xi);
-  ERRTRACE(xs);
-  ERRTRACE(sign);
-  ERRTRACE(xM/Ao);
-  ERRTRACE(xMIndex);
+  if (mdtk::verboseTrace)
+  {
+    ERRTRACE(xi);
+    ERRTRACE(xs);
+    ERRTRACE(sign);
+    ERRTRACE(xM/Ao);
+    ERRTRACE(xMIndex);
+  }
 
   Atom newAtom;
   newAtom.ID  = id;
@@ -247,13 +257,16 @@ add1atom(AtomsArray& atoms, ElementID id, gsl_rng* r)
 
   Vector3D dv(0,0,0);
   dv.X(xi) = 2.29*Ao*sign;
-  ERRTRACE(dv);
+  if (mdtk::verboseTrace)
+    ERRTRACE(dv);
   dv += 0.03*Ao*vn;
-  ERRTRACE(dv);
+  if (mdtk::verboseTrace)
+    ERRTRACE(dv);
 
   newAtom.coords = atoms[xMIndex].coords + dv;
 
-  ERRTRACE(newAtom.coords/Ao);
+  if (mdtk::verboseTrace)
+    ERRTRACE(newAtom.coords/Ao);
 
   atoms.push_back(newAtom);
 }
@@ -292,7 +305,8 @@ cluster(ElementID id, int clusterSize)
       atomsCount <= clusterSize;
       atomsCount++)
   {
-    ERRTRACE(sl.atoms.size());
+    if (mdtk::verboseTrace)
+      ERRTRACE(sl.atoms.size());
 
     sl.executeDryRun();
 
@@ -322,6 +336,108 @@ cluster(ElementID id, int clusterSize)
   sl.atoms.shiftToOrigin();
 
   return sl.atoms;
+}
+
+AtomsArray
+clusterFromCrystal(const AtomsArray& atoms, int clusterSize, Vector3D c)
+{
+  REQUIRE(atoms.size() >= clusterSize);
+
+  const gsl_rng_type * T;
+  gsl_rng * r;
+
+  T = gsl_rng_ranlxd2;
+  r = gsl_rng_alloc (T);
+  REQUIRE(r != NULL);
+
+  gsl_rng_set(r, 123);
+
+  REQUIRE(gsl_rng_min(r) == 0);
+  REQUIRE(gsl_rng_max(r) > 1000);
+
+  SimLoop sl;
+  REQUIRE(!sl.atoms.PBCEnabled());
+  initialize_simloop(sl);
+
+  if (clusterSize == 0) return sl.atoms;
+
+  {
+    if (c == NO_PBC)
+      c = atoms.geomCenter();
+
+    Float cutRadius = 0.01*Ao;
+    std::vector<bool> alreadyAdded(atoms.size());
+    while (1)
+    {
+      for(size_t i = 0; i < atoms.size() && sl.atoms.size() < clusterSize; ++i)
+        if ((atoms[i].coords - c).module() <= cutRadius && !alreadyAdded[i])
+        {
+          sl.atoms.push_back(atoms[i]);
+          alreadyAdded[i] = true;
+        }
+      if (sl.atoms.size() == clusterSize)
+        break;
+      cutRadius += 0.1*Ao;
+      REQUIRE(cutRadius <= 1000.0*Ao);
+    }
+  }
+
+  yaatk::mkdir("_tmp-clusters");
+  yaatk::chdir("_tmp-clusters");
+
+  std::ofstream foGlobal("energy.min.all",std::ios::app);
+
+  {
+    if (mdtk::verboseTrace)
+      ERRTRACE(sl.atoms.size());
+
+    sl.executeDryRun();
+
+    char dirname[100];
+    sprintf(dirname,"%03lu",sl.atoms.size());
+    yaatk::mkdir(dirname);
+    yaatk::chdir(dirname);
+
+    Float minPotEnergyOf = optimize_single(&sl, r);
+
+    foGlobal << std::setw (10) << sl.atoms.size() << " "
+             << std::setw (20) << minPotEnergyOf/eV << " "
+             << std::setw (20) << minPotEnergyOf/eV/sl.atoms.size() << std::endl;
+
+    yaatk::chdir("..");
+  }
+
+  foGlobal.close();
+
+  yaatk::chdir("..");
+
+  gsl_rng_free (r);
+
+  sl.atoms.shiftToOrigin();
+
+  return sl.atoms;
+}
+
+AtomsArray
+clusterFromFCCCrystal(ElementID id, int clusterSize)
+{
+  int num = ceil(pow(clusterSize/4.0,1.0/3.0));
+  REQUIRE(num >= 1 && num <= 100);
+  num++;
+  if (num%2 != 0)
+    num++;
+  double a;
+  switch (id)
+  {
+  case Cu_EL : a = 3.615*Ao; break;
+  case Au_EL : a = 4.0781*Ao; break;
+  default: throw Exception("Unknown FCC element.");
+  }
+
+  AtomsArray atoms;
+  place_FCC_lattice(atoms,num,num,num,id,false,a,a,a);
+
+  return clusterFromCrystal(atoms,clusterSize,num/2*a);
 }
 
 AtomsArray
@@ -399,7 +515,8 @@ SimLoop
 build_target_by_cluster_bombardment(
   const SimLoop& sl_target,
   AtomsArray cluster,
-  Float clusterEnergy
+  Float clusterEnergy,
+  Float interactionDistance
   )
 {
   cluster.shiftToOrigin();
@@ -427,7 +544,7 @@ build_target_by_cluster_bombardment(
       {
         Atom& clusterAtom = cluster[cli];
         const Atom& surfaceAtom = sl_target.atoms[surfi];
-        if (depos(clusterAtom,surfaceAtom).module() < (/*(clusterEnergy==0.0)?3.0*Ao:*/6.0*Ao))
+        if (depos(clusterAtom,surfaceAtom).module() < (/*(clusterEnergy==0.0)?3.0*Ao:*/ /*6.0*Ao*/interactionDistance))
         {
           areInteracting = true;
         }
@@ -620,15 +737,22 @@ SimLoop
 build_Cluster_Landed_on_Substrate(
   const SimLoop sl_Substrate,
   ElementID id,
-  int clusterSize
+  int clusterSize,
+  bool applyPBCtoCluster
   )
 {
-  AtomsArray Cluster = cluster(id,clusterSize);
+  std::ostringstream sbuildSubdir;
+  sbuildSubdir << "_build_" << ElementIDtoString(id) << clusterSize << "_on_PE";
+  yaatk::mkdir(sbuildSubdir.str().c_str());
+  yaatk::chdir(sbuildSubdir.str().c_str());
+
+  AtomsArray Cluster = clusterFromFCCCrystal(id,clusterSize);
+  Cluster.tag(ATOMTAG_CLUSTER);
   Cluster.removeMomentum();
 
   SimLoop sl;
   initialize_simloop(sl);
-  sl = build_target_by_cluster_bombardment(sl_Substrate,Cluster,0.2*eV*clusterSize);
+  sl = build_target_by_cluster_bombardment(sl_Substrate,Cluster,0.0*eV,3.3*Ao);
 
   TRACE(sl.energyKin()/eV);
 
@@ -640,6 +764,7 @@ build_Cluster_Landed_on_Substrate(
 
 
   std::vector<size_t> fixedAtoms = sl.atoms.fixUnfixedCHAtoms(0,sl.atoms.size());
+  if (0)
   {
     Float tb_zMin_bak = sl.thermalBath.zMin;
     sl.thermalBath.zMin = -1.0*Ao;
@@ -650,9 +775,28 @@ build_Cluster_Landed_on_Substrate(
   }
   sl.atoms.unfixAtoms(fixedAtoms);
 
-  relax/*_flush*/(sl,5.0*ps,"_tmp-X-landing-unfixed-CH-relax_flush");
+  relax/*_flush*/(sl,20.0*ps,"_tmp-X-landing-unfixed-CH-relax_flush");
 
-  quench(sl,0.01*K);
+  quench(sl,0.01*K,200*ps,0.01*ps,"_tmp-X-landing-quench");
+
+  yaatk::chdir("..");
+
+  if (!applyPBCtoCluster)
+  {
+    for(size_t i = 0; i < sl.atoms.size(); ++i)
+    {
+      Atom& a = sl.atoms[i];
+      if (a.ID == id)
+      {
+        REQUIRE(a.PBC_count.x == 0);
+        REQUIRE(a.PBC_count.y == 0);
+        REQUIRE(a.PBC_count.z == 0);
+        a.PBC = NO_PBC;
+      }
+    }
+  }
+
+  sl.atoms.removeMomentum();
 
   return sl;
 }
@@ -672,6 +816,7 @@ bomb_Cluster_with_Ions(
   yaatk::chdir(dirname.c_str());
 
   SimLoop sl(target);
+  sl.atoms.tag(ATOMTAG_TARGET);
 
   std::ofstream rngout("rng.out");
   REQUIRE(rngout != NULL);
@@ -725,6 +870,9 @@ bomb_Cluster_with_Ions(
   Float a = clusterXMax - clusterXMin;
   Float b = clusterYMax - clusterYMin;
 
+  REQUIRE(clusterXMin > 0.0 + sl.thermalBath.dBoundary && clusterXMax < sl.atoms.PBC().x - sl.thermalBath.dBoundary);
+  REQUIRE(clusterYMin > 0.0 + sl.thermalBath.dBoundary && clusterYMax < sl.atoms.PBC().y - sl.thermalBath.dBoundary);
+
   gsl_qrng * coord2d_qrng = gsl_qrng_alloc (/*gsl_qrng_sobol*/ gsl_qrng_niederreiter_2, 2);
   REQUIRE(coord2d_qrng != NULL);
 
@@ -767,11 +915,15 @@ bomb_Cluster_with_Ions(
     }while ( (cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) || !allowBomb);
     rngout << cell_part_x << " " << cell_part_y << "\n";
 
+    REQUIRE(bombX > 0.0 + sl.thermalBath.dBoundary && bombX < sl.atoms.PBC().x - sl.thermalBath.dBoundary);
+    REQUIRE(bombY > 0.0 + sl.thermalBath.dBoundary && bombY < sl.atoms.PBC().y - sl.thermalBath.dBoundary);
+
     Atom projectile(ionElement,Vector3D(bombX,bombY,clusterZMin-5.5*Ao));
 
     projectile.V = Vector3D(0,0,sqrt(2.0*ionEnergy/(projectile.M)));
 //    projectile->apply_PBC=false;
     projectile.apply_ThermalBath=false;
+    projectile.tag(ATOMTAG_PROJECTILE);
     sl.atoms.push_back(projectile);
 
     char trajDirName[1024];
@@ -779,12 +931,13 @@ bomb_Cluster_with_Ions(
     yaatk::mkdir(trajDirName);
     yaatk::chdir(trajDirName);
 
+    sl.iteration = 0;
     sl.simTime = 0.0*ps;
-    sl.simTimeFinal = 10.0*ps;
+    sl.simTimeFinal = 6.0*ps;
     sl.simTimeSaveTrajInterval = 0.1*ps;
 
-    yaatk::text_ofstream fomde("in.mde");
-    sl.saveToMDE(fomde);
+    yaatk::text_ofstream fomde("mde_init");
+    sl.saveToStream(fomde);
     fomde.close();
     yaatk::chdir("..");
 
@@ -808,11 +961,13 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
   std::vector<int> clusterSizes,
   std::vector<ElementID> clusterElements,
   std::vector<ElementID> ionElements,
-  std::vector<Float> ionEnergies
+  std::vector<Float> ionEnergies,
+  size_t numberOfImpacts
   )
 {
   SimLoop sl_Polyethylene =
     build_Polyethylene_lattice_with_folds(a_num,b_num,c_num);
+  sl_Polyethylene.atoms.tag(ATOMTAG_SUBSTRATE);
   for(size_t clusterElementIndex = 0;
       clusterElementIndex < clusterElements.size();
       ++clusterElementIndex)
@@ -858,7 +1013,8 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
                                  sl_Landed,
                                  clusterAtomIndices,
                                  ionElement, ionEnergy,
-                                 halo);
+                                 halo,
+                                 numberOfImpacts);
         }
       }
     }

@@ -47,6 +47,7 @@ public:
 CustomSimLoop::CustomSimLoop()
   :SimLoop()
 {
+  verboseTrace = true;
 }
 
 bool
@@ -59,8 +60,8 @@ CustomSimLoop::isItTimeToSave(Float interval)
 void
 CustomSimLoop::doBeforeIteration()
 {
-  if (simTime < 2.0*ps) simTimeSaveTrajInterval = 0.2*ps;
-  else simTimeSaveTrajInterval = 1.0*ps;
+  if (simTime < 2.0*ps) simTimeSaveTrajInterval = 1.0*ps;
+  else simTimeSaveTrajInterval = 5.0*ps;
 
   if (simTime < 2.0*ps)
   {
@@ -358,10 +359,8 @@ try
 
   if (mdloop.simTime >= mdloop.simTimeFinal) // is simulation really finished ?
   {
-    yaatk::text_ofstream fo2("mde""_final");
-    mdloop.saveToStream(fo2);
+    yaatk::text_ofstream fo2("completed.ok");
     fo2.close();
-    mdloop.writetrajXVA();
   }
 }  
 catch(mdtk::Exception& e)
@@ -384,7 +383,7 @@ bool
 isAlreadyFinished()
 {
   {
-    if (yaatk::exists("mde_final")) return true;
+    if (yaatk::exists("completed.ok")) return true;
   }
   {
     std::ifstream ifinal("in.mde.after_crash");

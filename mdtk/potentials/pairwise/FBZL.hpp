@@ -33,25 +33,22 @@ class FBZL : public FPairwise
 {
 private:
   Float AB_;
-public:  
-  Float F11(Atom& a1, Atom& a2);
-  Vector3D dF11(Atom& a1, Atom& a2, Atom& da);
+public:
+  Float F11(AtomsPair& ij, const Float V = 0.0);
 public:
   virtual Float operator()(AtomsArray&);
-  virtual Vector3D grad(Atom &a1,AtomsArray&);
   FBZL(Rcutoff = Rcutoff());
 
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {
     FPairwise::SaveToStream(os,smode);
-  }  
+  }
   void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   {
     FPairwise::LoadFromStream(is,smode);
-  }  
+  }
 };
 
-} 
+}
 
 #endif
-

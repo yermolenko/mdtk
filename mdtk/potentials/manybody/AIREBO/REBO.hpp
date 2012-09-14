@@ -46,7 +46,6 @@
 namespace mdtk
 {
 
-
 class REBO : public FManybody
 {
   friend class AIREBO;
@@ -54,40 +53,32 @@ public:
   Float Sprime(Float arg, Float arg_min, Float arg_max) const;
   Float dSprime(Float arg, Float arg_min, Float arg_max) const;
 
-  Float fprime(Atom &atom1,Atom &atom2);
-  Vector3D dfprime(Atom &atom1,Atom &atom2, Atom &datom);
+  Float fprime(AtomsPair& ij, const Float V = 0.0);
 
-  Float VR(Atom &atom1,Atom &atom2); 
-    Vector3D dVR(Atom &atom1,Atom &atom2, Atom &datom); 
-  Float VR_Exp(Atom &atom1,Atom &atom2); 
-    Vector3D dVR_Exp(Atom &atom1,Atom &atom2, Atom &datom); 
+  Float VR(AtomsPair& ij, const Float V = 0.0);
+  Float VR_Exp(AtomsPair& ij, const Float V = 0.0);
 
-  Float VA(Atom &atom1,Atom &atom2); 
-    Vector3D dVA(Atom &atom1,Atom &atom2, Atom &datom); 
+  Float VA(AtomsPair& ij, const Float V = 0.0);
 protected:
-  Float Baver(Atom &atom1,Atom &atom2); 
-    Vector3D dBaver(Atom &atom1,Atom &atom2, Atom &datom); 
-  Float p_sigma_pi(Atom &atom1,Atom &atom2); 
-    Vector3D dp_sigma_pi(Atom &atom1,Atom &atom2, Atom &datom); 
-  Float D(Atom &atom1,Atom &atom2); 
-    Vector3D dD(Atom &atom1,Atom &atom2, Atom &datom); 
-  Float ExpTerm(Atom &atom_i,Atom &atom_j,Atom &atom_k); 
-    Vector3D dExpTerm(Atom &atom_i,Atom &atom_j,Atom &atom_k, Atom &datom); 
-  Float G(Atom &atom_i,Atom &atom_j,Atom &atom_k); 
-    Vector3D dG(Atom &atom_i,Atom &atom_j,Atom &atom_k, Atom &datom); 
-      Float dGdCT(Float CosT) const;
+  Float Baver(AtomsPair& ij, const Float V = 0.0);
+  Float p_sigma_pi(AtomsPair& ij, const Float V = 0.0);
+  Float D(AtomsPair& ij, const Float V = 0.0);
+  Float ExpTerm(AtomsPair& ij, AtomsPair& ik, const Float V = 0.0);
+  Float G(AtomsPair& ij, AtomsPair& ik, const Float V = 0.0);
+  Float dGdCT(Float CosT) const;
 
-  Float Nt(Atom &atom_i, Atom &atom_j); 
-    Vector3D dNt(Atom &atom_i, Atom &atom_j, Atom &datom); 
-  Float NH(Atom &atom_i, Atom &atom_j); 
-    Vector3D dNH(Atom &atom_i, Atom &atom_j, Atom &datom); 
-  Float NC(Atom &atom_i, Atom &atom_j); 
-    Vector3D dNC(Atom &atom_i, Atom &atom_j, Atom &datom); 
+  Float Nt(AtomsPair& ij, const Float V = 0.0);
+  void Nt_donly(AtomsPair& ij, const Float V = 0.0);
+  Float NH(AtomsPair& ij, const Float V = 0.0);
+  void NH_donly(AtomsPair& ij, const Float V = 0.0);
+  Float NC(AtomsPair& ij, const Float V = 0.0);
+  void NC_donly(AtomsPair& ij, const Float V = 0.0);
 
-  Float Nconj(Atom &atom1,Atom &atom2); 
-    Vector3D dNconj(Atom &atom1,Atom &atom2, Atom &datom); 
-  Float F(Float x) const; 
-    Float dF(Float x) const; 
+  Float NconjSum1(AtomsPair& ij, const Float V = 0.0);
+  Float NconjSum2(AtomsPair& ij, const Float V = 0.0);
+  Float Nconj(AtomsPair& ij, const Float V = 0.0);
+  Float F(Float x) const;
+  Float dF(Float x) const;
 
   Float P_CC_num(Float a1, Float a2) const;
     Float P_CC_dH_num(Float a1, Float a2) const;
@@ -96,9 +87,8 @@ protected:
     Float P_CH_dH_num(Float a1, Float a2) const;
     Float P_CH_dC_num(Float a1, Float a2) const;
 
-  Float P(Atom &atom_i, Atom &atom_j);
-    Vector3D dP(Atom &atom_i, Atom &atom_j, Atom &datom);
-  
+  Float P(AtomsPair& ij, const Float V = 0.0);
+
   Float pi_rc_CC_num(Float a1, Float a2, Float a3) const; 
     Float pi_rc_CC_dNconj_num(Float a1, Float a2, Float a3) const;
     Float pi_rc_CC_dNt_i_num(Float a1, Float a2, Float a3) const;
@@ -114,11 +104,11 @@ protected:
     Float pi_rc_HH_dNt_i_num(Float a1, Float a2, Float a3) const;
     Float pi_rc_HH_dNt_j_num(Float a1, Float a2, Float a3) const;
 
-  Float pi_rc(Atom &atom_i, Atom &atom_j);
-    Vector3D dpi_rc(Atom &atom_i, Atom &atom_j, Atom &datom); 
-public:  
-  Float pi_dh(Atom &atom_i, Atom &atom_j);
-    Vector3D dpi_dh(Atom &atom_i, Atom &atom_j, Atom &datom); 
+  Float pi_rc(AtomsPair& ij, const Float V = 0.0);
+public:
+  Float pi_dh_Tij(AtomsPair& ij, const Float V = 0.0);
+  Float pi_dh_sum(AtomsPair& ij, const Float V = 0.0);
+  Float pi_dh(AtomsPair& ij, const Float V = 0.0);
 
   Float Tij_num(Float a1, Float a2, Float a3) const; 
     Float Tij_dNconj_num(Float a1, Float a2, Float a3) const;
@@ -129,18 +119,16 @@ public:
   enum ParamSet{POTENTIAL1,POTENTIAL2} /*paramSet*/;  
 
   virtual Float operator()(AtomsArray&);
-  virtual Vector3D grad(Atom &,AtomsArray&);
 
   REBO(ParamSet /*parSet*/ = POTENTIAL1);
   Float getRcutoff() const {return      max3(R_[C][C][1],R_[C][H][1],R_[H][H][1]);}
-  bool probablyAreNeighbours(Atom& atom1, Atom& atom2) const
+  bool probablyAreNeighbours(const Atom& atom1, const Atom& atom2) const
     {
-      if (r_vec_no_touch(atom1,atom2).module_squared() > SQR(R(1,atom1,atom2)))
+      if (depos(atom1,atom2).module_squared() > SQR(R(1,atom1,atom2)))
         return false;
 
       return true;
     }
-
 protected:
   enum {ECOUNT = 2};
   enum {C = 0};
@@ -164,50 +152,54 @@ protected:
   Float G_HH_;
 
   void setupPotential1();
-  
-  size_t e2i(Atom &atom) const
+
+  size_t e2i(const Atom &atom) const
   {
     switch (atom.ID)
     {
       case H_EL : return H; break;
       case C_EL : return C; break;
       default : throw Exception("e2i() : unknown element");
-    };  
-  }  
+    };
+  }
 
-  Float Q(Atom &atom1,Atom &atom2) const
+  Float Q(const AtomsPair& ij) const
   {
-    return Q_[e2i(atom1)][e2i(atom2)];
-  }  
-  Float alpha(Atom &atom1,Atom &atom2) const
+    return Q_[e2i(ij.atom1)][e2i(ij.atom2)];
+  }
+  Float alpha(const AtomsPair& ij) const
   {
-    return alpha_[e2i(atom1)][e2i(atom2)];
-  }  
-  Float A(Atom &atom1,Atom &atom2) const
+    return alpha_[e2i(ij.atom1)][e2i(ij.atom2)];
+  }
+  Float A(const AtomsPair& ij) const
   {
-    return A_[e2i(atom1)][e2i(atom2)];
-  }  
-  Float B(int i, Atom &atom1,Atom &atom2) const
+    return A_[e2i(ij.atom1)][e2i(ij.atom2)];
+  }
+  Float B(int i, const AtomsPair& ij) const
   {
-    return B_[i-1][e2i(atom1)][e2i(atom2)];
-  }  
-  Float beta(int i, Atom &atom1,Atom &atom2) const
+    return B_[i-1][e2i(ij.atom1)][e2i(ij.atom2)];
+  }
+  Float beta(int i, const AtomsPair& ij) const
   {
-    return beta_[i-1][e2i(atom1)][e2i(atom2)];
-  }  
-  Float rho(Atom &atom1,Atom &atom2) const
+    return beta_[i-1][e2i(ij.atom1)][e2i(ij.atom2)];
+  }
+  Float rho(const AtomsPair& ij) const
   {
-    if (rho_[e2i(atom1)][e2i(atom2)] == 0.0) throw Exception("REBO rho. CC");
-    return rho_[e2i(atom1)][e2i(atom2)];
-  }  
-  Float R(int i,Atom &atom1,Atom &atom2) const
+    if (rho_[e2i(ij.atom1)][e2i(ij.atom2)] == 0.0) throw Exception("REBO rho. CC");
+    return rho_[e2i(ij.atom1)][e2i(ij.atom2)];
+  }
+  Float R(int i, const Atom &atom1, const Atom &atom2) const
   {
     return R_[e2i(atom1)][e2i(atom2)][i];
-  }  
-  Float Rprime(int i,Atom &atom1,Atom &atom2) const
+  }
+  Float R(int i, const AtomsPair& ij) const
   {
-    return Rprime_[e2i(atom1)][e2i(atom2)][i];
-  }  
+    return R_[e2i(ij.atom1)][e2i(ij.atom2)][i];
+  }
+  Float Rprime(int i, const AtomsPair& ij) const
+  {
+    return Rprime_[e2i(ij.atom1)][e2i(ij.atom2)][i];
+  }
 
   FuncP_CC funcP_CC;
   FuncP_CH funcP_CH;
@@ -215,10 +207,10 @@ protected:
   Func_pi_rc_CC func_pi_rc_CC;
   Func_pi_rc_CH func_pi_rc_CH;
   Func_pi_rc_HH func_pi_rc_HH;
-  
-  FuncG_C1 funcG_C1; 
-  FuncG_C2 funcG_C2; 
-  FuncG_H  funcG_H; 
+
+  FuncG_C1 funcG_C1;
+  FuncG_C2 funcG_C2;
+  FuncG_H  funcG_H;
 
   Func_Tij func_Tij;
 
@@ -226,86 +218,23 @@ public:
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {
     FManybody::SaveToStream(os,smode);
-  }  
+  }
   void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   {
     FManybody::LoadFromStream(is,smode);
-  }  
-
-  Float  buildPairs(AtomsArray& gl);
-
-
-Float
-f(Atom &atom1,Atom &atom2)
-{
-  Float r;
-  if (ontouch_enabled)
-  {
-    r  = r_vec_module_no_touch(atom1,atom2);
-  }
-  else
-  {
-    r  = r_vec_module(atom1,atom2);
   }
 
-  Float R1;
-  Float R2;
-
-  if (r<(R1=R(0,atom1,atom2)))
-  {
-    return 1.0;
-  }
-  else if (r>(R2=R(1,atom1,atom2)))
-  {
-    return 0.0;
-  }
-  else
-  {
-    if (ontouch_enabled) r_vec_touch_only(atom1,atom2);
-    return (1.0+cos(M_PI*(r-R1)
-            /(R2-R1)))/2.0;
-  }  
-}
-
-Vector3D
-df(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  if (&datom != &atom1 && &datom != &atom2) return 0.0;
-
-  Float r = r_vec_module(atom1,atom2);
-
-  Float R1;
-  Float R2;
-  
-  if (r<(R1=R(0,atom1,atom2)))
-  {
-    return 0.0;
-  }
-  else if (r>(R2=R(1,atom1,atom2)))
-  {
-    return 0.0;
-  }
-  else
-  {
-#ifdef FGENERAL_OPTIMIZED  
-    Vector3D dvar = dr_vec_module(atom1,atom2,datom);
-    if (dvar != 0.0)
-      return (-(M_PI/(R2-R1))*sin(M_PI*(r-R1)/(R2-R1)))/2.0
-             *dvar;
-    else
-      return 0.0;
-#else
-    return (-(M_PI/(R2-R1))*sin(M_PI*(r-R1)/(R2-R1)))/2.0
-           *dr_vec_module(atom1,atom2,datom);
-#endif
-  }     
-}
-
+  std::vector<Float> Nts;
+  std::vector<std::vector<Atom*> > Nts2touch;
+  std::vector<Float> NCs;
+  std::vector<std::vector<Atom*> > NCs2touch;
+  std::vector<Float> NHs;
+  std::vector<std::vector<Atom*> > NHs2touch;
+  void dfThem(const std::vector<std::vector<Atom*> >& patoms, AtomsPair& ij, const Float V);
+  bool areNeighbours(Atom &atom_i, Atom &atom_j);
+  void countNeighbours(AtomsArray& gl);
 };
 
-
 }
 
 #endif
-
-

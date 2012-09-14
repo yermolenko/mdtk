@@ -28,386 +28,225 @@
 namespace mdtk
 {
 
-  Float  Brenner::buildPairs(AtomsArray& gl)
+Float
+Brenner::operator()(AtomsArray& gl)
+{
+  Float Ei = 0;
+  for(size_t ii = 0; ii < gl.size(); ii++)
   {
-    Float Ei = 0;
-    if (gl.size() != pairs.size()) pairs.resize(gl.size());    
-    size_t ii;
-    for(ii = 0; ii < gl.size(); ii++)
-    {
-      size_t prevSize = pairs[ii].size();
-      pairs[ii].clear();
-      pairs[ii].reserve(prevSize+FMANYBODY_PAIRS_RESERVE_ADD);
-    }  
-    for(ii = 0; ii < gl.size(); ii++)
-    {
-      Atom &atom_i = gl[ii];
-      if (isHandled(atom_i))
+    Atom &atom_i = gl[ii];
+    if (isHandled(atom_i))
       for(size_t jj = 0; jj < NL(atom_i).size(); jj++)
       {
         Atom &atom_j = *(NL(atom_i)[jj]);
         if (atom_i.globalIndex > atom_j.globalIndex) continue;
-        std::pair<int,int> sample_pair(atom_i.globalIndex,atom_j.globalIndex);
         if (isHandled(atom_j))
-        if (&atom_i != &atom_j)
-        if (r_vec_module(atom_i,atom_j) < R(1,atom_i,atom_j))
-        {
-    currentPairPtr = &sample_pair;
-    ontouch_enabled = true;
+          if (&atom_i != &atom_j)
+          {
+            if (!probablyAreNeighbours(atom_i,atom_j)) continue;
+            AtomsPair ij(atom_i,atom_j,R(0,atom_i,atom_j),R(1,atom_i,atom_j));
 
-#ifdef BRENNER_OPTIMIZED  
-        Float VAvar = VA(atom_i,atom_j);
-        if (VAvar != 0.0)
-          Ei += VR(atom_i,atom_j) - Baver(atom_i,atom_j)*VAvar;
-        else
-          Ei += VR(atom_i,atom_j);
-#else
-        Ei += VR(atom_i,atom_j) - Baver(atom_i,atom_j)*VA(atom_i,atom_j);
-#endif      
-    currentPairPtr = NULL;
-    ontouch_enabled = false;
-        }  
-      }  
-    }  
-
-return Ei;
-  }  
-
-
-inline
-Float
-Brenner::VR(Atom &atom1,Atom &atom2) 
-{
-  return VR_Exp(atom1, atom2);
-}  
-
-inline
-Vector3D
-Brenner::dVR(Atom &atom1,Atom &atom2, Atom &datom) 
-{
-  return dVR_Exp(atom1, atom2, datom);
-}
-  
-inline
-Float
-Brenner::VR_Exp(Atom &atom1,Atom &atom2) 
-{
-  Float fvar = f(atom1,atom2);
-
-#ifdef BRENNER_OPTIMIZED  
-  if (fvar == 0.0) return 0.0;
-#endif
-
-  Float r = r_vec_module(atom1,atom2);
-
-  Float De=   this->De(atom1,atom2);
-  Float S=    this->S(atom1,atom2);
-  Float beta= this->beta(atom1,atom2);
-  Float Re=   this->Re(atom1,atom2);
-  
-  Float a = De/(S-1.0);
-  Float b = sqrt(2.0*S)*beta;
-  Float c = Re;
-
-  return fvar*a*exp(-b*(r-c));
-}
-
-inline
-Vector3D
-Brenner::dVR_Exp(Atom &atom1,Atom &atom2, Atom &datom) 
-{
-  Vector3D dfvar = df(atom1,atom2,datom);
-  Vector3D drmodvar = dr_vec_module(atom1,atom2,datom);
-
-#ifdef BRENNER_OPTIMIZED  
-  if (dfvar == 0.0 && drmodvar == 0.0)  return 0.0;
-#endif
-
-  Float r = r_vec_module(atom1,atom2);
-
-  Float De=   this->De(atom1,atom2);
-  Float S=    this->S(atom1,atom2);
-  Float beta= this->beta(atom1,atom2);
-  Float Re=   this->Re(atom1,atom2);
-  
-  Float a = De/(S-1.0);
-  Float b = sqrt(2.0*S)*beta;
-  Float c = Re;
-
-  return a*exp(-b*(r-c))*(dfvar-b*drmodvar*f(atom1,atom2));
-}
-
-inline
-Float
-Brenner::VA(Atom &atom1,Atom &atom2) 
-{
-  return VA_Exp(atom1,atom2);
-}  
-
-inline
-Float
-Brenner::VA_Exp(Atom &atom1,Atom &atom2) 
-{
-  Float fvar = f(atom1,atom2);
-
-#ifdef BRENNER_OPTIMIZED  
-  if (fvar == 0.0) return 0.0;
-#endif
-
-  Float r = r_vec_module(atom1,atom2);
-
-  Float De=   this->De(atom1,atom2);
-  Float S=    this->S(atom1,atom2);
-  Float beta= this->beta(atom1,atom2);
-  Float Re=   this->Re(atom1,atom2);
-  
-  Float a = De*S/(S-1.0);
-  Float b = sqrt(2.0/S)*beta;
-  Float c = Re;
-
-  return fvar*a*exp(-b*(r-c));
-}
-
-inline
-Vector3D
-Brenner::dVA(Atom &atom1,Atom &atom2, Atom &datom) 
-{
-  return dVA_Exp(atom1,atom2, datom);
-}
-  
-inline
-Vector3D
-Brenner::dVA_Exp(Atom &atom1,Atom &atom2, Atom &datom) 
-{
-  Vector3D dfvar = df(atom1,atom2,datom);
-  Vector3D drmodvar = dr_vec_module(atom1,atom2,datom);
-
-#ifdef BRENNER_OPTIMIZED  
-  if (dfvar == 0.0 && drmodvar == 0.0)  return 0.0;
-#endif
-
-  Float r = r_vec_module(atom1,atom2);
-
-  Float De=   this->De(atom1,atom2);
-  Float S=    this->S(atom1,atom2);
-  Float beta= this->beta(atom1,atom2);
-  Float Re=   this->Re(atom1,atom2);
-  
-  Float a = De*S/(S-1.0);
-  Float b = sqrt(2.0/S)*beta;
-  Float c = Re;
-
-  return a*exp(-b*(r-c))*(dfvar-b*drmodvar*f(atom1,atom2));
-}
-
-Float
-Brenner::operator()(AtomsArray& gl) 
-{
-  return buildPairs(gl);
-}  
-
-static size_t Bij_count = 0;
- 
-Vector3D
-Brenner::grad(Atom &atom,AtomsArray&gl) 
-{
-  Bij_count = 0;
-  
-  Index i;
-  
-  Vector3D dEi(0.0,0.0,0.0);
-
-  if (isHandled(atom))
-  {
-
-  std::vector<std::pair<int,int> >& acnt = pairs[atom.globalIndex];
-
-    for(i = 0; i < acnt.size(); i++)
-    {
-      Atom &atom_i = gl[acnt[i].first];
-      if (isHandled(atom_i))
-      {
-        Atom &atom_j = gl[acnt[i].second];
-
-        REQUIREM(&atom_j != &atom_i,"must be (&atom_j != &atom_i)");
-        if (isHandled(atom_j))
-#if defined(BRENNER_OPTIMIZED_EVEN_BETTER)
-        if (r_vec_module_no_touch(atom_i,atom_j) < R(1,atom_i,atom_j))
-#endif
-        {
-          Vector3D dEij;
-#ifdef BRENNER_OPTIMIZED  
-          dEij = dVR(atom_i,atom_j,atom);
-          Float VAvar = VA(atom_i,atom_j);
-          Vector3D dVAvar = dVA(atom_i,atom_j,atom);
-          if (VAvar != 0.0) dEij -= dBaver(atom_i,atom_j,atom)* VAvar;
-          if (dVAvar != 0.0) dEij -= Baver(atom_i,atom_j)*dVAvar;
-          ++Bij_count;
-#else
-          dEij = 
-                 (dVR(atom_i,atom_j,atom) - 
-                (dBaver(atom_i,atom_j,atom)* VA(atom_i,atom_j) + 
-                  Baver(atom_i,atom_j)*dVA(atom_i,atom_j,atom)));
-#endif
-          dEi += dEij;
-        }  
+            Float VAvar = VA(ij);
+            Ei += VR(ij,1.0);
+            if (VAvar != 0.0)
+            {
+              Float BaverVal = Baver(ij,-VAvar);
+              Ei += -BaverVal*VA(ij,-BaverVal);
+            }
+          }
       }
-    }    
-  }  
+  }
 
-  return  dEi;
-}  
-
-inline
-Float
-Brenner::Baver(Atom &atom1,Atom &atom2) 
-{
-  return (B(atom1,atom2)+B(atom2,atom1))/2.0
-         + 
-         (
-          FN(atom1,atom2)/2.0
-         );   
-
-}
-
-Vector3D
-Brenner::dBaver(Atom &atom1,Atom &atom2, Atom &datom) 
-{
-  return (dB(atom1,atom2,datom)+dB(atom2,atom1,datom))/2.0
-         + 
-         (
-          dFN(atom1,atom2,datom)/2.0
-         ); 
+  return Ei;
 }
 
 inline
 Float
-Brenner::ExpTerm(Atom &atom_i,Atom &atom_j,Atom &atom_k) 
+Brenner::VR(AtomsPair& ij, const Float V)
 {
-#ifdef BRENNER_OPTIMIZED  
-  if (alpha(atom_i,atom_j,atom_k) == 0.0) return 1.0;
+  return VR_Exp(ij,V);
+}
+
+inline
+Float
+Brenner::VR_Exp(AtomsPair& ij, const Float V)
+{
+  Float fvar = ij.f();
+
+#ifdef BRENNER_OPTIMIZED
+  if (fvar == 0.0) return 0.0;
 #endif
-  Float r_ij = r_vec_module(atom_i,atom_j);
-  Float r_ik = r_vec_module(atom_i,atom_k);
 
-  return exp(alpha(atom_i,atom_j,atom_k)*
-      ((r_ij-Re(atom_i,atom_j))-(r_ik-Re(atom_i,atom_k)))); 
-}
+  Float r = ij.r();
 
-inline
-Vector3D
-Brenner::dExpTerm(Atom &atom_i,Atom &atom_j,Atom &atom_k, Atom &datom) 
-{
-#ifdef BRENNER_OPTIMIZED  
-  if (alpha(atom_i,atom_j,atom_k) == 0.0) return 0;
-#endif
-  return  ExpTerm(atom_i,atom_j,atom_k)
-          *(
-            alpha(atom_i,atom_j,atom_k)
-            *(
-              dr_vec_module(atom_i,atom_j,datom)-dr_vec_module(atom_i,atom_k,datom)
-             )
-           );
-}
+  Float De=   this->De(ij);
+  Float S=    this->S(ij);
+  Float beta= this->beta(ij);
+  Float Re=   this->Re(ij);
 
-Float
-Brenner::D(Atom &atom1,Atom &atom2) 
-{
-  Index k;
-  Float Dij = 1.0;
-  for(k = 0; k < NL(atom1).size(); k++)
+  Float a = De/(S-1.0);
+  Float b = sqrt(2.0*S)*beta;
+  Float c = Re;
+
+  Float Val = a*exp(-b*(r-c));
+
+  if (V != 0)
   {
-    Atom& atom_k = *(NL(atom1)[k]);
+    Float Der = Val*(-b);
+    ij.r(Der*fvar*V);
+    ij.f(Val*V);
+  }
+
+  return fvar*Val;
+}
+
+inline
+Float
+Brenner::VA(AtomsPair& ij, const Float V)
+{
+  return VA_Exp(ij,V);
+}
+
+inline
+Float
+Brenner::VA_Exp(AtomsPair& ij, const Float V)
+{
+  Float fvar = ij.f();
+
+#ifdef BRENNER_OPTIMIZED
+  if (fvar == 0.0) return 0.0;
+#endif
+
+  Float r = ij.r();
+
+  Float De=   this->De(ij);
+  Float S=    this->S(ij);
+  Float beta= this->beta(ij);
+  Float Re=   this->Re(ij);
+
+  Float a = De*S/(S-1.0);
+  Float b = sqrt(2.0/S)*beta;
+  Float c = Re;
+
+  Float Val = a*exp(-b*(r-c));
+
+  if (V != 0)
+  {
+    Float Der = Val*(-b);
+    ij.r(Der*fvar*V);
+    ij.f(Val*V);
+  }
+
+  return fvar*Val;
+}
+
+inline
+Float
+Brenner::Baver(AtomsPair& ij, const Float V)
+{
+  AtomsPair ji(-ij);
+
+   return (B(ij,V/2.0)+B(ji,V/2.0))/2.0
+         +
+         (
+           FN(ij,V/2.0)/2.0
+         );
+}
+
+inline
+Float
+Brenner::ExpTerm(AtomsPair& ij, AtomsPair& ik, const Float V)
+{
+#ifdef BRENNER_OPTIMIZED
+  if (alpha(ij,ik) == 0.0) return 1.0;
+#endif
+  Float r_ij = ij.r();
+  Float r_ik = ik.r();
+
+  Float Val = exp(alpha(ij,ik)*((r_ij-Re(ij))-(r_ik-Re(ik))));
+
+  Float Dertmp = Val*alpha(ij,ik);
+
+  if (V != 0.0)
+  {
+    ij.r(Dertmp*V);
+    ik.r(-Dertmp*V);
+/*
+    ij.atom1.grad += ij.dr(ij.atom1)*Dertmp*V;
+    ij.atom2.grad += ij.dr(ij.atom2)*Dertmp*V;
+    ik.atom2.grad += ij.dr(ik.atom2)*Dertmp*V;
+*/
+  }
+
+  return Val;
+}
+
+Float
+Brenner::D(AtomsPair& ij, const Float V)
+{
+  Float Dij = 1.0;
+  for(size_t k = 0; k < NL(ij.atom1).size(); k++)
+  {
+    Atom& atom_k = *(NL(ij.atom1)[k]);
     if (isHandled(atom_k))
-    if (&atom_k != &atom2/* && &atom_k != &atom1*/)
-#ifdef BRENNER_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom1,atom_k) < R(1,atom1,atom_k))
-#endif
+    if (&atom_k != &ij.atom2/* && &atom_k != &atom1*/)
     {
-#ifdef BRENNER_OPTIMIZED  
-      Float fvar = f(atom1,atom_k);
-      if (fvar != 0.0)
+      if (!probablyAreNeighbours(ij.atom1,atom_k)) continue;
+      AtomsPair ik(ij.atom1,atom_k,R(0,ij.atom1,atom_k),R(1,ij.atom1,atom_k));
+
+      Float ExpTermvar = ExpTerm(ij,ik);
+      if (ExpTermvar != 0.0)
       {
-        Float ExpTermvar = ExpTerm(atom1,atom2,atom_k);
-        if (ExpTermvar != 0.0)
-          Dij += G(atom1,atom2,atom_k)*fvar*ExpTermvar;
-      }    
-#else
-      Dij += G(atom1,atom2,atom_k)*f(atom1,atom_k)*ExpTerm(atom1,atom2,atom_k);
-#endif
-    }  
-  }  
-  Dij += HN(atom1,atom2);  
+        Float Gvar = G(ij,ik);
+        Float fvar = ik.f();
+        if (V != 0.0)
+        {
+          G(ij,ik,fvar*ExpTermvar*V);
+          ik.f(Gvar*ExpTermvar*V);
+          ExpTerm(ij,ik,Gvar*fvar*V);
+        }
+        Dij += Gvar*fvar*ExpTermvar;
+      }
+    }
+  }
+  Dij += HN(ij,V);
   return Dij;
 }
 
-Vector3D
-Brenner::dD(Atom &atom1,Atom &atom2, Atom &datom) 
+inline
+Float
+Brenner::B(AtomsPair& ij, const Float V)
 {
-  Vector3D DerD = 0.0;
-  for(Index k = 0; k < NL(atom1).size(); k++)
+  Float DVal = D(ij);
+  if (V != 0)
   {
-    Atom& atom_k = *(NL(atom1)[k]);
-    if (isHandled(atom_k))
-    if (&atom_k != &atom2/* && &atom_k != &atom1*/)
-#ifdef BRENNER_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom1,atom_k) < R(1,atom1,atom_k))
-#endif
+    Float Der = -delta(ij.atom1)*pow(DVal,-delta(ij.atom1)-1.0);
+    D(ij,Der*V);
+  };
+  return pow(DVal,-delta(ij.atom1));
+}
+
+inline
+Float
+Brenner::G(AtomsPair& ij, AtomsPair& ik, const Float V)
+{
+  if (ij.atom1.ID == C_EL)
+  {
+    Float CosT = CosTheta(ij,ik);
+    if (V != 0)
     {
-#ifdef BRENNER_OPTIMIZED  
-      Float fvar = f(atom1,atom_k);
-      Float Gvar = G(atom1,atom2,atom_k);
-      Float ExpTermvar = ExpTerm(atom1,atom2,atom_k);
-      Vector3D dfvar = df(atom1,atom_k,datom);
-      Vector3D dGvar = dG(atom1,atom2,atom_k,datom);
-      Vector3D dExpTermvar = dExpTerm(atom1,atom2,atom_k,datom);
-
-      DerD += dGvar* fvar* ExpTermvar;
-      DerD +=  Gvar*dfvar* ExpTermvar;
-      DerD +=  Gvar* fvar*dExpTermvar;
-#else
-      DerD += dG(atom1,atom2,atom_k,datom)* f(atom1,atom_k)* ExpTerm(atom1,atom2,atom_k);
-      DerD +=  G(atom1,atom2,atom_k)*df(atom1,atom_k,datom)* ExpTerm(atom1,atom2,atom_k);
-      DerD +=  G(atom1,atom2,atom_k)* f(atom1,atom_k)*dExpTerm(atom1,atom2,atom_k,datom);
-#endif
-    }  
-  }  
-
-  DerD += dHN(atom1,atom2,datom); 
-  return DerD;
-}
-
-inline
-Float
-Brenner::B(Atom &atom1,Atom &atom2) 
-{
-  return pow(D(atom1,atom2),-delta(atom1));
-}
-
-inline
-Vector3D
-Brenner::dB(Atom &atom1,Atom &atom2, Atom &datom) 
-{
-  return -delta(atom1)*pow(D(atom1,atom2),-delta(atom1)-1.0)*dD(atom1,atom2,datom);
-}
-
-inline
-Float
-Brenner::G(Atom &atom_i,Atom &atom_j,Atom &atom_k) 
-{
-  if (atom_i.ID == C_EL)
-  {
-    Float CosT = CosTheta(atom_i,atom_j,atom_k);
-    return ao_*(1.0+SQR(co_)/SQR(do_)-SQR(co_)/(SQR(do_)+SQR(1.0+CosT)));    
+      CosTheta(ij,ik,dGdCT(CosT)*V);
+    }
+    return ao_*(1.0+SQR(co_)/SQR(do_)-SQR(co_)/(SQR(do_)+SQR(1.0+CosT)));
   }
-  else if (atom_i.ID == H_EL)
+  else if (ij.atom1.ID == H_EL)
   {
     return G_HH_;
-  }  
+  }
   else
   {
     throw Exception("Brenner::G() : unknown element");
-  }  
+  }
 }
 
 inline
@@ -417,148 +256,61 @@ Brenner::dGdCT(Float CosT) const
   return 2.0*ao_*SQR(co_)*(1.0+CosT)/SQR(SQR(do_)+SQR(1.0+CosT));
 }
 
-inline
-Vector3D
-Brenner::dG(Atom &atom_i,Atom &atom_j,Atom &atom_k, Atom &datom) 
-{
-  if (atom_i.ID == C_EL)
-  {
-    Float CosT = CosTheta(atom_i,atom_j,atom_k);
-    Vector3D dCosT = dCosTheta(atom_i,atom_j,atom_k,datom);
-
-    return dCosT*dGdCT(CosT);    
-  }
-  else if (atom_i.ID == H_EL)
-  {
-    return 0.0;
-  }  
-  else
-  {
-    throw Exception("Brenner::dG() : unknown element");
-  }  
-}
-
 Float
-Brenner::Nt(Atom &atom_i, Atom &atom_j) 
+Brenner::Nt(AtomsPair& ij, const Float V)
 {
-  REQUIREM(atom_i.ID == C_EL,"Nt is only for C !!!");
+  REQUIREM(ij.atom1.ID == C_EL,"Nt is only for C !!!");
 
   Float Nt_i = 0;
-  for(Index k = 0; k < NL(atom_i).size(); k++)  
+  for(size_t k = 0; k < NL(ij.atom1).size(); k++)
   {
-    Atom &atom_k = *NL(atom_i)[k];
+    Atom &atom_k = *NL(ij.atom1)[k];
     if (isHandled(atom_k))
-    if (&atom_k != &atom_j)
-#ifdef BRENNER_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom_i,atom_k) < R(1,atom_i,atom_k))
-#endif
+    if (&atom_k != &ij.atom2)
     {
-      Nt_i += f(atom_i,atom_k);
-    }  
-  }    
+      if (!probablyAreNeighbours(ij.atom1,atom_k)) continue;
+      AtomsPair ik(ij.atom1,atom_k,R(0,ij.atom1,atom_k),R(1,ij.atom1,atom_k));
+      Nt_i += ik.f(V);
+    }
+  }
   return Nt_i;
-
-} 
-
-Vector3D
-Brenner::dNt(Atom &atom_i, Atom &atom_j, Atom &datom) 
-{
-  REQUIREM(atom_i.ID == C_EL,"dNt is only for C !!!");
-
-  Vector3D Nt_i = 0;
-  for(Index k = 0; k < NL(atom_i).size(); k++)  
-  {
-    Atom &atom_k = *NL(atom_i)[k];
-    if (isHandled(atom_k))
-    if (&atom_k != &atom_j)
-#ifdef BRENNER_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom_i,atom_k) < R(1,atom_i,atom_k))
-#endif
-    {
-      Nt_i += df(atom_i,atom_k,datom);
-    }  
-  }    
-  return Nt_i;
-
 }
 
 Float
-Brenner::NH(Atom &atom_i, Atom &atom_j) 
-{ 
-  REQUIREM(atom_i.ID == C_EL,"NH is only for C !!!");
+Brenner::NH(AtomsPair& ij, const Float V)
+{
+  REQUIREM(ij.atom1.ID == C_EL,"NH is only for C !!!");
   Float NH_i = 0;
-  for(Index k = 0; k < NL(atom_i).size(); k++)  
+  for(size_t k = 0; k < NL(ij.atom1).size(); k++)
   {
-    Atom &atom_k = *NL(atom_i)[k];
+    Atom &atom_k = *NL(ij.atom1)[k];
 //    if (isHandled(atom_k))
-    if (atom_k.ID == H_EL && &atom_k != &atom_j)
-#ifdef BRENNER_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom_i,atom_k) < R(1,atom_i,atom_k))
-#endif
+    if (atom_k.ID == H_EL && &atom_k != &ij.atom2)
     {
-      NH_i += f(atom_i,atom_k);
-    }  
-  }    
-  return NH_i;
-}
-
-Vector3D
-Brenner::dNH(Atom &atom_i, Atom &atom_j, Atom &datom) 
-{ 
-  REQUIREM(atom_i.ID == C_EL,"dNH is only for C !!!");
-  Vector3D NH_i = 0;
-  for(Index k = 0; k < NL(atom_i).size(); k++)  
-  {
-    Atom &atom_k = *NL(atom_i)[k];
-//    if (isHandled(atom_k))
-    if (atom_k.ID == H_EL && &atom_k != &atom_j)
-#ifdef BRENNER_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom_i,atom_k) < R(1,atom_i,atom_k))
-#endif
-    {
-      NH_i += df(atom_i,atom_k,datom);
-    }  
-  }    
+      if (!probablyAreNeighbours(ij.atom1,atom_k)) continue;
+      AtomsPair ik(ij.atom1,atom_k,R(0,ij.atom1,atom_k),R(1,ij.atom1,atom_k));
+      NH_i += ik.f(V);
+    }
+  }
   return NH_i;
 }
 
 Float
-Brenner::NC(Atom &atom_i, Atom &atom_j) 
+Brenner::NC(AtomsPair& ij, const Float V)
 {
-  REQUIREM(atom_i.ID == C_EL,"NC is only for C !!!");
+  REQUIREM(ij.atom1.ID == C_EL,"NC is only for C !!!");
   Float NC_i = 0;
-  for(Index k = 0; k < NL(atom_i).size(); k++)  
+  for(size_t k = 0; k < NL(ij.atom1).size(); k++)
   {
-    Atom &atom_k = *NL(atom_i)[k];
+    Atom &atom_k = *NL(ij.atom1)[k];
 //    if (isHandled(atom_k))
-    if (atom_k.ID == C_EL && &atom_k != &atom_j)
-#ifdef BRENNER_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom_i,atom_k) < R(1,atom_i,atom_k))
-#endif
+    if (atom_k.ID == C_EL && &atom_k != &ij.atom2)
     {
-      NC_i += f(atom_i,atom_k);
-    }  
-  }    
-  return NC_i;
-}
-
-Vector3D
-Brenner::dNC(Atom &atom_i, Atom &atom_j, Atom &datom) 
-{
-  REQUIREM(atom_i.ID == C_EL,"dNC is only for C !!!");
-  Vector3D NC_i = 0;
-  for(Index k = 0; k < NL(atom_i).size(); k++)  
-  {
-    Atom &atom_k = *NL(atom_i)[k];
-//    if (isHandled(atom_k))
-    if (atom_k.ID == C_EL && &atom_k != &atom_j)
-#ifdef BRENNER_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom_i,atom_k) < R(1,atom_i,atom_k))
-#endif
-    {
-      NC_i += df(atom_i,atom_k,datom);
-    }  
-  }    
+      if (!probablyAreNeighbours(ij.atom1,atom_k)) continue;
+      AtomsPair ik(ij.atom1,atom_k,R(0,ij.atom1,atom_k),R(1,ij.atom1,atom_k));
+      NC_i += ik.f(V);
+    }
+  }
   return NC_i;
 }
 
@@ -577,7 +329,7 @@ Brenner::F(Float x) const
   else
   {
     return (1.0+cos(M_PI*(x-2.0)))/2.0;
-  }     
+  }
 }
 
 inline
@@ -595,214 +347,128 @@ Brenner::dF(Float x) const
   else
   {
     return (-M_PI*sin(M_PI*(x-2.0)))/2.0;
-  }     
+  }
 }
 
 Float
-Brenner::Nconj(Atom &atom1,Atom &atom2) 
+Brenner::Nconj(AtomsPair& ij, const Float V)
 {
-  REQUIREM(atom1.ID == C_EL && atom2.ID == C_EL,"Nconj is only for C-C !!!");
+  REQUIREM(ij.atom1.ID == C_EL && ij.atom2.ID == C_EL,"Nconj is only for C-C !!!");
 
   Float Nconj_ij = 1.0;
 
-  for(Index k = 0; k < NL(atom1).size(); k++)
+  for(size_t k = 0; k < NL(ij.atom1).size(); k++)
   {
-    Atom& atom_k = *(NL(atom1)[k]);
+    Atom& atom_k = *(NL(ij.atom1)[k]);
 //    if (isHandled(atom_k))
-    if (&atom_k != &atom2 && 
-        atom_k.ID == C_EL)
-#ifdef BRENNER_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom1,atom_k) < R(1,atom1,atom_k))
-#endif
+    if (&atom_k != &ij.atom2 && atom_k.ID == C_EL)
     {
-//      Float f_ik = f(atom1,atom_k);
-      Float f_ik = f(atom_k,atom1);
+      if (!probablyAreNeighbours(ij.atom1,atom_k)) continue;
+//      AtomsPair ik(ij.atom1,atom_k,R(0,ij.atom1,atom_k),R(1,ij.atom1,atom_k));
+      AtomsPair ik(atom_k,ij.atom1,R(0,ij.atom1,atom_k),R(1,ij.atom1,atom_k));
 
-//      Float x_ik = Nt(atom1,atom_k);
-      Float x_ik = Nt(atom_k,atom1);
+      Float f_ik = ik.f();
 
-      Nconj_ij += f_ik*F(x_ik);
-    }  
-  }    
+      Float x_ik = Nt(ik);
 
-  for(Index l = 0; l < NL(atom2).size(); l++)
+      Float F_x_ik = F(x_ik);
+
+      if (V != 0.0)
+      {
+        ik.f(F_x_ik*V);
+        Nt(ik,f_ik*dF(x_ik)*V);
+      }
+
+      Nconj_ij += f_ik*F_x_ik;
+    }
+  }
+
+  for(size_t l = 0; l < NL(ij.atom2).size(); l++)
   {
-    Atom& atom_l = *(NL(atom2)[l]);
+    Atom& atom_l = *(NL(ij.atom2)[l]);
 //    if (isHandled(atom_l))
-    if (&atom_l != &atom1 &&
-        atom_l.ID == C_EL)
-#ifdef BRENNER_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom2,atom_l) < R(1,atom2,atom_l))
-#endif
+    if (&atom_l != &ij.atom1 && atom_l.ID == C_EL)
     {
-//      Float f_jl = f(atom2,atom_l);
-      Float f_jl = f(atom_l,atom2);
+      if (!probablyAreNeighbours(ij.atom2,atom_l)) continue;
+//      AtomsPair jl(ij.atom2,atom_l,R(0,ij.atom2,atom_l),R(1,ij.atom2,atom_l));
+      AtomsPair jl(atom_l,ij.atom2,R(0,ij.atom2,atom_l),R(1,ij.atom2,atom_l));
 
-//      Float x_jl = Nt(atom2,atom_l);
-      Float x_jl = Nt(atom_l,atom2);
+      Float f_jl = jl.f();
 
-      Nconj_ij += f_jl*F(x_jl);
-    }  
-  }    
+      Float x_jl = Nt(jl);
 
-  return Nconj_ij; 
-}
+      Float F_x_jl = F(x_jl);
 
-Vector3D
-Brenner::dNconj(Atom &atom1,Atom &atom2, Atom &datom) 
-{
-  REQUIREM(atom1.ID == C_EL && atom2.ID == C_EL,"dNconj is only for C-C !!!");
+      if (V != 0.0)
+      {
+        jl.f(F_x_jl*V);
+        Nt(jl,f_jl*dF(x_jl)*V);
+      }
 
-  Vector3D dNconj = 0.0;
+      Nconj_ij += f_jl*F_x_jl;
+    }
+  }
 
-  for(Index k = 0; k < NL(atom1).size(); k++)
-  {
-    Atom& atom_k = *(NL(atom1)[k]);
-
-//    if (isHandled(atom_k))
-    if (&atom_k != &atom2 && 
-        atom_k.ID == C_EL)
-#ifdef BRENNER_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom1,atom_k) < R(1,atom1,atom_k))
-#endif
-    {
-//      Float f_ik = f(atom1,atom_k);
-      Float f_ik = f(atom_k,atom1);
-
-//      Float x_ik = Nt(atom1,atom_k);
-      Float x_ik = Nt(atom_k,atom1);
-
-//      Vector3D df_ik = df(atom1,atom_k,datom);
-      Vector3D df_ik = df(atom_k,atom1,datom);
-
-//      Vector3D dF_ik = dF(x_ik)*(dNt(atom1,atom_k,datom));
-      Vector3D dF_ik = dF(x_ik)*(dNt(atom_k,atom1,datom));
-
-      dNconj += df_ik*F(x_ik)+f_ik*dF_ik;
-    }  
-  }    
-
-  for(Index l = 0; l < NL(atom2).size(); l++)
-  {
-    Atom& atom_l = *(NL(atom2)[l]);
-
-//    if (isHandled(atom_l))
-    if (&atom_l != &atom1 &&
-        atom_l.ID == C_EL)
-#ifdef BRENNER_OPTIMIZED_EVEN_BETTER
-    if (r_vec_module_no_touch(atom2,atom_l) < R(1,atom2,atom_l))
-#endif
-    {
-//      Float f_jl = f(atom2,atom_l);
-      Float f_jl = f(atom_l,atom2);
-
-//      Float x_jl = Nt(atom2,atom_l);
-      Float x_jl = Nt(atom_l,atom2);
-
-//      Vector3D df_jl = df(atom2,atom_l,datom);
-      Vector3D df_jl = df(atom_l,atom2,datom);
-
-//      Vector3D dF_jl = dF(x_jl)*(dNt(atom2,atom_l,datom));
-      Vector3D dF_jl = dF(x_jl)*(dNt(atom_l,atom2,datom));
-
-      dNconj += df_jl*F(x_jl)+f_jl*dF_jl;
-    }  
-  }    
-
-  return dNconj;
+  return Nconj_ij;
 }
 
 inline
 Float
-Brenner::HN(Atom &atom_i, Atom &atom_j) 
+Brenner::HN(AtomsPair& ij, const Float V)
 {
 RETURN_BRENNER_0;
 
-  if (atom_i.ID == C_EL && atom_j.ID == C_EL)
-    return HN_CC_num(NH(atom_i,atom_j),NC(atom_i,atom_j));
-  else if ( (atom_i.ID == C_EL && atom_j.ID == H_EL)/* || (atom_i.ID == H_EL && atom_j.ID == C_EL)*/)
-    return HN_CH_num(NH(atom_i,atom_j),NC(atom_i,atom_j));  
-  else return 0.0;  
-}
-
-inline
-Vector3D
-Brenner::dHN(Atom &atom_i, Atom &atom_j, Atom &datom) 
-{
-RETURN_BRENNER_0;
-
-#ifdef BRENNER_OPTIMIZED  
-  Vector3D RESULT = 0.0;
-  if (atom_i.ID == C_EL && atom_j.ID == C_EL)
+  if (ij.atom1.ID == C_EL && ij.atom2.ID == C_EL)
   {
-    Vector3D dNHvar = dNH(atom_i,atom_j,datom);
-    Vector3D dNCvar = dNC(atom_i,atom_j,datom);
-    if (dNHvar != 0.0) RESULT += HN_CC_dH_num(NH(atom_i,atom_j),NC(atom_i,atom_j))*dNHvar;
-    if (dNCvar != 0.0) RESULT += HN_CC_dC_num(NH(atom_i,atom_j),NC(atom_i,atom_j))*dNCvar;
-  }  
-  else if ( (atom_i.ID == C_EL && atom_j.ID == H_EL)/* || (atom_i.ID == H_EL && atom_j.ID == C_EL)*/)         
+    Float NHVar = NH(ij);
+    Float NCVar = NC(ij);
+    Float Val = HN_CC_num(NHVar,NCVar);
+    if (V != 0.0)
+    {
+      NH(ij,HN_CC_dH_num(NHVar,NCVar)*V);
+      NC(ij,HN_CC_dC_num(NHVar,NCVar)*V);
+    }
+    return Val;
+  }
+  else if ( (ij.atom1.ID == C_EL && ij.atom2.ID == H_EL)/* || (atom_i.ID == H_EL && atom_j.ID == C_EL)*/)
   {
-    Vector3D dNHvar = dNH(atom_i,atom_j,datom);
-    Vector3D dNCvar = dNC(atom_i,atom_j,datom);
-    if (dNHvar != 0.0) RESULT += HN_CH_dH_num(NH(atom_i,atom_j),NC(atom_i,atom_j))*dNHvar;
-    if (dNCvar != 0.0) RESULT += HN_CH_dC_num(NH(atom_i,atom_j),NC(atom_i,atom_j))*dNCvar;
-  }  
-  else RESULT = 0.0;
-  return RESULT;
-#else
-  if (atom_i.ID == C_EL && atom_j.ID == C_EL)
-    return HN_CC_dH_num(NH(atom_i,atom_j),NC(atom_i,atom_j))*dNH(atom_i,atom_j,datom)+
-           HN_CC_dC_num(NH(atom_i,atom_j),NC(atom_i,atom_j))*dNC(atom_i,atom_j,datom);
-  else if (atom_i.ID == C_EL && atom_j.ID == H_EL)         
-    return HN_CH_dH_num(NH(atom_i,atom_j),NC(atom_i,atom_j))*dNH(atom_i,atom_j,datom)+
-           HN_CH_dC_num(NH(atom_i,atom_j),NC(atom_i,atom_j))*dNC(atom_i,atom_j,datom);
+    Float NHVar = NH(ij);
+    Float NCVar = NC(ij);
+    Float Val = HN_CH_num(NHVar,NCVar);
+    if (V != 0.0)
+    {
+      NH(ij,HN_CH_dH_num(NHVar,NCVar)*V);
+      NC(ij,HN_CH_dC_num(NHVar,NCVar)*V);
+    }
+    return Val;
+  }
   else return 0.0;
-#endif  
 }
 
 inline
 Float
-Brenner::FN(Atom &atom_i, Atom &atom_j) 
+Brenner::FN(AtomsPair& ij, const Float V)
 {
-RETURN_BRENNER_0;
-  
-  if (atom_i.ID != C_EL || atom_j.ID != C_EL)
+  RETURN_BRENNER_0;
+
+  AtomsPair ji(-ij);
+
+  if (ij.atom1.ID != C_EL || ij.atom2.ID != C_EL)
     return 0.0;
-  else  
-    return FN_num(Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j));
-}
-
-inline
-Vector3D
-Brenner::dFN(Atom &atom_i, Atom &atom_j, Atom &datom) 
-{
-RETURN_BRENNER_0;
-
-#ifdef BRENNER_OPTIMIZED  
-  Vector3D RESULT = 0.0;
-  if (atom_i.ID != C_EL || atom_j.ID != C_EL)
-    RESULT = 0.0;
   else
-  {  
-    Vector3D dNtijvar = dNt   (atom_i,atom_j,datom);
-    Vector3D dNtjivar = dNt   (atom_j,atom_i,datom);
-    Vector3D dNconjvar = dNconj(atom_i,atom_j,datom);
-    if (dNtijvar != 0.0) 
-      RESULT += FN_dNt_i_num (Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNtijvar;
-    if (dNtjivar != 0.0) 
-      RESULT += FN_dNt_j_num (Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNtjivar;
-    if (dNconjvar != 0.0)
-      RESULT += FN_dNconj_num(Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNconjvar;
-  }  
-  return RESULT;
-#else
-  if (atom_i.ID != C_EL || atom_j.ID != C_EL)
-    return 0.0;
-  else  
-    return FN_dNt_i_num (Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNt   (atom_i,atom_j,datom)+
-           FN_dNt_j_num (Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNt   (atom_j,atom_i,datom)+
-           FN_dNconj_num(Nt(atom_i,atom_j),Nt(atom_j,atom_i),Nconj(atom_i,atom_j))*dNconj(atom_i,atom_j,datom);
-#endif
+  {
+    Float Nti = Nt(ij);
+    Float Ntj = Nt(ji);
+    Float Nconj_ij = Nconj(ij);
+    Float Val = FN_num(Nti,Ntj,Nconj_ij);
+    if (V != 0.0)
+    {
+      Nt(ij,FN_dNt_i_num(Nti,Ntj,Nconj_ij)*V);
+      Nt(ji,FN_dNt_j_num(Nti,Ntj,Nconj_ij)*V);
+      Nconj(ij,FN_dNconj_num(Nti,Ntj,Nconj_ij)*V);
+    }
+    return Val;
+  }
 }
 
 Brenner::Brenner(ParamSet parSet):
@@ -816,6 +482,8 @@ Brenner::Brenner(ParamSet parSet):
   handledElements.insert(C_EL);
   handledElementPairs.insert(std::make_pair(H_EL,C_EL));
   handledElementPairs.insert(std::make_pair(C_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(H_EL,H_EL));
+  handledElementPairs.insert(std::make_pair(C_EL,C_EL));
   switch (paramSet)
   {
     case POTENTIAL1:  setupPotential1(); break;

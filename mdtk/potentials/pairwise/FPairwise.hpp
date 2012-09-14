@@ -1,7 +1,7 @@
 /*
    The generalized pairwise interatomic potential class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -36,100 +36,49 @@ struct Rcutoff
     REQUIRE(!(R0>R1));
     R[0] = R0;
     R[1] = R1;
-  }  
+  }
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {
     YAATK_FSTREAM_WRITE(os,R[0],smode);
     YAATK_FSTREAM_WRITE(os,R[1],smode);
-  }  
+  }
   void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   {
     YAATK_FSTREAM_READ(is,R[0],smode);
     YAATK_FSTREAM_READ(is,R[1],smode);
-  }  
-};  
+  }
+};
 
 class FPairwise : public FGeneral
 {
-protected:  
-  Rcutoff rcutoff_;
-  Float R(int i,Atom &,Atom &) const { return rcutoff_.R[i]; }  
+protected:
+  Rcutoff rc;
+  Float R(int i, const Atom &, const Atom &) const { return rc.R[i]; }
+  Float R(int i) const { return rc.R[i]; }
 public:
-  Float getRcutoff() const {return rcutoff_.R[1];};
+  Float getRcutoff() const {return rc.R[1];};
 public:
   FPairwise(Rcutoff = Rcutoff());
-  virtual void onTouch(Atom&) {}
+  virtual void onTouch(const Atom&) {}
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {
     FGeneral::SaveToStream(os,smode);
-    rcutoff_.SaveToStream(os,smode);
-  }  
+    rc.SaveToStream(os,smode);
+  }
   void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   {
     FGeneral::LoadFromStream(is,smode);
-    rcutoff_.LoadFromStream(is,smode);
-  }  
-
-Float
-f(Atom &atom1,Atom &atom2)
-{
-  Float r = r_vec_module(atom1,atom2);
-
-  Float R1;
-  Float R2;
-
-  if (r<(R1=R(0,atom1,atom2)))
-  {
-    return 1.0;
+    rc.LoadFromStream(is,smode);
   }
-  else if (r>(R2=R(1,atom1,atom2)))
-  {
-    return 0.0;
-  }
-  else
-  {
-    if (R1 == R2) return 0.0;
-    return (1.0+cos(M_PI*(r-R1)
-            /(R2-R1)))/2.0;
-  }  
-}
+  bool probablyAreNeighbours(const Atom& atom1, const Atom& atom2) const
+    {
+      if (depos(atom1,atom2).module_squared() > SQR(R(1,atom1,atom2)))
+        return false;
 
-Vector3D
-df(Atom &atom1,Atom &atom2, Atom &datom)
-{
-  Float r = r_vec_module(atom1,atom2);
-
-  Float R1;
-  Float R2;
-  
-  if (r<(R1=R(0,atom1,atom2)))
-  {
-    return 0.0;
-  }
-  else if (r>(R2=R(1,atom1,atom2)))
-  {
-    return 0.0;
-  }
-  else
-  {
-    if (R1 == R2) return 0.0;
-#ifdef FGENERAL_OPTIMIZED  
-    Vector3D dvar = dr_vec_module(atom1,atom2,datom);
-    if (dvar != 0.0)
-      return (-(M_PI/(R2-R1))*sin(M_PI*(r-R1)/(R2-R1)))/2.0
-             *dvar;
-    else
-      return 0.0;
-#else
-    return (-(M_PI/(R2-R1))*sin(M_PI*(r-R1)/(R2-R1)))/2.0
-           *dr_vec_module(atom1,atom2,datom);
-#endif
-  }     
-}
-
+      return true;
+    }
 };
 
 } // namespace mdtk
 
 #endif
-

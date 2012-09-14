@@ -98,6 +98,7 @@ public:
     Float dBoundary;
     Float zMinOfFreeZone;
     Float To;
+    Float gamma;
     ThermalBath(Float zMin_ = 1000000.0*Ao, Float dBoundary_ = 0.0, Float zMinOfFreeZone_ = -5.0*mdtk::Ao);
     void saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode);
     void loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode);

@@ -1,7 +1,7 @@
 /*
    The generalized manybody interatomic potential class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -33,18 +33,15 @@ namespace mdtk
 class FManybody : public FGeneral
 {
 public:
-  std::vector<std::vector<AtomPair> > pairs;
-  AtomPair *currentPairPtr;
   FManybody();
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {
     FGeneral::SaveToStream(os,smode);
-  }  
+  }
   void LoadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
   {
     FGeneral::LoadFromStream(is,smode);
-  }  
-  virtual void onTouch(Atom& a);
+  }
 };
 
 } // namespace apme

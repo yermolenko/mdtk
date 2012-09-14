@@ -39,6 +39,7 @@ Atom::Atom(ElementID id, Vector3D Cx, Vector3D Vx)
    V(Vx),
    an(0.0,0.0,0.0),
    an_no_tb(0.0,0.0,0.0),
+   grad(0.0,0.0,0.0),
    apply_ThermalBath(true),
    globalIndex(0),
    fixed(false),
@@ -58,6 +59,7 @@ Atom::Atom(const Atom &C)
   V = C.V;
   an = C.an;
   an_no_tb = C.an_no_tb;
+  grad = C.grad;
   apply_ThermalBath = C.apply_ThermalBath;
   globalIndex = C.globalIndex;
   fixed = C.fixed;
@@ -78,6 +80,7 @@ Atom::operator=(const Atom &C)
   V = C.V;
   an = C.an;
   an_no_tb = C.an_no_tb;
+  grad = C.grad;
   apply_ThermalBath = C.apply_ThermalBath;
   globalIndex = C.globalIndex;
   fixed = C.fixed;
@@ -179,6 +182,7 @@ operator>>(istream& is, Atom& a)
     a.V = V;
     a.an = an;
     a.an_no_tb = an_no_tb;
+    a.grad = Vector3D(0,0,0); // not read because is recalculated during simulation
     a.apply_ThermalBath = apply_ThermalBath;
     a.globalIndex = globalIndex;
     a.fixed = fixed;

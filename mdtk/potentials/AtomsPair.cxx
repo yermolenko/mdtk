@@ -1,5 +1,5 @@
 /*
-   The generalized interatomic potential class.
+   The AtomsPair class.
 
    Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
@@ -20,17 +20,8 @@
    along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <mdtk/potentials/FGeneral.hpp>
-#include <mdtk/tools.hpp>
+#include <mdtk/potentials/AtomsPair.hpp>
 
 namespace mdtk
 {
-
-FGeneral::FGeneral():
-  handledElements(),
-  handledElementPairs(),
-  nl(this)
-{
-}
-
 }

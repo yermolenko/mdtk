@@ -28,8 +28,8 @@ namespace mdtk
 
 using std::fabs;
 using std::exp;
-using std::sqrt; 
-using std::pow; 
+using std::sqrt;
+using std::pow;
 
 FBZL::FBZL(Rcutoff rcutoff):
   FPairwise(rcutoff),
@@ -68,36 +68,21 @@ FBZL::FBZL(Rcutoff rcutoff):
 }
 
 Float
-FBZL::F11(Atom& a1, Atom& a2)
+FBZL::F11(AtomsPair& ij, const Float V)
 {
-  Vector3D r = r_vec(a1,a2);
-  Float R = r.module();
+  Float R = ij.r();
 
   if (R > getRcutoff()) return 0.0;
 
-  Float ZA = a1.Z; Float ZB = a2.Z;
+  Float ZA = ij.atom1.Z; Float ZB = ij.atom2.Z;
 
   Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
 
   Float Y=R/AS;
 
-  return  ZA*ZB/R*(0.18175*exp(-3.1998*Y)+
-          0.50986*exp(-0.94229*Y)+
-          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y));
-}
-
-Vector3D
-FBZL::dF11(Atom& a1, Atom& a2, Atom& da)
-{
-  Vector3D r = r_vec(a1,a2);
-  Float R = r.module();
-  Float ZA = a1.Z; Float ZB = a2.Z;
-
-  if (R > getRcutoff()) return Vector3D(0.0,0.0,0.0);
-
-  Float AS=8.8534e-1*AB_/(pow(ZA/e,Float(0.23))+pow(ZB/e,Float(0.23)));
-  Float Y=R/AS;
-  Float Der =
+  if (V != 0.0)
+  {
+    Float Der =
           -ZA*ZB/(R*R)*(0.18175*exp(-3.1998*Y)+
           0.50986*exp(-0.94229*Y)+
           0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y))-
@@ -105,7 +90,12 @@ FBZL::dF11(Atom& a1, Atom& a2, Atom& da)
           0.50986*0.94229*exp(-0.94229*Y)+0.28022*0.4029*exp(-0.4029*Y)+
           0.02817*0.20162*exp(-0.20162*Y));
 
-  return  Der*dr_vec_module(a1,a2,da);
+    ij.r(Der*V);
+  }
+
+  return  ZA*ZB/R*(0.18175*exp(-3.1998*Y)+
+          0.50986*exp(-0.94229*Y)+
+          0.28022*exp(-0.4029*Y)+0.02817*exp(-0.20162*Y));
 }
 
 Float
@@ -124,31 +114,17 @@ for(size_t i = 0; i < gl.size(); i++)
     if (isHandledPair(atom,atom_j))
     if (&atom != &atom_j)
     {
-      Ei += F11(atom,atom_j)*f(atom,atom_j);
-    }  
-  }  
-}  
+      if (!probablyAreNeighbours(atom,atom_j)) continue;
+      AtomsPair ij(atom,atom_j,R(0),R(1));
+      Float f = ij.f();
+      Float F11Val = F11(ij,f);
+//      if (V != 0)
+      ij.f(F11Val);
+      Ei += F11Val*f;
+    }
+  }
+}
   return Ei;
 }
 
-Vector3D
-FBZL::grad(Atom &atom,AtomsArray&)
-{
-  Index j;
-  Vector3D dEi(0.0,0.0,0.0);
-  for(j = 0; j < NL(atom).size(); j++)
-  {
-    Atom &atom_j = *(NL(atom)[j]);
-    if (isHandledPair(atom,atom_j))
-    if (&atom != &atom_j)
-    {
-      dEi += dF11(atom,atom_j,atom)*f(atom,atom_j)
-             +F11(atom,atom_j)    *df(atom,atom_j,atom);
-    }  
-  }  
-  return dEi;
-}
-
-
 } // namespace mdtk
-
