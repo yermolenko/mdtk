@@ -45,8 +45,6 @@ quench(
   sl.simTimeSaveTrajInterval = 0.05*ps;
   Float tb_zMin_bak = sl.thermalBath.zMin;
   sl.thermalBath.zMin = -100000.0*Ao;
-  sl.executeDryRun();
-  if (0)
   while (1)
   {
     sl.simTimeFinal += checkTime;
@@ -103,8 +101,6 @@ heatUp(
     sl.thermalBath.zMin = -100000.0*Ao;
   const int steps = 20;
   sl.thermalBath.To = 0.0;
-  sl.executeDryRun();
-  if (0)
   while (1)
   {
     if (sl.thermalBath.To < forTemp)
@@ -152,8 +148,6 @@ relax(
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = forTime;
   sl.simTimeSaveTrajInterval = 0.05*ps;
-  sl.executeDryRun();
-  if (0)
   sl.execute();
   yaatk::chdir("..");
 }
@@ -192,8 +186,6 @@ relax_flush(
   sl.simTimeFinal = forTime;
   sl.simTimeSaveTrajInterval = 0.001*ps;
   sl.writestate();
-  sl.executeDryRun();
-  if (0)
   sl.execute();
   yaatk::chdir("..");
 }
