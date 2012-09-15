@@ -1300,7 +1300,7 @@ build_metal_C60_mixing(
         a_num_metal,b_num_metal,
         a_metal,b_metal,
         impactPointVariations,
-        orientationVariations);
+        1);
     }
     {
       std::string id = metal_C60_mixing_id(
@@ -1328,7 +1328,7 @@ build_metal_C60_mixing(
         a_num_fullerite,b_num_fullerite,
         a_fullerite,b_fullerite,
         impactPointVariations,
-        orientationVariations);
+        1);
     }
     {
       std::string id = metal_C60_mixing_id(
