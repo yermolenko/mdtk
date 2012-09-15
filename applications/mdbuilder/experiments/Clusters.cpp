@@ -984,7 +984,7 @@ bomb_orthorhombic_with_clusters(
       }
 
       char trajDirName[1024];
-      sprintf(trajDirName,"%08d-%08d",ipointIndex,orientIndex);
+      sprintf(trajDirName,"%08d-%08d",orientIndex,ipointIndex);
       yaatk::mkdir(trajDirName);
       yaatk::chdir(trajDirName);
       {
