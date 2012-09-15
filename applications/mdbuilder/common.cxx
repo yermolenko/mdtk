@@ -254,4 +254,71 @@ place_Cluster(
   glPopMatrix();
 }
 
+void
+rotate(
+  AtomsArray& atoms,
+  Vector3D rotVector,
+  Float rotAngle,
+  bool aroundMassCenter)
+{
+  if (atoms.size() < 2 && aroundMassCenter)
+    return;
+
+  AtomsArray atoms_rotated;
+
+  Vector3D massCenterOrig = atoms.massCenter();
+  if (aroundMassCenter)
+    atoms.shiftToOrigin();
+
+  glPushMatrix();
+
+  TRACE(rotAngle/M_PI*180.0);
+  TRACE(rotVector);
+
+  glLoadIdentity();
+
+  glRotated(rotAngle/M_PI*180.0,rotVector.x,rotVector.y,rotVector.z);
+
+  for(size_t i = 0; i < atoms.size(); i++)
+  {
+    const Atom& a = atoms[i];
+    glPushMatrix();
+    glTranslated(a.coords.x,a.coords.y,a.coords.z);
+    place_and_inherit(atoms_rotated,a);
+    glPopMatrix();
+  }
+
+  glPopMatrix();
+
+  if (aroundMassCenter)
+    atoms_rotated.shiftToPosition(massCenterOrig);
+
+  if (aroundMassCenter)
+    REQUIRE((atoms_rotated.massCenter()-massCenterOrig).module() < 0.000001*Ao);
+  if (atoms.size() > 0 && rotAngle != 0.0)
+  {
+    TRACE(atoms_rotated[0].coords/Ao);
+    TRACE(atoms[0].coords/Ao);
+    REQUIRE(atoms_rotated[0].coords != atoms[0].coords);
+  }
+
+  atoms = atoms_rotated;
+}
+
+void
+rotate(
+  AtomsArray& atoms,
+  Vector3D vecBegin,
+  Vector3D vecEnd,
+  bool aroundMassCenter)
+{
+  Float rot_angle = acos(scalarmul(vecBegin,vecEnd)/(vecBegin.module()*vecEnd.module()));
+  Vector3D rot_vec = vectormul(vecBegin,vecEnd);
+  TRACE(rot_angle);
+  TRACE(rot_vec);
+  TRACE(rot_angle == M_PI);
+  TRACE(rot_vec == 0.0);
+  rotate(atoms,rot_vec,rot_angle,aroundMassCenter);
+}
+
 }

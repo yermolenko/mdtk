@@ -112,7 +112,8 @@ bomb_orthorhombic_with_clusters(
   int b_num,
   double a,
   double b,
-  size_t numberOfImpacts = 1024
+  size_t impactPointVariations = 1024,
+  size_t orientationVariations = 1
   );
 
 void
@@ -157,7 +158,8 @@ void
 build_metal_C60_mixing(
   std::vector<Float> impactEnergies,
   ElementID metalElement = Cu_EL,
-  size_t numberOfImpacts = 1024
+  size_t impactPointVariations = 64,
+  size_t orientationVariations = 8
   );
 
 }

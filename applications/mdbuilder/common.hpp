@@ -170,6 +170,20 @@ place_Cluster(
   const mdtk::AtomsArray sl_element
   );
 
+void
+rotate(
+  mdtk::AtomsArray& atoms,
+  Vector3D vec,
+  Float angle,
+  bool aroundMassCenter = false);
+
+void
+rotate(
+  mdtk::AtomsArray& atoms,
+  Vector3D vecBegin,
+  Vector3D vecEnd,
+  bool aroundMassCenter = false);
+
 }
 
 #endif
