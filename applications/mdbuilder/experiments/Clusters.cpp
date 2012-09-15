@@ -1455,7 +1455,7 @@ build_metal_C60_mixing(
         sl_metalCrystal,
         a_num_metal,b_num_metal,
         a_metal,b_metal,
-        impactPointVariations,
+        impactPointVariations*orientationVariations,
         1);
     }
     {
@@ -1483,7 +1483,7 @@ build_metal_C60_mixing(
         sl_fulleriteCrystal,
         a_num_fullerite,b_num_fullerite,
         a_fullerite,b_fullerite,
-        impactPointVariations,
+        impactPointVariations*orientationVariations,
         1);
     }
     {

@@ -64,7 +64,7 @@ buildCommands()
 
         TRACE(numberOfImpacts);
 
-        mdbuilder::build_metal_C60_mixing(impactEnergies,Cu_EL,numberOfImpacts);
+        mdbuilder::build_metal_C60_mixing(impactEnergies,Cu_EL,numberOfImpacts/8,8);
       }
     }
   }
