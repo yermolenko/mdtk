@@ -779,6 +779,30 @@ StatPostProcess::printCoefficients() const
 
   fo.close();
 
+  {
+    std::ofstream foe("SelectedCoefficients.txt");
+
+    ostringstream oss;
+    if (id.projectile == "Cu")
+      oss << "Me";
+    if (id.projectile == "C60")
+      oss << "F";
+    if (id.target == "Cu")
+      oss << "Me";
+    if (id.target == "Fullerite")
+      oss << "F";
+
+    foe << "al_" << oss.str() << " : " << c["stickedProjectiles"]/trajCount << endl;
+    if (id.projectile == "C60")
+      foe << "al_" << oss.str() << "_int : " << c["stickedIntegralProjectiles"]/trajCount << endl;
+
+    foe << "Y_" << oss.str() << " : " << c["sputteredTargetMolecules"]/trajCount << endl;
+    if (id.target == "Fullerite")
+      foe << "Y_" << oss.str() << "_int : " << c["sputteredIntegralTargetMolecules"]/trajCount << endl;
+
+    foe.close();
+  }
+
   return c;
 }
 
