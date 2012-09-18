@@ -97,12 +97,14 @@ public:
     std::vector<ClassicMolecule> molecules;
     std::map <Float,AtomGroup> trajProjectile;
     std::vector <Fullerene> targetEndoFullerenes;
+    size_t brokenTargetFullerenes;
     Vector3D PBC;
     TrajData() :
       trajDir(),
       molecules(),
       trajProjectile(),
       targetEndoFullerenes(),
+      brokenTargetFullerenes(0),
       PBC() {;}
     void saveToStream(std::ostream& os) const
     {
@@ -119,6 +121,8 @@ public:
       os << targetEndoFullerenes.size() << "\n";
       for(size_t i = 0; i < targetEndoFullerenes.size(); i++)
         targetEndoFullerenes[i].put(os);
+
+      os << brokenTargetFullerenes << "\n";
 
       os << PBC << "\n";
     }
@@ -144,6 +148,8 @@ public:
       targetEndoFullerenes.resize(sz);
       for(i = 0; i < targetEndoFullerenes.size(); i++)
         targetEndoFullerenes[i].get(is);
+
+      is >> brokenTargetFullerenes;
 
       is >> PBC;
     }
@@ -239,6 +245,7 @@ public:
   void  buildDummyDynamics(mdtk::SimLoop&,size_t trajIndex, StateType s);
 
   void  buildTargetEndoFullerenes(mdtk::SimLoop&,size_t trajIndex);
+  size_t  countBrokenTargetFullerenes(mdtk::SimLoop&);
 
   void  printClassicMolecules(size_t trajIndex) const;
   void  printClassicMoleculesTotal() const;

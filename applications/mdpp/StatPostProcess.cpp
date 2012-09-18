@@ -259,6 +259,37 @@ StatPostProcess::buildTargetEndoFullerenes(mdtk::SimLoop& state,size_t trajIndex
   }
 }
 
+size_t
+StatPostProcess::countBrokenTargetFullerenes(mdtk::SimLoop& state)
+{
+  if (id.target != "Fullerite")
+    return 0;
+
+  size_t brokenCount = 0;
+  size_t numberOfFullerenes = 0;
+  if (id.projectile == "Cu")
+  {
+    REQUIRE((state.atoms.size()-1) % 60 == 0);
+    numberOfFullerenes = (state.atoms.size()-1)/60;
+  }
+  if (id.projectile == "C60")
+  {
+    REQUIRE((state.atoms.size()) % 60 == 0);
+    numberOfFullerenes = (state.atoms.size())/60-1;
+  }
+  REQUIRE(numberOfFullerenes != 0);
+  REQUIRE(numberOfFullerenes == 108);
+  for(size_t fi = 0; fi < numberOfFullerenes; ++fi)
+  {
+    Fullerene f;
+    for(size_t ai = 0; ai < 60; ++ai)
+      f.addAtom(state.atoms[fi*60+ai]);
+    if (!f.isIntegral())
+      brokenCount++;
+  }
+  return brokenCount;
+}
+
 void
 StatPostProcess::removeBadTrajectories()
 {
@@ -393,6 +424,7 @@ StatPostProcess::execute()
 //    buildProjectileDynamics(*state,trajIndex,STATE_FINAL);
 
     buildTargetEndoFullerenes(*state,trajIndex);
+    td.brokenTargetFullerenes = countBrokenTargetFullerenes(*state);
 
 //  if (td.molecules.size() > 0)
 
@@ -741,6 +773,8 @@ StatPostProcess::printCoefficients() const
         }
       }
     }
+
+    c["brokenTargetFullerenes"] += td.brokenTargetFullerenes;
   }
 
   Float trajCount = trajData.size();
@@ -799,6 +833,9 @@ StatPostProcess::printCoefficients() const
     foe << "Y_" << oss.str() << " : " << c["sputteredTargetMolecules"]/trajCount << endl;
     if (id.target == "Fullerite")
       foe << "Y_" << oss.str() << "_int : " << c["sputteredIntegralTargetMolecules"]/trajCount << endl;
+
+    if (id.target == "Fullerite")
+      foe << "ro_" << oss.str() << " : " << c["brokenTargetFullerenes"]/trajCount << endl;
 
     foe.close();
   }
