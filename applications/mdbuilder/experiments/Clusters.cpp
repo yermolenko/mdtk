@@ -1364,9 +1364,9 @@ build_metal_C60_mixing(
   switch (metalElement)
   {
   case Cu_EL :
-    a_num_metal = 12;
-    b_num_metal = 12;
-    c_num_metal = 12;
+    a_num_metal = 14;
+    b_num_metal = 14;
+    c_num_metal = 14;
     a_metal = 3.615*Ao;
     b_metal = 3.615*Ao;
     c_metal = 3.615*Ao;
@@ -1379,9 +1379,9 @@ build_metal_C60_mixing(
       c_metal);
     break;
   case Ag_EL :
-    a_num_metal = 12;
-    b_num_metal = 12;
-    c_num_metal = 12;
+    a_num_metal = 14;
+    b_num_metal = 14;
+    c_num_metal = 14;
     a_metal = 4.086*Ao;
     b_metal = 4.086*Ao;
     c_metal = 4.086*Ao;
@@ -1394,9 +1394,9 @@ build_metal_C60_mixing(
       c_metal);
     break;
   case Au_EL :
-    a_num_metal = 12;
-    b_num_metal = 12;
-    c_num_metal = 12;
+    a_num_metal = 14;
+    b_num_metal = 14;
+    c_num_metal = 14;
     a_metal = 4.078*Ao;
     b_metal = 4.078*Ao;
     c_metal = 4.078*Ao;
@@ -1413,9 +1413,9 @@ build_metal_C60_mixing(
   }
   sl_metalCrystal.atoms.tag(ATOMTAG_TARGET | ATOMTAG_SUBSTRATE);
 
-  int a_num_fullerite = 3;
-  int b_num_fullerite = 3;
-  int c_num_fullerite = 3;
+  int a_num_fullerite = 4;
+  int b_num_fullerite = 4;
+  int c_num_fullerite = 4;
   Float a_fullerite = 14.17*Ao;
   Float b_fullerite = 14.17*Ao;
   Float c_fullerite = 14.17*Ao;
