@@ -136,7 +136,7 @@ build_Graphite_lattice(
   place_Graphite_lattice(sl.atoms,a_num,b_num,c_num,fixBottomCellLayer,a,b,c);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num*sin(gamma), NO_PBC.z));
-  sl.thermalBath.zMin = c*c_num-c*3-c/4.0;
+  sl.thermalBath.zMin = c*c_num-c*2-c/4.0;
   sl.thermalBath.dBoundary = 3.0*Ao;
 
   relax(sl,0.01*ps);
