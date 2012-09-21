@@ -1428,6 +1428,26 @@ build_metal_C60_mixing(
       a_fullerite);
   sl_fulleriteCrystal.atoms.tag(ATOMTAG_TARGET | ATOMTAG_SUBSTRATE);
 
+  int a_num_graphite = 20;
+  int b_num_graphite = 23;
+  int c_num_graphite = 7;
+  Float a_graphite = 2.46*Ao;
+  Float b_graphite = 2.46*Ao;
+  Float c_graphite = 6.708*Ao;
+  Float gamma_graphite = 60.0*Deg;
+  SimLoop sl_graphiteCrystal =
+    build_Graphite_lattice(
+      a_num_graphite,
+      b_num_graphite,
+      c_num_graphite,
+      true,
+      a_graphite,
+      b_graphite,
+      c_graphite,
+      gamma_graphite
+      );
+  sl_graphiteCrystal.atoms.tag(ATOMTAG_TARGET | ATOMTAG_SUBSTRATE);
+
   for(size_t energyIndex = 0;
       energyIndex < impactEnergies.size();
       ++energyIndex)
@@ -1497,6 +1517,34 @@ build_metal_C60_mixing(
         sl_fulleriteCrystal,
         a_num_fullerite,b_num_fullerite,
         a_fullerite,b_fullerite,
+        impactPointVariations,
+        orientationVariations);
+    }
+    {
+      std::string id = metal_C60_mixing_id(
+        "Graphite",
+        ElementIDtoString(metalElement),
+        impactEnergy);
+      bomb_orthorhombic_with_clusters(
+        id,
+        sl_energeticMetalAtom,
+        sl_graphiteCrystal,
+        a_num_graphite,b_num_graphite,
+        a_graphite,b_graphite*sin(gamma_graphite),
+        impactPointVariations*orientationVariations,
+        1);
+    }
+    {
+      std::string id = metal_C60_mixing_id(
+        "Graphite",
+        "C60",
+        impactEnergy);
+      bomb_orthorhombic_with_clusters(
+        id,
+        sl_energeticFullerene,
+        sl_graphiteCrystal,
+        a_num_graphite,b_num_graphite,
+        a_graphite,b_graphite*sin(gamma_graphite),
         impactPointVariations,
         orientationVariations);
     }
