@@ -84,9 +84,16 @@ inline
 bool 
 isAlreadyFinished(const char* trajDirName)
 {
-  std::string finalStateFile 
-    = std::string(trajDirName)+DIR_DELIMIT_STR+"mde_final";
-  if (yaatk::exists(finalStateFile.c_str())) return true;
+  {
+    std::string finalStateFile 
+      = std::string(trajDirName)+DIR_DELIMIT_STR+"mde_final";
+    if (yaatk::exists(finalStateFile.c_str())) return true;
+  }
+  {
+    std::string finalStateFile 
+      = std::string(trajDirName)+DIR_DELIMIT_STR+"completed.ok";
+    if (yaatk::exists(finalStateFile.c_str())) return true;
+  }
   return false;
 }
 
