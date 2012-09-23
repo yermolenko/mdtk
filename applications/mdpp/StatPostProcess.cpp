@@ -51,6 +51,8 @@ StatPostProcess::Id::Id(std::string s)
       targetRecognized = true;
     if (target == "Cu")
       targetRecognized = true;
+    if (target == "Graphite")
+      targetRecognized = true;
     REQUIRE(targetRecognized);
   }
 
@@ -849,6 +851,8 @@ StatPostProcess::printCoefficients() const
       oss << "Me";
     if (id.target == "Fullerite")
       oss << "F";
+    if (id.target == "Graphite")
+      oss << "C";
 
     foe << "al_" << oss.str() << " : " << c["stickedProjectiles"]/trajCount << endl;
     if (id.projectile == "C60")
