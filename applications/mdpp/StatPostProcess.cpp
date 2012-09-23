@@ -244,13 +244,27 @@ StatPostProcess::removeBadTrajectories()
     state->allowToFreePotentials = true;
     setupPotentials(*state);
 
-    std::string trajFinalName = trajData[trajIndex].trajDir+"mde_final";
-    cout << "Loading state " << trajFinalName << std::endl;
-    yaatk::text_ifstream fi(trajFinalName.c_str());
-    state->initNLafterLoading = false;
-    state->loadFromStream(fi);
+    {
+      std::string trajFinalName = trajData[trajIndex].trajDir+"mde_final";
+      if (yaatk::exists(trajFinalName))
+      {
+        cout << "Loading state " << trajFinalName << std::endl;
+        yaatk::text_ifstream fi(trajFinalName.c_str());
+        state->initNLafterLoading = false;
+        state->loadFromStream(fi);
+        fi.close();
+      }
+      else
+      {
+        trajFinalName = trajData[trajIndex].trajDir+"simloop.conf";
+        cout << "Loading state " << trajFinalName << std::endl;
+        yaatk::binary_ifstream fi(trajFinalName.c_str());
+        state->initNLafterLoading = false;
+        state->loadFromStream(fi,YAATK_FSTREAM_BIN);
+        fi.close();
+      }
+    }
     state->atoms.prepareForSimulatation();
-    fi.close();
 
     {
       SimLoop::Check& check = state->check;
@@ -333,11 +347,21 @@ StatPostProcess::execute()
 
     {
       std::string trajFinalName = trajData[trajIndex].trajDir+"mde_final";
-      cout << "Loading state " << trajFinalName << std::endl;
+      if (yaatk::exists(trajFinalName))
       {
+        cout << "Loading state " << trajFinalName << std::endl;
         yaatk::text_ifstream fi(trajFinalName.c_str());
         state->initNLafterLoading = false;
         state->loadFromStream(fi);
+        fi.close();
+      }
+      else
+      {
+        trajFinalName = trajData[trajIndex].trajDir+"simloop.conf";
+        cout << "Loading state " << trajFinalName << std::endl;
+        yaatk::binary_ifstream fi(trajFinalName.c_str());
+        state->initNLafterLoading = false;
+        state->loadFromStream(fi,YAATK_FSTREAM_BIN);
         fi.close();
       }
       state->atoms.prepareForSimulatation();
