@@ -242,7 +242,7 @@ StatPostProcess::buildTargetEndoFullerenes(mdtk::SimLoop& state,size_t trajIndex
   {
     REQUIRE((state.atoms.size()-1) % 60 == 0);
     size_t numberOfFullerenes = (state.atoms.size()-1)/60;
-    REQUIRE(numberOfFullerenes == 108);
+    REQUIRE(numberOfFullerenes % 4 == 0);
     for(size_t fi = 0; fi < numberOfFullerenes; ++fi)
     {
       Fullerene f;
@@ -280,7 +280,7 @@ StatPostProcess::countBrokenTargetFullerenes(mdtk::SimLoop& state)
     numberOfFullerenes = (state.atoms.size())/60-1;
   }
   REQUIRE(numberOfFullerenes != 0);
-  REQUIRE(numberOfFullerenes == 108);
+  REQUIRE(numberOfFullerenes % 4 == 0);
   for(size_t fi = 0; fi < numberOfFullerenes; ++fi)
   {
     Fullerene f;
