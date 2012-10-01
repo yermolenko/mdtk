@@ -44,18 +44,18 @@ public:
       for(size_t e2 = 0; e2 < ECOUNT; e2++)
         Rc_[e1][e2] = 0.001*Ao;
 
-    Rc_[C][C] = 2.0*Ao;
-    Rc_[H][H] = 1.7*Ao;
-    Rc_[C][H] = 1.8*Ao;
+    Rc_[C][C] = 3.40*Ao*1.5;
+    Rc_[H][H] = 2.65*Ao*1.5;
+    Rc_[C][H] = 0.5*(Rc_[C][C] + Rc_[H][H]);
       Rc_[H][C] = Rc_[C][H];
 
-    Rc_[Cu][Cu] = 3.0*Ao;
+    Rc_[Cu][Cu] = 3.0*Ao*1.5;
 
 
-    Rc_[Cu][H] = 2.75*Ao;
+    Rc_[Cu][H] = 0.5*(Rc_[Cu][Cu] + Rc_[H][H]);
       Rc_[H][Cu] = Rc_[Cu][H];
 
-    Rc_[Cu][C] = 2.75*Ao;
+    Rc_[Cu][C] = 0.5*(Rc_[Cu][Cu] + Rc_[C][C]);
       Rc_[C][Cu] = Rc_[Cu][C];
       
 //    Rc_[Ar][Ar] = 0.001*Ao;
