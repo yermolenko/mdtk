@@ -36,6 +36,7 @@ public:
   {
     using namespace mdtk;
     handledElements.insert(Cu_EL);
+    handledElements.insert(Au_EL);
   }
 
   void addAtom(mdtk::Atom& a) {atoms.push_back(a);}

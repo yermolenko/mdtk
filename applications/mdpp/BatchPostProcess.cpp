@@ -129,13 +129,13 @@ BatchPostProcess::printResults()
 
     using namespace mdtk;
 
-    pp->printCoefficients();
+//  pp->printCoefficients();
 
 //  pp->printClusterDynamicsTotal();
 
 //  pp->spottedTotalByMass();
 
-//  pp->spottedByDepth();
+//    pp->spottedByDepth();
 
     pp->buildMassSpectrum();
 
@@ -145,21 +145,17 @@ BatchPostProcess::printResults()
       yaatk::mkdir(s.c_str());\
       yaatk::chdir(s.c_str());\
       pp->buildMassSpectrum(mdepp::StatPostProcess::Process##FPM);\
-      pp->buildAngular(mdepp::StatPostProcess::Process##FPM);\
+      pp->buildAngular(mdepp::StatPostProcess::Process##FPM); \
       yaatk::chdir("..");\
     }
 
-/*
     MDPP_PROCESS_ONLY(Cluster);
     MDPP_PROCESS_ONLY(Projectile);
     MDPP_PROCESS_ONLY(Substrate);
     MDPP_PROCESS_ONLY(All);
-*/
 
     yaatk::chdir("..");
   }
-
-#if 0
 
   {
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,"yields-Cluster");
@@ -200,10 +196,11 @@ BatchPostProcess::printResults()
   }
 
   std::vector<size_t> clusterSizes;
-  clusterSizes.push_back(1);
   clusterSizes.push_back(13);
   clusterSizes.push_back(27);
   clusterSizes.push_back(39);
+  clusterSizes.push_back(75);
+  clusterSizes.push_back(195);
   for(size_t i = 0; i < clusterSizes.size(); i++)
   {
     plotEnergyLoss(DUMMY_EL, clusterSizes[i]);
@@ -251,8 +248,6 @@ BatchPostProcess::printResults()
     }
   }
 
-#endif
-
   yaatk::chdir("..");
 
   {
@@ -276,8 +271,6 @@ BatchPostProcess::printResults()
     }
   }
 }
-
-#if 0
 
 void
 BatchPostProcess::plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
@@ -734,7 +727,5 @@ plot \\\n\
 
   fplt.close();
 }
-
-#endif
 
 }

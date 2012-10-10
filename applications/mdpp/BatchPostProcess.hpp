@@ -45,8 +45,6 @@ public:
 
   void printResults();
 
-#if 0
-
   void plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
                                   std::string idStr = "yields",
                                   ElementID specIonElement = DUMMY_EL,
@@ -59,9 +57,6 @@ public:
   void plotEnergyLoss(ElementID specIonElement = DUMMY_EL,
                       size_t specClusterSize = 0,
                       Float specIonEnergy = -100*eV) const;
-
-#endif
-
 };
 
 }

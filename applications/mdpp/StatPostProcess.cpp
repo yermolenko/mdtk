@@ -35,52 +35,61 @@ namespace mdepp
 
 StatPostProcess::Id::Id(std::string s)
   :str(s),
-   projectile(),
-   target(),
-   projectileEnergy()
+   clusterElement(),
+   clusterSize(),
+   ionElement(),
+   ionEnergy()
 {
-  REQUIRE(s.substr(0,4) == "bomb");
   {
-    size_t istart = 5;
-    size_t iend = s.find("_",istart);
-    REQUIRE(iend != std::string::npos);
-
-    target = s.substr(istart,iend-istart);
-    bool targetRecognized = false;
-    if (target == "Fullerite")
-      targetRecognized = true;
-    if (target == "Cu")
-      targetRecognized = true;
-    REQUIRE(targetRecognized);
+    std::string clusterElementString = s.substr(0,2);
+    bool elementRecognized = false;
+    if (clusterElementString == "Cu")
+    {
+      clusterElement = Cu_EL; elementRecognized = true;
+    }
+    if (clusterElementString == "Au")
+    {
+      clusterElement = Au_EL; elementRecognized = true;
+    }
+    REQUIRE(elementRecognized);
   }
 
   {
-    size_t istart = s.find("_with_");
+    istringstream is(s.substr(2,3));
+    is >> clusterSize;
+  }
+
+  {
+    size_t istart = s.find("_by_");
     REQUIRE(istart != std::string::npos);
-    istart += 6;
-    size_t iend = s.find("_",istart);
-    REQUIRE(iend != std::string::npos);
+    istart += 4;
 
-    projectile = s.substr(istart,iend-istart);
-    bool projectileRecognized = false;
-    if (projectile == "C60")
-      projectileRecognized = true;
-    if (projectile == "Cu")
-      projectileRecognized = true;
-    REQUIRE(projectileRecognized);
+    std::string ionElementString = s.substr(istart,2);
+    bool elementRecognized = false;
+    if (ionElementString == "Ar")
+    {
+      ionElement = Ar_EL; elementRecognized = true;
+    }
+    if (ionElementString == "Xe")
+    {
+      ionElement = Xe_EL; elementRecognized = true;
+    }
+    REQUIRE(elementRecognized);
   }
 
   {
-    istringstream is(s.substr(s.size()-6,4));
-    is >> projectileEnergy;
+    istringstream is(s.substr(s.find("_by_")+7,4));
+    is >> ionEnergy;
   }
 
   TRACE(str);
-  TRACE(projectile);
-  TRACE(target);
-  TRACE(projectileEnergy);
-  REQUIRE(s.size()>1);
-  REQUIRE(*(s.end()-1)=='V');
+  TRACE(ElementIDtoString(clusterElement));
+  TRACE(clusterSize);
+  TRACE(ElementIDtoString(ionElement));
+  TRACE(ionEnergy);
+  REQUIRE(str.size()>1);
+  REQUIRE(*str.begin()=='C' || *str.begin()=='A');
+  REQUIRE(*(str.end()-1)=='V');
 }
 
 void
@@ -379,6 +388,15 @@ StatPostProcess::execute()
       td.trajProjectile[state->simTime] = projectile;
     }
 
+    Molecule cluster;
+    {
+      cluster.buildByTag(*state,ATOMTAG_CLUSTER);
+      td.trajCluster[state->simTime] = cluster;
+
+      cluster.update(*state);
+      td.trajCluster[state->simTime] = cluster;
+    }
+
     td.PBC = state->atoms.PBC();
     TRACE(td.PBC/mdtk::Ao);
 
@@ -417,6 +435,11 @@ StatPostProcess::execute()
       {
         projectile.update(*mde_init);
         td.trajProjectile[mde_init->simTime] = projectile;
+      }
+
+      {
+        cluster.update(*mde_init);
+        td.trajCluster[mde_init->simTime] = cluster;
       }
 
       delete mde_init;
@@ -466,6 +489,10 @@ StatPostProcess::execute()
           projectile.update(*mde_inter);
           td.trajProjectile[mde_inter->simTime] = projectile;
         }
+        {
+          cluster.update(*mde_inter);
+          td.trajCluster[mde_inter->simTime] = cluster;
+        }
       }
       delete mde_inter;
     }
@@ -482,7 +509,7 @@ StatPostProcess::execute()
 }
 
 void
-StatPostProcess::buildMassSpectrum() const
+StatPostProcess::buildMassSpectrum(FProcessClassicMolecule fpm) const
 {
   std::ofstream fo("massSpectrum.txt");
 
@@ -491,7 +518,10 @@ StatPostProcess::buildMassSpectrum() const
   {
     const TrajData& td = trajData[trajIndex];
     for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      if (!fpm(td.molecules[mi])) continue;
       massSpectrum[td.molecules[mi]]++;
+    }
   }
 /*
   size_t specieYield = 0;
@@ -856,6 +886,925 @@ Float
 StatPostProcess::getAverageEnergyOfSputtered( FProcessClassicMolecule fpm) const
 {
   return Float(getTotalEnergyOfSputtered(fpm))/trajData.size();
+}
+
+void
+depthHist2file(const char* filename, std::vector<Float>& depth, Float scale = 1.0)
+{
+  using mdtk::Exception;
+
+/*
+  const Float minDepth = -10.0;
+  const Float maxDepth =  20.0;
+  const int n = (maxDepth-minDepth)/(2.547);// for polyethylene // prev was (0.50);
+*/
+
+/*
+  // Graphite
+  const Float minDepth_desired   = -40.0;
+  const Float maxDepth_desired   =  40.0;
+  const Float matchPoint         =   0.0;
+  const Float c = 6.708;
+  const Float histStep           =   c/6.0;//2.547; // for polyethylene // prev was (0.50);
+*/
+/*
+  // Cu
+  const Float c = 3.61;
+  const Float minDepth_desired   = -c/2.0*15.123;
+  const Float maxDepth_desired   =  c/2.0*15.123;
+  const Float matchPoint         = -c/4.0;
+  const Float histStep           =   c/2.0;//2.547; // for polyethylene // prev was (0.50);
+*/
+
+  // PE
+  const Float c = 2.547;
+  const Float minDepth_desired   = -100.0;
+  const Float maxDepth_desired   =  100.0;
+  const Float matchPoint         =    0.0;
+  const Float histStep           =   c/3.0;//2.547; // for polyethylene // prev was (0.50);
+
+  REQUIRE(minDepth_desired < matchPoint);
+  REQUIRE(maxDepth_desired > matchPoint);
+  const int n_below_matchPoint = int( (matchPoint       - minDepth_desired)/histStep ) +1;
+  const int n_above_matchPoint = int( (maxDepth_desired - matchPoint      )/histStep ) +1;
+
+  const int n = n_above_matchPoint + n_below_matchPoint;
+  const Float minDepth   = matchPoint - n_below_matchPoint*histStep;
+  const Float maxDepth   = matchPoint + n_above_matchPoint*histStep;
+
+  {
+    std::ofstream fo((std::string(filename)+".plt").c_str());
+    fo << "reset\n#set yrange [*:0]\nset yrange [0:*]\nset xrange [-3:25]\nset format x \"%.1f\"\nset xtics " << c/2.0 << "\nset grid xtics\nplot \'" << filename << "\' with boxes\n";
+    fo.close();
+  }
+  std::ofstream fo(filename);
+
+  fo << "# min depth = " << minDepth << " Ao" << std::endl
+     << "# max depth = " << maxDepth << " Ao" << std::endl
+     << "# number of bins = " << n << std::endl;
+
+  gsl_histogram * h = gsl_histogram_alloc (n);
+  gsl_histogram_set_ranges_uniform (h, minDepth, maxDepth);
+
+  for(size_t i = 0; i < depth.size(); i++)
+    gsl_histogram_increment (h, depth[i]);
+
+  for(int i = 0; i < n; i++)
+  {
+    double lower, upper;
+    gsl_histogram_get_range (h, i, &lower, &upper);
+    fo << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i)*scale << std::endl;
+  }
+
+  gsl_histogram_free (h);
+
+  fo.close();
+}
+
+void
+saveDepth(std::vector<Float>& depth, const char *filename)
+{
+  std::ofstream fo(filename);
+  fo << depth.size() << std::endl;
+  for(size_t i = 0; i < depth.size(); i++)
+    fo << depth[i] << std::endl;
+  fo.close();
+}
+
+#define MDEPP_BYDEPTH_DIR "_by_depth"
+
+void
+StatPostProcess::spottedByDepth() const
+{
+  yaatk::mkdir(MDEPP_BYDEPTH_DIR);
+  yaatk::chdir(MDEPP_BYDEPTH_DIR);
+
+  std::vector<Float> depth;
+  std::vector<Float> depth_H;
+  std::vector<Float> depth_C;
+  for(size_t traj = 0; traj < trajData.size(); traj++)
+  {
+    if (trajData[traj].molecules.size() == 0)
+      continue;
+    const TrajData& td = trajData[traj];
+
+    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      for(size_t ai = 0; ai < td.molecules[mi].atoms.size(); ai++)
+      {
+        const mdtk::Atom& atom_init = td.molecules[mi].atoms_init[ai];
+        depth.push_back(atom_init.coords.z/mdtk::Ao);
+        if (atom_init.ID == mdtk::H_EL)
+          depth_H.push_back(atom_init.coords.z/mdtk::Ao);
+        if (atom_init.ID == mdtk::C_EL)
+          depth_C.push_back(atom_init.coords.z/mdtk::Ao);
+      }
+    }
+  }
+  {
+    saveDepth(depth,"spotted_depths_unsorted.dat");
+    sort(depth.begin(),depth.end());
+    saveDepth(depth,"spotted_depths.dat");
+  }
+  {
+    saveDepth(depth_C,"spotted_depths_C_unsorted.dat");
+    sort(depth_C.begin(),depth_C.end());
+    saveDepth(depth_C,"spotted_depths_C.dat");
+  }
+  {
+    saveDepth(depth_H,"spotted_depths_H_unsorted.dat");
+    sort(depth_H.begin(),depth_H.end());
+    saveDepth(depth_H,"spotted_depths_H.dat");
+  }
+  {
+    depthHist2file("spots_by_depth.dat",depth);
+    depthHist2file("spots_by_depth_H.dat",depth_H);
+    depthHist2file("spots_by_depth_C.dat",depth_C);
+  }
+
+  yaatk::chdir("..");
+}
+
+void
+saveHistogram(gsl_histogram *h, const char *datFileName)
+{
+  std::string byEscapeTimeDatHist(datFileName);
+  std::ofstream foByEscapeHist(byEscapeTimeDatHist.c_str());
+  std::ofstream foByEscapeHistPlt((byEscapeTimeDatHist+".plt").c_str());
+  for(size_t i = 0; i < gsl_histogram_bins(h); i++)
+  {
+    double lower, upper;
+    gsl_histogram_get_range (h, i, &lower, &upper);
+    foByEscapeHist << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i) << std::endl;
+  }
+  foByEscapeHist.close();
+  foByEscapeHistPlt << "#reset\nset yrange [0:*]\nplot \'" << byEscapeTimeDatHist << "\' with boxes fs solid 1.0\n";
+  foByEscapeHistPlt.close();
+}
+
+void
+saveHistogram_new(gsl_histogram *h, const char *datFileName)
+{
+  std::string byEscapeTimeDatHist(datFileName);
+  std::ofstream foByEscapeHist(byEscapeTimeDatHist.c_str());
+  std::ofstream foByEscapeHistPlt((byEscapeTimeDatHist+".plt").c_str());
+  for(size_t i = 0; i < gsl_histogram_bins(h); i++)
+  {
+    double lower, upper;
+    gsl_histogram_get_range (h, i, &lower, &upper);
+    foByEscapeHist << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i) << std::endl;
+  }
+  foByEscapeHist.close();
+  foByEscapeHistPlt << "reset\nset yrange [0:*]\nset xrange [-180:180]\nplot \'" << byEscapeTimeDatHist << "\' with boxes\n";
+  foByEscapeHistPlt << "pause -1 \"Press Enter\"\n";
+  foByEscapeHistPlt.close();
+}
+
+void
+saveHistogram_polar(gsl_histogram *h, const char *datFileName/*, bool halfshift = false*/)
+{
+  std::string byEscapeTimeDatHist(datFileName);
+  std::ofstream foByEscapeHist(byEscapeTimeDatHist.c_str());
+  std::ofstream foByEscapeHistPlt((byEscapeTimeDatHist+".plt").c_str());
+
+  int n;
+  n = gsl_histogram_bins(h);
+
+  for(size_t i = 0; i < gsl_histogram_bins(h)+1; i++)
+  {
+    double lower, upper;
+    double index = i;
+    if (i == gsl_histogram_bins(h)) index = 0;
+    gsl_histogram_get_range (h, index, &lower, &upper);
+    Float ang = (lower+upper)/2.0;//-(halfshift?((360.0/n)/2.0):0.0);
+//    if (ang < -180) ang += ;
+    foByEscapeHist << ang << " " << gsl_histogram_get(h,index) << std::endl;
+  }
+  foByEscapeHist.close();
+  foByEscapeHistPlt << "reset\nset style fill pattern 1\nset polar\nset angles degrees\nset size ratio -1\n\
+\nset grid polar\n\nplot \'" << byEscapeTimeDatHist << "\' with filledcurves lw 2 notitle,\\\n \'" << byEscapeTimeDatHist << "\' with impulses lw 2 notitle\n";
+//  foByEscapeHistPlt << "pause -1 \"Press Enter\"\n";
+  foByEscapeHistPlt.close();
+}
+
+std::string
+StatPostProcess::buildAtomByEnergy(const Float energyStep, FProcessClassicMolecule fpm) const
+{
+  char ofilename[1024];
+  sprintf(ofilename,"atom_by_energy_%.2f.dat", energyStep);
+
+  const Float minEnergy =     0.0;
+  const Float maxEnergy =  1000.0;
+  const int n = (maxEnergy-minEnergy)/(energyStep);
+
+  gsl_histogram * h = gsl_histogram_alloc (n);
+  gsl_histogram_set_ranges_uniform (h, minEnergy, maxEnergy);
+
+  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
+  {
+    const TrajData& td = trajData[trajIndex];
+    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      const ClassicMolecule& mol = td.molecules[mi];
+      if (!fpm(mol)) continue;
+      Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
+      gsl_histogram_accumulate (h, energy/mol.atoms.size(), mol.atoms.size());
+    }
+  }
+
+  saveHistogram(h, ofilename);
+  gsl_histogram_free (h);
+
+  return std::string(ofilename);
+}
+
+void
+StatPostProcess::histEnergyByPolar(gsl_histogram* h, bool byAtom, FProcessClassicMolecule fpm) const
+{
+  const Float minPolar =   0.0;
+  const Float maxPolar =  90.0;
+
+  gsl_histogram_set_ranges_uniform (h, minPolar, maxPolar);
+
+  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
+  {
+    const TrajData& td = trajData[trajIndex];
+    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      const ClassicMolecule& mol = td.molecules[mi];
+      if (!fpm(mol)) continue;
+      Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
+      mdtk::Vector3D v = mol.getVelocity();
+      Float polar = atan2(sqrt(SQR(v.x)+SQR(v.y)),-v.z)/mdtk::Deg;
+      if (!byAtom)
+        gsl_histogram_accumulate(h, polar, energy);
+      else
+        gsl_histogram_accumulate(h, polar, energy/mol.atoms.size());
+    }
+  }
+}
+
+void
+StatPostProcess::histAtomsCountByPolar(gsl_histogram* h, FProcessClassicMolecule fpm) const
+{
+  const Float minPolar =   0.0;
+  const Float maxPolar =  90.0;
+
+  gsl_histogram_set_ranges_uniform (h, minPolar, maxPolar);
+
+  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
+  {
+    const TrajData& td = trajData[trajIndex];
+    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      const ClassicMolecule& mol = td.molecules[mi];
+      if (!fpm(mol)) continue;
+/*
+  Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
+*/
+      mdtk::Vector3D v = mol.getVelocity();
+      Float polar = atan2(sqrt(SQR(v.x)+SQR(v.y)),-v.z)/mdtk::Deg;
+      gsl_histogram_accumulate(h, polar, mol.atoms.size()/Float(trajData.size()));
+    }
+  }
+}
+
+void
+StatPostProcess::histEnergyByPolarByAtomsInRange(gsl_histogram* h, FProcessClassicMolecule fpm) const
+{
+  const Float minPolar =   0.0;
+  const Float maxPolar =  90.0;
+
+  int n = gsl_histogram_bins(h);
+
+  gsl_histogram * hEnergy = gsl_histogram_alloc (n);
+  gsl_histogram * hCount  = gsl_histogram_alloc (n);
+
+  gsl_histogram_set_ranges_uniform (hEnergy, minPolar, maxPolar);
+  gsl_histogram_set_ranges_uniform (hCount, minPolar, maxPolar);
+
+  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
+  {
+    const TrajData& td = trajData[trajIndex];
+    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      const ClassicMolecule& mol = td.molecules[mi];
+      if (!fpm(mol)) continue;
+      Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
+      mdtk::Vector3D v = mol.getVelocity();
+      Float polar = atan2(sqrt(SQR(v.x)+SQR(v.y)),-v.z)/mdtk::Deg;
+      gsl_histogram_accumulate (hEnergy, polar, energy /* /mol.atoms.size()*/);
+      gsl_histogram_accumulate (hCount, polar, mol.atoms.size());
+    }
+  }
+
+  gsl_histogram_set_ranges_uniform (h, minPolar, maxPolar);
+  for(int i = 0; i < n; i++)
+  {
+    double lower, upper;
+    gsl_histogram_get_range (h, i, &lower, &upper);
+    if (gsl_histogram_get(hCount,i) > 0.0)
+    gsl_histogram_accumulate(h, (lower+upper)/2.0,
+                             gsl_histogram_get(hEnergy,i)/gsl_histogram_get(hCount,i));
+  }
+
+  gsl_histogram_free (hEnergy);
+  gsl_histogram_free (hCount);
+}
+
+std::string
+StatPostProcess::buildEnergyByPolar(const int n, bool byAtom, FProcessClassicMolecule fpm) const
+{
+  char ofilename[1024];
+  sprintf(ofilename,"energy_by_polar_%s%05d.dat", byAtom?"by_atom_":"",n);
+
+  gsl_histogram * h = gsl_histogram_alloc (n);
+
+  histEnergyByPolar(h, byAtom, fpm);
+
+  saveHistogram(h, ofilename);
+  gsl_histogram_free (h);
+
+  return std::string(ofilename);
+}
+
+std::string
+StatPostProcess::buildAtomsCountByPolar(const int n, FProcessClassicMolecule fpm) const
+{
+  char ofilename[1024];
+  sprintf(ofilename,"atomsCount_by_polar_%05d.dat",
+    n);
+
+  gsl_histogram * h = gsl_histogram_alloc (n);
+
+  histAtomsCountByPolar(h, fpm);
+
+  saveHistogram(h, ofilename);
+  gsl_histogram_free (h);
+
+  return std::string(ofilename);
+}
+
+std::string
+StatPostProcess::buildEnergyByPolarByAtomsInRange(const int n, FProcessClassicMolecule fpm) const
+{
+  char ofilename[1024];
+  sprintf(ofilename,"energy_by_polar_by_atomsInRange_%05d.dat",
+    n);
+
+  gsl_histogram * h = gsl_histogram_alloc (n);
+
+  histEnergyByPolarByAtomsInRange(h, fpm);
+
+  saveHistogram(h, ofilename);
+  gsl_histogram_free (h);
+
+  return std::string(ofilename);
+}
+
+void
+StatPostProcess::histEnergyByAzimuth(gsl_histogram *h, bool byAtom, FProcessClassicMolecule fpm) const
+{
+  const Float minPolar = -180.0;
+  const Float maxPolar = +180.0;
+
+  gsl_histogram_set_ranges_uniform (h, minPolar, maxPolar);
+
+  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
+  {
+    const TrajData& td = trajData[trajIndex];
+    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      const ClassicMolecule& mol = td.molecules[mi];
+      if (!fpm(mol)) continue;
+      Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
+      mdtk::Vector3D v = mol.getVelocity();
+      Float polar = atan2(v.y,v.x)/mdtk::Deg;
+      if (!byAtom)
+        gsl_histogram_accumulate(h, polar, energy);
+      else
+        gsl_histogram_accumulate(h, polar, energy/mol.atoms.size());
+    }
+  }
+}
+
+void
+StatPostProcess::histAtomsCountByAzimuth(gsl_histogram *h,  FProcessClassicMolecule fpm) const
+{
+  const Float minPolar = -180.0;
+  const Float maxPolar = +180.0;
+
+  gsl_histogram_set_ranges_uniform (h, minPolar, maxPolar);
+
+  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
+  {
+    const TrajData& td = trajData[trajIndex];
+    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      const ClassicMolecule& mol = td.molecules[mi];
+      if (!fpm(mol)) continue;
+/*
+  Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
+*/
+      mdtk::Vector3D v = mol.getVelocity();
+      Float polar = atan2(v.y,v.x)/mdtk::Deg;
+      gsl_histogram_accumulate(h, polar, mol.atoms.size() / Float(trajData.size()));
+    }
+  }
+}
+
+void
+StatPostProcess::histEnergyByAzimuthByAtomsInRange(gsl_histogram *h, FProcessClassicMolecule fpm) const
+{
+  const Float minPolar = -180.0;
+  const Float maxPolar = +180.0;
+
+  int n = gsl_histogram_bins(h);
+
+  gsl_histogram * hEnergy = gsl_histogram_alloc (n);
+  gsl_histogram * hCount  = gsl_histogram_alloc (n);
+
+  gsl_histogram_set_ranges_uniform (hEnergy, minPolar, maxPolar);
+  gsl_histogram_set_ranges_uniform (hCount, minPolar, maxPolar);
+
+  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
+  {
+    const TrajData& td = trajData[trajIndex];
+    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      const ClassicMolecule& mol = td.molecules[mi];
+      if (!fpm(mol)) continue;
+      Float energy = 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
+      mdtk::Vector3D v = mol.getVelocity();
+      Float polar = atan2(v.y,v.x)/mdtk::Deg;
+      gsl_histogram_accumulate (hEnergy, polar, energy /* /mol.atoms.size()*/);
+      gsl_histogram_accumulate (hCount, polar, mol.atoms.size());
+    }
+  }
+
+  gsl_histogram_set_ranges_uniform (h, minPolar, maxPolar);
+  for(int i = 0; i < n; i++)
+  {
+    double lower, upper;
+    gsl_histogram_get_range (h, i, &lower, &upper);
+    if (gsl_histogram_get(hCount,i) > 0.0)
+    gsl_histogram_accumulate(h, (lower+upper)/2.0,
+                             gsl_histogram_get(hEnergy,i)/gsl_histogram_get(hCount,i));
+  }
+
+  gsl_histogram_free (hEnergy);
+  gsl_histogram_free (hCount);
+
+}
+
+std::string
+StatPostProcess::buildEnergyByAzimuth(const int n, bool byAtom, FProcessClassicMolecule fpm) const
+{
+  char ofilename[1024];
+  sprintf(ofilename,"energy_by_azimuth_%s%05d.dat",
+    byAtom?"by_atom_":"",n);
+
+  gsl_histogram * h = gsl_histogram_alloc (n);
+
+  histEnergyByAzimuth(h, byAtom, fpm);
+
+  saveHistogram(h, ofilename);
+  gsl_histogram_free (h);
+
+  return std::string(ofilename);
+}
+
+std::string
+StatPostProcess::buildAtomsCountByAzimuth(const int n, FProcessClassicMolecule fpm) const
+{
+  char ofilename[1024];
+  sprintf(ofilename,"atomsCount_by_azimuth_%05d.dat",
+    n);
+
+  gsl_histogram * h = gsl_histogram_alloc (n);
+
+  histAtomsCountByAzimuth(h, fpm);
+
+  saveHistogram(h, ofilename);
+  gsl_histogram_free (h);
+
+  return std::string(ofilename);
+}
+
+std::string
+StatPostProcess::buildEnergyByAzimuthByAtomsInRange(const int n, FProcessClassicMolecule fpm) const
+{
+  char ofilename[1024];
+  sprintf(ofilename,"energy_by_azimuth_by_atomsInRange_%05d.dat",
+    n);
+
+  gsl_histogram * h = gsl_histogram_alloc (n);
+
+  histEnergyByAzimuthByAtomsInRange(h, fpm);
+
+  saveHistogram(h, ofilename);
+  gsl_histogram_free (h);
+
+  return std::string(ofilename);
+}
+
+void
+appendFileToStream(std::ofstream& fo, std::string& filename)
+{
+  char tempStr[10000];
+  std::ifstream fi(filename.c_str());
+  while(fi.getline(tempStr, 10000-1, '\n')) {fo << tempStr << "\n";}
+  fi.close();
+}
+
+void
+StatPostProcess::buildAngular(FProcessClassicMolecule fpm) const
+{
+  int n_to_leave_pol = 3;
+  int n_to_leave_az  = 12;
+  std::string subdir = "_angular";
+
+  yaatk::mkdir(subdir.c_str());
+  yaatk::chdir(subdir.c_str());
+
+  {
+    std::string datFileName;
+    char pltFileName[1000];
+    sprintf(pltFileName,"!!!AtomByEnergy.plt");
+    std::ofstream fo(pltFileName);
+    fo << "\
+reset\n\
+set xrange [0:10]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+//    for(Float energyStep = 0.05; energyStep <= 10.0; energyStep += 0.05)
+    for(Float energyStep = 0.1; energyStep <= 10.0; energyStep += 0.1)
+    {
+      datFileName = "-";
+      fo << "\
+reset\n\
+set xrange [0:10]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildAtomByEnergy(energyStep,fpm);
+      fo << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo, datFileName);
+      std::remove(datFileName.c_str());
+      std::remove((datFileName+".plt").c_str());
+      fo << "e\n";
+      fo << "pause -1 \"Press Return\" \n";
+    }
+    fo.close();
+  }
+
+  {
+    std::string datFileName;
+    char pltFileName[1000];
+    sprintf(pltFileName,"!!!EnergyByPolar.plt");
+    std::ofstream fo(pltFileName);
+    sprintf(pltFileName,"!!!AtomsCountByPolar.plt");
+    std::ofstream fo_count(pltFileName);
+    sprintf(pltFileName,"!!!EnergyByPolarByAtom.plt");
+    std::ofstream fo_by_atom(pltFileName);
+    sprintf(pltFileName,"!!!EnergyByPolarByAtomsInRange.plt");
+    std::ofstream fo_by_range(pltFileName);
+    fo << "\
+reset\n\
+set xrange [0:90]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+    fo_count << "\
+reset\n\
+set xrange [0:90]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+    fo_by_atom << "\
+reset\n\
+set xrange [0:90]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+    fo_by_range << "\
+reset\n\
+set xrange [0:90]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+//    for(int n = 1; n <= 180; n++)
+    for(int n = 1; n <= 90; n++)
+    {
+      datFileName = "-";
+      fo << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildEnergyByPolar(n,false,fpm);
+      fo << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo, datFileName);
+      if (n!=n_to_leave_pol)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo << "e\n";
+      fo << "pause -1 \"Press Return\" \n";
+
+      datFileName = "-";
+      fo_count << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildAtomsCountByPolar(n,fpm);
+      fo_count << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo_count, datFileName);
+      if (n!=n_to_leave_pol)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo_count << "e\n";
+      fo_count << "pause -1 \"Press Return\" \n";
+
+      datFileName = "-";
+      fo_by_atom << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildEnergyByPolar(n,true,fpm);
+      fo_by_atom << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo_by_atom, datFileName);
+      if (n!=n_to_leave_pol)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo_by_atom << "e\n";
+      fo_by_atom << "pause -1 \"Press Return\" \n";
+
+      datFileName = "-";
+      fo_by_range << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildEnergyByPolarByAtomsInRange(n,fpm);
+      fo_by_range << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo_by_range, datFileName);
+      if (n!=n_to_leave_pol)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo_by_range << "e\n";
+      fo_by_range << "pause -1 \"Press Return\" \n";
+    }
+    fo.close();
+    fo_count.close();
+    fo_by_atom.close();
+    fo_by_range.close();
+  }
+
+  {
+    std::string datFileName;
+    char pltFileName[1000];
+    sprintf(pltFileName,"!!!EnergyByAzimuth.plt");
+    std::ofstream fo(pltFileName);
+    sprintf(pltFileName,"!!!AtomsCountByAzimuth.plt");
+    std::ofstream fo_count(pltFileName);
+    sprintf(pltFileName,"!!!EnergyByAzimuthByAtom.plt");
+    std::ofstream fo_by_atom(pltFileName);
+    sprintf(pltFileName,"!!!EnergyByAzimuthByAtomsInRange.plt");
+    std::ofstream fo_by_range(pltFileName);
+    fo << "\
+reset\n\
+set xrange [-180:180]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+    fo_count << "\
+reset\n\
+set xrange [-180:180]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+    fo_by_atom << "\
+reset\n\
+set xrange [-180:180]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+    fo_by_range << "\
+reset\n\
+set xrange [-180:180]\n\
+set yrange [0:*]\n\
+set format y \"%10g\"\n\
+";
+//    for(int n = 1; n <= 180; n++)
+    for(int n = 1; n <= 360; n++)
+//    for(int n = 1; n <= 360*2; n++)
+    {
+      datFileName = "-";
+      fo << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildEnergyByAzimuth(n,false,fpm);
+      fo << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo, datFileName);
+      if (n!=n_to_leave_az)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo << "e\n";
+      fo << "pause -1 \"Press Return\" \n";
+
+      datFileName = "-";
+      fo_count << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildAtomsCountByAzimuth(n,fpm);
+      fo_count << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo_count, datFileName);
+      if (n!=n_to_leave_az)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo_count << "e\n";
+      fo_count << "pause -1 \"Press Return\" \n";
+
+      datFileName = "-";
+      fo_by_atom << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildEnergyByAzimuth(n,true,fpm);
+      fo_by_atom << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo_by_atom, datFileName);
+      if (n!=n_to_leave_az)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo_by_atom << "e\n";
+      fo_by_atom << "pause -1 \"Press Return\" \n";
+
+      datFileName = "-";
+      fo_by_range << "plot \'" << datFileName << "\' with boxes fs solid 1.0";
+      datFileName =
+        buildEnergyByAzimuthByAtomsInRange(n,fpm);
+      fo_by_range << " title \"" << datFileName << "\"\n";
+      appendFileToStream(fo_by_range, datFileName);
+      if (n!=n_to_leave_az)
+      {
+        std::remove(datFileName.c_str());
+        std::remove((datFileName+".plt").c_str());
+      }
+      fo_by_range << "e\n";
+      fo_by_range << "pause -1 \"Press Return\" \n";
+    }
+
+    fo.close();
+    fo_count.close();
+    fo_by_atom.close();
+    fo_by_range.close();
+  }
+
+  yaatk::chdir("..");
+}
+
+#define MDEPP_BYTIME_DIR "_by_time"
+
+void
+StatPostProcess::buildByTime(FProcessClassicMolecule fpm) const
+{
+  yaatk::mkdir(MDEPP_BYTIME_DIR);
+  yaatk::chdir(MDEPP_BYTIME_DIR);
+
+  char ofilename[1024];
+
+  sprintf(ofilename,"mass_by_formation_time.dat");
+
+  std::string byFormationTimeDat(ofilename);
+  std::ofstream foByFormation(byFormationTimeDat.c_str());
+  std::ofstream foByFormationPlt((byFormationTimeDat+".plt").c_str());
+  foByFormationPlt << "reset\n#set yrange [0:*]\nplot \'" << byFormationTimeDat << "\' with points\n";
+
+  sprintf(ofilename,"energy_by_formation_time.dat");
+
+  std::string EnergyByFormationTimeDat(ofilename);
+  std::ofstream foEnergyByFormation(EnergyByFormationTimeDat.c_str());
+  std::ofstream foEnergyByFormationPlt((EnergyByFormationTimeDat+".plt").c_str());
+  foEnergyByFormationPlt << "reset\n#set yrange [0:*]\nplot \'" << EnergyByFormationTimeDat << "\' with points\n";
+
+  sprintf(ofilename,"energy_by_atom_by_formation_time.dat");
+
+  std::string EnergyByAtomByFormationTimeDat(ofilename);
+  std::ofstream foEnergyByAtomByFormation(EnergyByAtomByFormationTimeDat.c_str());
+  std::ofstream foEnergyByAtomByFormationPlt((EnergyByAtomByFormationTimeDat+".plt").c_str());
+  foEnergyByAtomByFormationPlt << "reset\n#set yrange [0:*]\nplot \'" << EnergyByAtomByFormationTimeDat << "\' with points\n";
+
+  const Float minTime =    -0.05 /* *mdtk::ps*/;
+  const Float maxTime =     6.05 /* *mdtk::ps*/;
+  const int n = ceil((maxTime-minTime)/(0.1 /* *mdtk::ps*/));
+
+  gsl_histogram * h_by_formation = gsl_histogram_alloc (n);
+  gsl_histogram_set_ranges_uniform (h_by_formation, minTime, maxTime);
+  gsl_histogram * h_count_by_formation = gsl_histogram_alloc (n);
+  gsl_histogram_set_ranges_uniform (h_count_by_formation, minTime, maxTime);
+  gsl_histogram * h_energy_by_formation = gsl_histogram_alloc (n);
+  gsl_histogram_set_ranges_uniform (h_energy_by_formation, minTime, maxTime);
+
+  sprintf(ofilename,"mass_by_escape_time.dat");
+
+  std::string byEscapeTimeDat(ofilename);
+  std::ofstream foByEscape(byEscapeTimeDat.c_str());
+  std::ofstream foByEscapePlt((byEscapeTimeDat+".plt").c_str());
+  foByEscapePlt << "reset\n#set yrange [0:*]\nplot \'" << byEscapeTimeDat << "\' with points\n";
+
+  sprintf(ofilename,"energy_by_escape_time.dat");
+
+  std::string EnergyByEscapeTimeDat(ofilename);
+  std::ofstream foEnergyByEscape(EnergyByEscapeTimeDat.c_str());
+  std::ofstream foEnergyByEscapePlt((EnergyByEscapeTimeDat+".plt").c_str());
+  foEnergyByEscapePlt << "reset\n#set yrange [0:*]\nplot \'" << EnergyByEscapeTimeDat << "\' with points\n";
+
+  sprintf(ofilename,"energy_by_atom_by_escape_time.dat");
+
+  std::string EnergyByAtomByEscapeTimeDat(ofilename);
+  std::ofstream foEnergyByAtomByEscape(EnergyByAtomByEscapeTimeDat.c_str());
+  std::ofstream foEnergyByAtomByEscapePlt((EnergyByAtomByEscapeTimeDat+".plt").c_str());
+  foEnergyByAtomByEscapePlt << "reset\n#set yrange [0:*]\nplot \'" << EnergyByAtomByEscapeTimeDat << "\' with points\n";
+
+
+  gsl_histogram * h_by_escape = gsl_histogram_alloc (n);
+  gsl_histogram_set_ranges_uniform (h_by_escape, minTime, maxTime);
+  gsl_histogram * h_count_by_escape = gsl_histogram_alloc (n);
+  gsl_histogram_set_ranges_uniform (h_count_by_escape, minTime, maxTime);
+  gsl_histogram * h_energy_by_escape = gsl_histogram_alloc (n);
+  gsl_histogram_set_ranges_uniform (h_energy_by_escape, minTime, maxTime);
+
+  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
+  {
+    const TrajData& td = trajData[trajIndex];
+    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      const ClassicMolecule& m = td.molecules[mi];
+//      if (m.hasProjectileAtoms()) continue;
+      if (!fpm(m)) continue;
+
+      Float atomsCount = m.atoms.size();
+      Float moleculeMass = m.getAMUMass();
+      Float formationTime = m.formationTime /mdtk::ps;
+      Float escapeTime = m.escapeTime /mdtk::ps;
+      mdtk::Vector3D velocity = m.getVelocity();
+      Float kineticEnergy = 0.5*moleculeMass*mdtk::amu*SQR(velocity.module())/mdtk::eV;
+      foByFormation << formationTime << " " << moleculeMass << "\n";
+      foByEscape    << escapeTime    << " " << moleculeMass << "\n";
+      foEnergyByFormation << formationTime << " " << kineticEnergy << "\n";
+      foEnergyByEscape    << escapeTime    << " " << kineticEnergy << "\n";
+      foEnergyByAtomByFormation << formationTime << " " << kineticEnergy/atomsCount << "\n";
+      foEnergyByAtomByEscape    << escapeTime    << " " << kineticEnergy/atomsCount << "\n";
+      gsl_histogram_accumulate(h_by_formation, formationTime, moleculeMass);
+      gsl_histogram_accumulate(h_by_escape,       escapeTime, moleculeMass);
+      gsl_histogram_accumulate(h_count_by_formation, formationTime, atomsCount);
+      gsl_histogram_accumulate(h_count_by_escape,       escapeTime, atomsCount);
+      gsl_histogram_accumulate(h_energy_by_formation, formationTime, kineticEnergy);
+      gsl_histogram_accumulate(h_energy_by_escape,       escapeTime, kineticEnergy);
+    }
+  }
+
+  foByEscape.close();
+  foByEscapePlt.close();
+  foEnergyByEscape.close();
+  foEnergyByEscapePlt.close();
+  foEnergyByAtomByEscape.close();
+  foEnergyByAtomByEscapePlt.close();
+
+  foByFormation.close();
+  foByFormationPlt.close();
+  foEnergyByFormation.close();
+  foEnergyByFormationPlt.close();
+  foEnergyByAtomByFormation.close();
+  foEnergyByAtomByFormationPlt.close();
+
+  sprintf(ofilename,"mass_by_escape_time_HIST.dat");
+  saveHistogram(h_by_escape,ofilename);
+  gsl_histogram_free(h_by_escape);
+
+  sprintf(ofilename,"mass_by_formation_time_HIST.dat");
+  saveHistogram(h_by_formation,ofilename);
+  gsl_histogram_free(h_by_formation);
+
+  sprintf(ofilename,"atomscount_by_escape_time_HIST.dat");
+  saveHistogram(h_count_by_escape,ofilename);
+  gsl_histogram_free(h_count_by_escape);
+
+  sprintf(ofilename,"energy_by_escape_time_HIST.dat");
+  saveHistogram(h_energy_by_escape,ofilename);
+  gsl_histogram_free(h_energy_by_escape);
+
+  sprintf(ofilename,"atomscount_by_formation_time_HIST.dat");
+  saveHistogram(h_count_by_formation,ofilename);
+  gsl_histogram_free(h_count_by_formation);
+
+  sprintf(ofilename,"energy_by_formation_time_HIST.dat");
+  saveHistogram(h_energy_by_formation,ofilename);
+  gsl_histogram_free(h_energy_by_formation);
+
+  yaatk::chdir("..");
 }
 
 }

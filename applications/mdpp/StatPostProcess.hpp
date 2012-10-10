@@ -96,11 +96,14 @@ public:
     std::string trajDir;
     std::vector<ClassicMolecule> molecules;
     std::map <Float,AtomGroup> trajProjectile;
+    std::map <Float,AtomGroup> trajCluster;
     Vector3D PBC;
     TrajData() :
       trajDir(),
       molecules(),
-      trajProjectile(), PBC() {;}
+      trajProjectile(),
+      trajCluster(),
+      PBC() {;}
     void saveToStream(std::ostream& os) const
     {
       os << trajDir << "\n";
@@ -108,10 +111,19 @@ public:
       for(size_t i = 0; i < molecules.size(); i++)
         molecules[i].saveToStream(os);
 
-      os << trajProjectile.size() << "\n";
-      std::map< Float, AtomGroup >::const_iterator i;
-      for( i = trajProjectile.begin(); i != trajProjectile.end() ; ++i )
-        os << i->first << "\t " << i->second << "\n";
+      {
+        os << trajProjectile.size() << "\n";
+        std::map< Float, AtomGroup >::const_iterator i;
+        for( i = trajProjectile.begin(); i != trajProjectile.end() ; ++i )
+          os << i->first << "\t " << i->second << "\n";
+      }
+
+      {
+        os << trajCluster.size() << "\n";
+        std::map< Float, AtomGroup >::const_iterator i;
+        for( i = trajCluster.begin(); i != trajCluster.end() ; ++i )
+          os << i->first << "\t " << i->second << "\n";
+      }
 
       os << PBC << "\n";
     }
@@ -133,6 +145,15 @@ public:
 	trajProjectile[t] = f;
       }
 
+      is >> sz;
+      for(i = 0; i < sz; ++i)
+      {
+	Float t;
+	AtomGroup f;
+	is >> t >> f;
+	trajCluster[t] = f;
+      }
+
       is >> PBC;
     }
   };
@@ -141,28 +162,32 @@ public:
   struct Id
   {
     std::string str;
-    std::string projectile;
-    ElementID projectileElement() {return StringToElementID(projectile);}
-    std::string target;
-    Float projectileEnergy;
+    mdtk::ElementID clusterElement;
+    size_t clusterSize;
+    mdtk::ElementID ionElement;
+    Float ionEnergy;
     Id(std::string s);
     Id():str(),
-         projectile(),
-         target(),
-         projectileEnergy(){};
+         clusterElement(),
+         clusterSize(),
+         ionElement(),
+         ionEnergy(){};
     void saveToStream(std::ostream& os) const
       {
         os << str << "\n";
-        os << projectile << "\n";
-        os << target << "\n";
-        os << projectileEnergy << "\n";
+        os << clusterElement << "\n";
+        os << clusterSize << "\n";
+        os << ionElement << "\n";
+        os << ionEnergy << "\n";
       }
     void loadFromStream(std::istream& is)
       {
         is >> str;
-        is >> projectile;
-        is >> target;
-        is >> projectileEnergy;
+        int ID;
+        is >> ID; clusterElement = ElementID(ID);
+        is >> clusterSize;
+        is >> ID; ionElement = ElementID(ID);
+        is >> ionEnergy;
       }
   }id;
   StatPostProcess(std::string trajsetDir)
@@ -233,7 +258,32 @@ public:
 
   void  printCoefficients() const;
 
-  void  buildMassSpectrum() const;
+  void  buildMassSpectrum(FProcessClassicMolecule fpm = &ProcessAll) const;
+
+  void  spottedByDepth() const;
+
+  std::string  buildAtomByEnergy(const Float energyStep, FProcessClassicMolecule fpm) const;
+
+  std::string  buildEnergyByPolar(const int n, bool byAtom = false, FProcessClassicMolecule fpm = &ProcessAll) const;
+  std::string  buildAtomsCountByPolar(const int n, FProcessClassicMolecule fpm) const;
+  std::string  buildEnergyByAzimuth(const int n, bool byAtom = false, FProcessClassicMolecule fpm = &ProcessAll) const;
+  std::string  buildAtomsCountByAzimuth(const int n, FProcessClassicMolecule fpm) const;
+
+  std::string  buildEnergyByPolarByAtomsInRange(const int n, FProcessClassicMolecule fpm) const;
+  std::string  buildEnergyByAzimuthByAtomsInRange(const int n, FProcessClassicMolecule fpm) const;
+
+  void  histEnergyByPolar(gsl_histogram* h, bool byAtom = false, FProcessClassicMolecule fpm = &ProcessAll) const;
+  void  histAtomsCountByPolar(gsl_histogram* h, FProcessClassicMolecule fpm) const;
+  void  histEnergyByAzimuth(gsl_histogram* h, bool byAtom = false, FProcessClassicMolecule fpm = &ProcessAll) const;
+  void  histAtomsCountByAzimuth(gsl_histogram* h, FProcessClassicMolecule fpm) const;
+
+  void  histEnergyByPolarByAtomsInRange(gsl_histogram* h, FProcessClassicMolecule fpm) const;
+  void  histEnergyByAzimuthByAtomsInRange(gsl_histogram* h, FProcessClassicMolecule fpm) const;
+
+  void  buildAngular(FProcessClassicMolecule fpm) const;
+
+  void  buildByTime( FProcessClassicMolecule fpm) const;
+
   void  saveToStream(std::ostream& os) const
   {
     os << trajData.size() << "\n";
