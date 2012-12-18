@@ -214,15 +214,15 @@ BatchPostProcess::printResults()
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
                                "yields-All", DUMMY_EL, clusterSizes[i]);
 
-#define PLOT_ANGULAR(angleType,elementType,clusterSize)\
-    plotAngular(angleType,mdepp::StatPostProcess::ProcessCluster, \
-                "Cluster", elementType, clusterSizes[i]);\
-    plotAngular(angleType,mdepp::StatPostProcess::ProcessProjectile,\
-                "Projectile", elementType, clusterSizes[i]);\
-    plotAngular(angleType,mdepp::StatPostProcess::ProcessSubstrate,\
-                "Substrate", elementType, clusterSizes[i]);\
-    plotAngular(angleType,mdepp::StatPostProcess::ProcessAll,\
-                "All", elementType, clusterSizes[i]);
+#define PLOT_ANGULAR(angleType,elementType,clusterSize,clusterElement)  \
+    plotAngular(angleType,mdepp::StatPostProcess::ProcessCluster,       \
+                "Cluster", elementType, clusterSize, clusterElement);   \
+    plotAngular(angleType,mdepp::StatPostProcess::ProcessProjectile,    \
+                "Projectile", elementType, clusterSize, clusterElement); \
+    plotAngular(angleType,mdepp::StatPostProcess::ProcessSubstrate,     \
+                "Substrate", elementType, clusterSize, clusterElement); \
+    plotAngular(angleType,mdepp::StatPostProcess::ProcessAll,           \
+                "All", elementType, clusterSize, clusterElement);
 
 //    PLOT_ANGULAR(true,DUMMY_EL,clusterSizes[i]);
 //    PLOT_ANGULAR(false,DUMMY_EL,clusterSizes[i]);
@@ -246,11 +246,22 @@ BatchPostProcess::printResults()
         for(size_t l = 0; l < clusterElements.size(); l++)
         {
           plotEnergyLoss(elements[j], clusterSizes[i], energies[k], clusterElements[l]);
+          PLOT_ANGULAR(true,elements[j],clusterSizes[i], clusterElements[l]);
+          PLOT_ANGULAR(false,elements[j],clusterSizes[i], clusterElements[l]);
+
+          plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,
+                                     "yields-Cluster", elements[j],0,clusterElements[l]);
+          plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,
+                                     "yields-Projectile", elements[j],0,clusterElements[l]);
+          plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessSubstrate,
+                                     "yields-Substrate", elements[j],0,clusterElements[l]);
+          plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
+                                     "yields-All", elements[j],0,clusterElements[l]);
         }
       }
 
-      PLOT_ANGULAR(true,elements[j],clusterSizes[i]);
-      PLOT_ANGULAR(false,elements[j],clusterSizes[i]);
+      PLOT_ANGULAR(true,elements[j],clusterSizes[i],DUMMY_EL);
+      PLOT_ANGULAR(false,elements[j],clusterSizes[i],DUMMY_EL);
     }
   }
 
@@ -282,7 +293,8 @@ void
 BatchPostProcess::plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
                                              std::string idStr,
                                              ElementID specIonElement,
-                                             size_t specClusterSize) const
+                                             size_t specClusterSize,
+                                             ElementID specClusterElement) const
 {
   std::stringstream fnb;
   fnb << idStr;
@@ -303,8 +315,15 @@ BatchPostProcess::plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMol
   if (specIonElement != DUMMY_EL)
     fnb << "_" << ElementIDtoString(specIonElement);
 
+  if (specClusterElement != DUMMY_EL)
+    fnb << "_" << ElementIDtoString(specClusterElement);
+
   if (specClusterSize > 0)
-    fnb << "_" << specClusterSize;
+  {
+    if (specClusterElement == DUMMY_EL)
+      fnb << "_";
+    fnb << specClusterSize;
+  }
 
   ofstream fplt((fnb.str()+".plt").c_str());
   fplt << "\
@@ -338,6 +357,12 @@ plot \\\n\
         continue;
     }
 
+    if (specClusterElement != DUMMY_EL)
+    {
+      if (pp->id.clusterElement != specClusterElement)
+        continue;
+    }
+
     if (specClusterSize > 0)
     {
       if (pp->id.clusterSize != specClusterSize)
@@ -350,7 +375,7 @@ plot \\\n\
     {
       std::ostringstream cmd;
       cmd << "'-' title \"{/Italic "
-          << ElementIDtoString(pp->id.ionElement) << " "
+          << ElementIDtoString(pp->id.ionElement) << " -> "
           << ElementIDtoString(pp->id.clusterElement)
           << "_{" << pp->id.clusterSize << "}"
           << "}\" "
@@ -380,7 +405,8 @@ BatchPostProcess::plotAngular(bool plotPolar,
                               StatPostProcess::FProcessClassicMolecule fpm,
                               std::string idStr,
                               ElementID specIonElement,
-                              size_t specClusterSize) const
+                              size_t specClusterSize,
+                              ElementID specClusterElement) const
 {
   std::stringstream fnb;
   fnb << idStr;
@@ -388,8 +414,15 @@ BatchPostProcess::plotAngular(bool plotPolar,
   if (specIonElement != DUMMY_EL)
     fnb << "_" << ElementIDtoString(specIonElement);
 
+  if (specClusterElement != DUMMY_EL)
+    fnb << "_" << ElementIDtoString(specClusterElement);
+
   if (specClusterSize > 0)
-    fnb << "_" << specClusterSize;
+  {
+    if (specClusterElement == DUMMY_EL)
+      fnb << "_";
+    fnb << specClusterSize;
+  }
 
   fnb << (plotPolar?"-polar":"-azimuthal");
 
@@ -454,6 +487,12 @@ plot \\\n\
     if (specIonElement != DUMMY_EL)
     {
       if (pp->id.ionElement != specIonElement)
+        continue;
+    }
+
+    if (specClusterElement != DUMMY_EL)
+    {
+      if (pp->id.clusterElement != specClusterElement)
         continue;
     }
 

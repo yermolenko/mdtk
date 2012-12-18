@@ -48,12 +48,14 @@ public:
   void plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
                                   std::string idStr = "yields",
                                   ElementID specIonElement = DUMMY_EL,
-                                  size_t specClusterSize = 0) const;
+                                  size_t specClusterSize = 0,
+                                  ElementID specClusterElement = DUMMY_EL) const;
   void plotAngular(bool plotPolar,
                    StatPostProcess::FProcessClassicMolecule fpm,
                    std::string idStr = "undefined",
                    ElementID specIonElement = DUMMY_EL,
-                   size_t specClusterSize = 0) const;
+                   size_t specClusterSize = 0,
+                   ElementID specClusterElement = DUMMY_EL) const;
   void plotEnergyLoss(ElementID specIonElement = DUMMY_EL,
                       size_t specClusterSize = 0,
                       Float specIonEnergy = -100*eV,
