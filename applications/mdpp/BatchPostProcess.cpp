@@ -170,7 +170,7 @@ BatchPostProcess::printResults()
   elements.push_back(Xe_EL);
   for(size_t i = 0; i < elements.size(); i++)
   {
-    plotEnergyLoss(elements[i]);
+//    plotEnergyLoss(elements[i]);
 
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,
                                "yields-Cluster", elements[i]);
@@ -203,7 +203,7 @@ BatchPostProcess::printResults()
   clusterSizes.push_back(195);
   for(size_t i = 0; i < clusterSizes.size(); i++)
   {
-    plotEnergyLoss(DUMMY_EL, clusterSizes[i]);
+//    plotEnergyLoss(DUMMY_EL, clusterSizes[i]);
 
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,
                                "yields-Cluster", DUMMY_EL, clusterSizes[i]);
@@ -232,7 +232,7 @@ BatchPostProcess::printResults()
     elements.push_back(Xe_EL);
     for(size_t j = 0; j < elements.size(); j++)
     {
-      plotEnergyLoss(elements[j], clusterSizes[i]);
+//      plotEnergyLoss(elements[j], clusterSizes[i]);
 
       std::vector<Float> energies;
       energies.push_back(100*eV);
@@ -240,7 +240,13 @@ BatchPostProcess::printResults()
       energies.push_back(400*eV);
       for(size_t k = 0; k < energies.size(); k++)
       {
-        plotEnergyLoss(elements[j], clusterSizes[i], energies[k]);
+        std::vector<ElementID> clusterElements;
+        clusterElements.push_back(Cu_EL);
+        clusterElements.push_back(Au_EL);
+        for(size_t l = 0; l < clusterElements.size(); l++)
+        {
+          plotEnergyLoss(elements[j], clusterSizes[i], energies[k], clusterElements[l]);
+        }
       }
 
       PLOT_ANGULAR(true,elements[j],clusterSizes[i]);
@@ -516,16 +522,25 @@ Float Ek(ElementID id, SnapshotList::AtomSnapshot as)
 void
 BatchPostProcess::plotEnergyLoss(ElementID specIonElement,
                                  size_t specClusterSize,
-                                 Float specIonEnergy) const
+                                 Float specIonEnergy,
+                                 ElementID specClusterElement) const
 {
   std::stringstream fnb;
   fnb << "energy-loss";
 
+  REQUIRE(specIonElement != DUMMY_EL);
+  REQUIRE(specClusterSize > 0);
+  REQUIRE(specIonEnergy > 0);
+  REQUIRE(specClusterElement != DUMMY_EL);
+
   if (specIonElement != DUMMY_EL)
     fnb << "_" << ElementIDtoString(specIonElement);
 
+  if (specClusterElement != DUMMY_EL)
+    fnb << "_" << ElementIDtoString(specClusterElement);
+
   if (specClusterSize > 0)
-    fnb << "_" << specClusterSize;
+    fnb << "" << specClusterSize;
 
   if (specIonEnergy > 0)
     fnb << "_" << int(specIonEnergy/eV) << "eV";
@@ -579,6 +594,12 @@ plot \\\n\
     if (specIonElement != DUMMY_EL)
     {
       if (pp->id.ionElement != specIonElement)
+        continue;
+    }
+
+    if (specClusterElement != DUMMY_EL)
+    {
+      if (pp->id.clusterElement != specClusterElement)
         continue;
     }
 
