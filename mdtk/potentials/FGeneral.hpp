@@ -188,18 +188,18 @@ FGeneral::SinTheta(AtomsPair& ij, AtomsPair& ik)
 #define dCosDihedral_COMMON_INC \
 \
 Float de1_x = dscalar_dx_;\
-Float de2_1_x = 0.5*pow(ejik_module_squared,-0.5)*dejik_module_squared_dx_;\
-Float de2_2_x = 0.5*pow(eijl_module_squared,-0.5)*deijl_module_squared_dx_;\
+Float de2_1_x = 0.5/e2_1*dejik_module_squared_dx_;\
+Float de2_2_x = 0.5/e2_2*deijl_module_squared_dx_;\
 Float de2_x = de2_1_x*e2_2 + e2_1*de2_2_x;\
 \
 Float de1_y = dscalar_dy_;\
-Float de2_1_y = 0.5*pow(ejik_module_squared,-0.5)*dejik_module_squared_dy_;\
-Float de2_2_y = 0.5*pow(eijl_module_squared,-0.5)*deijl_module_squared_dy_;\
+Float de2_1_y = 0.5/e2_1*dejik_module_squared_dy_;\
+Float de2_2_y = 0.5/e2_2*deijl_module_squared_dy_;\
 Float de2_y = de2_1_y*e2_2 + e2_1*de2_2_y;\
 \
 Float de1_z = dscalar_dz_;\
-Float de2_1_z = 0.5*pow(ejik_module_squared,-0.5)*dejik_module_squared_dz_;\
-Float de2_2_z = 0.5*pow(eijl_module_squared,-0.5)*deijl_module_squared_dz_;\
+Float de2_1_z = 0.5/e2_1*dejik_module_squared_dz_;\
+Float de2_2_z = 0.5/e2_2*deijl_module_squared_dz_;\
 Float de2_z = de2_1_z*e2_2 + e2_1*de2_2_z;\
 \
 if (e2 == 0.0)\
@@ -235,26 +235,15 @@ FGeneral::CosDihedral(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V
   Float  jl_rv_y = jl_rv.y;
   Float  jl_rv_z = jl_rv.z;
 
-  Float e1  = (ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x);
-  Float ejik_module_squared = pow(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y,2.0)+pow(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z,2.0)+pow(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x,2.0);
-  Float eijl_module_squared = pow(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y,2.0)+pow(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z,2.0)+pow(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x,2.0);
+  Vector3D ejik = vectormul(ji_rv,ik_rv);
+  Vector3D eijl = vectormul(ij_rv,jl_rv);
+
+  Float e1  = scalarmul(ejik,eijl);
+  Float ejik_module_squared = ejik.module_squared();
+  Float eijl_module_squared = eijl.module_squared();
   Float e2_1 = sqrt(ejik_module_squared);
   Float e2_2 = sqrt(eijl_module_squared);
   Float e2 = e2_1*e2_2;
-
-  if (0)
-  {
-    AtomsPair ji = -ij;
-
-    Vector3D ejik = vectormul(ji.rv,ik.rv);
-    Vector3D eijl = vectormul(ij.rv,jl.rv);
-
-    Float scmul = scalarmul(ejik,eijl);
-    Float modprod = (ejik.module()*eijl.module());
-
-    REQUIRE(e1 == scmul);
-    REQUIRE(e2 == modprod);
-  }
 
   Float CosT = (e2 == 0.0)?0.0:e1/e2;
 
