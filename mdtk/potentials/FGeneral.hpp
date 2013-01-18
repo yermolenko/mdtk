@@ -143,36 +143,24 @@ FGeneral::CosTheta(AtomsPair& ij, AtomsPair& ik, const Float V)
   if (V != 0.0)
   {
     {
-      const Atom& datom = ij.atom1;
-
-      Vector3D dscalarmul = -ij.rv-ik.rv;
-
-      Vector3D de1 = -dscalarmul;
-      Vector3D de2 = ij.dr(datom)*ik.r_+ij.r_*ik.dr(datom);
+      Vector3D de1 = ij.rv+ik.rv;
+      Vector3D de2 = ij.dr(ij.atom1)*ik.r_+ij.r_*ik.dr(ij.atom1);
 
       Vector3D dCosTheta = (de1*e2-e1*de2)/SQR(e2);
 
       ij.atom1.grad += dCosTheta*V;
     }
     {
-      const Atom& datom = ij.atom2;
-
-      Vector3D dscalarmul = ik.rv;
-
-      Vector3D de1 = -dscalarmul;
-      Vector3D de2 = ij.dr(datom)*ik.r_+ij.r_*ik.dr(datom);
+      Vector3D de1 = -ik.rv;
+      Vector3D de2 = ij.dr(ij.atom2)*ik.r_;
 
       Vector3D dCosTheta = (de1*e2-e1*de2)/SQR(e2);
 
       ij.atom2.grad += dCosTheta*V;
     }
     {
-      const Atom& datom = ik.atom2;
-
-      Vector3D dscalarmul = ij.rv;
-
-      Vector3D de1 = -dscalarmul;
-      Vector3D de2 = ij.dr(datom)*ik.r_+ij.r_*ik.dr(datom);
+      Vector3D de1 = -ij.rv;
+      Vector3D de2 = ij.r_*ik.dr(ik.atom2);
 
       Vector3D dCosTheta = (de1*e2-e1*de2)/SQR(e2);
 
