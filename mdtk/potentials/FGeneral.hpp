@@ -1,7 +1,7 @@
 /*
    The generalized interatomic potential class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -329,82 +329,82 @@ Float dejik_module_squared_dx_,
 
   if (&ij.atom1 == &datom)
   {
-dscalar_dx_ = jk_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*lj_rv_z+kj_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*jl_rv_y;
-      dscalar_dy_ = kj_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
+    dscalar_dx_ = jk_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*lj_rv_z+kj_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*jl_rv_y;
+    dscalar_dy_ = kj_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
 jl_rv_z+jk_rv_x*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*lj_rv_x;
-      dscalar_dz_ = jk_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
+    dscalar_dz_ = jk_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
 lj_rv_y+kj_rv_x*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*jl_rv_x;
-      dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*jk_rv_z+2.0*(ji_rv_x
+    dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*jk_rv_z+2.0*(ji_rv_x
 *ik_rv_y-ji_rv_y*ik_rv_x)*kj_rv_y;
-      dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*kj_rv_z+2.0*(ji_rv_x
+    dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*kj_rv_z+2.0*(ji_rv_x
 *ik_rv_y-ji_rv_y*ik_rv_x)*jk_rv_x;
-      dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*jk_rv_y+2.0*(ji_rv_z
+    dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*jk_rv_y+2.0*(ji_rv_z
 *ik_rv_x-ji_rv_x*ik_rv_z)*kj_rv_x;
-      deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*lj_rv_z+2.0*(ij_rv_x
+    deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*lj_rv_z+2.0*(ij_rv_x
 *jl_rv_y-ij_rv_y*jl_rv_x)*jl_rv_y;
-      deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*jl_rv_z+2.0*(ij_rv_x
+    deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*jl_rv_z+2.0*(ij_rv_x
 *jl_rv_y-ij_rv_y*jl_rv_x)*lj_rv_x;
-      deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*lj_rv_y+2.0*(ij_rv_z
+    deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*lj_rv_y+2.0*(ij_rv_z
 *jl_rv_x-ij_rv_x*jl_rv_z)*jl_rv_x;
 
 dCosDihedral_COMMON_INC;
   }
   else if (&ij.atom2 == &datom)
   {
-dscalar_dx_ = ki_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*il_rv_z+ik_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*li_rv_y;
-      dscalar_dy_ = ik_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
+    dscalar_dx_ = ki_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*il_rv_z+ik_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*li_rv_y;
+    dscalar_dy_ = ik_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
 li_rv_z+ki_rv_x*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*il_rv_x;
-      dscalar_dz_ = ki_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
+    dscalar_dz_ = ki_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
 il_rv_y+ik_rv_x*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*li_rv_x;
-      dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ki_rv_z+2.0*(ji_rv_x
+    dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ki_rv_z+2.0*(ji_rv_x
 *ik_rv_y-ji_rv_y*ik_rv_x)*ik_rv_y;
-      dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ik_rv_z+2.0*(ji_rv_x
+    dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ik_rv_z+2.0*(ji_rv_x
 *ik_rv_y-ji_rv_y*ik_rv_x)*ki_rv_x;
-      dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ki_rv_y+2.0*(ji_rv_z
+    dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ki_rv_y+2.0*(ji_rv_z
 *ik_rv_x-ji_rv_x*ik_rv_z)*ik_rv_x;
-      deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*il_rv_z+2.0*(ij_rv_x
+    deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*il_rv_z+2.0*(ij_rv_x
 *jl_rv_y-ij_rv_y*jl_rv_x)*li_rv_y;
-      deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*li_rv_z+2.0*(ij_rv_x
+    deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*li_rv_z+2.0*(ij_rv_x
 *jl_rv_y-ij_rv_y*jl_rv_x)*il_rv_x;
-      deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*il_rv_y+2.0*(ij_rv_z
+    deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*il_rv_y+2.0*(ij_rv_z
 *jl_rv_x-ij_rv_x*jl_rv_z)*li_rv_x;
 
 dCosDihedral_COMMON_INC;
   }
   else if (&ik.atom2 == &datom)
   {
-dscalar_dx_ = ij_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+ji_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x);
-      dscalar_dy_ = ji_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+ij_rv_x*(ij_rv_x*jl_rv_y-ij_rv_y*
+    dscalar_dx_ = ij_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+ji_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x);
+    dscalar_dy_ = ji_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+ij_rv_x*(ij_rv_x*jl_rv_y-ij_rv_y*
 jl_rv_x);
-      dscalar_dz_ = ij_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+ji_rv_x*(ij_rv_z*jl_rv_x-ij_rv_x*
+    dscalar_dz_ = ij_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+ji_rv_x*(ij_rv_z*jl_rv_x-ij_rv_x*
 jl_rv_z);
-      dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ij_rv_z+2.0*(ji_rv_x
+    dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ij_rv_z+2.0*(ji_rv_x
 *ik_rv_y-ji_rv_y*ik_rv_x)*ji_rv_y;
-      dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ji_rv_z+2.0*(ji_rv_x
+    dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ji_rv_z+2.0*(ji_rv_x
 *ik_rv_y-ji_rv_y*ik_rv_x)*ij_rv_x;
-      dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ij_rv_y+2.0*(ji_rv_z
+    dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ij_rv_y+2.0*(ji_rv_z
 *ik_rv_x-ji_rv_x*ik_rv_z)*ji_rv_x;
-      deijl_module_squared_dx_ = 0.0;
-      deijl_module_squared_dy_ = 0.0;
-      deijl_module_squared_dz_ = 0.0;
+    deijl_module_squared_dx_ = 0.0;
+    deijl_module_squared_dy_ = 0.0;
+    deijl_module_squared_dz_ = 0.0;
 
 dCosDihedral_COMMON_INC;
   }
   else if (&jl.atom2 == &datom)
   {
-dscalar_dx_ = (ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ji_rv_z+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*ij_rv_y;
-      dscalar_dy_ = (ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ij_rv_z+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*
+    dscalar_dx_ = (ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ji_rv_z+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*ij_rv_y;
+    dscalar_dy_ = (ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ij_rv_z+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*
 ji_rv_x;
-      dscalar_dz_ = (ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ji_rv_y+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*
+    dscalar_dz_ = (ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ji_rv_y+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*
 ij_rv_x;
-      dejik_module_squared_dx_ = 0.0;
-      dejik_module_squared_dy_ = 0.0;
-      dejik_module_squared_dz_ = 0.0;
-      deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*ji_rv_z+2.0*(ij_rv_x
+    dejik_module_squared_dx_ = 0.0;
+    dejik_module_squared_dy_ = 0.0;
+    dejik_module_squared_dz_ = 0.0;
+    deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*ji_rv_z+2.0*(ij_rv_x
 *jl_rv_y-ij_rv_y*jl_rv_x)*ij_rv_y;
-      deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*ij_rv_z+2.0*(ij_rv_x
+    deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*ij_rv_z+2.0*(ij_rv_x
 *jl_rv_y-ij_rv_y*jl_rv_x)*ji_rv_x;
-      deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*ji_rv_y+2.0*(ij_rv_z
+    deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*ji_rv_y+2.0*(ij_rv_z
 *jl_rv_x-ij_rv_x*jl_rv_z)*ij_rv_x;
 
 dCosDihedral_COMMON_INC;
