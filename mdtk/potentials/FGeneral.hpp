@@ -91,7 +91,6 @@ public:
   Float CosTheta(AtomsPair& ij, AtomsPair& ik, const Float V = 0.0);
 
   Float CosDihedral(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V = 0.0);
-  Vector3D dCosDihedral(const AtomsPair& ij, const AtomsPair& ik, const AtomsPair& jl, const Atom &datom) const;
 
   virtual
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
@@ -198,41 +197,6 @@ FGeneral::SinTheta(AtomsPair& ij, AtomsPair& ik)
   return SinT;
 }
 
-inline
-Float
-FGeneral::CosDihedral(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V)
-{
-  AtomsPair ji = -ij;
-
-  Vector3D ejik = vectormul(ji.rv,ik.rv);
-  Vector3D eijl = vectormul(ij.rv,jl.rv);
-
-  Float scmul = scalarmul(ejik,eijl);
-  Float modprod = (ejik.module()*eijl.module());
-
-  Float CosT;
-
-  if (/*scmul == 0.0 &&*/ modprod == 0.0)
-    CosT = 0.0;
-  else
-
-  CosT = scmul/modprod;
-
-  if (CosT<-1.0) CosT = -1.0;
-  if (CosT>+1.0) CosT = +1.0;
-
-  if (V != 0.0)
-  {
-    ij.atom1.grad += dCosDihedral(ij,ik,jl,ij.atom1)*V;
-    ij.atom2.grad += dCosDihedral(ij,ik,jl,ij.atom2)*V;
-    ik.atom2.grad += dCosDihedral(ij,ik,jl,ik.atom2)*V;
-    jl.atom2.grad += dCosDihedral(ij,ik,jl,jl.atom2)*V;
-  }
-
-  return CosT;
-}
-
-
 #define dCosDihedral_COMMON_INC \
 \
 Float de1_x = dscalar_dx_;\
@@ -250,21 +214,20 @@ Float de2_1_z = 0.5*pow(ejik_module_squared,-0.5)*dejik_module_squared_dz_;\
 Float de2_2_z = 0.5*pow(eijl_module_squared,-0.5)*deijl_module_squared_dz_;\
 Float de2_z = de2_1_z*e2_2 + e2_1*de2_2_z;\
 \
-  if (e2 == 0.0)\
-    return 0.0;\
-  else \
-\
-    return Vector3D\
-    (\
-      (de1_x*e2-e1*de2_x)/SQR(e2),\
-      (de1_y*e2-e1*de2_y)/SQR(e2),\
-      (de1_z*e2-e1*de2_z)/SQR(e2)\
-    );\
+if (e2 == 0.0)\
+  dCosDihedral = 0.0;\
+else \
+  dCosDihedral = Vector3D\
+  (\
+    (de1_x*e2-e1*de2_x)/SQR(e2),\
+    (de1_y*e2-e1*de2_y)/SQR(e2),\
+    (de1_z*e2-e1*de2_z)/SQR(e2)\
+  );\
 
 
 inline
-Vector3D
-FGeneral::dCosDihedral(const AtomsPair& ij, const AtomsPair& ik, const AtomsPair& jl, const Atom &datom) const
+Float
+FGeneral::CosDihedral(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V)
 {
   Vector3D ij_rv = ij.rv;
   Float  ij_rv_x = ij_rv.x;
@@ -284,145 +247,171 @@ FGeneral::dCosDihedral(const AtomsPair& ij, const AtomsPair& ik, const AtomsPair
   Float  jl_rv_y = jl_rv.y;
   Float  jl_rv_z = jl_rv.z;
 
-  Vector3D ki_rv = (-ik).rv;
-  Float  ki_rv_x = ki_rv.x;
-  Float  ki_rv_y = ki_rv.y;
-  Float  ki_rv_z = ki_rv.z;
+  Float e1  = (ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x);
+  Float ejik_module_squared = pow(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y,2.0)+pow(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z,2.0)+pow(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x,2.0);
+  Float eijl_module_squared = pow(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y,2.0)+pow(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z,2.0)+pow(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x,2.0);
+  Float e2_1 = sqrt(ejik_module_squared);
+  Float e2_2 = sqrt(eijl_module_squared);
+  Float e2 = e2_1*e2_2;
 
-  Vector3D lj_rv = (-jl).rv;
-  Float  lj_rv_x = lj_rv.x;
-  Float  lj_rv_y = lj_rv.y;
-  Float  lj_rv_z = lj_rv.z;
-
-//  Vector3D il_rv = r_vec(atom_i,atom_l);
-  AtomsPair il(ij.atom1,jl.atom2,true);
-  Vector3D il_rv = il.rv;//ij_rv+jl_rv;
-  Float  il_rv_x = il_rv.x;
-  Float  il_rv_y = il_rv.y;
-  Float  il_rv_z = il_rv.z;
-
-//  Vector3D jk_rv = r_vec(atom_j,atom_k);
-  AtomsPair jk(ij.atom2,ik.atom2,true);
-  Vector3D jk_rv = jk.rv;//ji_rv+ik_rv;
-  Float  jk_rv_x = jk_rv.x;
-  Float  jk_rv_y = jk_rv.y;
-  Float  jk_rv_z = jk_rv.z;
-
-//  Vector3D kj_rv = r_vec(atom_k,atom_j);
-  AtomsPair kj = -jk;
-  Vector3D kj_rv = kj.rv;//ki_rv+ij_rv;
-  Float  kj_rv_x = kj_rv.x;
-  Float  kj_rv_y = kj_rv.y;
-  Float  kj_rv_z = kj_rv.z;
-
-//  Vector3D li_rv = r_vec(atom_l,atom_i);
-  AtomsPair li = -il;
-  Vector3D li_rv = li.rv;//lj_rv+ji_rv;
-  Float  li_rv_x = li_rv.x;
-  Float  li_rv_y = li_rv.y;
-  Float  li_rv_z = li_rv.z;
-
-Float e1  = (ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x);
-Float ejik_module_squared = pow(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y,2.0)+pow(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z,2.0)+pow(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x,2.0);
-Float eijl_module_squared = pow(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y,2.0)+pow(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z,2.0)+pow(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x,2.0);
-Float e2_1 = sqrt(ejik_module_squared);
-Float e2_2 = sqrt(eijl_module_squared);
-Float e2 = e2_1*e2_2;
-
-Float dscalar_dx_,dscalar_dy_,dscalar_dz_;
-Float dejik_module_squared_dx_,
-      dejik_module_squared_dy_,
-      dejik_module_squared_dz_,
-      deijl_module_squared_dx_,
-      deijl_module_squared_dy_,
-      deijl_module_squared_dz_;
-
-  if (&ij.atom1 == &datom)
+  if (0)
   {
-    dscalar_dx_ = jk_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*lj_rv_z+kj_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*jl_rv_y;
-    dscalar_dy_ = kj_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
+    AtomsPair ji = -ij;
+
+    Vector3D ejik = vectormul(ji.rv,ik.rv);
+    Vector3D eijl = vectormul(ij.rv,jl.rv);
+
+    Float scmul = scalarmul(ejik,eijl);
+    Float modprod = (ejik.module()*eijl.module());
+
+    REQUIRE(e1 == scmul);
+    REQUIRE(e2 == modprod);
+  }
+
+  Float CosT = (e2 == 0.0)?0.0:e1/e2;
+
+  if (CosT<-1.0) CosT = -1.0;
+  if (CosT>+1.0) CosT = +1.0;
+
+  if (V != 0.0)
+  {
+    Vector3D ki_rv = (-ik).rv;
+    Float  ki_rv_x = ki_rv.x;
+    Float  ki_rv_y = ki_rv.y;
+    Float  ki_rv_z = ki_rv.z;
+
+    Vector3D lj_rv = (-jl).rv;
+    Float  lj_rv_x = lj_rv.x;
+    Float  lj_rv_y = lj_rv.y;
+    Float  lj_rv_z = lj_rv.z;
+
+//    Vector3D il_rv = r_vec(atom_i,atom_l);
+    AtomsPair il(ij.atom1,jl.atom2,true);
+    Vector3D il_rv = il.rv;//ij_rv+jl_rv;
+    Float  il_rv_x = il_rv.x;
+    Float  il_rv_y = il_rv.y;
+    Float  il_rv_z = il_rv.z;
+
+//    Vector3D jk_rv = r_vec(atom_j,atom_k);
+    AtomsPair jk(ij.atom2,ik.atom2,true);
+    Vector3D jk_rv = jk.rv;//ji_rv+ik_rv;
+    Float  jk_rv_x = jk_rv.x;
+    Float  jk_rv_y = jk_rv.y;
+    Float  jk_rv_z = jk_rv.z;
+
+//    Vector3D kj_rv = r_vec(atom_k,atom_j);
+    AtomsPair kj = -jk;
+    Vector3D kj_rv = kj.rv;//ki_rv+ij_rv;
+    Float  kj_rv_x = kj_rv.x;
+    Float  kj_rv_y = kj_rv.y;
+    Float  kj_rv_z = kj_rv.z;
+
+//    Vector3D li_rv = r_vec(atom_l,atom_i);
+    AtomsPair li = -il;
+    Vector3D li_rv = li.rv;//lj_rv+ji_rv;
+    Float  li_rv_x = li_rv.x;
+    Float  li_rv_y = li_rv.y;
+    Float  li_rv_z = li_rv.z;
+
+    Float dscalar_dx_,dscalar_dy_,dscalar_dz_;
+    Float dejik_module_squared_dx_,
+          dejik_module_squared_dy_,
+          dejik_module_squared_dz_,
+          deijl_module_squared_dx_,
+          deijl_module_squared_dy_,
+          deijl_module_squared_dz_;
+
+    Vector3D dCosDihedral = 0.0;
+    {
+      dscalar_dx_ = jk_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*lj_rv_z+kj_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*jl_rv_y;
+      dscalar_dy_ = kj_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
 jl_rv_z+jk_rv_x*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*lj_rv_x;
-    dscalar_dz_ = jk_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
+      dscalar_dz_ = jk_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
 lj_rv_y+kj_rv_x*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*jl_rv_x;
-    dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*jk_rv_z+2.0*(ji_rv_x
+      dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*jk_rv_z+2.0*(ji_rv_x
 *ik_rv_y-ji_rv_y*ik_rv_x)*kj_rv_y;
-    dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*kj_rv_z+2.0*(ji_rv_x
+      dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*kj_rv_z+2.0*(ji_rv_x
 *ik_rv_y-ji_rv_y*ik_rv_x)*jk_rv_x;
-    dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*jk_rv_y+2.0*(ji_rv_z
+      dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*jk_rv_y+2.0*(ji_rv_z
 *ik_rv_x-ji_rv_x*ik_rv_z)*kj_rv_x;
-    deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*lj_rv_z+2.0*(ij_rv_x
+      deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*lj_rv_z+2.0*(ij_rv_x
 *jl_rv_y-ij_rv_y*jl_rv_x)*jl_rv_y;
-    deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*jl_rv_z+2.0*(ij_rv_x
+      deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*jl_rv_z+2.0*(ij_rv_x
 *jl_rv_y-ij_rv_y*jl_rv_x)*lj_rv_x;
-    deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*lj_rv_y+2.0*(ij_rv_z
+      deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*lj_rv_y+2.0*(ij_rv_z
 *jl_rv_x-ij_rv_x*jl_rv_z)*jl_rv_x;
 
-dCosDihedral_COMMON_INC;
-  }
-  else if (&ij.atom2 == &datom)
-  {
-    dscalar_dx_ = ki_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*il_rv_z+ik_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*li_rv_y;
-    dscalar_dy_ = ik_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
+      dCosDihedral_COMMON_INC;
+
+      ij.atom1.grad += dCosDihedral*V;
+    }
+    {
+      dscalar_dx_ = ki_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*il_rv_z+ik_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*li_rv_y;
+      dscalar_dy_ = ik_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
 li_rv_z+ki_rv_x*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*il_rv_x;
-    dscalar_dz_ = ki_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
+      dscalar_dz_ = ki_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
 il_rv_y+ik_rv_x*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*li_rv_x;
-    dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ki_rv_z+2.0*(ji_rv_x
+      dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ki_rv_z+2.0*(ji_rv_x
 *ik_rv_y-ji_rv_y*ik_rv_x)*ik_rv_y;
-    dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ik_rv_z+2.0*(ji_rv_x
+      dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ik_rv_z+2.0*(ji_rv_x
 *ik_rv_y-ji_rv_y*ik_rv_x)*ki_rv_x;
-    dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ki_rv_y+2.0*(ji_rv_z
+      dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ki_rv_y+2.0*(ji_rv_z
 *ik_rv_x-ji_rv_x*ik_rv_z)*ik_rv_x;
-    deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*il_rv_z+2.0*(ij_rv_x
+      deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*il_rv_z+2.0*(ij_rv_x
 *jl_rv_y-ij_rv_y*jl_rv_x)*li_rv_y;
-    deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*li_rv_z+2.0*(ij_rv_x
+      deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*li_rv_z+2.0*(ij_rv_x
 *jl_rv_y-ij_rv_y*jl_rv_x)*il_rv_x;
-    deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*il_rv_y+2.0*(ij_rv_z
+      deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*il_rv_y+2.0*(ij_rv_z
 *jl_rv_x-ij_rv_x*jl_rv_z)*li_rv_x;
 
-dCosDihedral_COMMON_INC;
-  }
-  else if (&ik.atom2 == &datom)
-  {
-    dscalar_dx_ = ij_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+ji_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x);
-    dscalar_dy_ = ji_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+ij_rv_x*(ij_rv_x*jl_rv_y-ij_rv_y*
-jl_rv_x);
-    dscalar_dz_ = ij_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+ji_rv_x*(ij_rv_z*jl_rv_x-ij_rv_x*
-jl_rv_z);
-    dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ij_rv_z+2.0*(ji_rv_x
-*ik_rv_y-ji_rv_y*ik_rv_x)*ji_rv_y;
-    dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ji_rv_z+2.0*(ji_rv_x
-*ik_rv_y-ji_rv_y*ik_rv_x)*ij_rv_x;
-    dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ij_rv_y+2.0*(ji_rv_z
-*ik_rv_x-ji_rv_x*ik_rv_z)*ji_rv_x;
-    deijl_module_squared_dx_ = 0.0;
-    deijl_module_squared_dy_ = 0.0;
-    deijl_module_squared_dz_ = 0.0;
+      dCosDihedral_COMMON_INC;
 
-dCosDihedral_COMMON_INC;
-  }
-  else if (&jl.atom2 == &datom)
-  {
-    dscalar_dx_ = (ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ji_rv_z+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*ij_rv_y;
-    dscalar_dy_ = (ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ij_rv_z+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*
+      ij.atom2.grad += dCosDihedral*V;
+    }
+    {
+      dscalar_dx_ = ij_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+ji_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x);
+      dscalar_dy_ = ji_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+ij_rv_x*(ij_rv_x*jl_rv_y-ij_rv_y*
+jl_rv_x);
+      dscalar_dz_ = ij_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+ji_rv_x*(ij_rv_z*jl_rv_x-ij_rv_x*
+jl_rv_z);
+      dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ij_rv_z+2.0*(ji_rv_x
+*ik_rv_y-ji_rv_y*ik_rv_x)*ji_rv_y;
+      dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ji_rv_z+2.0*(ji_rv_x
+*ik_rv_y-ji_rv_y*ik_rv_x)*ij_rv_x;
+      dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ij_rv_y+2.0*(ji_rv_z
+*ik_rv_x-ji_rv_x*ik_rv_z)*ji_rv_x;
+      deijl_module_squared_dx_ = 0.0;
+      deijl_module_squared_dy_ = 0.0;
+      deijl_module_squared_dz_ = 0.0;
+
+      dCosDihedral_COMMON_INC;
+
+      ik.atom2.grad += dCosDihedral*V;
+    }
+    {
+      dscalar_dx_ = (ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ji_rv_z+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*ij_rv_y;
+      dscalar_dy_ = (ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ij_rv_z+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*
 ji_rv_x;
-    dscalar_dz_ = (ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ji_rv_y+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*
+      dscalar_dz_ = (ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ji_rv_y+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*
 ij_rv_x;
-    dejik_module_squared_dx_ = 0.0;
-    dejik_module_squared_dy_ = 0.0;
-    dejik_module_squared_dz_ = 0.0;
-    deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*ji_rv_z+2.0*(ij_rv_x
+      dejik_module_squared_dx_ = 0.0;
+      dejik_module_squared_dy_ = 0.0;
+      dejik_module_squared_dz_ = 0.0;
+      deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*ji_rv_z+2.0*(ij_rv_x
 *jl_rv_y-ij_rv_y*jl_rv_x)*ij_rv_y;
-    deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*ij_rv_z+2.0*(ij_rv_x
+      deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*ij_rv_z+2.0*(ij_rv_x
 *jl_rv_y-ij_rv_y*jl_rv_x)*ji_rv_x;
-    deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*ji_rv_y+2.0*(ij_rv_z
+      deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*ji_rv_y+2.0*(ij_rv_z
 *jl_rv_x-ij_rv_x*jl_rv_z)*ij_rv_x;
 
-dCosDihedral_COMMON_INC;
-  }
-  else
-    return 0.0;
-}
+      dCosDihedral_COMMON_INC;
 
+      jl.atom2.grad += dCosDihedral*V;
+    }
+  }
+
+  return CosT;
+}
 
 } // namespace mdtk
 
