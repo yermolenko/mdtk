@@ -89,7 +89,6 @@ private:
 public:
   Float SinTheta(AtomsPair& ij, AtomsPair& ik);
   Float CosTheta(AtomsPair& ij, AtomsPair& ik, const Float V = 0.0);
-  Vector3D dCosTheta(const AtomsPair& ij, const AtomsPair& ik, const Atom &datom) const;
 
   Float CosDihedral(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V = 0.0);
   Vector3D dCosDihedral(const AtomsPair& ij, const AtomsPair& ik, const AtomsPair& jl, const Atom &datom) const;
@@ -132,7 +131,10 @@ inline
 Float
 FGeneral::CosTheta(AtomsPair& ij, AtomsPair& ik, const Float V)
 {
-  Float CosT = scalarmul(ij.rv,ik.rv)/(ij.r_*ik.r_);
+  Float e1 = scalarmul(ij.rv,ik.rv);
+  Float e2 = ij.r_*ik.r_;
+
+  Float CosT = e1/e2;
 
   REQUIRE(CosT>=-1.0-CosT_epsilon && CosT<=+1.0+CosT_epsilon);
 
@@ -141,9 +143,42 @@ FGeneral::CosTheta(AtomsPair& ij, AtomsPair& ik, const Float V)
 
   if (V != 0.0)
   {
-    ij.atom1.grad += dCosTheta(ij,ik,ij.atom1)*V;
-    ij.atom2.grad += dCosTheta(ij,ik,ij.atom2)*V;
-    ik.atom2.grad += dCosTheta(ij,ik,ik.atom2)*V;
+    {
+      const Atom& datom = ij.atom1;
+
+      Vector3D dscalarmul = -ij.rv-ik.rv;
+
+      Vector3D de1 = -dscalarmul;
+      Vector3D de2 = ij.dr(datom)*ik.r_+ij.r_*ik.dr(datom);
+
+      Vector3D dCosTheta = (de1*e2-e1*de2)/SQR(e2);
+
+      ij.atom1.grad += dCosTheta*V;
+    }
+    {
+      const Atom& datom = ij.atom2;
+
+      Vector3D dscalarmul = ik.rv;
+
+      Vector3D de1 = -dscalarmul;
+      Vector3D de2 = ij.dr(datom)*ik.r_+ij.r_*ik.dr(datom);
+
+      Vector3D dCosTheta = (de1*e2-e1*de2)/SQR(e2);
+
+      ij.atom2.grad += dCosTheta*V;
+    }
+    {
+      const Atom& datom = ik.atom2;
+
+      Vector3D dscalarmul = ij.rv;
+
+      Vector3D de1 = -dscalarmul;
+      Vector3D de2 = ij.dr(datom)*ik.r_+ij.r_*ik.dr(datom);
+
+      Vector3D dCosTheta = (de1*e2-e1*de2)/SQR(e2);
+
+      ik.atom2.grad += dCosTheta*V;
+    }
   }
 
   return CosT;
@@ -161,31 +196,6 @@ FGeneral::SinTheta(AtomsPair& ij, AtomsPair& ik)
   if (SinT>+1.0) SinT = +1.0;
 
   return SinT;
-}
-
-inline
-Vector3D
-FGeneral::dCosTheta(const AtomsPair& ij, const AtomsPair& ik, const Atom &datom) const
-{
-  Float e1 = scalarmul(ij.rv,ik.rv);
-  Float e2 = ij.r_*ik.r_;
-
-  Vector3D dscalarmul;
-  {
-    if (&ij.atom1 == &datom)
-      dscalarmul = -ij.rv-ik.rv;
-    else if (&ij.atom2 == &datom)
-      dscalarmul = ik.rv;
-    else if (&ik.atom2 == &datom)
-      dscalarmul = ij.rv;
-    else
-      dscalarmul = 0.0;
-  };
-
-  Vector3D de1 = -dscalarmul;
-  Vector3D de2 = ij.dr(datom)*ik.r_+ij.r_*ik.dr(datom);
-
-  return (de1*e2-e1*de2)/SQR(e2);
 }
 
 inline
