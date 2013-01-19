@@ -187,17 +187,11 @@ FGeneral::SinTheta(AtomsPair& ij, AtomsPair& ik)
 
 #define dCosDihedral_COMMON_INC \
 \
-Float de2_1_x = 0.5/e2_1*dejik_module_squared_dx_;\
-Float de2_2_x = 0.5/e2_2*deijl_module_squared_dx_;\
-de2.x = de2_1_x*e2_2 + e2_1*de2_2_x;\
+de2.x = 0.5*(e2_2/e2_1*dejik_module_squared_dx_ + e2_1/e2_2*deijl_module_squared_dx_); \
 \
-Float de2_1_y = 0.5/e2_1*dejik_module_squared_dy_;\
-Float de2_2_y = 0.5/e2_2*deijl_module_squared_dy_;\
-de2.y = de2_1_y*e2_2 + e2_1*de2_2_y;\
+de2.y = 0.5*(e2_2/e2_1*dejik_module_squared_dy_ + e2_1/e2_2*deijl_module_squared_dy_); \
 \
-Float de2_1_z = 0.5/e2_1*dejik_module_squared_dz_;\
-Float de2_2_z = 0.5/e2_2*deijl_module_squared_dz_;\
-de2.z = de2_1_z*e2_2 + e2_1*de2_2_z;\
+de2.z = 0.5*(e2_2/e2_1*dejik_module_squared_dz_ + e2_1/e2_2*deijl_module_squared_dz_); \
 \
 dCosDihedral = (de1*e2-e1*de2)/SQR(e2);\
 
