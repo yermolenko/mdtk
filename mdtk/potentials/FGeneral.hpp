@@ -300,63 +300,42 @@ FGeneral::CosDihedral(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V
 
     Vector3D dCosDihedral = 0.0;
     {
-      dscalar_dx_ = jk_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*lj_rv_z+kj_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*jl_rv_y;
-      dscalar_dy_ = kj_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
-jl_rv_z+jk_rv_x*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*lj_rv_x;
-      dscalar_dz_ = jk_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
-lj_rv_y+kj_rv_x*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*jl_rv_x;
-      dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*jk_rv_z+2.0*(ji_rv_x
-*ik_rv_y-ji_rv_y*ik_rv_x)*kj_rv_y;
-      dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*kj_rv_z+2.0*(ji_rv_x
-*ik_rv_y-ji_rv_y*ik_rv_x)*jk_rv_x;
-      dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*jk_rv_y+2.0*(ji_rv_z
-*ik_rv_x-ji_rv_x*ik_rv_z)*kj_rv_x;
-      deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*lj_rv_z+2.0*(ij_rv_x
-*jl_rv_y-ij_rv_y*jl_rv_x)*jl_rv_y;
-      deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*jl_rv_z+2.0*(ij_rv_x
-*jl_rv_y-ij_rv_y*jl_rv_x)*lj_rv_x;
-      deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*lj_rv_y+2.0*(ij_rv_z
-*jl_rv_x-ij_rv_x*jl_rv_z)*jl_rv_x;
+      dscalar_dx_ = jk_rv_z*eijl.y+ejik.y*lj_rv_z+kj_rv_y*eijl.z+ejik.z*jl_rv_y;
+      dscalar_dy_ = kj_rv_z*eijl.x+ejik.x*jl_rv_z+jk_rv_x*eijl.z+ejik.z*lj_rv_x;
+      dscalar_dz_ = jk_rv_y*eijl.x+ejik.x*lj_rv_y+kj_rv_x*eijl.y+ejik.y*jl_rv_x;
+      dejik_module_squared_dx_ = 2.0*ejik.y*jk_rv_z+2.0*ejik.z*kj_rv_y;
+      dejik_module_squared_dy_ = 2.0*ejik.x*kj_rv_z+2.0*ejik.z*jk_rv_x;
+      dejik_module_squared_dz_ = 2.0*ejik.x*jk_rv_y+2.0*ejik.y*kj_rv_x;
+      deijl_module_squared_dx_ = 2.0*eijl.y*lj_rv_z+2.0*eijl.z*jl_rv_y;
+      deijl_module_squared_dy_ = 2.0*eijl.x*jl_rv_z+2.0*eijl.z*lj_rv_x;
+      deijl_module_squared_dz_ = 2.0*eijl.x*lj_rv_y+2.0*eijl.y*jl_rv_x;
 
       dCosDihedral_COMMON_INC;
 
       ij.atom1.grad += dCosDihedral*V;
     }
     {
-      dscalar_dx_ = ki_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*il_rv_z+ik_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*li_rv_y;
-      dscalar_dy_ = ik_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
-li_rv_z+ki_rv_x*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x)+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*il_rv_x;
-      dscalar_dz_ = ki_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*
-il_rv_y+ik_rv_x*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*li_rv_x;
-      dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ki_rv_z+2.0*(ji_rv_x
-*ik_rv_y-ji_rv_y*ik_rv_x)*ik_rv_y;
-      dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ik_rv_z+2.0*(ji_rv_x
-*ik_rv_y-ji_rv_y*ik_rv_x)*ki_rv_x;
-      dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ki_rv_y+2.0*(ji_rv_z
-*ik_rv_x-ji_rv_x*ik_rv_z)*ik_rv_x;
-      deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*il_rv_z+2.0*(ij_rv_x
-*jl_rv_y-ij_rv_y*jl_rv_x)*li_rv_y;
-      deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*li_rv_z+2.0*(ij_rv_x
-*jl_rv_y-ij_rv_y*jl_rv_x)*il_rv_x;
-      deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*il_rv_y+2.0*(ij_rv_z
-*jl_rv_x-ij_rv_x*jl_rv_z)*li_rv_x;
+      dscalar_dx_ = ki_rv_z*eijl.y+ejik.y*il_rv_z+ik_rv_y*eijl.z+ejik.z*li_rv_y;
+      dscalar_dy_ = ik_rv_z*eijl.x+ejik.x*li_rv_z+ki_rv_x*eijl.z+ejik.z*il_rv_x;
+      dscalar_dz_ = ki_rv_y*eijl.x+ejik.x*il_rv_y+ik_rv_x*eijl.y+ejik.y*li_rv_x;
+      dejik_module_squared_dx_ = 2.0*ejik.y*ki_rv_z+2.0*ejik.z*ik_rv_y;
+      dejik_module_squared_dy_ = 2.0*ejik.x*ik_rv_z+2.0*ejik.z*ki_rv_x;
+      dejik_module_squared_dz_ = 2.0*ejik.x*ki_rv_y+2.0*ejik.y*ik_rv_x;
+      deijl_module_squared_dx_ = 2.0*eijl.y*il_rv_z+2.0*eijl.z*li_rv_y;
+      deijl_module_squared_dy_ = 2.0*eijl.x*li_rv_z+2.0*eijl.z*il_rv_x;
+      deijl_module_squared_dz_ = 2.0*eijl.x*il_rv_y+2.0*eijl.y*li_rv_x;
 
       dCosDihedral_COMMON_INC;
 
       ij.atom2.grad += dCosDihedral*V;
     }
     {
-      dscalar_dx_ = ij_rv_z*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)+ji_rv_y*(ij_rv_x*jl_rv_y-ij_rv_y*jl_rv_x);
-      dscalar_dy_ = ji_rv_z*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+ij_rv_x*(ij_rv_x*jl_rv_y-ij_rv_y*
-jl_rv_x);
-      dscalar_dz_ = ij_rv_y*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)+ji_rv_x*(ij_rv_z*jl_rv_x-ij_rv_x*
-jl_rv_z);
-      dejik_module_squared_dx_ = 2.0*(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ij_rv_z+2.0*(ji_rv_x
-*ik_rv_y-ji_rv_y*ik_rv_x)*ji_rv_y;
-      dejik_module_squared_dy_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ji_rv_z+2.0*(ji_rv_x
-*ik_rv_y-ji_rv_y*ik_rv_x)*ij_rv_x;
-      dejik_module_squared_dz_ = 2.0*(ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ij_rv_y+2.0*(ji_rv_z
-*ik_rv_x-ji_rv_x*ik_rv_z)*ji_rv_x;
+      dscalar_dx_ = ij_rv_z*eijl.y+ji_rv_y*eijl.z;
+      dscalar_dy_ = ji_rv_z*eijl.x+ij_rv_x*eijl.z;
+      dscalar_dz_ = ij_rv_y*eijl.x+ji_rv_x*eijl.y;
+      dejik_module_squared_dx_ = 2.0*ejik.y*ij_rv_z+2.0*ejik.z*ji_rv_y;
+      dejik_module_squared_dy_ = 2.0*ejik.x*ji_rv_z+2.0*ejik.z*ij_rv_x;
+      dejik_module_squared_dz_ = 2.0*ejik.x*ij_rv_y+2.0*ejik.y*ji_rv_x;
       deijl_module_squared_dx_ = 0.0;
       deijl_module_squared_dy_ = 0.0;
       deijl_module_squared_dz_ = 0.0;
@@ -366,20 +345,15 @@ jl_rv_z);
       ik.atom2.grad += dCosDihedral*V;
     }
     {
-      dscalar_dx_ = (ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*ji_rv_z+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*ij_rv_y;
-      dscalar_dy_ = (ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ij_rv_z+(ji_rv_x*ik_rv_y-ji_rv_y*ik_rv_x)*
-ji_rv_x;
-      dscalar_dz_ = (ji_rv_y*ik_rv_z-ji_rv_z*ik_rv_y)*ji_rv_y+(ji_rv_z*ik_rv_x-ji_rv_x*ik_rv_z)*
-ij_rv_x;
+      dscalar_dx_ = ejik.y*ji_rv_z+ejik.z*ij_rv_y;
+      dscalar_dy_ = ejik.x*ij_rv_z+ejik.z*ji_rv_x;
+      dscalar_dz_ = ejik.x*ji_rv_y+ejik.y*ij_rv_x;
       dejik_module_squared_dx_ = 0.0;
       dejik_module_squared_dy_ = 0.0;
       dejik_module_squared_dz_ = 0.0;
-      deijl_module_squared_dx_ = 2.0*(ij_rv_z*jl_rv_x-ij_rv_x*jl_rv_z)*ji_rv_z+2.0*(ij_rv_x
-*jl_rv_y-ij_rv_y*jl_rv_x)*ij_rv_y;
-      deijl_module_squared_dy_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*ij_rv_z+2.0*(ij_rv_x
-*jl_rv_y-ij_rv_y*jl_rv_x)*ji_rv_x;
-      deijl_module_squared_dz_ = 2.0*(ij_rv_y*jl_rv_z-ij_rv_z*jl_rv_y)*ji_rv_y+2.0*(ij_rv_z
-*jl_rv_x-ij_rv_x*jl_rv_z)*ij_rv_x;
+      deijl_module_squared_dx_ = 2.0*eijl.y*ji_rv_z+2.0*eijl.z*ij_rv_y;
+      deijl_module_squared_dy_ = 2.0*eijl.x*ij_rv_z+2.0*eijl.z*ji_rv_x;
+      deijl_module_squared_dz_ = 2.0*eijl.x*ji_rv_y+2.0*eijl.y*ij_rv_x;
 
       dCosDihedral_COMMON_INC;
 
