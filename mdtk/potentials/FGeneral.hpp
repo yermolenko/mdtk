@@ -187,27 +187,19 @@ FGeneral::SinTheta(AtomsPair& ij, AtomsPair& ik)
 
 #define dCosDihedral_COMMON_INC \
 \
-Float de1_x = dscalar_dx_;\
 Float de2_1_x = 0.5/e2_1*dejik_module_squared_dx_;\
 Float de2_2_x = 0.5/e2_2*deijl_module_squared_dx_;\
-Float de2_x = de2_1_x*e2_2 + e2_1*de2_2_x;\
+de2.x = de2_1_x*e2_2 + e2_1*de2_2_x;\
 \
-Float de1_y = dscalar_dy_;\
 Float de2_1_y = 0.5/e2_1*dejik_module_squared_dy_;\
 Float de2_2_y = 0.5/e2_2*deijl_module_squared_dy_;\
-Float de2_y = de2_1_y*e2_2 + e2_1*de2_2_y;\
+de2.y = de2_1_y*e2_2 + e2_1*de2_2_y;\
 \
-Float de1_z = dscalar_dz_;\
 Float de2_1_z = 0.5/e2_1*dejik_module_squared_dz_;\
 Float de2_2_z = 0.5/e2_2*deijl_module_squared_dz_;\
-Float de2_z = de2_1_z*e2_2 + e2_1*de2_2_z;\
+de2.z = de2_1_z*e2_2 + e2_1*de2_2_z;\
 \
-dCosDihedral = Vector3D\
-  (\
-    (de1_x*e2-e1*de2_x)/SQR(e2),\
-    (de1_y*e2-e1*de2_y)/SQR(e2),\
-    (de1_z*e2-e1*de2_z)/SQR(e2)\
-  );\
+dCosDihedral = (de1*e2-e1*de2)/SQR(e2);\
 
 
 inline
@@ -234,7 +226,6 @@ FGeneral::CosDihedral(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V
     AtomsPair il(ij.atom1,jl.atom2,true);
     AtomsPair jk(ij.atom2,ik.atom2,true);
 
-    Float dscalar_dx_,dscalar_dy_,dscalar_dz_;
     Float dejik_module_squared_dx_,
           dejik_module_squared_dy_,
           dejik_module_squared_dz_,
@@ -242,11 +233,14 @@ FGeneral::CosDihedral(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V
           deijl_module_squared_dy_,
           deijl_module_squared_dz_;
 
+    Vector3D de1;
+    Vector3D de2;
+
     Vector3D dCosDihedral = 0.0;
     {
-      dscalar_dx_ =  jk.rv.z*eijl.y-ejik.y*jl.rv.z-jk.rv.y*eijl.z+ejik.z*jl.rv.y;
-      dscalar_dy_ = -jk.rv.z*eijl.x+ejik.x*jl.rv.z+jk.rv.x*eijl.z-ejik.z*jl.rv.x;
-      dscalar_dz_ =  jk.rv.y*eijl.x-ejik.x*jl.rv.y-jk.rv.x*eijl.y+ejik.y*jl.rv.x;
+      de1.x =  jk.rv.z*eijl.y-ejik.y*jl.rv.z-jk.rv.y*eijl.z+ejik.z*jl.rv.y;
+      de1.y = -jk.rv.z*eijl.x+ejik.x*jl.rv.z+jk.rv.x*eijl.z-ejik.z*jl.rv.x;
+      de1.z =  jk.rv.y*eijl.x-ejik.x*jl.rv.y-jk.rv.x*eijl.y+ejik.y*jl.rv.x;
       dejik_module_squared_dx_ =  2.0*ejik.y*jk.rv.z-2.0*ejik.z*jk.rv.y;
       dejik_module_squared_dy_ = -2.0*ejik.x*jk.rv.z+2.0*ejik.z*jk.rv.x;
       dejik_module_squared_dz_ =  2.0*ejik.x*jk.rv.y-2.0*ejik.y*jk.rv.x;
@@ -259,9 +253,9 @@ FGeneral::CosDihedral(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V
       ij.atom1.grad += dCosDihedral*V;
     }
     {
-      dscalar_dx_ = -ik.rv.z*eijl.y+ejik.y*il.rv.z+ik.rv.y*eijl.z-ejik.z*il.rv.y;
-      dscalar_dy_ =  ik.rv.z*eijl.x-ejik.x*il.rv.z-ik.rv.x*eijl.z+ejik.z*il.rv.x;
-      dscalar_dz_ = -ik.rv.y*eijl.x+ejik.x*il.rv.y+ik.rv.x*eijl.y-ejik.y*il.rv.x;
+      de1.x = -ik.rv.z*eijl.y+ejik.y*il.rv.z+ik.rv.y*eijl.z-ejik.z*il.rv.y;
+      de1.y =  ik.rv.z*eijl.x-ejik.x*il.rv.z-ik.rv.x*eijl.z+ejik.z*il.rv.x;
+      de1.z = -ik.rv.y*eijl.x+ejik.x*il.rv.y+ik.rv.x*eijl.y-ejik.y*il.rv.x;
       dejik_module_squared_dx_ = -2.0*ejik.y*ik.rv.z+2.0*ejik.z*ik.rv.y;
       dejik_module_squared_dy_ =  2.0*ejik.x*ik.rv.z-2.0*ejik.z*ik.rv.x;
       dejik_module_squared_dz_ = -2.0*ejik.x*ik.rv.y+2.0*ejik.y*ik.rv.x;
@@ -274,9 +268,9 @@ FGeneral::CosDihedral(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V
       ij.atom2.grad += dCosDihedral*V;
     }
     {
-      dscalar_dx_ =  ij.rv.z*eijl.y-ij.rv.y*eijl.z;
-      dscalar_dy_ = -ij.rv.z*eijl.x+ij.rv.x*eijl.z;
-      dscalar_dz_ =  ij.rv.y*eijl.x-ij.rv.x*eijl.y;
+      de1.x =  ij.rv.z*eijl.y-ij.rv.y*eijl.z;
+      de1.y = -ij.rv.z*eijl.x+ij.rv.x*eijl.z;
+      de1.z =  ij.rv.y*eijl.x-ij.rv.x*eijl.y;
       dejik_module_squared_dx_ =  2.0*ejik.y*ij.rv.z-2.0*ejik.z*ij.rv.y;
       dejik_module_squared_dy_ = -2.0*ejik.x*ij.rv.z+2.0*ejik.z*ij.rv.x;
       dejik_module_squared_dz_ =  2.0*ejik.x*ij.rv.y-2.0*ejik.y*ij.rv.x;
@@ -289,9 +283,9 @@ FGeneral::CosDihedral(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V
       ik.atom2.grad += dCosDihedral*V;
     }
     {
-      dscalar_dx_ = -ejik.y*ij.rv.z+ejik.z*ij.rv.y;
-      dscalar_dy_ =  ejik.x*ij.rv.z-ejik.z*ij.rv.x;
-      dscalar_dz_ = -ejik.x*ij.rv.y+ejik.y*ij.rv.x;
+      de1.x = -ejik.y*ij.rv.z+ejik.z*ij.rv.y;
+      de1.y =  ejik.x*ij.rv.z-ejik.z*ij.rv.x;
+      de1.z = -ejik.x*ij.rv.y+ejik.y*ij.rv.x;
       dejik_module_squared_dx_ = 0.0;
       dejik_module_squared_dy_ = 0.0;
       dejik_module_squared_dz_ = 0.0;
