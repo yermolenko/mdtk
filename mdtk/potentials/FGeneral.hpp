@@ -202,10 +202,7 @@ Float de2_1_z = 0.5/e2_1*dejik_module_squared_dz_;\
 Float de2_2_z = 0.5/e2_2*deijl_module_squared_dz_;\
 Float de2_z = de2_1_z*e2_2 + e2_1*de2_2_z;\
 \
-if (e2 == 0.0)\
-  dCosDihedral = 0.0;\
-else \
-  dCosDihedral = Vector3D\
+dCosDihedral = Vector3D\
   (\
     (de1_x*e2-e1*de2_x)/SQR(e2),\
     (de1_y*e2-e1*de2_y)/SQR(e2),\
@@ -232,7 +229,7 @@ FGeneral::CosDihedral(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V
   if (CosT<-1.0) CosT = -1.0;
   if (CosT>+1.0) CosT = +1.0;
 
-  if (V != 0.0)
+  if (V != 0.0 && e2 != 0.0)
   {
     AtomsPair il(ij.atom1,jl.atom2,true);
     AtomsPair jk(ij.atom2,ik.atom2,true);
