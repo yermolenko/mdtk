@@ -1,8 +1,8 @@
 /*
    Building of various clusters
 
-   Copyright (C) 2007, 2008, 2010, 2011, 2012 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2007, 2008, 2010, 2011, 2012, 2013 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -1428,8 +1428,8 @@ build_metal_C60_mixing(
       a_fullerite);
   sl_fulleriteCrystal.atoms.tag(ATOMTAG_TARGET | ATOMTAG_SUBSTRATE);
 
-  int a_num_graphite = 20;
-  int b_num_graphite = 23;
+  int a_num_graphite = 19;
+  int b_num_graphite = 22;
   int c_num_graphite = 7;
   Float a_graphite = 2.46*Ao;
   Float b_graphite = 2.46*Ao;
