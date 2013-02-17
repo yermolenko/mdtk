@@ -82,7 +82,7 @@ buildCommands()
       ionEnergies.push_back(300*eV);
       ionEnergies.push_back(400*eV);
       ionEnergies.push_back(500*eV);
-      mdbuilder::bomb_MetalCluster_on_Polyethylene_with_Ions(/*8,12,15*/6,9,15,
+      mdbuilder::bomb_MetalCluster_on_Polyethylene_with_Ions(8,12,17,
                                                              clusterSizes,
                                                              clusterElements,
                                                              ionElements,
