@@ -1,7 +1,7 @@
 /*
    The NeighbourList class.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -32,7 +32,7 @@ void
 NeighbourList::Update(AtomsArray& atoms_)
 {
   REQUIRE(Rcutoff > 0.0);
-  PVLOG("NL update\n");
+  PRINT("NL update\n");
   Float range_squared = SQR((1.0+NLSKIN_FACTOR)*Rcutoff);
   size_t N = atoms_.size();
 

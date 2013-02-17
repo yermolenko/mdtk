@@ -1,8 +1,8 @@
 /*
    The AtomsContainer class.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012, 2013
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -180,11 +180,11 @@ AtomsArray::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
 {
   int i,atoms_count;
   YAATK_FSTREAM_READ(is,atoms_count,smode);
-  cout << "Reading info about " << atoms_count << " atoms..." << endl;
+  cout << "Reading info about " << atoms_count << " atoms... ";
   resize(atoms_count);
   for(i = 0; i < atoms_count; i++)
     YAATK_FSTREAM_READ(is,operator[](i),smode);
-  cout << " done." << endl;
+  cout << "done." << endl;
 
   YAATK_FSTREAM_READ(is,arrayPBC,smode);
 }

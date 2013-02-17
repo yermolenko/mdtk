@@ -1,8 +1,8 @@
 /*
    The molecular dynamics simulation loop class.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
-   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
+   2013 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -134,16 +134,16 @@ SimLoop::execute()
   try
   {
     fpot.diagnose();
-    PTRACE(atoms.front().PBCEnabled());
-    PTRACE(atoms.front().lateralPBCEnabled());
-    PTRACE(atoms.back().PBCEnabled());
-    PTRACE(atoms.back().lateralPBCEnabled());
-    PTRACE(atoms.front().PBC/Ao);
-    PTRACE(atoms.back().PBC/Ao);
-    PTRACE(thermalBath.zMin/Ao);
-    PTRACE(thermalBath.dBoundary/Ao);
-    PTRACE(thermalBath.zMinOfFreeZone/Ao);
-    PTRACE(thermalBath.To/K);
+    TRACE(atoms.front().PBCEnabled());
+    TRACE(atoms.front().lateralPBCEnabled());
+    TRACE(atoms.back().PBCEnabled());
+    TRACE(atoms.back().lateralPBCEnabled());
+    TRACE(atoms.front().PBC/Ao);
+    TRACE(atoms.back().PBC/Ao);
+    TRACE(thermalBath.zMin/Ao);
+    TRACE(thermalBath.dBoundary/Ao);
+    TRACE(thermalBath.zMinOfFreeZone/Ao);
+    TRACE(thermalBath.To/K);
     return executeMain();
   }
   catch (Exception& e)
@@ -181,7 +181,7 @@ int SimLoop::executeDryRun()
   atoms.prepareForSimulatation();
 //  REQUIRE(atoms.checkMIC(fpot.getRcutoff()*2.0));
 
-  PTRACE(initNLafterLoading);
+  TRACE(initNLafterLoading);
   if (initNLafterLoading)
   {
     fpot.NL_init(atoms);
@@ -247,7 +247,7 @@ SimLoop::executeMain()
     Float actualThermalBathTemp = actualTemperatureOfThermalBath();
     {
       Float Tb = actualThermalBathTemp;
-      PTRACE(Tb);
+      TRACE(Tb);
     }
 
     if (check.checkForce)
@@ -394,7 +394,7 @@ SimLoop::executeMain()
         if (verboseTrace)
         {
           Float ffmod = check.netForce.module();
-          PTRACE(ffmod);
+          TRACE(ffmod);
         }
         cerr << "FullForce != 0" << endl << flush;
         cout << "FullForce != 0" << endl << flush;
@@ -455,9 +455,9 @@ SimLoop::energy()
     Float Ek = energyKinCur/mdtk::eV;
     Float Et = (energyPotCur+energyKinCur)/mdtk::eV;
 
-    PTRACE(Ep);
-    PTRACE(Ek);
-    PTRACE(Et);
+    TRACE(Ep);
+    TRACE(Ek);
+    TRACE(Et);
   }
 
   return energyPotCur+energyKinCur;
@@ -489,7 +489,7 @@ SimLoop::temperature()
 {
 //  Float T = energyKin()/(3.0/2.0*kb*atoms_.size());
   Float T = temperatureWithoutFixed();
-  PTRACE(T);
+  TRACE(T);
   return T;
 }
 
