@@ -775,9 +775,11 @@ build_Cluster_Landed_on_Substrate(
   }
   sl.atoms.unfixAtoms(fixedAtoms);
 
-  relax/*_flush*/(sl,20.0*ps,"_tmp-X-landing-unfixed-CH-relax_flush");
+  relax/*_flush*/(sl,20.0*ps,"_tmp-X-landing-unfixed-CH-relax_flush-1");
+  quench(sl,0.01*K,200*ps,0.01*ps,"_tmp-X-landing-quench-1");
 
-  quench(sl,0.01*K,200*ps,0.01*ps,"_tmp-X-landing-quench");
+  relax/*_flush*/(sl,10.0*ps,"_tmp-X-landing-unfixed-CH-relax_flush-2");
+  quench(sl,0.01*K,200*ps,0.01*ps,"_tmp-X-landing-quench-2");
 
   yaatk::chdir("..");
 
