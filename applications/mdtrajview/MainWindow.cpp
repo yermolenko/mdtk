@@ -60,7 +60,7 @@ MainWindow::set_atom_properties_cb(Fl_Widget *w, void *)
   MainWindow_Ptr =
     (MainWindow*)(w->parent()->parent()->parent());
 
-  Atom* a = MainWindow_Ptr->renderBox->getSelectedAtomPtr();
+  mdtk::Atom* a = MainWindow_Ptr->renderBox->getSelectedAtomPtr();
 
   a->coords.x = MainWindow_Ptr->atom_coords_x->value()*Ao;
   a->coords.y = MainWindow_Ptr->atom_coords_y->value()*Ao;
@@ -129,7 +129,7 @@ MainWindow::setAtomViewIndex(int index)
   renderBox->selectedAtomIndex = index;
   current_atomindex->value(index/*+1*/);
 
-  Atom* a = renderBox->getSelectedAtomPtr();
+  mdtk::Atom* a = renderBox->getSelectedAtomPtr();
 
   atom_coords_x->value(a->coords.x/Ao);
   atom_coords_y->value(a->coords.y/Ao);
@@ -145,12 +145,15 @@ MainWindow::setAtomViewIndex(int index)
   os << "Atom " << index << ":" << std::endl; 
   
   mdtk::Atom &atom = renderBox->getAtoms()->operator[](index);
+
+  using namespace mdtk;
   
-  os TRACESS(int(atom.ID));
-  os TRACESS(atom.Z/mdtk::e);
-  os TRACESS(atom.M/mdtk::amu);
+  os TRACESS_NO_ENDL(int(atom.ID),"; ");
+  os TRACESS_NO_ENDL(atom.Z/e,"; ");
+  os TRACESS(atom.M/amu);
   os TRACESS(atom.V);
-  os TRACESS(atom.coords/mdtk::Ao);
+  os TRACESS(atom.coords/Ao);
+  os TRACESS(atom.PBC_count);
 //    os TRACESS(atom.an);
 //    os TRACESS(atom.apply_barrier);
   os TRACESS(atom.PBCEnabled());

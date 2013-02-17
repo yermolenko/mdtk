@@ -75,7 +75,7 @@ public:
   int  atomsQualityInHQMode;
   bool hqMode;
   size_t selectedAtomIndex;
-  Atom* getSelectedAtomPtr() {return &(Ro[selectedAtomIndex]);}
+  mdtk::Atom* getSelectedAtomPtr() {return &(Ro[selectedAtomIndex]);}
   void saveSelectedAtomProperies();
 
   GLfloat nRange;

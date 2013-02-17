@@ -21,7 +21,7 @@
 
 SET(MDTK_CurrentTarget "mdtrajview${MDTK_BINARY_SUFFIX}")
 
-include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
+include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR} ${FLTK_INCLUDE_DIR})
 
 link_directories (${MDTK_BINARY_DIR})
 

@@ -4,8 +4,8 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -210,8 +210,6 @@ AIREBO::AIREBO(CREBO* crebo):
 void
 AIREBO::setupPotential()
 {
-  PTRACE("Setup AIREBO");
-
   handledElements.insert(H_EL);
   handledElements.insert(C_EL);
   handledElementPairs.insert(std::make_pair(H_EL,C_EL));
@@ -275,6 +273,8 @@ AIREBO::setupPotential()
   b_[C][H][1] = 0.90;//0.85
     b_[H][C][1] = b_[C][H][1];
 #endif
+
+  PRINT("AIREBO::LJ interatomic potential configured.\n");
 }
 
 inline

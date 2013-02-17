@@ -1,8 +1,8 @@
 /*
    Yet another auxiliary toolkit (header file).
 
-   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012, 2013
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -99,36 +99,36 @@ namespace yaatk
   }  \
 }
 
+#define TRACE_EMPH(x) { std::cout << #x << " : " << "<<<##  " << (x) << "" << std::endl; }
 
+#define FPRINT(x) { std::cout << x << std::flush; }
+#define FEPRINT(x) { std::cerr << x << std::flush; }
+#define FTRACE(x) { std::cout << #x << " : " << (x) << std::endl; }
+#define FETRACE(x) { std::cerr << #x << " : " << (x) << std::endl; }
 
-#define TRACE_EMPH(x) std::cout << #x << " : " << "<<<##  " << (x) << "" << std::endl;
-
-
-#define TRACE(x) if (mdtk::verboseTrace) std::cout << #x << " : " << (x) << std::endl;
-#define ERRTRACE(x) std::cerr << #x << " : " << (x) << std::endl;
-#ifdef MDE_PARALLEL
-#define PTRACE(x) if (comm_rank==0) std::cout << #x << " : " << (x) << std::endl; 
-#define PTRACE_SIMPLE(x) if (comm_rank==0) std::cout << x; 
+#ifdef MDTK_PARALLEL
+#define PRINT(x) { if (mdtk::verboseTrace && mdtk::mpi_comm_rank==0) std::cout << x << std::flush; }
+#define EPRINT(x) { if (mdtk::verboseTrace && mdtk::mpi_comm_rank==0) std::cerr << x << std::flush; }
+#define TRACE(x) { if (mdtk::verboseTrace && mdtk::mpi_comm_rank==0) std::cout << #x << " : " << (x) << std::endl; }
+#define ETRACE(x) { if (mdtk::verboseTrace && mdtk::mpi_comm_rank==0) std::cerr << #x << " : " << (x) << std::endl; }
+#define VPRINT(x) { if (mdtk::mpi_comm_rank==0) std::cout << x << std::flush; }
+#define VEPRINT(x) { if (mdtk::mpi_comm_rank==0) std::cerr << x << std::flush; }
+#define VTRACE(x) { if (mdtk::mpi_comm_rank==0) std::cout << #x << " : " << (x) << std::endl; }
+#define VETRACE(x) { if (mdtk::mpi_comm_rank==0) std::cerr << #x << " : " << (x) << std::endl; }
 #else
-#define PTRACE(x) if (mdtk::verboseTrace) std::cout << #x << " : " << (x) << std::endl; 
-#define PTRACE_SIMPLE(x) if (mdtk::verboseTrace) std::cout << x; 
+#define PRINT(x) { if (mdtk::verboseTrace) std::cout << x << std::flush; }
+#define EPRINT(x) { if (mdtk::verboseTrace) std::cerr << x << std::flush; }
+#define TRACE(x) { if (mdtk::verboseTrace) std::cout << #x << " : " << (x) << std::endl; }
+#define ETRACE(x) { if (mdtk::verboseTrace) std::cerr << #x << " : " << (x) << std::endl; }
+#define VPRINT(x) { std::cout << x << std::flush; }
+#define VEPRINT(x) { std::cerr << x << std::flush; }
+#define VTRACE(x) { std::cout << #x << " : " << (x) << std::endl; }
+#define VETRACE(x) { std::cerr << #x << " : " << (x) << std::endl; }
 #endif
-
-#ifdef MDE_PARALLEL
-#define PLOG(x) if (comm_rank==0) std::cout << (x); 
-#else
-#define PLOG(x) if (mdtk::verboseTrace) std::cout << (x); 
-#endif
-
-#ifdef MDE_PARALLEL
-#define PVLOG(x) if (comm_rank==0 && verboseTrace) std::cout << (x) << std::flush; 
-#else
-#define PVLOG(x) if (verboseTrace) std::cout << (x) << std::flush; 
-#endif
-
 
 
 #define TRACESS(x) << #x << " : " << (x) << std::endl;
+#define TRACESS_NO_ENDL(x,delim) << #x << " : " << (x) << delim;
 
 
 #define YAATK_BIN_WRITE(FSTREAM_INST,VAR_INST) \
@@ -217,6 +217,7 @@ void rename(const char *oldname, const char *newname)
       std::string extension;
       ZipInvokeInfo(std::string c, std::string e)
 	:command(c),extension(e){}
+      bool works();
     };
     static std::vector<ZipInvokeInfo> zipInvokeInfoList;
     static std::vector<ZipInvokeInfo> initZipInvokeInfoList();

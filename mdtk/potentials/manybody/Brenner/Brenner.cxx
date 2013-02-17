@@ -3,7 +3,7 @@
    hydrocarbons.
    See [D.W. Brenner, Phys. Rev. B 42, 9458 (1990)]
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2009, 2012 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2009, 2012, 2013 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -497,8 +497,6 @@ Brenner::Brenner(ParamSet parSet):
 void
 Brenner::setupPotential1()
 {
-  PTRACE("Setup Brenner1");
-  
   Re_[C][C] = 1.315*Ao;
   Re_[H][H] = 0.74144*Ao;
   Re_[C][H] = 1.1199*Ao;
@@ -550,13 +548,13 @@ Brenner::setupPotential1()
   do_ = 2.5;
 
   G_HH_ = 4.0;
-}  
+
+  PRINT("Brenner1 interatomic potential configured.");
+}
 
 void
 Brenner::setupPotential2()
 {
-  PTRACE("Setup Brenner2");
-
   Re_[C][C] = 1.39*Ao;
   Re_[H][H] = 0.74144*Ao;
   Re_[C][H] = 1.1199*Ao;
@@ -608,7 +606,9 @@ Brenner::setupPotential2()
   do_ = 3.5;
 
   G_HH_ = 12.33;
-}  
+
+  PRINT("Brenner2 interatomic potential configured.");
+}
 
 inline
 Float
