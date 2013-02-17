@@ -4,8 +4,8 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -853,8 +853,6 @@ REBO::REBO(ParamSet /*parSet*/):
 void
 REBO::setupPotential1()
 {
-  PTRACE("Setup REBO");
-
   Q_[C][C] = 0.313460*Ao;
   Q_[C][H] = 0.340776*Ao;
     Q_[H][C] = Q_[C][H];
@@ -935,7 +933,9 @@ REBO::setupPotential1()
   do_ = 2.5;
 
   G_HH_ = 4.0;
-}  
+
+  PRINT("AIREBO::REBO interatomic potential configured.\n");
+}
 
 inline
 Float

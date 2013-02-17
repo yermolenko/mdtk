@@ -1,8 +1,8 @@
 /*
    The proxy class for interatomic potentials.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012, 2013
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -54,7 +54,7 @@ FProxy::operator()(AtomsArray& gl)
   {
     Float Ecur = (*(potentials[i]))(gl);
     Ei += Ecur;
-    {Float E = Ecur/eV;PTRACE_SIMPLE("E");PTRACE_SIMPLE(i);PTRACE_SIMPLE(" : ");PTRACE_SIMPLE(E);PTRACE_SIMPLE("\n");}
+    {Float E = Ecur/eV;PRINT("E" << i << " : " << E << "\n");}
   }
 
   return Ei;
@@ -63,13 +63,12 @@ FProxy::operator()(AtomsArray& gl)
 void
 FProxy::diagnose()
 {
-  PTRACE("Potentials diagnostic is starting ... ");
+  PRINT("Interatomic potentials:\n");
   for(size_t i = 0; i < potentials.size(); i++)
   {
-    PTRACE(typeid(*(potentials[i])).name());
-    PTRACE(potentials[i]->getRcutoff()/Ao);
+    TRACE(typeid(*(potentials[i])).name());
+    TRACE(potentials[i]->getRcutoff()/Ao);
   }
-  PTRACE("Potentials diagnostic is done.");
 }
 
 } // namespace mdtk

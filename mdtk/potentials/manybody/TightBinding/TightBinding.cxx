@@ -2,8 +2,8 @@
    Implementation of the many-body interatomic potential for copper.
    See [G. Betz, W. Husinsky, Nucl. Instr. and Meth. B 102, 281 (1995)]
 
-   Copyright (C) 2006, 2007, 2008, 2009, 2012 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2006, 2007, 2008, 2009, 2012, 2013 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -174,8 +174,6 @@ TightBinding::TightBinding():
 void
 TightBinding::setupPotential()
 {
-  PTRACE("Setup TightBinding");
-
   alpha_ = 42.87/(10.0*Ao);
   beta_  = 18.00/(10.0*Ao);
   c_     = 12.17*eV;
@@ -186,6 +184,8 @@ TightBinding::setupPotential()
   BM_A = 22.565*1000.0*eV;
   BM_B = 50.88/(10.0*Ao);
   fillR_concat_();
+
+  PRINT("TightBinding interatomic potential configured.\n");
 }
 
 void

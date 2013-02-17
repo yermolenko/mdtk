@@ -4,8 +4,8 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -124,12 +124,12 @@ ETors::ETors():
 void
 ETors::setupPotential()
 {
-  PTRACE("Setup ETORS");
-
   zetaCC_[C][C] = 0.3079*eV;
   zetaCC_[H][H] = 0.1250*eV;
   zetaCC_[C][H] = 0.1787*eV;
     zetaCC_[H][C] = zetaCC_[C][H];
+
+  PRINT("AIREBO::ETors interatomic potential configured.\n");
 }
 
 }

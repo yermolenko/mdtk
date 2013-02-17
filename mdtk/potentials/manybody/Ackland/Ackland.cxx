@@ -3,7 +3,7 @@
    gold, silver and their alloys.
    See [G.J. Ackland and V. Vitek, Phys. Rev. B 41, 10324 (1990)]
 
-   Copyright (C) 2007, 2008, 2009, 2012 Oleksandr Yermolenko
+   Copyright (C) 2007, 2008, 2009, 2012, 2013 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -276,8 +276,6 @@ Ackland::Ackland():
 void
 Ackland::setupPotential()
 {
-  PTRACE("Setup Ackland");
-
 //  Float koe = 1.3067977/61.73525861;
 
 /*
@@ -396,6 +394,8 @@ Ackland::setupPotential()
         Ak_[i1][i2][i3] *= koe;
 */
 fillR_concat_();
+
+  PRINT("Ackland interatomic potential configured.\n");
 }
 
 void
