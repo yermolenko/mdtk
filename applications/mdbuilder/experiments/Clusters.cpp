@@ -90,7 +90,7 @@ checkOnEnergyPotMin(SimLoop& simloop, Float& minPotEnergy)
       fo.close();
     }
     if (mdtk::verboseTrace)
-      ERRTRACE(minPotEnergy/eV/simloop.atoms.size());
+      ETRACE(minPotEnergy/eV/simloop.atoms.size());
   }
 }
 
@@ -105,7 +105,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
   Float freezingEnergy = 0.0001*2.5*eV*modloop->atoms.size();
   TRACE(freezingEnergy/eV);
   if (mdtk::verboseTrace)
-    ERRTRACE(freezingEnergy/eV);
+    ETRACE(freezingEnergy/eV);
 
   for(Float maxHeatUpEnergy = 0.0001*eV;
       maxHeatUpEnergy <= 5.00*eV;
@@ -129,7 +129,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     retval = modloop->execute();
     if (retval) return ENERGYINF;
     if (mdtk::verboseTrace)
-      ERRTRACE(modloop->simTime/ps);
+      ETRACE(modloop->simTime/ps);
     checkOnEnergyPotMin(*modloop,minPotEnergy);
 
     if (mdtk::verboseTrace)
@@ -146,7 +146,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
       modloop->simTimeFinal += 0.05*ps;
       retval = modloop->execute();
       if (mdtk::verboseTrace)
-        ERRTRACE(modloop->simTime/ps);
+        ETRACE(modloop->simTime/ps);
       if (modloop->energyKin() < freezingEnergy) break;
     }
     if (retval) return ENERGYINF;
@@ -240,11 +240,11 @@ add1atom(AtomsArray& atoms, ElementID id, gsl_rng* r)
 
   if (mdtk::verboseTrace)
   {
-    ERRTRACE(xi);
-    ERRTRACE(xs);
-    ERRTRACE(sign);
-    ERRTRACE(xM/Ao);
-    ERRTRACE(xMIndex);
+    ETRACE(xi);
+    ETRACE(xs);
+    ETRACE(sign);
+    ETRACE(xM/Ao);
+    ETRACE(xMIndex);
   }
 
   Atom newAtom;
@@ -258,15 +258,15 @@ add1atom(AtomsArray& atoms, ElementID id, gsl_rng* r)
   Vector3D dv(0,0,0);
   dv.X(xi) = 2.29*Ao*sign;
   if (mdtk::verboseTrace)
-    ERRTRACE(dv);
+    ETRACE(dv);
   dv += 0.03*Ao*vn;
   if (mdtk::verboseTrace)
-    ERRTRACE(dv);
+    ETRACE(dv);
 
   newAtom.coords = atoms[xMIndex].coords + dv;
 
   if (mdtk::verboseTrace)
-    ERRTRACE(newAtom.coords/Ao);
+    ETRACE(newAtom.coords/Ao);
 
   atoms.push_back(newAtom);
 }
@@ -306,7 +306,7 @@ cluster(ElementID id, int clusterSize)
       atomsCount++)
   {
     if (mdtk::verboseTrace)
-      ERRTRACE(sl.atoms.size());
+      ETRACE(sl.atoms.size());
 
     sl.executeDryRun();
 
@@ -389,7 +389,7 @@ clusterFromCrystal(const AtomsArray& atoms, int clusterSize, Vector3D c)
 
   {
     if (mdtk::verboseTrace)
-      ERRTRACE(sl.atoms.size());
+      ETRACE(sl.atoms.size());
 
     sl.executeDryRun();
 
