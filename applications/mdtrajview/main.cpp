@@ -1,8 +1,8 @@
 /*
    mdtrajview (the molecular dynamics trajectory viewer)
 
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
-   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
+   2012, 2013 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -201,8 +201,8 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     }
   }
 
-  const size_t maxsize = 2000;
-  if (fileList.size() > maxsize) fileList.resize(maxsize);
+//  const size_t maxsize = 2000;
+//  if (fileList.size() > maxsize) fileList.resize(maxsize);
 
   xmde::VisBox avb(15,35,500,500);
   avb.set_non_modal();
