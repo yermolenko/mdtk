@@ -180,7 +180,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->dt = 1e-20;
     TRACE(modloop->atoms.PBC());
     Float coolingStartTime = modloop->simTime;
-    while (modloop->energyKin()/(3.0/2.0*kb*modloop->atoms.size()) > 0.1*K)
+    while (modloop->energyKin()/(3.0/2.0*kb*modloop->atoms.size()) > 0.0001*K)
     {
       REQUIRE(!areUnparted(modloop->atoms));
 
