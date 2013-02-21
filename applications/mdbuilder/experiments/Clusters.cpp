@@ -94,6 +94,35 @@ checkOnEnergyPotMin(SimLoop& simloop, Float& minPotEnergy)
   }
 }
 
+void
+buildFromAtom(const mdtk::Atom& a, const AtomsArray& atoms, std::set<size_t>& molecule)
+{
+  if (molecule.find(a.globalIndex) != molecule.end())
+    return;
+
+  molecule.insert(a.globalIndex);
+
+  for(size_t i = 0; i < atoms.size(); i++)
+  {
+    const mdtk::Atom& nb_a = atoms[i];
+    if (depos(a,nb_a).module() <= 7.0*Ao)
+      buildFromAtom(nb_a,atoms,molecule);
+  }
+}
+
+bool areUnparted(const AtomsArray& atoms)
+{
+  std::set<size_t> molecule;
+
+  buildFromAtom(atoms[0],atoms,molecule);
+
+  TRACE(atoms.size());
+  TRACE(molecule.size());
+  TRACE(molecule.size() == atoms.size());
+
+  return molecule.size() != atoms.size();
+}
+
 Float
 optimize_single(SimLoop *modloop, gsl_rng* rng)
 {
@@ -107,27 +136,45 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
   if (mdtk::verboseTrace)
     ETRACE(freezingEnergy/eV);
 
+  modloop->simTime = 0.0*ps;
+  modloop->simTimeFinal = 0.0*ps;
+  modloop->iteration = 0;
+
+  bool stopHeating = false;
+
   for(Float maxHeatUpEnergy = 0.0001*eV;
-      maxHeatUpEnergy <= 5.00*eV;
+      maxHeatUpEnergy <= 20.00*eV;
       maxHeatUpEnergy += 0.05*eV)
   {
     modloop->simTimeSaveTrajInterval = 1000.0*ps;
     modloop->iterationFlushStateInterval = 1000000;
 
     modloop->thermalBath.zMin = +100000.0*Ao;
-    modloop->simTime = 0.0*ps;
-    modloop->simTimeFinal = 1.0*ps;
     modloop->dt = 1e-20;
-    modloop->iteration = 0;
     if (mdtk::verboseTrace)
       cerr << "Heating up every atom to " << maxHeatUpEnergy/eV << " eV" << std::endl;
     modloop->heatUpEveryAtom(maxHeatUpEnergy, rng);
+    modloop->atoms.removeMomentum();
     TRACE(modloop->atoms.PBC());
     int retval;
     if (mdtk::verboseTrace)
       cerr << "Releasing..." << std::endl;
-    retval = modloop->execute();
+    Float relaxStartTime = modloop->simTime;
+    while (modloop->simTimeFinal < relaxStartTime + 20.0*ps)
+    {
+      modloop->simTimeFinal += 1.0*ps;
+      retval = modloop->execute();
+      if (areUnparted(modloop->atoms))
+      {
+        stopHeating = true;
+        break;
+      }
+    }
     if (retval) return ENERGYINF;
+
+    if (stopHeating)
+      break;
+
     if (mdtk::verboseTrace)
       ETRACE(modloop->simTime/ps);
     checkOnEnergyPotMin(*modloop,minPotEnergy);
@@ -136,12 +183,10 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
       cerr << "Cooling..." << std::endl;
 
     modloop->thermalBath.zMin = -100000.0*Ao;
-    modloop->simTime = 0.0*ps;
-    modloop->simTimeFinal = 0.0*ps;
     modloop->dt = 1e-20;
-    modloop->iteration = 0;
     TRACE(modloop->atoms.PBC());
-    while (modloop->simTimeFinal < 4.0*ps)
+    Float coolingStartTime = modloop->simTime;
+    while (modloop->simTimeFinal < coolingStartTime + 4.0*ps)
     {
       modloop->simTimeFinal += 0.05*ps;
       retval = modloop->execute();
