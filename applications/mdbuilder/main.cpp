@@ -57,6 +57,24 @@ buildCommands()
   {
 //    if (0)
     {
+      ElementID id = Cu_EL;
+      int clusterSize = 195;
+      AtomsArray cluster = mdbuilder::clusterFromFCCCrystal(id,clusterSize);
+      SimLoop sl;
+      mdbuilder::initialize_simloop(sl);
+      sl.atoms = cluster;
+
+      sl.iteration = 0;
+      sl.simTime = 0.0*ps;
+      sl.simTimeFinal = 10.0*ps;
+      sl.simTimeSaveTrajInterval = 0.1*ps;
+
+      yaatk::text_ofstream fomde("mde_init");
+      sl.saveToStream(fomde);
+      fomde.close();
+    }
+    if (0)
+    {
       verboseTrace = false;
       TRACE(clusterSize);
       glLoadIdentity();
@@ -270,6 +288,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     }
   }
 
+  if (0)
   if (clusterSize == 0)
   {
     std::cerr << "You should specify cluster size with --cluster-size option. Run with -h option for details.\n";
