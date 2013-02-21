@@ -144,7 +144,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
   bool stopHeating = false;
   AtomsArray lastSolidCluster = modloop->atoms;
 
-  while (!stopHeating || modloop->thermalBath.To <= 10000.0*K)
+  while (!stopHeating && modloop->thermalBath.To <= 10000.0*K)
   {
     Float T = modloop->energyKin()/(3.0/2.0*kb*modloop->atoms.size());
     cerr << "To( " << modloop->simTime/ps << " ps ) = " << modloop->thermalBath.To << " K" << endl;
