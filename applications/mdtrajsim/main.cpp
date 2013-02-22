@@ -1,8 +1,8 @@
 /* 
    mdtrajsim (molecular dynamics trajectory simulator)
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
-   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
+   2013 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -343,7 +343,7 @@ try
   {
     REQUIRE(yaatk::exists(inputFile.c_str()));
     yaatk::text_ifstream fi(inputFile.c_str());
-    mdloop.loadFromStream(fi);
+    mdloop.loadFromMDE(fi);
 //    mdloop.simTimeFinal = 6.0*ps;
 //    mdloop.loadFromMDE_OLD(fi);
     fi.close();
