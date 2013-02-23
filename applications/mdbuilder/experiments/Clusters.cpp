@@ -142,10 +142,19 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
   modloop->dt = 1e-20;
 
   bool stopHeating = false;
-  AtomsArray lastSolidCluster = modloop->atoms;
+  std::vector<AtomsArray> snapshots;
+
+  {
+    ETRACE(modloop->thermalBath.To);
+    snapshots.push_back(modloop->atoms);
+    EPRINT("Snapshot saved.");
+  }
 
   while (!stopHeating && modloop->thermalBath.To <= 10000.0*K)
   {
+    yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
+    yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
+
     Float T = modloop->energyKin()/(3.0/2.0*kb*modloop->atoms.size());
     cerr << "To( " << modloop->simTime/ps << " ps ) = " << modloop->thermalBath.To << " K" << endl;
     cerr << "T ( " << modloop->simTime/ps << " ps ) = " << T << " K" << endl;
@@ -153,23 +162,35 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->thermalBath.To = (1.0*K)/(1.0*ps)*modloop->simTime;
 
     modloop->atoms.removeMomentum();
+
+    Float ToSnapshotInterval = 100.0*K;
+    Float dTo = 1.0*K;
+    if (int(modloop->thermalBath.To/ToSnapshotInterval) != int((modloop->thermalBath.To - dTo)/ToSnapshotInterval))
+    {
+      ETRACE(modloop->thermalBath.To);
+      snapshots.push_back(modloop->atoms);
+      EPRINT("Snapshot saved.");
+    }
+
     int retval;
     Float relaxStartTime = modloop->simTime;
     modloop->simTimeFinal += 1.0*ps;
     retval = modloop->execute();
     if (areUnparted(modloop->atoms))
       stopHeating = true;
-    else
-      lastSolidCluster = modloop->atoms;
 
     if (retval) return ENERGYINF;
 
     checkOnEnergyPotMin(*modloop,minPotEnergy);
   }
 
-  modloop->atoms = lastSolidCluster;
+  ETRACE(modloop->thermalBath.To);
+  ETRACE(snapshots.size());
 
+  for(size_t i = 0; i < snapshots.size(); ++i)
   {
+    modloop->atoms = snapshots[i];
+
     if (mdtk::verboseTrace)
       cerr << "Cooling..." << std::endl;
 
