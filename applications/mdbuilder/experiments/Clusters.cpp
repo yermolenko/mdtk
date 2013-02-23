@@ -86,7 +86,8 @@ checkOnEnergyPotMin(SimLoop& simloop, Float& minPotEnergy)
     {
       std::ofstream fo("energy.min",std::ios::app);
       fo << minPotEnergy/eV/simloop.atoms.size() << " "
-         << minPotEnergy/eV/simloop.atoms.size() << std::endl;
+         << minPotEnergy/eV/simloop.atoms.size() << " "
+         << yaatk::extractLastItem(yaatk::getcwd()) << std::endl;
       fo.close();
     }
     if (mdtk::verboseTrace)
@@ -144,11 +145,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
   bool stopHeating = false;
   std::vector<AtomsArray> snapshots;
 
-  {
-    ETRACE(modloop->thermalBath.To);
-    snapshots.push_back(modloop->atoms);
-    EPRINT("Snapshot saved.");
-  }
+  snapshots.push_back(modloop->atoms);
 
   while (!stopHeating && modloop->thermalBath.To <= 10000.0*K)
   {
@@ -189,6 +186,12 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
 
   for(size_t i = 0; i < snapshots.size(); ++i)
   {
+    std::ostringstream dirname("snapshot");
+    PRINT2STREAM_FW(dirname, i, '0', 10);
+    yaatk::ChDir cd(dirname.str());
+    yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
+    yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
+
     modloop->atoms = snapshots[i];
 
     if (mdtk::verboseTrace)
