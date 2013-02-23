@@ -328,6 +328,56 @@ struct StreamToFileRedirect
     }
 };
 
+struct ChDir
+{
+  ChDir(std::string dir = "_tmp")
+    {
+      yaatk::mkdir(dir.c_str());
+      yaatk::chdir(dir.c_str());
+    }
+  ~ChDir()
+    {
+      yaatk::chdir("..");
+    }
+};
+
+class StreamMod_fwp
+{
+  std::ostream& stream2modify;
+  char fill_prev;
+  std::streamsize width_prev;
+  std::streamsize precision_prev;
+public:
+  StreamMod_fwp(std::ostream& stream,
+                char fill = '0',
+                std::streamsize width = 4,
+                std::streamsize precision = 1)
+    :stream2modify(stream)
+    {
+      fill_prev = stream2modify.fill('0');
+      width_prev = stream2modify.width(4);
+      precision_prev = stream2modify.precision(1);
+    }
+  ~StreamMod_fwp()
+    {
+      stream2modify.precision(precision_prev);
+      stream2modify.width(width_prev);
+      stream2modify.fill(fill_prev);
+    }
+};
+
+#define PRINT2STREAM_FWP(stream,x,fill,width,precision)         \
+  {                                                             \
+    yaatk::StreamMod_fwp smod(stream, fill, width, precision);  \
+    stream << x << std::flush;                                  \
+  }
+
+#define PRINT2STREAM_FW(stream,x,fill,width)                 \
+  {                                                          \
+    yaatk::StreamMod_fwp smod(stream, fill, width);          \
+    stream << x << std::flush;                               \
+  }
+
 }
 
 #endif
