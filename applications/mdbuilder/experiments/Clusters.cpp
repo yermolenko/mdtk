@@ -79,8 +79,8 @@ checkOnEnergyPotMin(SimLoop& simloop, Float& minPotEnergy)
     TRACE(minPotEnergy/eV);
     TRACE(minPotEnergy/eV/simloop.atoms.size());
     {
-      std::ofstream fo("in.mde.min");
-      simloop.saveToMDE(fo);
+      std::ofstream fo("mde_init.min");
+      simloop.saveToStream(fo);
       fo.close();
     }
     {
@@ -178,7 +178,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
 
     if (retval) return ENERGYINF;
 
-    checkOnEnergyPotMin(*modloop,minPotEnergy);
+//    checkOnEnergyPotMin(*modloop,minPotEnergy);
   }
 
   ETRACE(modloop->thermalBath.To);
@@ -197,6 +197,40 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     if (mdtk::verboseTrace)
       cerr << "Cooling..." << std::endl;
 
+    modloop->simTime = 0.0*ps;
+    modloop->simTimeFinal = 0.0*ps;
+    modloop->iteration = 0;
+
+    modloop->simTimeSaveTrajInterval = 1000.0*ps;
+    modloop->iterationFlushStateInterval = 1000000;
+
+    modloop->thermalBath.zMin = -100000.0*Ao;
+    modloop->dt = 1e-20;
+
+    bool stopCooling = false;
+
+    while (!stopCooling && modloop->thermalBath.To > 2.0*K)
+    {
+      Float T = modloop->energyKin()/(3.0/2.0*kb*modloop->atoms.size());
+      cerr << "To( " << modloop->simTime/ps << " ps ) = " << modloop->thermalBath.To << " K" << endl;
+      cerr << "T ( " << modloop->simTime/ps << " ps ) = " << T << " K" << endl;
+
+      modloop->thermalBath.To -= 1.0*K;
+
+      modloop->atoms.removeMomentum();
+
+      int retval;
+      Float relaxStartTime = modloop->simTime;
+      modloop->simTimeFinal += 1.0*ps;
+      retval = modloop->execute();
+      if (areUnparted(modloop->atoms))
+        stopCooling = true;
+
+      if (retval) return ENERGYINF;
+
+//      checkOnEnergyPotMin(*modloop,minPotEnergy);
+    }
+
     int retval;
 
     modloop->thermalBath.To = 0.0;
@@ -204,9 +238,10 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->dt = 1e-20;
     TRACE(modloop->atoms.PBC());
     Float coolingStartTime = modloop->simTime;
-    while (modloop->energyKin()/(3.0/2.0*kb*modloop->atoms.size()) > 0.0001*K)
+    while (!stopCooling && modloop->energyKin()/(3.0/2.0*kb*modloop->atoms.size()) > 0.0001*K)
     {
-      REQUIRE(!areUnparted(modloop->atoms));
+      if (areUnparted(modloop->atoms))
+        stopCooling = true;
 
       modloop->simTimeFinal += 0.05*ps;
       retval = modloop->execute();
@@ -218,7 +253,7 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
     modloop->atoms.removeMomentum();
   }
   {
-    std::ofstream fo("in.mde.final");
+    std::ofstream fo("mde_init.last");
     modloop->saveToStream(fo);
     fo.close();
   }
@@ -227,8 +262,8 @@ optimize_single(SimLoop *modloop, gsl_rng* rng)
   TRACE(minPotEnergy/eV/modloop->atoms.size());
 
   {
-    yaatk::text_ifstream fi("in.mde.min");
-    modloop->loadFromMDE(fi);
+    yaatk::text_ifstream fi("mde_init.min");
+    modloop->loadFromStream(fi);
     fi.close();
   }
 
