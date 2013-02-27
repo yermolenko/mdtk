@@ -3,7 +3,7 @@
    gold, silver and their alloys (header file).
    See [G.J. Ackland and V. Vitek, Phys. Rev. B 41, 10324 (1990)]
 
-   Copyright (C) 2007, 2008, 2009, 2012 Oleksandr Yermolenko
+   Copyright (C) 2007, 2008, 2009, 2012, 2013 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -56,13 +56,6 @@ public:
   Ackland();
   Float getRcutoff() const {return max3(rk_[Au][Au][1],rk_[Ag][Ag][1],rk_[Cu][Cu][1]);} // needs unification!!!
 private:
-/*
-  Float alpha_;
-  Float beta_;
-  Float Phi0_;
-*/
-  Float c_;
-
   enum {ECOUNT = 3};
   enum {Cu = 0};
   enum {Ag = 1};
