@@ -69,33 +69,6 @@ C60()
 }
 
 void
-checkOnEnergyPotMin(SimLoop& simloop, Float& minPotEnergy)
-{
-  Float currentPotEnergy = simloop.energyPot();
-  TRACE(currentPotEnergy/eV);
-  if (currentPotEnergy < minPotEnergy)
-  {
-    minPotEnergy = currentPotEnergy;
-    TRACE(minPotEnergy/eV);
-    TRACE(minPotEnergy/eV/simloop.atoms.size());
-    {
-      std::ofstream fo("mde_init.min");
-      simloop.saveToStream(fo);
-      fo.close();
-    }
-    {
-      std::ofstream fo("energy.min",std::ios::app);
-      fo << minPotEnergy/eV/simloop.atoms.size() << " "
-         << minPotEnergy/eV/simloop.atoms.size() << " "
-         << yaatk::extractLastItem(yaatk::getcwd()) << std::endl;
-      fo.close();
-    }
-    if (mdtk::verboseTrace)
-      ETRACE(minPotEnergy/eV/simloop.atoms.size());
-  }
-}
-
-void
 buildFromAtom(const mdtk::Atom& a, const AtomsArray& atoms, std::set<size_t>& molecule)
 {
   if (molecule.find(a.globalIndex) != molecule.end())
@@ -124,147 +97,172 @@ bool areUnparted(const AtomsArray& atoms)
   return molecule.size() != atoms.size();
 }
 
-Float
-optimize_single(SimLoop *modloop, gsl_rng* rng)
+struct OptiSnapshot
 {
+  AtomsArray atoms;
+  Float T;
+  OptiSnapshot(const AtomsArray &atomsArray = AtomsArray(),
+               const Float temperature = 0.0*K)
+    :atoms(atomsArray), T(temperature)
+    {
+    }
+};
+
+Float
+optimize_single(SimLoop& simloop, gsl_rng* rng)
+{
+  SimLoop mdloop(simloop);
+  initialize_simloop(mdloop);
+
   const Float ENERGYINF = 1e6*eV;
 
   Float minPotEnergy = ENERGYINF;
-  TRACE(minPotEnergy/eV);
 
-  modloop->simTime = 0.0*ps;
-  modloop->simTimeFinal = 0.0*ps;
-  modloop->iteration = 0;
+  mdloop.simTime = 0.0*ps;
+  mdloop.simTimeFinal = 0.0*ps;
+  mdloop.iteration = 0;
+  mdloop.dt = 1e-20;
 
-  modloop->simTimeSaveTrajInterval = 1000.0*ps;
-  modloop->iterationFlushStateInterval = 1000000;
+  mdloop.simTimeSaveTrajInterval = 1000.0*ps;
+  mdloop.iterationFlushStateInterval = 1000000;
 
-  modloop->thermalBath.zMin = -100000.0*Ao;
-  modloop->dt = 1e-20;
+  mdloop.thermalBath.zMin = -100000.0*Ao;
 
   bool stopHeating = false;
-  std::vector<AtomsArray> snapshots;
+  std::vector<OptiSnapshot> snapshots;
 
-  snapshots.push_back(modloop->atoms);
+  snapshots.push_back(OptiSnapshot(mdloop.atoms,0));
 
-  while (!stopHeating && modloop->thermalBath.To <= 10000.0*K)
+  while (!stopHeating && mdloop.thermalBath.To <= 10000.0*K)
   {
     yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
     yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
 
-    Float T = modloop->energyKin()/(3.0/2.0*kb*modloop->atoms.size());
-    cerr << "To( " << modloop->simTime/ps << " ps ) = " << modloop->thermalBath.To << " K" << endl;
-    cerr << "T ( " << modloop->simTime/ps << " ps ) = " << T << " K" << endl;
+    Float T = mdloop.temperature();
+    cerr << "To( " << mdloop.simTime/ps << " ps ) = "
+         << mdloop.thermalBath.To << " K" << endl;
+    cerr << "T ( " << mdloop.simTime/ps << " ps ) = "
+         << T << " K" << endl;
 
-    modloop->thermalBath.To = (1.0*K)/(1.0*ps)*modloop->simTime;
-
-    modloop->atoms.removeMomentum();
+    mdloop.thermalBath.To = (1.0*K)/(1.0*ps)*mdloop.simTime;
 
     Float ToSnapshotInterval = 100.0*K;
     Float dTo = 1.0*K;
-    if (int(modloop->thermalBath.To/ToSnapshotInterval) != int((modloop->thermalBath.To - dTo)/ToSnapshotInterval))
+    if (int(mdloop.thermalBath.To/ToSnapshotInterval) !=
+        int((mdloop.thermalBath.To - dTo)/ToSnapshotInterval))
     {
-      ETRACE(modloop->thermalBath.To);
-      snapshots.push_back(modloop->atoms);
+      ETRACE(mdloop.thermalBath.To);
+      snapshots.push_back(OptiSnapshot(mdloop.atoms,T));
       EPRINT("Snapshot saved.");
     }
 
-    int retval;
-    Float relaxStartTime = modloop->simTime;
-    modloop->simTimeFinal += 1.0*ps;
-    retval = modloop->execute();
-    if (areUnparted(modloop->atoms))
+    mdloop.simTimeFinal += 1.0*ps;
+
+    mdloop.atoms.removeMomentum();
+    if (mdloop.execute())
+      return ENERGYINF;
+    mdloop.atoms.removeMomentum();
+
+    if (areUnparted(mdloop.atoms))
       stopHeating = true;
-
-    if (retval) return ENERGYINF;
-
-//    checkOnEnergyPotMin(*modloop,minPotEnergy);
   }
 
-  ETRACE(modloop->thermalBath.To);
+  ETRACE(mdloop.thermalBath.To);
   ETRACE(snapshots.size());
 
   for(size_t i = 0; i < snapshots.size(); ++i)
   {
-    std::ostringstream dirname("snapshot");
+    std::ostringstream dirname;
+    dirname << "snapshot";
     PRINT2STREAM_FW(dirname, i, '0', 10);
+    dirname << "-";
+    PRINT2STREAM_FWP(dirname, snapshots[i].T, '0', 6, 1);
+    dirname << "K";
     yaatk::ChDir cd(dirname.str());
     yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
     yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
 
-    modloop->atoms = snapshots[i];
-
     if (mdtk::verboseTrace)
       cerr << "Cooling..." << std::endl;
 
-    modloop->simTime = 0.0*ps;
-    modloop->simTimeFinal = 0.0*ps;
-    modloop->iteration = 0;
+    mdloop.atoms = snapshots[i].atoms;
+    mdloop.thermalBath.To = snapshots[i].T;
 
-    modloop->simTimeSaveTrajInterval = 1000.0*ps;
-    modloop->iterationFlushStateInterval = 1000000;
+    mdloop.simTime = 0.0*ps;
+    mdloop.simTimeFinal = 0.0*ps;
+    mdloop.iteration = 0;
+    mdloop.dt = 1e-20;
 
-    modloop->thermalBath.zMin = -100000.0*Ao;
-    modloop->dt = 1e-20;
+    mdloop.simTimeSaveTrajInterval = 1000.0*ps;
+    mdloop.iterationFlushStateInterval = 1000000;
+
+    mdloop.thermalBath.zMin = -100000.0*Ao;
 
     bool stopCooling = false;
 
-    while (!stopCooling && modloop->thermalBath.To > 2.0*K)
+    while (!stopCooling && mdloop.thermalBath.To > 2.0*K)
     {
-      Float T = modloop->energyKin()/(3.0/2.0*kb*modloop->atoms.size());
-      cerr << "To( " << modloop->simTime/ps << " ps ) = " << modloop->thermalBath.To << " K" << endl;
-      cerr << "T ( " << modloop->simTime/ps << " ps ) = " << T << " K" << endl;
+      Float T = mdloop.energyKin()/(3.0/2.0*kb*mdloop.atoms.size());
+      cerr << "To( " << mdloop.simTime/ps << " ps ) = "
+           << mdloop.thermalBath.To << " K" << endl;
+      cerr << "T ( " << mdloop.simTime/ps << " ps ) = "
+           << T << " K" << endl;
 
-      modloop->thermalBath.To -= 1.0*K;
+      mdloop.thermalBath.To -= 1.0*K;
 
-      modloop->atoms.removeMomentum();
+      mdloop.simTimeFinal += 1.0*ps;
 
-      int retval;
-      Float relaxStartTime = modloop->simTime;
-      modloop->simTimeFinal += 1.0*ps;
-      retval = modloop->execute();
-      if (areUnparted(modloop->atoms))
+      mdloop.atoms.removeMomentum();
+      if (mdloop.execute())
+        return ENERGYINF;
+      mdloop.atoms.removeMomentum();
+
+      if (areUnparted(mdloop.atoms))
         stopCooling = true;
-
-      if (retval) return ENERGYINF;
-
-//      checkOnEnergyPotMin(*modloop,minPotEnergy);
     }
 
-    int retval;
+    mdloop.thermalBath.To = 0.0;
+    mdloop.thermalBath.zMin = -100000.0*Ao;
+    mdloop.dt = 1e-20;
 
-    modloop->thermalBath.To = 0.0;
-    modloop->thermalBath.zMin = -100000.0*Ao;
-    modloop->dt = 1e-20;
-    TRACE(modloop->atoms.PBC());
-    Float coolingStartTime = modloop->simTime;
-    while (!stopCooling && modloop->energyKin()/(3.0/2.0*kb*modloop->atoms.size()) > 0.0001*K)
+    while (!stopCooling && mdloop.temperature() > 0.001*K)
     {
-      if (areUnparted(modloop->atoms))
+      if (areUnparted(mdloop.atoms))
         stopCooling = true;
 
-      modloop->simTimeFinal += 0.05*ps;
-      retval = modloop->execute();
-      if (mdtk::verboseTrace)
-        ETRACE(modloop->simTime/ps);
+      mdloop.simTimeFinal += 0.05*ps;
+
+      mdloop.atoms.removeMomentum();
+      if (mdloop.execute())
+        return ENERGYINF;
+      mdloop.atoms.removeMomentum();
     }
-    if (retval) return ENERGYINF;
-    checkOnEnergyPotMin(*modloop,minPotEnergy);
-    modloop->atoms.removeMomentum();
+
+    std::ofstream fo("mdloop.opti");
+    mdloop.saveToStream(fo);
+    fo.close();
+
+    Float energyValue = mdloop.energyPot();
+    if (energyValue < minPotEnergy)
+    {
+      simloop.atoms = mdloop.atoms;
+      minPotEnergy = energyValue;
+    }
+
+    std::ofstream fo_energyValue("mdloop.opti.energy");
+    fo_energyValue << energyValue/eV << " "
+                   << energyValue/eV/mdloop.atoms.size() << std::endl;
+    fo_energyValue.close();
   }
   {
-    std::ofstream fo("mde_init.last");
-    modloop->saveToStream(fo);
+    std::ofstream fo("mdloop.opti.last");
+    mdloop.saveToStream(fo);
     fo.close();
   }
-
-  TRACE(minPotEnergy/eV);
-  TRACE(minPotEnergy/eV/modloop->atoms.size());
-
   {
-    yaatk::text_ifstream fi("mde_init.min");
-    modloop->loadFromStream(fi);
-    fi.close();
+    std::ofstream fo("mdloop.opti.best");
+    simloop.saveToStream(fo);
+    fo.close();
   }
 
   return minPotEnergy;
@@ -421,7 +419,7 @@ cluster(ElementID id, int clusterSize)
     yaatk::mkdir(dirname);
     yaatk::chdir(dirname);
 
-    Float minPotEnergyOf = optimize_single(&sl, r);
+    Float minPotEnergyOf = optimize_single(sl, r);
 
     foGlobal << std::setw (10) << sl.atoms.size() << " "
              << std::setw (20) << minPotEnergyOf/eV << " "
@@ -504,7 +502,7 @@ clusterFromCrystal(const AtomsArray& atoms, int clusterSize, Vector3D c)
     yaatk::mkdir(dirname);
     yaatk::chdir(dirname);
 
-    Float minPotEnergyOf = optimize_single(&sl, r);
+    Float minPotEnergyOf = optimize_single(sl, r);
 
     foGlobal << std::setw (10) << sl.atoms.size() << " "
              << std::setw (20) << minPotEnergyOf/eV << " "
