@@ -28,9 +28,6 @@
 namespace mdtk
 {
 
-//#define ACKLAND_ZBL_CORRETION (-22.67812*eV)
-#define ACKLAND_ZBL_CORRETION (-40.0*eV)
-
 Float
 Ackland::operator()(AtomsArray& gl)
 {
@@ -41,20 +38,18 @@ Ackland::operator()(AtomsArray& gl)
     if (isHandled(atom_i))
     {
       Ei += F(atom_i);
-    };
 
-    if (isHandled(atom_i))
       for(size_t jj = 0; jj < NL(atom_i).size(); jj++)
       {
         Atom &atom_j = *(NL(atom_i)[jj]);
         if (atom_i.globalIndex > atom_j.globalIndex) continue;
-        if (isHandled(atom_j))
-          if (&atom_i != &atom_j)
-          {
-            AtomsPair ij(atom_i,atom_j,10.0*Ao,20.0*Ao);
-            Ei += Phi(ij);
-          }
+        if (&atom_i != &atom_j)
+        {
+          AtomsPair ij(atom_i,atom_j,10.0*Ao,20.0*Ao);
+          Ei += Phi(ij);
+        }
       }
+    }
   }
 
   return Ei;
@@ -65,6 +60,10 @@ Float
 Ackland::Phi(AtomsPair& ij) // V
 {
   Float r = ij.r();
+
+#ifdef Ackland_OPTIMIZED
+  if (r >= rk(1,ij))  return 0.0;
+#endif
 
 #ifndef  Ackland_HANDLE_SHORTRANGE
   Spline& spline = *(splines[e2i(ij.atom1)][e2i(ij.atom2)]);
@@ -103,10 +102,6 @@ Ackland::Phi(AtomsPair& ij) // V
       return spline(r);
     }
   }
-#endif
-
-#ifdef Ackland_OPTIMIZED
-  if (r >= rk(1,ij))  return 0.0;
 #endif
 
   Float Der = 0.0;
@@ -217,11 +212,12 @@ Ackland::F(Atom &atom1)
 {
   Float rhovar = rho(atom1);
   REQUIRE(rhovar >= 0.0);
+  Float F_var = -sqrt(rhovar);
   if (rhovar != 0)
   {
-    rho(atom1,-c_/(2.0*sqrt(rhovar)));
+    rho(atom1,0.5/F_var);
   }
-  return -c_*sqrt(rhovar);
+  return F_var;
 }
 
 Float
@@ -232,11 +228,8 @@ Ackland::rho(Atom &atom_i, const Float V)
   for(j = 0; j < NL(atom_i).size(); j++)
   {
     Atom& atom_j = *(NL(atom_i)[j]);
-    if (/*atom_j.globalIndex > atom_i.globalIndex &&*/ isHandled(atom_j))
-    {
-      AtomsPair ij(atom_i,atom_j,10.0*Ao,20.0*Ao);
-      rhoij += g(ij,V);
-    }
+    AtomsPair ij(atom_i,atom_j,10.0*Ao,20.0*Ao);
+    rhoij += g(ij,V);
   }
   return rhoij;
 }
@@ -276,16 +269,6 @@ Ackland::Ackland():
 void
 Ackland::setupPotential()
 {
-//  Float koe = 1.3067977/61.73525861;
-
-/*
-  alpha_ = 42.87/(10.0*Ao);
-  beta_  = 18.00/(10.0*Ao);
-*/
-  c_     = +1.0/* *eV */;//12.17*eV;
-/*
-  Phi0_  = 9.892 *1000.0 *eV;
-*/
   Float a;
 
   rk_[Ag][Au][1] = rk_[Au][Ag][1] = 4.40856*Ao;
@@ -377,22 +360,7 @@ Ackland::setupPotential()
 
   Rk_[Au][Au][1] = Rk_[Au][Au][1] = 1.1180065*a;
   Rk_[Au][Au][2] = Rk_[Au][Au][2] = 0.8660254*a;
-/*
-  R_[0]  = 5.0*Ao;
-  R_[1]  = 5.5*Ao;
-*/
 
-/*
-  for(int i1 = 0; i1 < 3; i1++)
-    for(int i2 = 0; i2 < 3; i2++)
-      for(int i3 = 0; i3 < 7; i3++)
-        ak_[i1][i2][i3] *= koe;
-
-  for(int i1 = 0; i1 < 3; i1++)
-    for(int i2 = 0; i2 < 3; i2++)
-      for(int i3 = 0; i3 < 3; i3++)
-        Ak_[i1][i2][i3] *= koe;
-*/
 fillR_concat_();
 
   PRINT("Ackland interatomic potential configured.\n");
@@ -418,9 +386,6 @@ Atom& atom2 = atoms[j];
          Float       x[2]; x[0] = 1.0*Ao; x[1] = 1.4*Ao;
          Float       v[2];
          Float    dvdx[2];
-//         Float    d2vdxdx[2];
-//d2vdxdx[0] = 0;
-//d2vdxdx[1] = 0;
 
 {
   r = x[0];
@@ -450,7 +415,7 @@ Atom& atom2 = atoms[j];
 
   }
   v[0] = VZBL;
-  dvdx[0] = DerVZBL/* = -1.5*/;
+  dvdx[0] = DerVZBL;
 
   r = x[1];
 
@@ -472,18 +437,11 @@ Atom& atom2 = atoms[j];
   }
 
   v[1] = VAckland;
-  dvdx[1] = DerVAckland/* = 0*/;
+  dvdx[1] = DerVAckland;
 }
 
-splines[e2i(atom1)][e2i(atom2)] = new Spline(x,v,dvdx/*,d2vdxdx*/);
+splines[e2i(atom1)][e2i(atom2)] = new Spline(x,v,dvdx);
 
-}
-
-for(size_t i = 0; i < ECOUNT; i++)
-for(size_t j = 0; j < ECOUNT; j++)
-{
-//R_concat_[i][j] = 1.45*Ao;
-//TRACE(R_concat_[i][j]/Ao);
 }
 
 }
