@@ -341,24 +341,41 @@ struct ChDir
     }
 };
 
-class StreamMod_fwp
+class StreamMod
 {
   std::ostream& stream2modify;
   char fill_prev;
   std::streamsize width_prev;
   std::streamsize precision_prev;
 public:
-  StreamMod_fwp(std::ostream& stream,
-                char fill = '0',
-                std::streamsize width = 4,
-                std::streamsize precision = 1)
+  StreamMod(std::ostream& stream,
+                char fill,
+                std::streamsize width,
+                std::streamsize precision)
     :stream2modify(stream)
     {
-      fill_prev = stream2modify.fill('0');
-      width_prev = stream2modify.width(4);
-      precision_prev = stream2modify.precision(1);
+      fill_prev = stream2modify.fill(fill);
+      width_prev = stream2modify.width(width);
+      precision_prev = stream2modify.precision(precision);
     }
-  ~StreamMod_fwp()
+  StreamMod(std::ostream& stream,
+                char fill,
+                std::streamsize width)
+    :stream2modify(stream)
+    {
+      fill_prev = stream2modify.fill(fill);
+      width_prev = stream2modify.width(width);
+      precision_prev = stream2modify.precision();
+    }
+  StreamMod(std::ostream& stream,
+                char fill)
+    :stream2modify(stream)
+    {
+      fill_prev = stream2modify.fill(fill);
+      width_prev = stream2modify.width();
+      precision_prev = stream2modify.precision();
+    }
+  ~StreamMod()
     {
       stream2modify.precision(precision_prev);
       stream2modify.width(width_prev);
@@ -368,13 +385,13 @@ public:
 
 #define PRINT2STREAM_FWP(stream,x,fill,width,precision)         \
   {                                                             \
-    yaatk::StreamMod_fwp smod(stream, fill, width, precision);  \
+    yaatk::StreamMod smod(stream, fill, width, precision);      \
     stream << x << std::flush;                                  \
   }
 
 #define PRINT2STREAM_FW(stream,x,fill,width)                 \
   {                                                          \
-    yaatk::StreamMod_fwp smod(stream, fill, width);          \
+    yaatk::StreamMod smod(stream, fill, width);              \
     stream << x << std::flush;                               \
   }
 
