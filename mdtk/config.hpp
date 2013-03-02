@@ -1,7 +1,7 @@
 /*
    Some configuration constants for MDTK (header file).
 
-   Copyright (C) 2004, 2005, 2009 Oleksandr Yermolenko
+   Copyright (C) 2004, 2005, 2009, 2013 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -36,7 +36,6 @@ namespace mdtk
 {
 
 typedef double Float;
-typedef size_t Index;
 
 extern const int FLOAT_PRECISION;
 

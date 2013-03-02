@@ -542,7 +542,7 @@ REBO::NconjSum1(AtomsPair& ij, const Float V)
 {
   Float sum1 = 0.0;
   AtomRefsContainer& nli = NL(ij.atom1);
-  for(Index k = 0; k < nli.size(); k++)
+  for(size_t k = 0; k < nli.size(); k++)
   {
     Atom& atom_k = *(nli[k]);
     if (&atom_k != &ij.atom2 && atom_k.ID == C_EL)
@@ -576,7 +576,7 @@ REBO::NconjSum2(AtomsPair& ij, const Float V)
 {
   Float sum2 = 0.0;
   AtomRefsContainer& nlj = NL(ij.atom2);
-  for(Index l = 0; l < nlj.size(); l++)
+  for(size_t l = 0; l < nlj.size(); l++)
   {
     Atom& atom_l = *(nlj[l]);
     if (&atom_l != &ij.atom1 && atom_l.ID == C_EL)
@@ -720,13 +720,13 @@ RETURN_REBO_0;
 
   Float  temp_sum = 0.0;
   AtomRefsContainer& nli = NL(ij.atom1);
-  for(Index k = 0; k < nli.size(); k++)
+  for(size_t k = 0; k < nli.size(); k++)
   {
     Atom& atom_k = *(nli[k]);
     if (&atom_k == &ij.atom2 /* && atom_k.ID == C_EL*/) continue;
     if (!probablyAreNeighbours(ij.atom1,atom_k)) continue;
     AtomRefsContainer& nlj = NL(ij.atom2);
-    for(Index l = 0; l < nlj.size(); l++)
+    for(size_t l = 0; l < nlj.size(); l++)
     {
       Atom& atom_l = *(nlj[l]);
       if (&atom_l == &ij.atom1 /* && atom_l.ID == C_EL*/) continue;
