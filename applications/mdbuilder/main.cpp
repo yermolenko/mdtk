@@ -57,21 +57,46 @@ buildCommands()
   {
 //    if (0)
     {
-      ElementID id = Cu_EL;
-      int clusterSize = 195;
-      AtomsArray cluster = mdbuilder::clusterFromFCCCrystal(id,clusterSize);
-      SimLoop sl;
-      mdbuilder::initialize_simloop(sl);
-      sl.atoms = cluster;
+      std::vector<ElementID> ids;
+      ids.push_back(Cu_EL);
+      ids.push_back(Au_EL);
+      ids.push_back(Ag_EL);
 
-      sl.iteration = 0;
-      sl.simTime = 0.0*ps;
-      sl.simTimeFinal = 10.0*ps;
-      sl.simTimeSaveTrajInterval = 0.1*ps;
+      std::vector<size_t> sizes;
+//      sizes.push_back(2);
+      sizes.push_back(13);
+      sizes.push_back(27);
+      sizes.push_back(39);
+      sizes.push_back(75);
+      sizes.push_back(195);
 
-      yaatk::text_ofstream fomde("mde_init");
-      sl.saveToStream(fomde);
-      fomde.close();
+      for(size_t idi = 0; idi < ids.size(); ++idi)
+      for(size_t si = 0; si < sizes.size(); ++si)
+      {
+        ElementID id = ids[idi];
+        int clusterSize = sizes[si];
+
+        std::ostringstream dirname;
+        dirname << ElementIDtoString(id);
+        PRINT2STREAM_FW(dirname, clusterSize, '0', 6);
+        yaatk::ChDir cd(dirname.str());
+        yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
+        yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
+
+        AtomsArray cluster = mdbuilder::clusterFromFCCCrystal(id,clusterSize);
+        SimLoop sl;
+        mdbuilder::initialize_simloop(sl);
+        sl.atoms = cluster;
+
+        sl.iteration = 0;
+        sl.simTime = 0.0*ps;
+        sl.simTimeFinal = 10.0*ps;
+        sl.simTimeSaveTrajInterval = 0.1*ps;
+
+        yaatk::text_ofstream fomde("mde_init");
+        sl.saveToStream(fomde);
+        fomde.close();
+      }
     }
     if (0)
     {
