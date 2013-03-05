@@ -41,6 +41,20 @@ extern const int FLOAT_PRECISION;
 
 extern bool verboseTrace;
 
+struct VerboseOutput
+{
+  bool prevVerboseOutputState;
+  VerboseOutput(bool newState)
+  :prevVerboseOutputState(verboseTrace)
+    {
+      verboseTrace = newState;
+    }
+  ~VerboseOutput()
+    {
+      verboseTrace = prevVerboseOutputState;
+    }
+};
+
 }
 
 #endif
