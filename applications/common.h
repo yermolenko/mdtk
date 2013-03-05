@@ -1,7 +1,7 @@
 /*
    Common configuration for mdtrajsim and mdtrajview.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -62,14 +62,13 @@ setupPotentials(mdtk::SimLoop& simloop)
 
   pot = new mdtk::ETors();
   simloop.fpot.addPotential(pot);
-/*
+
   pot = new mdtk::Ackland();
   simloop.fpot.addPotential(pot);
-*/
-
+/*
   pot = new mdtk::TightBinding();
   simloop.fpot.addPotential(pot);
-
+*/
 /*
   pot = new mdtk::Brenner(Brenner::POTENTIAL2);
   simloop.fpot.addPotential(pot);
