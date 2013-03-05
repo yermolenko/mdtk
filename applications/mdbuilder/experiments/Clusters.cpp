@@ -180,6 +180,7 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
 
   VETRACE(mdloop.thermalBath.To);
   VETRACE(snapshots.size());
+  REQUIRE(snapshots.size() > 0);
 
   for(size_t i = 0; i < snapshots.size(); ++i)
   {
