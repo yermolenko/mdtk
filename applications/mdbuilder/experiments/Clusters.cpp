@@ -155,8 +155,15 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
       if (int(mdloop.thermalBath.To/ToSnapshotInterval) !=
           int((mdloop.thermalBath.To - dTo)/ToSnapshotInterval))
       {
-        snapshots.push_back(OptiSnapshot(mdloop.atoms,T));
-        cerr << "Snapshot saved." << std::endl;
+        REQUIRE(mdloop.atoms.size() > 0);
+        ElementID id = mdloop.atoms[0].ID;
+        if ((id == Cu_EL && mdloop.thermalBath.To > 1000.0*K) ||
+            (id == Au_EL && mdloop.thermalBath.To > 1500.0*K) ||
+            (id != Cu_EL && id != Au_EL))
+        {
+          snapshots.push_back(OptiSnapshot(mdloop.atoms,T));
+          cerr << "Snapshot saved." << std::endl;
+        }
       }
 
       mdloop.simTimeFinal += 1.0*ps;
