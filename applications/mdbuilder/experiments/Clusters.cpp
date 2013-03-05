@@ -544,6 +544,7 @@ clusterFromFCCCrystal(ElementID id, int clusterSize)
   {
   case Cu_EL : a = 3.615*Ao; break;
   case Au_EL : a = 4.0781*Ao; break;
+  case Ag_EL : a = 4.086*Ao; break;
   default: throw Exception("Unknown FCC element.");
   }
 
