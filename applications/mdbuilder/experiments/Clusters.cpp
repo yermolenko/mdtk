@@ -140,6 +140,8 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
     yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
     yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
 
+    mdloop.preventFileOutput = true;
+
     while (!stopHeating && mdloop.thermalBath.To <= 10000.0*K)
     {
       Float T = mdloop.temperature();
@@ -176,6 +178,9 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
       if (areUnparted(mdloop.atoms))
         stopHeating = true;
     }
+
+    mdloop.preventFileOutput = false;
+    mdloop.writestate();
   }
 
   VETRACE(mdloop.thermalBath.To);
@@ -206,6 +211,9 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
     mdloop.iterationFlushStateInterval = 1000000;
 
     mdloop.thermalBath.zMin = -100000.0*Ao;
+
+    mdloop.writetrajXVA();
+    mdloop.preventFileOutput = true;
 
     bool stopCooling = false;
 
@@ -246,6 +254,9 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
         return ENERGYINF;
       mdloop.atoms.removeMomentum();
     }
+
+    mdloop.preventFileOutput = false;
+    mdloop.writestate();
 
     std::ofstream fo("mdloop.opti");
     mdloop.saveToStream(fo);
