@@ -111,6 +111,8 @@ struct OptiSnapshot
 Float
 optimize_single(SimLoop& simloop, gsl_rng* rng)
 {
+  VerboseOutput vo(false);
+
   SimLoop mdloop(simloop);
   initialize_simloop(mdloop);
 
@@ -133,42 +135,44 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
 
   snapshots.push_back(OptiSnapshot(mdloop.atoms,0));
 
-  while (!stopHeating && mdloop.thermalBath.To <= 10000.0*K)
   {
+    yaatk::ChDir cd("heating");
     yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
     yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
 
-    Float T = mdloop.temperature();
-    cerr << "To( " << mdloop.simTime/ps << " ps ) = "
-         << mdloop.thermalBath.To << " K" << endl;
-    cerr << "T ( " << mdloop.simTime/ps << " ps ) = "
-         << T << " K" << endl;
-
-    mdloop.thermalBath.To = (1.0*K)/(1.0*ps)*mdloop.simTime;
-
-    Float ToSnapshotInterval = 100.0*K;
-    Float dTo = 1.0*K;
-    if (int(mdloop.thermalBath.To/ToSnapshotInterval) !=
-        int((mdloop.thermalBath.To - dTo)/ToSnapshotInterval))
+    while (!stopHeating && mdloop.thermalBath.To <= 10000.0*K)
     {
-      ETRACE(mdloop.thermalBath.To);
-      snapshots.push_back(OptiSnapshot(mdloop.atoms,T));
-      EPRINT("Snapshot saved.");
+      Float T = mdloop.temperature();
+      cerr << "To( " << mdloop.simTime/ps << " ps ) = "
+           << mdloop.thermalBath.To << " K" << endl;
+      cerr << "T ( " << mdloop.simTime/ps << " ps ) = "
+           << T << " K" << endl;
+
+      mdloop.thermalBath.To = (1.0*K)/(1.0*ps)*mdloop.simTime;
+
+      Float ToSnapshotInterval = 100.0*K;
+      Float dTo = 1.0*K;
+      if (int(mdloop.thermalBath.To/ToSnapshotInterval) !=
+          int((mdloop.thermalBath.To - dTo)/ToSnapshotInterval))
+      {
+        snapshots.push_back(OptiSnapshot(mdloop.atoms,T));
+        cerr << "Snapshot saved." << std::endl;
+      }
+
+      mdloop.simTimeFinal += 1.0*ps;
+
+      mdloop.atoms.removeMomentum();
+      if (mdloop.execute())
+        return ENERGYINF;
+      mdloop.atoms.removeMomentum();
+
+      if (areUnparted(mdloop.atoms))
+        stopHeating = true;
     }
-
-    mdloop.simTimeFinal += 1.0*ps;
-
-    mdloop.atoms.removeMomentum();
-    if (mdloop.execute())
-      return ENERGYINF;
-    mdloop.atoms.removeMomentum();
-
-    if (areUnparted(mdloop.atoms))
-      stopHeating = true;
   }
 
-  ETRACE(mdloop.thermalBath.To);
-  ETRACE(snapshots.size());
+  VETRACE(mdloop.thermalBath.To);
+  VETRACE(snapshots.size());
 
   for(size_t i = 0; i < snapshots.size(); ++i)
   {
@@ -176,14 +180,11 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
     dirname << "snapshot";
     PRINT2STREAM_FW(dirname, i, '0', 10);
     dirname << "-";
-    PRINT2STREAM_FWP(dirname, snapshots[i].T, '0', 6, 1);
+    PRINT2STREAM_FWP(dirname, snapshots[i].T, '0', 8, 4);
     dirname << "K";
     yaatk::ChDir cd(dirname.str());
     yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
     yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
-
-    if (mdtk::verboseTrace)
-      cerr << "Cooling..." << std::endl;
 
     mdloop.atoms = snapshots[i].atoms;
     mdloop.thermalBath.To = snapshots[i].T;
