@@ -63,12 +63,9 @@ buildCommands()
       ids.push_back(Ag_EL);
 
       std::vector<size_t> sizes;
-//      sizes.push_back(2);
-      sizes.push_back(13);
-      sizes.push_back(27);
-      sizes.push_back(39);
-      sizes.push_back(75);
-      sizes.push_back(195);
+
+      REQUIRE(1 < clusterSize && clusterSize < 2000);
+      sizes.push_back(clusterSize);
 
       for(size_t idi = 0; idi < ids.size(); ++idi)
       for(size_t si = 0; si < sizes.size(); ++si)
