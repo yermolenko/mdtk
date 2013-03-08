@@ -152,7 +152,7 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
 
       mdloop.thermalBath.To = (1.0*K)/(1.0*ps)*mdloop.simTime;
 
-      Float ToSnapshotInterval = 100.0*K;
+      Float ToSnapshotInterval = 10.0*K;
       Float dTo = 1.0*K;
       if (int(mdloop.thermalBath.To/ToSnapshotInterval) !=
           int((mdloop.thermalBath.To - dTo)/ToSnapshotInterval))
@@ -225,7 +225,9 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
       cerr << "T ( " << mdloop.simTime/ps << " ps ) = "
            << T << " K" << endl;
 
-      mdloop.thermalBath.To -= 1.0*K;
+      mdloop.thermalBath.To -= 10.0*K;
+      if (mdloop.thermalBath.To < 0)
+        mdloop.thermalBath.To = 0;
 
       mdloop.simTimeFinal += 1.0*ps;
 
