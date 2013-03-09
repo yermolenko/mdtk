@@ -46,6 +46,8 @@
 #include "experiments/Fullerite.hpp"
 #include "experiments/Fulleride.hpp"
 
+static bool generateClusters = false;
+
 static int clusterSize = 0;
 static size_t numberOfImpacts = 1024;
 
@@ -55,8 +57,11 @@ buildCommands()
   using namespace mdtk;
   glLoadIdentity();
   {
-//    if (0)
+    if (generateClusters) // cluster generation was requested
     {
+      PRINT("Generating clusters.\n");
+      TRACE(clusterSize);
+
       std::vector<ElementID> ids;
       ids.push_back(Cu_EL);
       ids.push_back(Au_EL);
@@ -95,8 +100,11 @@ buildCommands()
         fomde.close();
       }
     }
-    if (0)
+    else // bombardment experiment preparation was requested
     {
+      PRINT("Preparing MD experiment.\n");
+      TRACE(numberOfImpacts);
+
       verboseTrace = false;
       TRACE(clusterSize);
       glLoadIdentity();
@@ -268,6 +276,10 @@ int main(int argc, char *argv[])
         std::cerr << "Unsupported cluster size\n";
         return -1;
       }
+      else
+      {
+        generateClusters = true;
+      }
     }
 
     if (!strcmp(argv[argi],"--number-of-impacts") || !std::strcmp(argv[argi],"-i"))
@@ -298,10 +310,12 @@ int main(int argc, char *argv[])
       std::cout << "\
 Usage: mdbuilder [OPTION]... \n\
 Prepares molecular dynamics experiments.\n\
+To prepare clusters of the specific size run:\n\
+  mdbuilder --cluster-size  <cluster size>\n\
 \n\
       --help     display this help and exit\n\
       --version  output version information and exit\n\
-      --cluster-size  <cluster size>  generate experiment for a specified cluster size\n\
+      --cluster-size  <cluster size>  generate Cu, Au and Ag clusters of the specific size\n\
       --number-of-impacts  <number of impacts>  generate specific number of impacts for each experiment (default : 1024)\n\
 \n\
 Report bugs to <oleksandr.yermolenko@gmail.com>\n\
@@ -309,16 +323,6 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
       return 0;
     }
   }
-
-  if (0)
-  if (clusterSize == 0)
-  {
-    std::cerr << "You should specify cluster size with --cluster-size option. Run with -h option for details.\n";
-    return -1;
-  }
-
-  TRACE(clusterSize);
-  TRACE(numberOfImpacts);
 
   srand(12345);
 
