@@ -395,6 +395,14 @@ public:
     stream << x << std::flush;                               \
   }
 
+#define PRINT2STREAM_P(stream,x,precision)                              \
+  {                                                                     \
+    yaatk::StreamMod smod(stream,                                       \
+                          stream.fill(), stream.width(),                \
+                          precision);                                   \
+    stream << x << std::flush;                                          \
+  }
+
 }
 
 #endif
