@@ -542,7 +542,7 @@ REBO::NconjSum1(AtomsPair& ij, const Float V)
 {
   Float sum1 = 0.0;
   AtomRefsContainer& nli = NL(ij.atom1);
-  for(Index k = 0; k < nli.size(); k++)
+  for(size_t k = 0; k < nli.size(); k++)
   {
     Atom& atom_k = *(nli[k]);
     if (&atom_k != &ij.atom2 && atom_k.ID == C_EL)
@@ -576,7 +576,7 @@ REBO::NconjSum2(AtomsPair& ij, const Float V)
 {
   Float sum2 = 0.0;
   AtomRefsContainer& nlj = NL(ij.atom2);
-  for(Index l = 0; l < nlj.size(); l++)
+  for(size_t l = 0; l < nlj.size(); l++)
   {
     Atom& atom_l = *(nlj[l]);
     if (&atom_l != &ij.atom1 && atom_l.ID == C_EL)
@@ -720,13 +720,13 @@ RETURN_REBO_0;
 
   Float  temp_sum = 0.0;
   AtomRefsContainer& nli = NL(ij.atom1);
-  for(Index k = 0; k < nli.size(); k++)
+  for(size_t k = 0; k < nli.size(); k++)
   {
     Atom& atom_k = *(nli[k]);
     if (&atom_k == &ij.atom2 /* && atom_k.ID == C_EL*/) continue;
     if (!probablyAreNeighbours(ij.atom1,atom_k)) continue;
     AtomRefsContainer& nlj = NL(ij.atom2);
-    for(Index l = 0; l < nlj.size(); l++)
+    for(size_t l = 0; l < nlj.size(); l++)
     {
       Atom& atom_l = *(nlj[l]);
       if (&atom_l == &ij.atom1 /* && atom_l.ID == C_EL*/) continue;
@@ -936,160 +936,6 @@ REBO::setupPotential1()
 
   PRINT("AIREBO::REBO interatomic potential configured.\n");
 }
-
-inline
-Float
-REBO::P_CC_num(Float a1, Float a2) const
-{
-  return funcP_CC(a1,a2);
-} 
-
-inline
-Float
-REBO::P_CC_dH_num(Float a1, Float a2) const
-{
-  return funcP_CC.dH(a1,a2);
-} 
-
-inline
-Float
-REBO::P_CC_dC_num(Float a1, Float a2) const
-{
-  return funcP_CC.dC(a1,a2);
-} 
-
-inline
-Float
-REBO::P_CH_num(Float a1, Float a2) const
-{
-  return funcP_CH(a1,a2);
-} 
-
-inline
-Float
-REBO::P_CH_dH_num(Float a1, Float a2) const
-{
-  return funcP_CH.dH(a1,a2);
-} 
-
-inline
-Float
-REBO::P_CH_dC_num(Float a1, Float a2) const
-{
-  return funcP_CH.dC(a1,a2);
-} 
-
-inline
-Float
-REBO::pi_rc_CC_num(Float a1, Float a2, Float a3) const 
-{
-  return func_pi_rc_CC(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::pi_rc_CC_dNconj_num(Float a1, Float a2, Float a3) const 
-{
-  return func_pi_rc_CC.dk(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::pi_rc_CC_dNt_i_num(Float a1, Float a2, Float a3) const 
-{
-  return func_pi_rc_CC.di(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::pi_rc_CC_dNt_j_num(Float a1, Float a2, Float a3) const 
-{
-  return func_pi_rc_CC.dj(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::pi_rc_CH_num(Float a1, Float a2, Float a3) const 
-{
-  return func_pi_rc_CH(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::pi_rc_CH_dNconj_num(Float a1, Float a2, Float a3) const 
-{
-  return func_pi_rc_CH.dk(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::pi_rc_CH_dNt_i_num(Float a1, Float a2, Float a3) const 
-{
-  return func_pi_rc_CH.di(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::pi_rc_CH_dNt_j_num(Float a1, Float a2, Float a3) const 
-{
-  return func_pi_rc_CH.dj(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::pi_rc_HH_num(Float a1, Float a2, Float a3) const 
-{
-  return func_pi_rc_HH(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::pi_rc_HH_dNconj_num(Float a1, Float a2, Float a3) const 
-{
-  return func_pi_rc_HH.dk(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::pi_rc_HH_dNt_i_num(Float a1, Float a2, Float a3) const 
-{
-  return func_pi_rc_HH.di(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::pi_rc_HH_dNt_j_num(Float a1, Float a2, Float a3) const 
-{
-  return func_pi_rc_HH.dj(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::Tij_num(Float a1, Float a2, Float a3) const 
-{
-  return func_Tij(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::Tij_dNconj_num(Float a1, Float a2, Float a3) const 
-{
-  return func_Tij.dk(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::Tij_dNt_i_num(Float a1, Float a2, Float a3) const 
-{
-  return func_Tij.di(a1,a2,a3);
-} 
-
-inline
-Float
-REBO::Tij_dNt_j_num(Float a1, Float a2, Float a3) const 
-{
-  return func_Tij.dj(a1,a2,a3);
-} 
 
 }
 

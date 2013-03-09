@@ -353,7 +353,7 @@ AIREBO::Cij(AtomsPair& ij, const Float V)
           }
         }
         AtomRefsContainer& nlj = rebo.NL(ij_rebo.atom2);
-        for(Index l = 0; l < nlj.size() && !found; l++)
+        for(size_t l = 0; l < nlj.size() && !found; l++)
         {
           Atom &atom_l = *(nlj[l]);
           if (!rebo.probablyAreNeighbours(ij_rebo.atom2,atom_l)) continue;

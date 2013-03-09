@@ -3,7 +3,7 @@
    hydrocarbons (header file).
    See [D.W. Brenner, Phys. Rev. B 42, 9458 (1990)]
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2009, 2012 Oleksandr
+   Copyright (C) 2004, 2005, 2006, 2007, 2009, 2012, 2013 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -70,19 +70,30 @@ private:
   Float F(Float x) const;
   Float dF(Float x) const;
 
-  Float HN_CC_num(Float a1, Float a2) const;
-    Float HN_CC_dH_num(Float a1, Float a2) const;
-    Float HN_CC_dC_num(Float a1, Float a2) const;
-  Float HN_CH_num(Float a1, Float a2) const;
-    Float HN_CH_dH_num(Float a1, Float a2) const;
-    Float HN_CH_dC_num(Float a1, Float a2) const;
+  Float HN_CC_num(Float a1, Float a2) const
+    { return funcH_CC(a1,a2); }
+  Float HN_CC_dH_num(Float a1, Float a2) const
+    { return funcH_CC.dH(a1,a2); }
+  Float HN_CC_dC_num(Float a1, Float a2) const
+    { return funcH_CC.dC(a1,a2); }
+
+  Float HN_CH_num(Float a1, Float a2) const
+    { return funcH_CH(a1,a2); }
+  Float HN_CH_dH_num(Float a1, Float a2) const
+    { return funcH_CH.dH(a1,a2); }
+  Float HN_CH_dC_num(Float a1, Float a2) const
+    { return funcH_CH.dC(a1,a2); }
 
   Float HN(AtomsPair& ij, const Float V = 0.0);
 
-  Float FN_num(Float a1, Float a2, Float a3) const;
-    Float FN_dNconj_num(Float a1, Float a2, Float a3) const;
-    Float FN_dNt_i_num(Float a1, Float a2, Float a3) const;
-    Float FN_dNt_j_num(Float a1, Float a2, Float a3) const;
+  Float FN_num(Float a1, Float a2, Float a3) const
+    { return funcF(a1,a2,a3); }
+  Float FN_dNconj_num(Float a1, Float a2, Float a3) const
+    { return funcF.dk(a1,a2,a3); }
+  Float FN_dNt_i_num(Float a1, Float a2, Float a3) const
+    { return funcF.di(a1,a2,a3); }
+  Float FN_dNt_j_num(Float a1, Float a2, Float a3) const
+    { return funcF.dj(a1,a2,a3); }
 
   Float FN(AtomsPair& ij, const Float V = 0.0);
 

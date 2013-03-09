@@ -37,17 +37,17 @@ TightBinding::operator()(AtomsArray& gl)
     if (isHandled(atom_i))
     {
       Ei += F(atom_i);
-    }
 
-    for(size_t jj = 0; jj < NL(atom_i).size(); jj++)
-    {
-      Atom &atom_j = *(NL(atom_i)[jj]);
-      if (atom_i.globalIndex > atom_j.globalIndex) continue;
-      if (&atom_i != &atom_j)
+      for(size_t jj = 0; jj < NL(atom_i).size(); jj++)
       {
-        if (!probablyAreNeighbours(atom_i,atom_j)) continue;
-        AtomsPair ij(atom_i,atom_j,R(0,atom_i,atom_j),R(1,atom_i,atom_j));
-        Ei += Phi(ij);
+        Atom &atom_j = *(NL(atom_i)[jj]);
+        if (atom_i.globalIndex > atom_j.globalIndex) continue;
+        if (&atom_i != &atom_j)
+        {
+          if (!probablyAreNeighbours(atom_i,atom_j)) continue;
+          AtomsPair ij(atom_i,atom_j,R(0,atom_i,atom_j),R(1,atom_i,atom_j));
+          Ei += Phi(ij);
+        }
       }
     }
   }
@@ -199,9 +199,6 @@ TightBinding::fillR_concat_()
   Float       x[2]; x[0] = 1.0*Ao; x[1] = 1.2*Ao;
   Float       v[2];
   Float    dvdx[2];
-//  Float    d2vdxdx[2];
-//  d2vdxdx[0] = 0;
-//  d2vdxdx[1] = 0;
 
   REQUIRE(x[1] < R_[0]);
 
@@ -230,7 +227,7 @@ TightBinding::fillR_concat_()
     dvdx[1] = DerVLongRange;
   }
 
-  spline = new Spline(x,v,dvdx/*,d2vdxdx*/);
+  spline = new Spline(x,v,dvdx);
 }
 
 }

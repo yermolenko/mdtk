@@ -49,7 +49,7 @@ ETors::operator()(AtomsArray& gl)
 
           AtomsPair ij(atom_i,atom_j,R(0,atom_i,atom_j),R(1,atom_i,atom_j));
 
-          for(Index k = 0; k < nli.size(); k++)
+          for(size_t k = 0; k < nli.size(); k++)
           {
             Atom &atom_k = *(nli[k]);
             if (&atom_k != &atom_i && &atom_k != &atom_j)
@@ -57,7 +57,7 @@ ETors::operator()(AtomsArray& gl)
               if (!probablyAreNeighbours(atom_i,atom_k)) continue;
               AtomsPair ki(atom_k,atom_i,R(0,atom_k,atom_i),R(1,atom_k,atom_i));
               AtomRefsContainer& nlj = NL(atom_j);
-              for(Index l = 0; l < nlj.size(); l++)
+              for(size_t l = 0; l < nlj.size(); l++)
               {
                 Atom &atom_l = *(nlj[l]);
                 if (&atom_l != &atom_i && &atom_l != &atom_j &&  &atom_l != &atom_k )

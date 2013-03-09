@@ -150,23 +150,23 @@ namespace yaatk
   }
 
 inline
-void mkdir(const char *name)
+int mkdir(const char *name)
 {
 #ifdef __WIN32__
-  ::_mkdir(name);
+  return ::_mkdir(name);
 #else
-  ::mkdir(name,S_IRWXU);
-#endif  
+  return ::mkdir(name,S_IRWXU);
+#endif
 }
 
 inline
-void chdir(const char *name)
+int chdir(const char *name)
 {
 #ifdef __WIN32__
-  ::_chdir(name);
+  return ::_chdir(name);
 #else
-  ::chdir(name);
-#endif  
+  return ::chdir(name);
+#endif
 }
 
 inline
@@ -185,15 +185,15 @@ std::string getcwd()
 }
 
 inline
-void remove(const char *name)
+int remove(const char *name)
 {
-  std::remove(name);
+  return std::remove(name);
 }
 
 inline
-void rename(const char *oldname, const char *newname)
+int rename(const char *oldname, const char *newname)
 {
-  std::rename(oldname,newname);
+  return std::rename(oldname,newname);
 }
 
 #define DIR_DELIMIT_CHAR '/'
@@ -327,6 +327,83 @@ struct StreamToFileRedirect
       stream.rdbuf(origstream_sbuf);
     }
 };
+
+struct ChDir
+{
+  ChDir(std::string dir = "_tmp")
+    {
+      yaatk::mkdir(dir.c_str());
+      int chdir_retval = yaatk::chdir(dir.c_str());
+      REQUIRE(chdir_retval == 0);
+    }
+  ~ChDir()
+    {
+      int chdir_retval = yaatk::chdir("..");
+      REQUIRE(chdir_retval == 0);
+    }
+};
+
+class StreamMod
+{
+  std::ostream& stream2modify;
+  char fill_prev;
+  std::streamsize width_prev;
+  std::streamsize precision_prev;
+public:
+  StreamMod(std::ostream& stream,
+                char fill,
+                std::streamsize width,
+                std::streamsize precision)
+    :stream2modify(stream)
+    {
+      fill_prev = stream2modify.fill(fill);
+      width_prev = stream2modify.width(width);
+      precision_prev = stream2modify.precision(precision);
+    }
+  StreamMod(std::ostream& stream,
+                char fill,
+                std::streamsize width)
+    :stream2modify(stream)
+    {
+      fill_prev = stream2modify.fill(fill);
+      width_prev = stream2modify.width(width);
+      precision_prev = stream2modify.precision();
+    }
+  StreamMod(std::ostream& stream,
+                char fill)
+    :stream2modify(stream)
+    {
+      fill_prev = stream2modify.fill(fill);
+      width_prev = stream2modify.width();
+      precision_prev = stream2modify.precision();
+    }
+  ~StreamMod()
+    {
+      stream2modify.precision(precision_prev);
+      stream2modify.width(width_prev);
+      stream2modify.fill(fill_prev);
+    }
+};
+
+#define PRINT2STREAM_FWP(stream,x,fill,width,precision)         \
+  {                                                             \
+    yaatk::StreamMod smod(stream, fill, width, precision);      \
+    stream << x << std::flush;                                  \
+  }
+
+#define PRINT2STREAM_FW(stream,x,fill,width)                 \
+  {                                                          \
+    yaatk::StreamMod smod(stream, fill, width);              \
+    stream << x << std::flush;                               \
+  }
+
+#define PRINT2STREAM_P(stream,x,precision)                              \
+  {                                                                     \
+    yaatk::StreamMod smod(stream,                                       \
+                          stream.fill(), stream.width(),                \
+                          precision);                                   \
+    stream << x << std::flush;                                          \
+  }
 
 }
 

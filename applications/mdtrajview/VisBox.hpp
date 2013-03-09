@@ -3,7 +3,7 @@
    (header file)
 
    Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
-   2012 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   2012, 2013 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -147,6 +147,7 @@ public:
   void loadDataFromFiles(std::string base_state_filename,
                          const std::vector<std::string>& xvas,
                          bool loadPartialSnapshots = false);
+  void loadDataFromMDLoopStates(const std::vector<std::string>& mdloopStates);
   void loadDataFromSimulation(bool quench);
   virtual ~VisBox(){delete ml_;};
 
