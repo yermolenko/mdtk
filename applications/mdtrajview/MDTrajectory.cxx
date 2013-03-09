@@ -1,7 +1,7 @@
 /*
    MDTrajectory data structure (implementation)
 
-   Copyright (C) 2010, 2011, 2012 Oleksandr Yermolenko
+   Copyright (C) 2010, 2011, 2012, 2013 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -280,6 +280,29 @@ void MDTrajectory_read_from_basefiles(
     MDSnapshot s(ml);
     s.setCustomName(basename.c_str());
     mdt[s.time] = s;
+  }
+}
+
+void MDTrajectory_read_from_mdloop_states(
+  MDTrajectory& mdt,
+  const std::vector<std::string>& mdloopStates
+  )
+{
+  for(size_t i = 0; i < mdloopStates.size(); ++i)
+  {
+    TRACE(mdloopStates[i]);
+
+    if (yaatk::exists(mdloopStates[i].c_str()))
+    {
+      SimLoop ml;
+      yaatk::text_ifstream fi(mdloopStates[i].c_str());
+      ml.loadFromStream(fi);
+      fi.close();
+      MDSnapshot s(ml);
+      s.time = i*ps;
+      s.setCustomName((mdloopStates[i] + " (time = index)").c_str());
+      mdt[s.time] = s;
+    }
   }
 }
 

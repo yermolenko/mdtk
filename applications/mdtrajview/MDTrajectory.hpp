@@ -1,7 +1,7 @@
 /*
    MDTrajectory data structure (header file)
 
-   Copyright (C) 2010, 2011, 2012 Oleksandr Yermolenko
+   Copyright (C) 2010, 2011, 2012, 2013 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -64,6 +64,11 @@ SimLoop MDTrajectory_read_from_SnapshotList(
 
 void MDTrajectory_read_from_basefiles(
   MDTrajectory& mdt
+  );
+
+void MDTrajectory_read_from_mdloop_states(
+  MDTrajectory& mdt,
+  const std::vector<std::string>& mdloopStates
   );
 
 void MDTrajectory_add_from_simulation(
