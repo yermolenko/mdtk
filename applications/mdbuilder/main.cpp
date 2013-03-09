@@ -57,6 +57,46 @@ buildCommands()
   {
 //    if (0)
     {
+      std::vector<ElementID> ids;
+      ids.push_back(Cu_EL);
+      ids.push_back(Au_EL);
+      ids.push_back(Ag_EL);
+
+      std::vector<size_t> sizes;
+
+      REQUIRE(1 < clusterSize && clusterSize < 2000);
+      sizes.push_back(clusterSize);
+
+      for(size_t idi = 0; idi < ids.size(); ++idi)
+      for(size_t si = 0; si < sizes.size(); ++si)
+      {
+        ElementID id = ids[idi];
+        int clusterSize = sizes[si];
+
+        std::ostringstream dirname;
+        dirname << ElementIDtoString(id);
+        PRINT2STREAM_FW(dirname, clusterSize, '0', 6);
+        yaatk::ChDir cd(dirname.str());
+        yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
+        yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
+
+        AtomsArray cluster = mdbuilder::clusterFromFCCCrystal(id,clusterSize);
+        SimLoop sl;
+        mdbuilder::initialize_simloop(sl);
+        sl.atoms = cluster;
+
+        sl.iteration = 0;
+        sl.simTime = 0.0*ps;
+        sl.simTimeFinal = 10.0*ps;
+        sl.simTimeSaveTrajInterval = 0.1*ps;
+
+        yaatk::text_ofstream fomde("mde_init");
+        sl.saveToStream(fomde);
+        fomde.close();
+      }
+    }
+    if (0)
+    {
       verboseTrace = false;
       TRACE(clusterSize);
       glLoadIdentity();
@@ -270,6 +310,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     }
   }
 
+  if (0)
   if (clusterSize == 0)
   {
     std::cerr << "You should specify cluster size with --cluster-size option. Run with -h option for details.\n";
