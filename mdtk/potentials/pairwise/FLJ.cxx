@@ -1,7 +1,7 @@
 /*
    The Lennard-Jones interatomic potential implementation.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -315,8 +315,7 @@ for(size_t i = 0; i < gl.size(); i++)
 {
   Atom& atom = gl[i];
   AtomRefsContainer& nl = NL(atom);
-  Index j;
-  for(j = 0; j < nl.size(); j++)
+  for(size_t j = 0; j < nl.size(); j++)
   {
     Atom &atom_j = *(nl[j]);
     if (atom.globalIndex > atom_j.globalIndex) continue;

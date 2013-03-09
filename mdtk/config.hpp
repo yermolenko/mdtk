@@ -36,7 +36,6 @@ namespace mdtk
 {
 
 typedef double Float;
-typedef size_t Index;
 
 extern const int FLOAT_PRECISION;
 

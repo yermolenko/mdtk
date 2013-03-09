@@ -150,23 +150,23 @@ namespace yaatk
   }
 
 inline
-void mkdir(const char *name)
+int mkdir(const char *name)
 {
 #ifdef __WIN32__
-  ::_mkdir(name);
+  return ::_mkdir(name);
 #else
-  ::mkdir(name,S_IRWXU);
-#endif  
+  return ::mkdir(name,S_IRWXU);
+#endif
 }
 
 inline
-void chdir(const char *name)
+int chdir(const char *name)
 {
 #ifdef __WIN32__
-  ::_chdir(name);
+  return ::_chdir(name);
 #else
-  ::chdir(name);
-#endif  
+  return ::chdir(name);
+#endif
 }
 
 inline
@@ -185,15 +185,15 @@ std::string getcwd()
 }
 
 inline
-void remove(const char *name)
+int remove(const char *name)
 {
-  std::remove(name);
+  return std::remove(name);
 }
 
 inline
-void rename(const char *oldname, const char *newname)
+int rename(const char *oldname, const char *newname)
 {
-  std::rename(oldname,newname);
+  return std::rename(oldname,newname);
 }
 
 #define DIR_DELIMIT_CHAR '/'
@@ -333,11 +333,13 @@ struct ChDir
   ChDir(std::string dir = "_tmp")
     {
       yaatk::mkdir(dir.c_str());
-      yaatk::chdir(dir.c_str());
+      int chdir_retval = yaatk::chdir(dir.c_str());
+      REQUIRE(chdir_retval == 0);
     }
   ~ChDir()
     {
-      yaatk::chdir("..");
+      int chdir_retval = yaatk::chdir("..");
+      REQUIRE(chdir_retval == 0);
     }
 };
 

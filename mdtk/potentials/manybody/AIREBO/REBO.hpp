@@ -4,8 +4,8 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -80,29 +80,48 @@ protected:
   Float F(Float x) const;
   Float dF(Float x) const;
 
-  Float P_CC_num(Float a1, Float a2) const;
-    Float P_CC_dH_num(Float a1, Float a2) const;
-    Float P_CC_dC_num(Float a1, Float a2) const;
-  Float P_CH_num(Float a1, Float a2) const;
-    Float P_CH_dH_num(Float a1, Float a2) const;
-    Float P_CH_dC_num(Float a1, Float a2) const;
+  Float P_CC_num(Float a1, Float a2) const
+    { return funcP_CC(a1,a2); }
+  Float P_CC_dH_num(Float a1, Float a2) const
+    { return funcP_CC.dH(a1,a2); }
+  Float P_CC_dC_num(Float a1, Float a2) const
+    { return funcP_CC.dC(a1,a2); }
+
+  Float P_CH_num(Float a1, Float a2) const
+    { return funcP_CH(a1,a2); }
+  Float P_CH_dH_num(Float a1, Float a2) const
+    { return funcP_CH.dH(a1,a2); }
+  Float P_CH_dC_num(Float a1, Float a2) const
+    { return funcP_CH.dC(a1,a2); }
 
   Float P(AtomsPair& ij, const Float V = 0.0);
 
-  Float pi_rc_CC_num(Float a1, Float a2, Float a3) const; 
-    Float pi_rc_CC_dNconj_num(Float a1, Float a2, Float a3) const;
-    Float pi_rc_CC_dNt_i_num(Float a1, Float a2, Float a3) const;
-    Float pi_rc_CC_dNt_j_num(Float a1, Float a2, Float a3) const;
+  Float pi_rc_CC_num(Float a1, Float a2, Float a3) const
+    { return func_pi_rc_CC(a1,a2,a3); }
+  Float pi_rc_CC_dNconj_num(Float a1, Float a2, Float a3) const
+    { return func_pi_rc_CC.dk(a1,a2,a3); }
+  Float pi_rc_CC_dNt_i_num(Float a1, Float a2, Float a3) const
+    { return func_pi_rc_CC.di(a1,a2,a3); }
+  Float pi_rc_CC_dNt_j_num(Float a1, Float a2, Float a3) const
+    { return func_pi_rc_CC.dj(a1,a2,a3); }
 
-  Float pi_rc_CH_num(Float a1, Float a2, Float a3) const; 
-    Float pi_rc_CH_dNconj_num(Float a1, Float a2, Float a3) const;
-    Float pi_rc_CH_dNt_i_num(Float a1, Float a2, Float a3) const;
-    Float pi_rc_CH_dNt_j_num(Float a1, Float a2, Float a3) const;
+  Float pi_rc_CH_num(Float a1, Float a2, Float a3) const
+    { return func_pi_rc_CH(a1,a2,a3); }
+  Float pi_rc_CH_dNconj_num(Float a1, Float a2, Float a3) const
+    { return func_pi_rc_CH.dk(a1,a2,a3); }
+  Float pi_rc_CH_dNt_i_num(Float a1, Float a2, Float a3) const
+    { return func_pi_rc_CH.di(a1,a2,a3); }
+  Float pi_rc_CH_dNt_j_num(Float a1, Float a2, Float a3) const
+    { return func_pi_rc_CH.dj(a1,a2,a3); }
 
-  Float pi_rc_HH_num(Float a1, Float a2, Float a3) const; 
-    Float pi_rc_HH_dNconj_num(Float a1, Float a2, Float a3) const;
-    Float pi_rc_HH_dNt_i_num(Float a1, Float a2, Float a3) const;
-    Float pi_rc_HH_dNt_j_num(Float a1, Float a2, Float a3) const;
+  Float pi_rc_HH_num(Float a1, Float a2, Float a3) const
+    { return func_pi_rc_HH(a1,a2,a3); }
+  Float pi_rc_HH_dNconj_num(Float a1, Float a2, Float a3) const
+    { return func_pi_rc_HH.dk(a1,a2,a3); }
+  Float pi_rc_HH_dNt_i_num(Float a1, Float a2, Float a3) const
+    { return func_pi_rc_HH.di(a1,a2,a3); }
+  Float pi_rc_HH_dNt_j_num(Float a1, Float a2, Float a3) const
+    { return func_pi_rc_HH.dj(a1,a2,a3); }
 
   Float pi_rc(AtomsPair& ij, const Float V = 0.0);
 public:
@@ -110,10 +129,14 @@ public:
   Float pi_dh_sum(AtomsPair& ij, const Float V = 0.0);
   Float pi_dh(AtomsPair& ij, const Float V = 0.0);
 
-  Float Tij_num(Float a1, Float a2, Float a3) const; 
-    Float Tij_dNconj_num(Float a1, Float a2, Float a3) const;
-    Float Tij_dNt_i_num(Float a1, Float a2, Float a3) const;
-    Float Tij_dNt_j_num(Float a1, Float a2, Float a3) const;
+  Float Tij_num(Float a1, Float a2, Float a3) const
+    { return func_Tij(a1,a2,a3); }
+  Float Tij_dNconj_num(Float a1, Float a2, Float a3) const
+    { return func_Tij.dk(a1,a2,a3); }
+  Float Tij_dNt_i_num(Float a1, Float a2, Float a3) const
+    { return func_Tij.di(a1,a2,a3); }
+  Float Tij_dNt_j_num(Float a1, Float a2, Float a3) const
+    { return func_Tij.dj(a1,a2,a3); }
 
 public:
   enum ParamSet{POTENTIAL1,POTENTIAL2} /*paramSet*/;  

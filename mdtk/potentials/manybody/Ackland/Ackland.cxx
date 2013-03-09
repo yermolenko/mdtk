@@ -223,9 +223,8 @@ Ackland::F(Atom &atom1)
 Float
 Ackland::rho(Atom &atom_i, const Float V)
 {
-  Index j;
   Float rhoij = 0.0;
-  for(j = 0; j < NL(atom_i).size(); j++)
+  for(size_t j = 0; j < NL(atom_i).size(); j++)
   {
     Atom& atom_j = *(NL(atom_i)[j]);
     AtomsPair ij(atom_i,atom_j,10.0*Ao,20.0*Ao);
