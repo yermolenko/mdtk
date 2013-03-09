@@ -277,7 +277,8 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
       std::ostringstream fname;
       fname << "../mdloop.opti-";
       PRINT2STREAM_FW(fname, i, '0', 10);
-      fname << "-" << energyValue/eV/mdloop.atoms.size();
+      fname << "-";
+      PRINT2STREAM_P(fname, energyValue/eV/mdloop.atoms.size(), 10);
       fname << "_eV_per_atom";
 
       std::ofstream fo(fname.str().c_str());
