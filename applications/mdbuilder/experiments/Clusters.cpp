@@ -184,6 +184,8 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
   VETRACE(snapshots.size());
   REQUIRE(snapshots.size() > 0);
 
+  size_t minPotEnergySnapshotIndex = 0;
+
   for(size_t i = 0; i < snapshots.size(); ++i)
   {
     std::ostringstream dirname;
@@ -266,6 +268,7 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
     {
       simloop.atoms = mdloop.atoms;
       minPotEnergy = energyValue;
+      minPotEnergySnapshotIndex = i;
     }
 
     std::ofstream fo_energyValue("mdloop.opti.energy");
@@ -286,6 +289,9 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
       fo.close();
     }
   }
+
+  FETRACE(minPotEnergySnapshotIndex);
+
   {
     std::ofstream fo("mdloop.opti.last");
     mdloop.saveToStream(fo);
