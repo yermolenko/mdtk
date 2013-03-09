@@ -2,7 +2,7 @@
    The VisBox class for the molecular dynamics trajectory viewer
 
    Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
-   2012 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   2012, 2013 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -157,6 +157,12 @@ VisBox::loadDataFromFiles(std::string base_state_filename,
   }
 
   size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
+}
+
+void
+VisBox::loadDataFromMDLoopStates(const std::vector<std::string>& mdloopStates)
+{
+  MDTrajectory_read_from_mdloop_states(mdt, mdloopStates);
 }
 
 void

@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
   std::string baseFile;
   bool loadPartialSnapshots = false;
   bool xvasSpecified = false;
+  bool basefilesOnly = false;
 
   for(int argi = 1; argi < argc; ++argi)
   {
@@ -183,6 +184,16 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     return 1;
   }
 
+  if (fileList.size() > 0 && fileList[0].find(".xva") == std::string::npos)
+  {
+    basefilesOnly = true;
+    std::vector<std::string> fileList_tmp = fileList;
+    fileList.clear();
+    fileList.push_back(baseFile);
+    for(size_t i = 0; i < fileList_tmp.size(); ++i)
+      fileList.push_back(fileList_tmp[i]);
+  }
+
   TRACE(loadPartialSnapshots);
   TRACE(xvasSpecified);
   TRACE(baseFile);
@@ -206,7 +217,10 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
   xmde::VisBox avb(15,35,500,500);
   avb.set_non_modal();
-  avb.loadDataFromFiles(baseFile,fileList,loadPartialSnapshots);
+  if (!basefilesOnly)
+    avb.loadDataFromFiles(baseFile,fileList,loadPartialSnapshots);
+  else
+    avb.loadDataFromMDLoopStates(fileList);
 
   xmde::MainWindow w(&avb, instantAnimate);
   MainWindow_GlobalPtr = &w;
