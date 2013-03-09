@@ -327,11 +327,11 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
   srand(12345);
 
 #ifdef MDBUILDER_OSMESA
-  TRACE("Using OSMesa");
+  PRINT("Using OSMesa-based backend.\n");
   buildWithOSMesa();
   return 0;
 #else
-  TRACE("Using FLTK OpenGL");
+  PRINT("Using FLTK OpenGL-based backend.\n");
   Fl_Window win(500, 300, "MDBuilder");
   MDBuilderWindow mygl(10, 10, win.w()-20, win.h()-20);
   win.end();
