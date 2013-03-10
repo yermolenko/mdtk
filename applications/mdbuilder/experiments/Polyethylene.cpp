@@ -1,8 +1,8 @@
 /*
    Building of polyethylene stuctures
 
-   Copyright (C) 2007, 2008, 2009, 2011, 2012 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2007, 2008, 2009, 2011, 2012, 2013 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -405,17 +405,17 @@ build_Polyethylene_lattice_with_folds(
       sl_rebo.enableDump();
 
       sl_rebo.dumpConst(0.95);
-      relax(sl_rebo,0.05*ps);
+      relax(sl_rebo,0.05*ps,"000-folds-relax-REBO");
 
       sl_rebo.dumpConst(0.97);
-      relax(sl_rebo,0.05*ps);
+      relax(sl_rebo,0.05*ps,"001-folds-relax-REBO");
 
       sl_rebo.dumpConst(0.99);
-      relax(sl_rebo,0.05*ps);
+      relax(sl_rebo,0.05*ps,"002-folds-relax-REBO");
 
       sl_rebo.disableDump();
 
-      quench(sl_rebo,0.01*K);
+      quench(sl_rebo,0.01*K, 200*ps, 0.01*ps, "003-folds-quench-REBO");
 
       {
         SimLoopDump sl_airebo(sl_rebo);
@@ -424,17 +424,17 @@ build_Polyethylene_lattice_with_folds(
         sl_airebo.enableDump();
 
         sl_airebo.dumpConst(0.95);
-        relax/*_flush*/(sl_airebo,0.05*ps,"_tmp-X-relax_flush-folds-airebo");
+        relax(sl_airebo,0.05*ps,"010-folds-relax-AIREBO");
 
         sl_airebo.dumpConst(0.97);
-        relax(sl_airebo,0.05*ps);
+        relax(sl_airebo,0.05*ps,"011-folds-relax-AIREBO");
 
         sl_airebo.dumpConst(0.99);
-        relax(sl_airebo,0.05*ps);
+        relax(sl_airebo,0.05*ps,"012-folds-relax-AIREBO");
 
         sl_airebo.disableDump();
 
-        quench(sl_airebo,0.01*K);
+        quench(sl_airebo,0.01*K, 200*ps, 0.01*ps,"013-folds-quench-AIREBO");
 
         sl_with_chain = sl_airebo;
       }
@@ -442,25 +442,25 @@ build_Polyethylene_lattice_with_folds(
     sl_with_chain.atoms.unfixAtoms(fixedAtoms);
 
     {
-      yaatk::text_ofstream fomde("_tmp-X-relax_flush-folds-airebo-unfixed.mde");
-      sl_with_chain.saveToMDE(fomde);
-      fomde.close();
+      yaatk::text_ofstream fomdloop("013-folds-quench-AIREBO.mdloop");
+      sl_with_chain.saveToStream(fomdloop);
+      fomdloop.close();
     }
 
     sl_with_chain.enableDump();
 
     sl_with_chain.dumpConst(0.95);
-    relax/*_flush*/(sl_with_chain,0.05*ps,"_tmp-X-relax_flush-folds-airebo-unfixed");
+    relax(sl_with_chain,0.05*ps,"020-chain-relax-REBO");
 
     sl_with_chain.dumpConst(0.97);
-    relax(sl_with_chain,0.05*ps);
+    relax(sl_with_chain,0.05*ps,"021-chain-relax-REBO");
 
     sl_with_chain.dumpConst(0.99);
-    relax(sl_with_chain,0.05*ps);
+    relax(sl_with_chain,0.05*ps,"022-chain-relax-REBO");
 
     sl_with_chain.disableDump();
 
-    quench(sl_with_chain,0.01*K);
+    quench(sl_with_chain,0.01*K, 200*ps, 0.01*ps,"023-chain-quench-REBO");
   }
 
   sl_with_chain.atoms.removeMomentum();
@@ -473,25 +473,25 @@ build_Polyethylene_lattice_with_folds(
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
 
   {
-    yaatk::text_ofstream fomde("_tmp-X-relax_flush-FINAL.mde");
-    sl.saveToMDE(fomde);
-    fomde.close();
+    yaatk::text_ofstream fomdloop("023-crystal-unrelaxed.mdloop");
+    sl.saveToStream(fomdloop);
+    fomdloop.close();
   }
 
   sl.enableDump();
 
   sl.dumpConst(0.95);
-  relax/*_flush*/(sl,0.05*ps,"_tmp-X-relax_flush-FINAL");
+  relax(sl,0.05*ps,"030-crystal-relax-AIREBO");
 
   sl.dumpConst(0.97);
-  relax(sl,0.05*ps);
+  relax(sl,0.05*ps,"031-crystal-relax-AIREBO");
 
   sl.dumpConst(0.99);
-  relax(sl,0.05*ps);
+  relax(sl,0.05*ps,"032-crystal-relax-AIREBO");
 
   sl.disableDump();
 
-  quench(sl,0.01*K);
+  quench(sl,0.01*K, 200*ps, 0.01*ps,"033-crystal-quench-AIREBO");
 
   sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
   sl.thermalBath.dBoundary = 3.0*Ao;

@@ -898,9 +898,9 @@ build_Cluster_Landed_on_Substrate(
   TRACE(sl.energyKin()/eV);
 
   {
-    yaatk::text_ofstream fomde("_tmp-X-relax_flush-landing.mde");
-    sl.saveToMDE(fomde);
-    fomde.close();
+    yaatk::text_ofstream fomdloop("000.mdloop");
+    sl.saveToStream(fomdloop);
+    fomdloop.close();
   }
 
 
@@ -910,17 +910,17 @@ build_Cluster_Landed_on_Substrate(
     Float tb_zMin_bak = sl.thermalBath.zMin;
     sl.thermalBath.zMin = -1.0*Ao;
 
-    relax/*_flush*/(sl,5.0*ps,"_tmp-X-landing-fixed-CH-relax_flush");
+    relax(sl,5.0*ps,"001-relax");
 
     sl.thermalBath.zMin = tb_zMin_bak;
   }
   sl.atoms.unfixAtoms(fixedAtoms);
 
-  relax/*_flush*/(sl,20.0*ps,"_tmp-X-landing-unfixed-CH-relax_flush-1");
-  quench(sl,0.01*K,200*ps,0.01*ps,"_tmp-X-landing-quench-1");
+  relax(sl,20.0*ps,"010-relax");
+  quench(sl,0.01*K,200*ps,0.01*ps,"011-quench");
 
-  relax/*_flush*/(sl,10.0*ps,"_tmp-X-landing-unfixed-CH-relax_flush-2");
-  quench(sl,0.01*K,200*ps,0.01*ps,"_tmp-X-landing-quench-2");
+  relax(sl,10.0*ps,"020-relax");
+  quench(sl,0.01*K,200*ps,0.01*ps,"021-quench");
 
   yaatk::chdir("..");
 
