@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
 {
   for(int argi = 0; argi < argc; ++argi)
   {
-    if (!strcmp(argv[argi],"--cluster-size") || !std::strcmp(argv[argi],"-s"))
+    if (!strcmp(argv[argi],"--cluster-size"))
     {
       if (!(argi+1 < argc))
       {
@@ -287,7 +287,7 @@ int main(int argc, char *argv[])
       }
     }
 
-    if (!strcmp(argv[argi],"--number-of-impacts") || !std::strcmp(argv[argi],"-i"))
+    if (!strcmp(argv[argi],"--number-of-impacts"))
     {
       if (!(argi+1 < argc))
       {
