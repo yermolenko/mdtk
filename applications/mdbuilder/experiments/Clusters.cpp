@@ -879,23 +879,21 @@ prepare_Graphite_by_Cu_at_C60_bombardment()
 SimLoop
 build_Cluster_Landed_on_Substrate(
   const SimLoop sl_Substrate,
-  ElementID id,
-  int clusterSize,
+  AtomsArray cluster,
   bool applyPBCtoCluster
   )
 {
   std::ostringstream sbuildSubdir;
-  sbuildSubdir << "_build_" << ElementIDtoString(id) << clusterSize << "_on_PE";
+  sbuildSubdir << "_build_" << ElementIDtoString(cluster[0].ID) << cluster.size() << "_on_PE";
   yaatk::mkdir(sbuildSubdir.str().c_str());
   yaatk::chdir(sbuildSubdir.str().c_str());
 
-  AtomsArray Cluster = clusterFromFCCCrystal(id,clusterSize);
-  Cluster.tag(ATOMTAG_CLUSTER);
-  Cluster.removeMomentum();
+  cluster.tag(ATOMTAG_CLUSTER);
+  cluster.removeMomentum();
 
   SimLoop sl;
   initialize_simloop(sl);
-  sl = build_target_by_cluster_bombardment(sl_Substrate,Cluster,0.0*eV,3.3*Ao);
+  sl = build_target_by_cluster_bombardment(sl_Substrate,cluster,0.0*eV,3.3*Ao);
 
   TRACE(sl.energyKin()/eV);
 
@@ -931,7 +929,7 @@ build_Cluster_Landed_on_Substrate(
     for(size_t i = 0; i < sl.atoms.size(); ++i)
     {
       Atom& a = sl.atoms[i];
-      if (a.ID == id)
+      if (a.ID == cluster[0].ID)
       {
         REQUIRE(a.PBC_count.x == 0);
         REQUIRE(a.PBC_count.y == 0);
@@ -1103,65 +1101,53 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
   int a_num,
   int b_num,
   int c_num,
-  std::vector<int> clusterSizes,
-  std::vector<ElementID> clusterElements,
+  AtomsArray cluster,
   std::vector<ElementID> ionElements,
   std::vector<Float> ionEnergies,
   size_t numberOfImpacts
   )
 {
+  VerboseOutput vo(false);
+
   SimLoop sl_Polyethylene =
     build_Polyethylene_lattice_with_folds(a_num,b_num,c_num);
   sl_Polyethylene.atoms.tag(ATOMTAG_SUBSTRATE);
-  for(size_t clusterElementIndex = 0;
-      clusterElementIndex < clusterElements.size();
-      ++clusterElementIndex)
+
+  SimLoop sl_Landed =
+    build_Cluster_Landed_on_Substrate(sl_Polyethylene, cluster);
+  for(size_t ionEnergyIndex = 0;
+      ionEnergyIndex < ionEnergies.size();
+      ++ionEnergyIndex)
   {
-    ElementID clusterElement = clusterElements[clusterElementIndex];
-    for(size_t sizeIndex = 0;
-        sizeIndex < clusterSizes.size();
-        ++sizeIndex)
+    Float ionEnergy = ionEnergies[ionEnergyIndex];
+    for(size_t ionElementIndex = 0;
+        ionElementIndex < ionElements.size();
+        ++ionElementIndex)
     {
-      int clusterSize = clusterSizes[sizeIndex];
-      SimLoop sl_Landed =
-        build_Cluster_Landed_on_Substrate(sl_Polyethylene,
-                                          clusterElement,
-                                          clusterSize);
-      for(size_t ionEnergyIndex = 0;
-          ionEnergyIndex < ionEnergies.size();
-          ++ionEnergyIndex)
-      {
-        Float ionEnergy = ionEnergies[ionEnergyIndex];
-        for(size_t ionElementIndex = 0;
-            ionElementIndex < ionElements.size();
-            ++ionElementIndex)
-        {
-          ElementID ionElement = ionElements[ionElementIndex];
+      ElementID ionElement = ionElements[ionElementIndex];
 
-          char id_string[1000];
-          sprintf(id_string,
-                  "%s%03d_on_PE_by_%s_%04deV",
-                  ElementIDtoString(clusterElement).c_str(),
-                  clusterSize,
-                  ElementIDtoString(ionElement).c_str(),
-                  int(ionEnergy/eV));
-          std::string dirname(id_string);
+      char id_string[1000];
+      sprintf(id_string,
+              "%s%03d_on_PE_by_%s_%04deV",
+              ElementIDtoString(cluster[0].ID).c_str(),
+              int(cluster.size()),
+              ElementIDtoString(ionElement).c_str(),
+              int(ionEnergy/eV));
+      std::string dirname(id_string);
 
-          Float halo = 5.5*Ao;
+      Float halo = 5.5*Ao;
 
-          std::vector<size_t> clusterAtomIndices;
-          for(size_t ai = 0; ai < sl_Landed.atoms.size(); ++ai)
-            if (sl_Landed.atoms[ai].ID == clusterElement)
-              clusterAtomIndices.push_back(ai);
+      std::vector<size_t> clusterAtomIndices;
+      for(size_t ai = 0; ai < sl_Landed.atoms.size(); ++ai)
+        if (sl_Landed.atoms[ai].ID == cluster[0].ID)
+          clusterAtomIndices.push_back(ai);
 
-          bomb_Cluster_with_Ions(dirname,
-                                 sl_Landed,
-                                 clusterAtomIndices,
-                                 ionElement, ionEnergy,
-                                 halo,
-                                 numberOfImpacts);
-        }
-      }
+      bomb_Cluster_with_Ions(dirname,
+                             sl_Landed,
+                             clusterAtomIndices,
+                             ionElement, ionEnergy,
+                             halo,
+                             numberOfImpacts);
     }
   }
 }

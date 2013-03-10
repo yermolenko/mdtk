@@ -1,8 +1,8 @@
 /*
    Building of various clusters (header file)
 
-   Copyright (C) 2007, 2008, 2010, 2011, 2012 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2007, 2008, 2010, 2011, 2012, 2013 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -75,8 +75,7 @@ prepare_Graphite_by_Cu_at_C60_bombardment();
 SimLoop
 build_Cluster_Landed_on_Substrate(
   const mdtk::SimLoop sl_Substrate,
-  ElementID id,
-  int clusterSize,
+  AtomsArray cluster,
   bool applyPBCtoCluster = false
   );
 
@@ -96,8 +95,7 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
   int a_num,
   int b_num,
   int c_num,
-  std::vector<int> clusterSizes,
-  std::vector<ElementID> clusterElements,
+  AtomsArray cluster,
   std::vector<ElementID> ionElements,
   std::vector<Float> ionEnergies,
   size_t numberOfImpacts = 1024

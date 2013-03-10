@@ -47,8 +47,9 @@
 #include "experiments/Fulleride.hpp"
 
 static bool generateClusters = false;
-
 static int clusterSize = 0;
+
+static std::string clusterConfigurationFile;
 static size_t numberOfImpacts = 1024;
 
 void
@@ -103,24 +104,25 @@ buildCommands()
     else // bombardment experiment preparation was requested
     {
       PRINT("Preparing MD experiment.\n");
+
+      AtomsArray cluster;
+      SimLoop clusterMDLoop;
+      if (!yaatk::exists(clusterConfigurationFile.c_str()))
+      {
+        std::cerr << "Can not open cluster configuration file. Exiting." << std::endl;
+        exit(1);
+      }
+      yaatk::text_ifstream fi(clusterConfigurationFile.c_str());
+      clusterMDLoop.loadFromStream(fi);
+      fi.close();
+      cluster = clusterMDLoop.atoms;
+
+      TRACE(cluster.size());
+      REQUIRE(cluster.size() > 0);
+      TRACE(ElementIDtoString(cluster[0].ID));
       TRACE(numberOfImpacts);
 
-      verboseTrace = false;
-      TRACE(clusterSize);
       glLoadIdentity();
-      std::vector<int> clusterSizes;
-      clusterSizes.push_back(clusterSize);
-/*
-      clusterSizes.push_back(1);
-      clusterSizes.push_back(13);
-      clusterSizes.push_back(27);
-      clusterSizes.push_back(39);
-      clusterSizes.push_back(75);
-      clusterSizes.push_back(195);
-*/
-      std::vector<ElementID> clusterElements;
-      clusterElements.push_back(Cu_EL);
-      clusterElements.push_back(Au_EL);
       std::vector<ElementID> ionElements;
       ionElements.push_back(Ar_EL);
       ionElements.push_back(Xe_EL);
@@ -131,8 +133,7 @@ buildCommands()
       ionEnergies.push_back(400*eV);
       ionEnergies.push_back(500*eV);
       mdbuilder::bomb_MetalCluster_on_Polyethylene_with_Ions(8,12,17,
-                                                             clusterSizes,
-                                                             clusterElements,
+                                                             cluster,
                                                              ionElements,
                                                              ionEnergies,
                                                              numberOfImpacts);
@@ -286,6 +287,17 @@ int main(int argc, char *argv[])
         generateClusters = true;
       }
     }
+    if (!strcmp(argv[argi],"--cluster"))
+    {
+      if (!(argi+1 < argc))
+      {
+        std::cerr << "You should specify existing cluster configuration file, e.g. --cluster-size Cu13.mdloop\n";
+        return -1;
+      }
+      std::istringstream iss(argv[argi+1]);
+      iss >> clusterConfigurationFile;
+      generateClusters = false;
+    }
 
     if (!strcmp(argv[argi],"--number-of-impacts"))
     {
@@ -317,10 +329,13 @@ Usage: mdbuilder [OPTION]... \n\
 Prepares molecular dynamics experiments.\n\
 To prepare clusters of the specific size run:\n\
   mdbuilder --cluster-size  <cluster size>\n\
+To prepare an experiment for the specific cluster run:\n\
+  mdbuilder --cluster <mdloop file containing cluster configuration> --number-of-impacts  <number of impacts>\n\
 \n\
       --help     display this help and exit\n\
       --version  output version information and exit\n\
       --cluster-size  <cluster size>  generate Cu, Au and Ag clusters of the specific size\n\
+      --cluster  <mdloop file containing cluster configuration>  prepare an experiment for the specific cluster\n\
       --number-of-impacts  <number of impacts>  generate specific number of impacts for each experiment (default : 1024)\n\
 \n\
 Report bugs to <oleksandr.yermolenko@gmail.com>\n\
