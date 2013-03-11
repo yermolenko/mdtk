@@ -330,16 +330,31 @@ struct StreamToFileRedirect
 
 struct ChDir
 {
-  ChDir(std::string dir = "_tmp")
+  yaatk::StreamToFileRedirect* cout_redir;
+  yaatk::StreamToFileRedirect* cerr_redir;
+  std::string prevDir;
+  ChDir(std::string dir = "_tmp", bool stdStreamsRedirect = true)
+    :cout_redir(NULL),
+     cerr_redir(NULL),
+     prevDir(yaatk::getcwd())
     {
       yaatk::mkdir(dir.c_str());
       int chdir_retval = yaatk::chdir(dir.c_str());
       REQUIRE(chdir_retval == 0);
+      if (stdStreamsRedirect)
+      {
+        cout_redir = new yaatk::StreamToFileRedirect(std::cout,"stdout.txt");
+        cerr_redir = new yaatk::StreamToFileRedirect(std::cerr,"stderr.txt");
+      }
     }
   ~ChDir()
     {
-      int chdir_retval = yaatk::chdir("..");
+      int chdir_retval = yaatk::chdir(prevDir.c_str());
       REQUIRE(chdir_retval == 0);
+      if (cout_redir != NULL)
+        delete cout_redir;
+      if (cerr_redir != NULL)
+        delete cerr_redir;
     }
 };
 
