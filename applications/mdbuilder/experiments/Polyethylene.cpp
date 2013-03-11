@@ -385,8 +385,7 @@ build_Polyethylene_lattice_with_folds(
   double c
   )
 {
-  yaatk::mkdir("_build_PE");
-  yaatk::chdir("_build_PE");
+  yaatk::ChDir cd("_build_PE");
 
   SimLoopDump sl_with_chain;
   initialize_simloop(sl_with_chain);
@@ -498,8 +497,6 @@ build_Polyethylene_lattice_with_folds(
   sl.thermalBath.zMinOfFreeZone = 0.0*Ao;
 
   sl.atoms.removeMomentum();
-
-  yaatk::chdir("..");
 
   return sl;
 }

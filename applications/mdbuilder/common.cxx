@@ -1,7 +1,7 @@
 /*
    Common routines for mdbuilder
 
-   Copyright (C) 2010, 2011, 2012 Oleksandr Yermolenko
+   Copyright (C) 2010, 2011, 2012, 2013 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -35,10 +35,7 @@ quench(
   )
 {
   MDBUILDER_DRY_RUN_HOOK;
-  yaatk::mkdir(tmpDir.c_str());
-  yaatk::chdir(tmpDir.c_str());
-  yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
-  yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
+  yaatk::ChDir cd(tmpDir);
 
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = 0.0;
@@ -54,7 +51,6 @@ quench(
     if (Temp < forTemp) break;
   }
   sl.thermalBath.zMin = tb_zMin_bak;
-  yaatk::chdir("..");
 }
 
 void
@@ -87,11 +83,7 @@ heatUp(
   )
 {
   MDBUILDER_DRY_RUN_HOOK;
-  yaatk::mkdir(tmpDir.c_str());
-  yaatk::chdir(tmpDir.c_str());
-
-  yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
-  yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
+  yaatk::ChDir cd(tmpDir);
 
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = 0.0;
@@ -112,7 +104,6 @@ heatUp(
     if (sl.simTimeFinal > checkTime*(steps+3)) break;
   }
   sl.thermalBath.zMin = tb_zMin_bak;
-  yaatk::chdir("..");
 }
 
 void
@@ -143,13 +134,11 @@ relax(
   )
 {
   MDBUILDER_DRY_RUN_HOOK;
-  yaatk::mkdir(tmpDir.c_str());
-  yaatk::chdir(tmpDir.c_str());
+  yaatk::ChDir cd(tmpDir);
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = forTime;
   sl.simTimeSaveTrajInterval = 0.05*ps;
   sl.execute();
-  yaatk::chdir("..");
 }
 
 void
@@ -177,17 +166,13 @@ relax_flush(
   )
 {
   MDBUILDER_DRY_RUN_HOOK;
-  yaatk::mkdir(tmpDir.c_str());
-  yaatk::chdir(tmpDir.c_str());
-  yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
-  yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
+  yaatk::ChDir cd(tmpDir);
 
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = forTime;
   sl.simTimeSaveTrajInterval = 0.001*ps;
   sl.writestate();
   sl.execute();
-  yaatk::chdir("..");
 }
 
 void

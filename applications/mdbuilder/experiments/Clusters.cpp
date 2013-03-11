@@ -137,8 +137,6 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
 
   {
     yaatk::ChDir cd("heating");
-    yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
-    yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
 
     mdloop.preventFileOutput = true;
 
@@ -195,8 +193,6 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
     PRINT2STREAM_FWP(dirname, snapshots[i].T, '0', 8, 4);
     dirname << "K";
     yaatk::ChDir cd(dirname.str());
-    yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
-    yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
 
     mdloop.atoms = snapshots[i].atoms;
     mdloop.thermalBath.To = snapshots[i].T;
@@ -433,8 +429,7 @@ cluster(ElementID id, int clusterSize)
 
   if (clusterSize == 0) return sl.atoms;
 
-  yaatk::mkdir("_tmp-Cu-clusters");
-  yaatk::chdir("_tmp-Cu-clusters");
+  yaatk::ChDir cd("_tmp-Cu-clusters");
 
   std::ofstream foGlobal("energy.min.all",std::ios::app);
 
@@ -454,8 +449,7 @@ cluster(ElementID id, int clusterSize)
 
     char dirname[100];
     sprintf(dirname,"%03lu",sl.atoms.size());
-    yaatk::mkdir(dirname);
-    yaatk::chdir(dirname);
+    yaatk::ChDir cd(dirname);
 
     Float minPotEnergyOf = optimize_single(sl, r);
 
@@ -463,15 +457,11 @@ cluster(ElementID id, int clusterSize)
              << std::setw (20) << minPotEnergyOf/eV << " "
              << std::setw (20) << minPotEnergyOf/eV/sl.atoms.size() << std::endl;
 
-    yaatk::chdir("..");
-
     if (atomsCount < clusterSize)
       add1atom(sl.atoms, id, r);
   }
 
   foGlobal.close();
-
-  yaatk::chdir("..");
 
   gsl_rng_free (r);
 
@@ -524,8 +514,7 @@ clusterFromCrystal(const AtomsArray& atoms, int clusterSize, Vector3D c)
     }
   }
 
-  yaatk::mkdir("_tmp-clusters");
-  yaatk::chdir("_tmp-clusters");
+  yaatk::ChDir cd("_tmp-clusters");
 
   std::ofstream foGlobal("energy.min.all",std::ios::app);
 
@@ -537,21 +526,16 @@ clusterFromCrystal(const AtomsArray& atoms, int clusterSize, Vector3D c)
 
     char dirname[100];
     sprintf(dirname,"%03lu",sl.atoms.size());
-    yaatk::mkdir(dirname);
-    yaatk::chdir(dirname);
+    yaatk::ChDir cd(dirname);
 
     Float minPotEnergyOf = optimize_single(sl, r);
 
     foGlobal << std::setw (10) << sl.atoms.size() << " "
              << std::setw (20) << minPotEnergyOf/eV << " "
              << std::setw (20) << minPotEnergyOf/eV/sl.atoms.size() << std::endl;
-
-    yaatk::chdir("..");
   }
 
   foGlobal.close();
-
-  yaatk::chdir("..");
 
   gsl_rng_free (r);
 
@@ -789,12 +773,10 @@ prepare_Cu_by_Cu_at_C60_bobardment()
                   int(rot_axis.x),int(rot_axis.y),int(rot_axis.z),
                   int(rot_energy/eV));
 
-          yaatk::mkdir(id_string);
-          yaatk::chdir(id_string);
+          yaatk::ChDir cd(id_string);
           yaatk::text_ofstream fomde("in.mde");
           sl.saveToMDE(fomde);
           fomde.close();
-          yaatk::chdir("..");
         }
       }
     }
@@ -864,12 +846,10 @@ prepare_Graphite_by_Cu_at_C60_bombardment()
                   int(rot_axis.x),int(rot_axis.y),int(rot_axis.z),
                   int(rot_energy/eV));
 
-          yaatk::mkdir(id_string);
-          yaatk::chdir(id_string);
+          yaatk::ChDir cd(id_string);
           yaatk::text_ofstream fomde("in.mde");
           sl.saveToMDE(fomde);
           fomde.close();
-          yaatk::chdir("..");
         }
       }
     }
@@ -885,8 +865,7 @@ build_Cluster_Landed_on_Substrate(
 {
   std::ostringstream sbuildSubdir;
   sbuildSubdir << "_build_" << ElementIDtoString(cluster[0].ID) << cluster.size() << "_on_PE";
-  yaatk::mkdir(sbuildSubdir.str().c_str());
-  yaatk::chdir(sbuildSubdir.str().c_str());
+  yaatk::ChDir cd(sbuildSubdir.str());
 
   cluster.tag(ATOMTAG_CLUSTER);
   cluster.removeMomentum();
@@ -922,8 +901,6 @@ build_Cluster_Landed_on_Substrate(
   relax(sl,10.0*ps,"020-relax");
   quench(sl,0.01*K,200*ps,0.01*ps,"021-quench");
 
-  yaatk::chdir("..");
-
   if (!applyPBCtoCluster)
   {
     for(size_t i = 0; i < sl.atoms.size(); ++i)
@@ -955,8 +932,7 @@ bomb_Cluster_with_Ions(
   size_t numberOfImpacts
   )
 {
-  yaatk::mkdir(dirname.c_str());
-  yaatk::chdir(dirname.c_str());
+  yaatk::ChDir cd(dirname);
 
   SimLoop sl(target);
   sl.atoms.tag(ATOMTAG_TARGET);
@@ -1019,8 +995,7 @@ bomb_Cluster_with_Ions(
   gsl_qrng * coord2d_qrng = gsl_qrng_alloc (/*gsl_qrng_sobol*/ gsl_qrng_niederreiter_2, 2);
   REQUIRE(coord2d_qrng != NULL);
 
-  yaatk::mkdir("dataset");
-  yaatk::chdir("dataset");
+  yaatk::ChDir cd_dataset("dataset");
 
   for(int trajIndex = 0; trajIndex < numberOfImpacts; trajIndex++)
   {
@@ -1071,8 +1046,7 @@ bomb_Cluster_with_Ions(
 
     char trajDirName[1024];
     sprintf(trajDirName,"%08d",trajIndex);
-    yaatk::mkdir(trajDirName);
-    yaatk::chdir(trajDirName);
+    yaatk::ChDir cd(trajDirName);
 
     sl.iteration = 0;
     sl.simTime = 0.0*ps;
@@ -1082,18 +1056,13 @@ bomb_Cluster_with_Ions(
     yaatk::text_ofstream fomde("mde_init");
     sl.saveToStream(fomde);
     fomde.close();
-    yaatk::chdir("..");
 
     sl.atoms.resize(sl.atoms.size()-1);
   }
 
-  yaatk::chdir("..");
-
   rngout.close();
   rngNOTout.close();
   gsl_qrng_free (coord2d_qrng);
-
-  yaatk::chdir("..");
 }
 
 void
@@ -1107,7 +1076,7 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
   size_t numberOfImpacts
   )
 {
-  VerboseOutput vo(false);
+  VerboseOutput vo(true);
 
   SimLoop sl_Polyethylene =
     build_Polyethylene_lattice_with_folds(a_num,b_num,c_num);
@@ -1164,8 +1133,7 @@ bomb_orthorhombic_with_clusters(
   size_t numberOfImpacts
   )
 {
-  yaatk::mkdir(dirname.c_str());
-  yaatk::chdir(dirname.c_str());
+  yaatk::ChDir cd(dirname);
 
   std::ofstream rngSelected("rng.selected.log");
   REQUIRE(rngSelected != NULL);
@@ -1187,8 +1155,7 @@ bomb_orthorhombic_with_clusters(
   gsl_qrng* qrng_2d_pos = gsl_qrng_alloc(gsl_qrng_niederreiter_2, 2);
   REQUIRE(qrng_2d_pos != NULL);
 
-  yaatk::mkdir("dataset");
-  yaatk::chdir("dataset");
+  yaatk::ChDir cd_dataset("dataset");
 
   Float allowToBomb = false;
 
@@ -1243,8 +1210,7 @@ bomb_orthorhombic_with_clusters(
 
     char trajDirName[1024];
     sprintf(trajDirName,"%08d",trajIndex);
-    yaatk::mkdir(trajDirName);
-    yaatk::chdir(trajDirName);
+    yaatk::ChDir cd(trajDirName);
     {
       sl.forgetHistory();
       sl.atoms.prepareForSimulatation();
@@ -1256,17 +1222,12 @@ bomb_orthorhombic_with_clusters(
       sl.saveToStream(fomde);
       fomde.close();
     }
-    yaatk::chdir("..");
   }
-
-  yaatk::chdir("..");
 
   rngSelected.close();
   rngExcluded.close();
   bombXY.close();
   gsl_qrng_free(qrng_2d_pos);
-
-  yaatk::chdir("..");
 }
 
 void

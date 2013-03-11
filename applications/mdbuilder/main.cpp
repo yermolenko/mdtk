@@ -83,8 +83,6 @@ buildCommands()
         dirname << ElementIDtoString(id);
         PRINT2STREAM_FW(dirname, clusterSize, '0', 6);
         yaatk::ChDir cd(dirname.str());
-        yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
-        yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
 
         AtomsArray cluster = mdbuilder::clusterFromFCCCrystal(id,clusterSize);
         SimLoop sl;
