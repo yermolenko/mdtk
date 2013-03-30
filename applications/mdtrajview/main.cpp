@@ -27,6 +27,7 @@
 #include "mdtk/config.hpp"
 #include "mdtk/consts.hpp"
 #include "mdtk/SimLoop.hpp"
+#include "mdtk/SimLoopSaver.hpp"
 
 #include <fstream>
 #include <algorithm>
@@ -109,6 +110,8 @@ int main(int argc, char *argv[])
   bool xvasSpecified = false;
   bool basefilesOnly = false;
 
+  bool newFileFormats = false;
+
   for(int argi = 1; argi < argc; ++argi)
   {
     if ((argv[argi][0] != '-'))
@@ -135,6 +138,11 @@ int main(int argc, char *argv[])
       instantAnimate = true;
     }
 
+    if (!std::strcmp(argv[argi],"-n"))
+    {
+      newFileFormats = true;
+    }
+
     if (!strcmp(argv[argi],"--version"))
     {
       std::cout << "mdtrajview (Molecular dynamics trajectory viewer) ";
@@ -151,6 +159,7 @@ Operates on results of mdtrajsim's run in the current directory.\n\
 \n\
       -a, --instant-animation  start animation immediately\n\
       -s, --partial-snapshots  try to load partial snapshots file (snapshots.conf)\n\
+      -n                       use new file formats\n\
       -h, --help               display this help and exit\n\
       --version                output version information and exit\n\
 \n\
@@ -159,6 +168,9 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
       return 0;
     }
   }
+
+  if (!newFileFormats)
+  {
 
   if (!xvasSpecified && baseFile == "")
   {
@@ -214,13 +226,25 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
 //  const size_t maxsize = 2000;
 //  if (fileList.size() > maxsize) fileList.resize(maxsize);
+  }
 
   xmde::VisBox avb(15,35,500,500);
   avb.set_non_modal();
+
+  if (!newFileFormats)
+  {
   if (!basefilesOnly)
     avb.loadDataFromFiles(baseFile,fileList,loadPartialSnapshots);
   else
     avb.loadDataFromMDLoopStates(fileList);
+  }
+  else
+  {
+    std::vector<std::string> states_ng = mdtk::SimLoopSaver::listFilenameBases();
+    std::vector<std::string> xvas;
+    findIntermediateStates("./",xvas);
+    avb.loadDataFromFilesOfNewFileFormat(states_ng,xvas,loadPartialSnapshots);
+  }
 
   xmde::MainWindow w(&avb, instantAnimate);
   MainWindow_GlobalPtr = &w;

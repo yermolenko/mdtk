@@ -166,6 +166,16 @@ VisBox::loadDataFromMDLoopStates(const std::vector<std::string>& mdloopStates)
 }
 
 void
+VisBox::loadDataFromFilesOfNewFileFormat(
+  const std::vector<std::string>& states,
+  const std::vector<std::string>& xvas,
+  bool loadPartialSnapshots)
+{
+  *ml_ = MDTrajectory_read_ng(mdt,states,xvas,loadPartialSnapshots);
+  size_range(100, 100, 5000, 5000, 3*4, 3*4, 1);
+}
+
+void
 VisBox::loadDataFromSimulation(bool quench)
 {
   MDTrajectory_add_from_simulation(mdt, *ml_, quench);

@@ -22,6 +22,7 @@
 
 #include "MDTrajectory.hpp"
 #include <mdtk/SimLoop.hpp>
+#include <mdtk/SimLoopSaver.hpp>
 
 #include <FL/Fl.H>
 #include "MainWindow.hpp"
@@ -152,6 +153,7 @@ SimLoop MDTrajectory_read(
   )
 {
   SimLoop ml;
+
   if (basefile.find("simloop.conf") != std::string::npos) 
   {
     ml.loadstate();
@@ -183,6 +185,53 @@ SimLoop MDTrajectory_read(
 
     MDSnapshot s_xva(ml,xvas[i]);
     mdt[s_xva.time] = s_xva;
+  }
+
+  return ml;
+}
+
+SimLoop MDTrajectory_read_ng(
+  MDTrajectory& mdt,
+  const std::vector<std::string>& states,
+  const std::vector<std::string>& xvas,
+  bool loadPartialSnapshots
+  )
+{
+  SimLoop ml;
+
+  mdtk::SimLoopSaver mds(ml);
+  for(size_t i = 0; i < states.size(); ++i)
+  {
+    TRACE(states[i]);
+    mds.load(states[i]);
+  }
+
+  MDSnapshot s_base(ml);
+  mdt[s_base.time] = s_base;
+
+  for(size_t i = 0; i < xvas.size(); ++i)
+  {
+    TRACE(xvas[i]);
+
+    MDSnapshot s_xva(ml,xvas[i]);
+    mdt[s_xva.time] = s_xva;
+  }
+
+  if (loadPartialSnapshots)
+  {
+    MDSnapshot s_base(ml);
+    mdt[s_base.time] = s_base;
+
+    SnapshotList shots;
+    shots.loadstate();
+
+    for(size_t i = 0; i < shots.snapshots.size(); ++i)
+    {
+      TRACE(i);
+
+      MDSnapshot s_shots(ml,shots,i);
+      mdt[s_shots.time] = s_shots;
+    }
   }
 
   return ml;
