@@ -302,6 +302,13 @@ listFilesAndDirectories(std::string dir)
     binary_ifstream(std::string fname)
       :binary_fstream(fname,false) {}
     virtual ~binary_ifstream() {}
+    int getDataLength()
+      {
+        seekg(0, end);
+        int length = tellg();
+        seekg(0, beg);
+        return length;
+      }
   };
 
   class binary_ofstream : public binary_fstream
