@@ -45,6 +45,7 @@ SimLoopSaver::write(std::string filenameBase)
     yaatk::binary_ofstream v_stream(filenameBase + ".v");
     yaatk::binary_ofstream pbc_count_stream(filenameBase + ".pbc_count");
     yaatk::binary_ofstream pbc_rect_stream(filenameBase + ".pbc_rect");
+    yaatk::binary_ofstream a_stream(filenameBase + ".a");
 
     for(size_t i = 0; i < mdloop.atoms.size(); ++i)
     {
@@ -98,6 +99,16 @@ SimLoopSaver::write(std::string filenameBase)
         double z = atom.PBC.z;
         YAATK_BIN_WRITE(pbc_rect_stream,z);
       }
+
+      {
+        double x = atom.an.x;
+        YAATK_BIN_WRITE(a_stream,x);
+
+        double y = atom.an.y;
+        YAATK_BIN_WRITE(a_stream,y);
+
+        double z = atom.an.z;
+        YAATK_BIN_WRITE(a_stream,z);
       }
     }
 
@@ -271,6 +282,34 @@ SimLoopSaver::load(std::string filenameBase)
   catch (...)
   {
   }
+
+  try
+  {
+    yaatk::binary_ifstream a_stream(filenameBase + ".a");
+
+    int dataLength = a_stream.getDataLength();
+
+    double x;
+    REQUIRE(dataLength % (sizeof(x)*3) == 0);
+    size_t atomsCount_recalc = dataLength/(sizeof(x)*3);
+
+    REQUIRE(atomsCount_recalc == mdloop.atoms.size());
+
+    for(size_t i = 0; i < mdloop.atoms.size(); ++i)
+    {
+      Atom& atom = mdloop.atoms[i];
+
+      YAATK_BIN_READ(a_stream,x);
+      atom.an.x = x;
+
+      YAATK_BIN_READ(a_stream,x);
+      atom.an.y = x;
+
+      YAATK_BIN_READ(a_stream,x);
+      atom.an.z = x;
+    }
+
+    retval |= LOADED_A;
   }
   catch (...)
   {

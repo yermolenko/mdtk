@@ -55,6 +55,7 @@ public:
   enum {LOADED_PBC_COUNT = (1<<4)};
   enum {LOADED_PBC = LOADED_PBC_RECT | LOADED_PBC_COUNT};
   enum {LOADED_ZRV_PBC = LOADED_Z | LOADED_R | LOADED_V | LOADED_PBC};
+  enum {LOADED_A = (1<<5)};
 
   int load(std::string filenameBase);
   static bool mayContainData(std::string filename);
