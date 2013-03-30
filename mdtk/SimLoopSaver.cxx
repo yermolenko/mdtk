@@ -43,7 +43,8 @@ SimLoopSaver::write(std::string filenameBase)
     yaatk::binary_ofstream z_stream(filenameBase + ".z");
     yaatk::binary_ofstream r_stream(filenameBase + ".r");
     yaatk::binary_ofstream v_stream(filenameBase + ".v");
-    yaatk::binary_ofstream pbc_stream(filenameBase + ".pbc");
+    yaatk::binary_ofstream pbc_count_stream(filenameBase + ".pbc_count");
+    yaatk::binary_ofstream pbc_rect_stream(filenameBase + ".pbc_rect");
 
     for(size_t i = 0; i < mdloop.atoms.size(); ++i)
     {
@@ -78,13 +79,25 @@ SimLoopSaver::write(std::string filenameBase)
 
       {
         int32_t x = atom.PBC_count.x;
-        YAATK_BIN_WRITE(pbc_stream,x);
+        YAATK_BIN_WRITE(pbc_count_stream,x);
 
         int32_t y = atom.PBC_count.y;
-        YAATK_BIN_WRITE(pbc_stream,y);
+        YAATK_BIN_WRITE(pbc_count_stream,y);
 
         int32_t z = atom.PBC_count.z;
-        YAATK_BIN_WRITE(pbc_stream,z);
+        YAATK_BIN_WRITE(pbc_count_stream,z);
+      }
+
+      {
+        double x = atom.PBC.x;
+        YAATK_BIN_WRITE(pbc_rect_stream,x);
+
+        double y = atom.PBC.y;
+        YAATK_BIN_WRITE(pbc_rect_stream,y);
+
+        double z = atom.PBC.z;
+        YAATK_BIN_WRITE(pbc_rect_stream,z);
+      }
       }
     }
 
@@ -197,9 +210,9 @@ SimLoopSaver::load(std::string filenameBase)
 
   try
   {
-    yaatk::binary_ifstream pbc_stream(filenameBase + ".pbc");
+    yaatk::binary_ifstream pbc_count_stream(filenameBase + ".pbc_count");
 
-    int dataLength = pbc_stream.getDataLength();
+    int dataLength = pbc_count_stream.getDataLength();
 
     int32_t x;
     REQUIRE(dataLength % (sizeof(x)*3) == 0);
@@ -211,17 +224,53 @@ SimLoopSaver::load(std::string filenameBase)
     {
       Atom& atom = mdloop.atoms[i];
 
-      YAATK_BIN_READ(pbc_stream,x);
+      YAATK_BIN_READ(pbc_count_stream,x);
       atom.PBC_count.x = x;
 
-      YAATK_BIN_READ(pbc_stream,x);
+      YAATK_BIN_READ(pbc_count_stream,x);
       atom.PBC_count.y = x;
 
-      YAATK_BIN_READ(pbc_stream,x);
+      YAATK_BIN_READ(pbc_count_stream,x);
       atom.PBC_count.z = x;
     }
 
-    retval |= LOADED_PBC;
+    retval |= LOADED_PBC_COUNT;
+  }
+  catch (...)
+  {
+  }
+
+  try
+  {
+    yaatk::binary_ifstream pbc_rect_stream(filenameBase + ".pbc_rect");
+
+    int dataLength = pbc_rect_stream.getDataLength();
+
+    double x;
+    REQUIRE(dataLength % (sizeof(x)*3) == 0);
+    size_t atomsCount_recalc = dataLength/(sizeof(x)*3);
+
+    REQUIRE(atomsCount_recalc == mdloop.atoms.size());
+
+    for(size_t i = 0; i < mdloop.atoms.size(); ++i)
+    {
+      Atom& atom = mdloop.atoms[i];
+
+      YAATK_BIN_READ(pbc_rect_stream,x);
+      atom.PBC.x = x;
+
+      YAATK_BIN_READ(pbc_rect_stream,x);
+      atom.PBC.y = x;
+
+      YAATK_BIN_READ(pbc_rect_stream,x);
+      atom.PBC.z = x;
+    }
+
+    retval |= LOADED_PBC_RECT;
+  }
+  catch (...)
+  {
+  }
   }
   catch (...)
   {
@@ -245,8 +294,7 @@ SimLoopSaver::mayContainData(std::string filename)
   return
     filename.find(".z") != std::string::npos ||
     filename.find(".r") != std::string::npos ||
-    filename.find(".v") != std::string::npos ||
-    filename.find(".pbc") != std::string::npos;
+    filename.find(".v") != std::string::npos;
 }
 
 std::vector<std::string>

@@ -51,7 +51,9 @@ public:
   enum {LOADED_R = (1<<1)};
   enum {LOADED_V = (1<<2)};
   enum {LOADED_ZRV = LOADED_Z | LOADED_R | LOADED_V};
-  enum {LOADED_PBC = (1<<3)};
+  enum {LOADED_PBC_RECT = (1<<3)};
+  enum {LOADED_PBC_COUNT = (1<<4)};
+  enum {LOADED_PBC = LOADED_PBC_RECT | LOADED_PBC_COUNT};
   enum {LOADED_ZRV_PBC = LOADED_Z | LOADED_R | LOADED_V | LOADED_PBC};
 
   int load(std::string filenameBase);
