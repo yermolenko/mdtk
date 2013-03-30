@@ -1,6 +1,6 @@
 #  CMakeLists.txt file for MDTK programming library
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Oleksandr
 #  Yermolenko <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -31,6 +31,7 @@ add_library (mdtk
   SnapshotList.cxx
   release_info.cxx
   SimLoop.cxx
+  SimLoopSaver.cxx
   SplineAux.cxx
   Spline.cxx
   Spline5n.cxx

@@ -1,0 +1,68 @@
+/*
+   SimLoopSaver class header file.
+
+   Copyright (C) 2013 Oleksandr Yermolenko
+   <oleksandr.yermolenko@gmail.com>
+
+   This file is part of MDTK, the Molecular Dynamics Toolkit.
+
+   MDTK is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   MDTK is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#ifndef	mdtk_SimLoopSaver_hpp
+#define	mdtk_SimLoopSaver_hpp
+
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <cstring>
+#include <algorithm>
+
+#include <mdtk/Vector3D.hpp>
+#include <mdtk/SimLoop.hpp>
+
+namespace mdtk
+{
+
+class SimLoopSaver
+{
+  SimLoop& mdloop;
+  const std::string filenamePrefix;
+  std::string generateFilenameBase(unsigned long iteration);
+public:
+  SimLoopSaver(SimLoop& mdloopInstance);
+  virtual ~SimLoopSaver() {}
+
+  int write(std::string filenameBase);
+  int write();
+
+  enum {LOADED_Z = (1<<0)};
+  enum {LOADED_R = (1<<1)};
+  enum {LOADED_V = (1<<2)};
+  enum {LOADED_ZRV = LOADED_Z | LOADED_R | LOADED_V};
+  enum {LOADED_PBC = (1<<3)};
+  enum {LOADED_ZRV_PBC = LOADED_Z | LOADED_R | LOADED_V | LOADED_PBC};
+
+  int load(std::string filenameBase);
+  static bool mayContainData(std::string filename);
+  static std::vector<std::string> listFilenameBases();
+  std::vector<unsigned long> listIterations();
+  int loadIteration(unsigned long iteration);
+  int loadIterationLatest();
+};
+
+}
+
+#endif
+
