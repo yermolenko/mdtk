@@ -1,8 +1,8 @@
 /* 
    mdtrajsim (molecular dynamics trajectory simulator)
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
-   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
+   2013 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -26,6 +26,7 @@
 #include <cstring>
 #include <algorithm>
 #include <mdtk/SimLoop.hpp>
+#include <mdtk/SimLoopSaver.hpp>
 #include <mdtk/SnapshotList.hpp>
 
 #include "../common.h"
@@ -353,9 +354,19 @@ try
       mdloop.saveToStream(fo1);
       fo1.close();
     }
+//    if (0)
+    {
+      mdtk::SimLoopSaver mds(mdloop);
+      mds.write();
+    }
   }
 
   mdloop.execute();
+
+  {
+    mdtk::SimLoopSaver mds(mdloop);
+    mds.write();
+  }
 
   if (mdloop.simTime >= mdloop.simTimeFinal) // is simulation really finished ?
   {
