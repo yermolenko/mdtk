@@ -33,6 +33,24 @@ SimLoopSaver::SimLoopSaver(SimLoop& mdloopInstance)
 {
 }
 
+#define MDTK_WRITE_ATOM_ATTRIBUTE_SCALAR(stream,attribute,type)       \
+  {                                                                   \
+    type x = atom.##attribute;                                        \
+    YAATK_BIN_WRITE(stream,x);                                        \
+  }
+
+#define MDTK_WRITE_ATOM_ATTRIBUTE_VECTOR(stream,attribute,type)       \
+  {                                                                   \
+    type x = atom.##attribute##.x;                                    \
+    YAATK_BIN_WRITE(stream,x);                                        \
+                                                                      \
+    type y = atom.##attribute##.y;                                    \
+    YAATK_BIN_WRITE(stream,y);                                        \
+                                                                      \
+    type z = atom.##attribute##.z;                                    \
+    YAATK_BIN_WRITE(stream,z);                                        \
+  }
+
 int
 SimLoopSaver::write(std::string filenameBase)
 {
@@ -51,65 +69,12 @@ SimLoopSaver::write(std::string filenameBase)
     {
       const Atom& atom = mdloop.atoms[i];
 
-      {
-        uint8_t z = atom.ID;
-        YAATK_BIN_WRITE(z_stream,z);
-      }
-
-      {
-        double x = atom.coords.x;
-        YAATK_BIN_WRITE(r_stream,x);
-
-        double y = atom.coords.y;
-        YAATK_BIN_WRITE(r_stream,y);
-
-        double z = atom.coords.z;
-        YAATK_BIN_WRITE(r_stream,z);
-      }
-
-      {
-        double x = atom.V.x;
-        YAATK_BIN_WRITE(v_stream,x);
-
-        double y = atom.V.y;
-        YAATK_BIN_WRITE(v_stream,y);
-
-        double z = atom.V.z;
-        YAATK_BIN_WRITE(v_stream,z);
-      }
-
-      {
-        int32_t x = atom.PBC_count.x;
-        YAATK_BIN_WRITE(pbc_count_stream,x);
-
-        int32_t y = atom.PBC_count.y;
-        YAATK_BIN_WRITE(pbc_count_stream,y);
-
-        int32_t z = atom.PBC_count.z;
-        YAATK_BIN_WRITE(pbc_count_stream,z);
-      }
-
-      {
-        double x = atom.PBC.x;
-        YAATK_BIN_WRITE(pbc_rect_stream,x);
-
-        double y = atom.PBC.y;
-        YAATK_BIN_WRITE(pbc_rect_stream,y);
-
-        double z = atom.PBC.z;
-        YAATK_BIN_WRITE(pbc_rect_stream,z);
-      }
-
-      {
-        double x = atom.an.x;
-        YAATK_BIN_WRITE(a_stream,x);
-
-        double y = atom.an.y;
-        YAATK_BIN_WRITE(a_stream,y);
-
-        double z = atom.an.z;
-        YAATK_BIN_WRITE(a_stream,z);
-      }
+      MDTK_WRITE_ATOM_ATTRIBUTE_SCALAR(z_stream,ID,uint8_t);
+      MDTK_WRITE_ATOM_ATTRIBUTE_VECTOR(r_stream,coords,double);
+      MDTK_WRITE_ATOM_ATTRIBUTE_VECTOR(v_stream,V,double);
+      MDTK_WRITE_ATOM_ATTRIBUTE_VECTOR(pbc_count_stream,PBC_count,int32_t);
+      MDTK_WRITE_ATOM_ATTRIBUTE_VECTOR(pbc_rect_stream,PBC,double);
+      MDTK_WRITE_ATOM_ATTRIBUTE_VECTOR(a_stream,an,double);
     }
 
     retval = 0;
@@ -122,33 +87,65 @@ SimLoopSaver::write(std::string filenameBase)
   return retval;
 }
 
+#define MDTK_LOAD_ATOM_ATTRIBUTE_SCALAR(stream,attribute,type)        \
+  {                                                                   \
+    int dataLength = stream.getDataLength();                          \
+                                                                      \
+    type z;                                                           \
+    REQUIRE(dataLength % sizeof(z) == 0);                             \
+    size_t atomsCount = dataLength/sizeof(z);                         \
+                                                                      \
+    if (mdloop.atoms.size() != 0)                                     \
+      REQUIRE(atomsCount == mdloop.atoms.size())                      \
+    else                                                              \
+      mdloop.atoms.resize(atomsCount);                                \
+                                                                      \
+    for(size_t i = 0; i < mdloop.atoms.size(); ++i)                   \
+    {                                                                 \
+      Atom& atom = mdloop.atoms[i];                                   \
+                                                                      \
+      YAATK_BIN_READ(stream,z);                                       \
+      atom.##attribute = ElementID(z);     /* TODO!! */               \
+    }                                                                 \
+  }
+
+#define MDTK_LOAD_ATOM_ATTRIBUTE_VECTOR(stream,attribute,type)        \
+  {                                                                   \
+    int dataLength = stream.getDataLength();                          \
+                                                                      \
+    type x;                                                           \
+    REQUIRE(dataLength % (sizeof(x)*3) == 0);                         \
+    size_t atomsCount = dataLength/(sizeof(x)*3);                     \
+                                                                      \
+    if (mdloop.atoms.size() != 0)                                     \
+      REQUIRE(atomsCount == mdloop.atoms.size())                      \
+    else                                                              \
+      mdloop.atoms.resize(atomsCount);                                \
+                                                                      \
+    for(size_t i = 0; i < mdloop.atoms.size(); ++i)                   \
+    {                                                                 \
+      Atom& atom = mdloop.atoms[i];                                   \
+                                                                      \
+      YAATK_BIN_READ(stream,x);                                       \
+      atom.##attribute##.x = x;                                       \
+                                                                      \
+      YAATK_BIN_READ(stream,x);                                     \
+      atom.##attribute##.y = x;                                       \
+                                                                      \
+      YAATK_BIN_READ(stream,x);                                     \
+      atom.##attribute##.z = x;                                       \
+    }                                                                 \
+  }
+
 int
 SimLoopSaver::load(std::string filenameBase)
 {
   int retval = 0;
 
-  size_t atomsCount = 0;
-
   try
   {
     yaatk::binary_ifstream z_stream(filenameBase + ".z");
-
-    int dataLength = z_stream.getDataLength();
-
-    uint8_t z;
-    REQUIRE(dataLength % sizeof(z) == 0);
-    atomsCount = dataLength/sizeof(z);
-
-    mdloop.atoms.resize(atomsCount);
-
-    for(size_t i = 0; i < mdloop.atoms.size(); ++i)
-    {
-      Atom& atom = mdloop.atoms[i];
-
-      YAATK_BIN_READ(z_stream,z);
-      atom.ID = ElementID(z);
-    }
-
+    MDTK_LOAD_ATOM_ATTRIBUTE_SCALAR(z_stream,ID,uint8_t);
     retval |= LOADED_Z;
   }
   catch (...)
@@ -157,30 +154,8 @@ SimLoopSaver::load(std::string filenameBase)
 
   try
   {
-    yaatk::binary_ifstream x_stream(filenameBase + ".r");
-
-    int dataLength = x_stream.getDataLength();
-
-    double x;
-    REQUIRE(dataLength % (sizeof(x)*3) == 0);
-    size_t atomsCount_recalc = dataLength/(sizeof(x)*3);
-
-    REQUIRE(atomsCount_recalc == mdloop.atoms.size());
-
-    for(size_t i = 0; i < mdloop.atoms.size(); ++i)
-    {
-      Atom& atom = mdloop.atoms[i];
-
-      YAATK_BIN_READ(x_stream,x);
-      atom.coords.x = x;
-
-      YAATK_BIN_READ(x_stream,x);
-      atom.coords.y = x;
-
-      YAATK_BIN_READ(x_stream,x);
-      atom.coords.z = x;
-    }
-
+    yaatk::binary_ifstream r_stream(filenameBase + ".r");
+    MDTK_LOAD_ATOM_ATTRIBUTE_VECTOR(r_stream,coords,double);
     retval |= LOADED_R;
   }
   catch (...)
@@ -190,29 +165,7 @@ SimLoopSaver::load(std::string filenameBase)
   try
   {
     yaatk::binary_ifstream v_stream(filenameBase + ".v");
-
-    int dataLength = v_stream.getDataLength();
-
-    double x;
-    REQUIRE(dataLength % (sizeof(x)*3) == 0);
-    size_t atomsCount_recalc = dataLength/(sizeof(x)*3);
-
-    REQUIRE(atomsCount_recalc == mdloop.atoms.size());
-
-    for(size_t i = 0; i < mdloop.atoms.size(); ++i)
-    {
-      Atom& atom = mdloop.atoms[i];
-
-      YAATK_BIN_READ(v_stream,x);
-      atom.V.x = x;
-
-      YAATK_BIN_READ(v_stream,x);
-      atom.V.y = x;
-
-      YAATK_BIN_READ(v_stream,x);
-      atom.V.z = x;
-    }
-
+    MDTK_LOAD_ATOM_ATTRIBUTE_VECTOR(v_stream,V,double);
     retval |= LOADED_V;
   }
   catch (...)
@@ -222,29 +175,7 @@ SimLoopSaver::load(std::string filenameBase)
   try
   {
     yaatk::binary_ifstream pbc_count_stream(filenameBase + ".pbc_count");
-
-    int dataLength = pbc_count_stream.getDataLength();
-
-    int32_t x;
-    REQUIRE(dataLength % (sizeof(x)*3) == 0);
-    size_t atomsCount_recalc = dataLength/(sizeof(x)*3);
-
-    REQUIRE(atomsCount_recalc == mdloop.atoms.size());
-
-    for(size_t i = 0; i < mdloop.atoms.size(); ++i)
-    {
-      Atom& atom = mdloop.atoms[i];
-
-      YAATK_BIN_READ(pbc_count_stream,x);
-      atom.PBC_count.x = x;
-
-      YAATK_BIN_READ(pbc_count_stream,x);
-      atom.PBC_count.y = x;
-
-      YAATK_BIN_READ(pbc_count_stream,x);
-      atom.PBC_count.z = x;
-    }
-
+    MDTK_LOAD_ATOM_ATTRIBUTE_VECTOR(pbc_count_stream,PBC_count,int32_t);
     retval |= LOADED_PBC_COUNT;
   }
   catch (...)
@@ -254,29 +185,7 @@ SimLoopSaver::load(std::string filenameBase)
   try
   {
     yaatk::binary_ifstream pbc_rect_stream(filenameBase + ".pbc_rect");
-
-    int dataLength = pbc_rect_stream.getDataLength();
-
-    double x;
-    REQUIRE(dataLength % (sizeof(x)*3) == 0);
-    size_t atomsCount_recalc = dataLength/(sizeof(x)*3);
-
-    REQUIRE(atomsCount_recalc == mdloop.atoms.size());
-
-    for(size_t i = 0; i < mdloop.atoms.size(); ++i)
-    {
-      Atom& atom = mdloop.atoms[i];
-
-      YAATK_BIN_READ(pbc_rect_stream,x);
-      atom.PBC.x = x;
-
-      YAATK_BIN_READ(pbc_rect_stream,x);
-      atom.PBC.y = x;
-
-      YAATK_BIN_READ(pbc_rect_stream,x);
-      atom.PBC.z = x;
-    }
-
+    MDTK_LOAD_ATOM_ATTRIBUTE_VECTOR(pbc_rect_stream,PBC,double);
     retval |= LOADED_PBC_RECT;
   }
   catch (...)
@@ -286,29 +195,7 @@ SimLoopSaver::load(std::string filenameBase)
   try
   {
     yaatk::binary_ifstream a_stream(filenameBase + ".a");
-
-    int dataLength = a_stream.getDataLength();
-
-    double x;
-    REQUIRE(dataLength % (sizeof(x)*3) == 0);
-    size_t atomsCount_recalc = dataLength/(sizeof(x)*3);
-
-    REQUIRE(atomsCount_recalc == mdloop.atoms.size());
-
-    for(size_t i = 0; i < mdloop.atoms.size(); ++i)
-    {
-      Atom& atom = mdloop.atoms[i];
-
-      YAATK_BIN_READ(a_stream,x);
-      atom.an.x = x;
-
-      YAATK_BIN_READ(a_stream,x);
-      atom.an.y = x;
-
-      YAATK_BIN_READ(a_stream,x);
-      atom.an.z = x;
-    }
-
+    MDTK_LOAD_ATOM_ATTRIBUTE_VECTOR(a_stream,an,double);
     retval |= LOADED_A;
   }
   catch (...)
