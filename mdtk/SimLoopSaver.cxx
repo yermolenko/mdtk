@@ -87,6 +87,28 @@ SimLoopSaver::write(std::string filenameBase)
   return retval;
 }
 
+#define MDTK_LOAD_ATOM_ATTRIBUTE_SCALAR_Z(stream,attribute,type)      \
+  {                                                                   \
+    int dataLength = stream.getDataLength();                          \
+                                                                      \
+    type z;                                                           \
+    REQUIRE(dataLength % sizeof(z) == 0);                             \
+    size_t atomsCount = dataLength/sizeof(z);                         \
+                                                                      \
+    if (mdloop.atoms.size() != 0)                                     \
+      REQUIRE(atomsCount == mdloop.atoms.size())                      \
+    else                                                              \
+      mdloop.atoms.resize(atomsCount);                                \
+                                                                      \
+    for(size_t i = 0; i < mdloop.atoms.size(); ++i)                   \
+    {                                                                 \
+      Atom& atom = mdloop.atoms[i];                                   \
+                                                                      \
+      YAATK_BIN_READ(stream,z);                                       \
+      atom.##attribute = ElementID(z);                                \
+    }                                                                 \
+  }
+
 #define MDTK_LOAD_ATOM_ATTRIBUTE_SCALAR(stream,attribute,type)        \
   {                                                                   \
     int dataLength = stream.getDataLength();                          \
@@ -105,7 +127,7 @@ SimLoopSaver::write(std::string filenameBase)
       Atom& atom = mdloop.atoms[i];                                   \
                                                                       \
       YAATK_BIN_READ(stream,z);                                       \
-      atom.##attribute = ElementID(z);     /* TODO!! */               \
+      atom.##attribute = z;                                           \
     }                                                                 \
   }
 
@@ -145,7 +167,7 @@ SimLoopSaver::load(std::string filenameBase)
   try
   {
     yaatk::binary_ifstream z_stream(filenameBase + ".z");
-    MDTK_LOAD_ATOM_ATTRIBUTE_SCALAR(z_stream,ID,uint8_t);
+    MDTK_LOAD_ATOM_ATTRIBUTE_SCALAR_Z(z_stream,ID,uint8_t);
     retval |= LOADED_Z;
   }
   catch (...)
