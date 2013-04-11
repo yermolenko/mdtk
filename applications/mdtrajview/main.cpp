@@ -240,7 +240,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
   }
   else
   {
-    std::vector<std::string> states_ng = mdtk::SimLoopSaver::listFilenameBases();
+    std::vector<std::string> states_ng = mdtk::SimLoopSaver::listIds();
     std::vector<std::string> xvas;
     findIntermediateStates("./",xvas);
     avb.loadDataFromFilesOfNewFileFormat(states_ng,xvas,loadPartialSnapshots);

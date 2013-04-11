@@ -29,7 +29,7 @@ namespace mdtk
 
 SimLoopSaver::SimLoopSaver(SimLoop& mdloopInstance)
   :mdloop(mdloopInstance),
-   filenamePrefix("md")
+   idPrefix("md")
 {
 }
 
@@ -52,7 +52,7 @@ SimLoopSaver::SimLoopSaver(SimLoop& mdloopInstance)
   }
 
 int
-SimLoopSaver::write(std::string filenameBase)
+SimLoopSaver::write(std::string id)
 {
   int retval = 0;
 
@@ -160,7 +160,7 @@ SimLoopSaver::write(std::string filenameBase)
   }
 
 int
-SimLoopSaver::load(std::string filenameBase)
+SimLoopSaver::load(std::string id)
 {
   int retval = 0;
 
@@ -228,10 +228,10 @@ SimLoopSaver::load(std::string filenameBase)
 }
 
 std::string
-SimLoopSaver::generateFilenameBase(unsigned long iteration)
+SimLoopSaver::generateId(unsigned long iteration)
 {
   std::ostringstream oss;
-  oss << filenamePrefix;
+  oss << idPrefix;
   PRINT2STREAM_FW(oss,iteration,'0',10);
   return oss.str();
 }
@@ -246,11 +246,11 @@ SimLoopSaver::mayContainData(std::string filename)
 }
 
 std::vector<std::string>
-SimLoopSaver::listFilenameBases()
+SimLoopSaver::listIds()
 {
-  std::vector<std::string> filenameBases;
+  std::vector<std::string> ids;
 
-  std::set<std::string> filenameBasesSet;
+  std::set<std::string> idsSet;
 
   std::vector<std::string> filenames = yaatk::listFiles(yaatk::getcwd());
 
@@ -260,13 +260,13 @@ SimLoopSaver::listFilenameBases()
 
     if (mayContainData(filename))
     {
-      size_t filenameBaseEnd = filename.find(".");
+      size_t idEnd = filename.find(".");
 
-      if (filenameBaseEnd != std::string::npos)
+      if (idEnd != std::string::npos)
       {
-        std::string filenameBase = filename.substr(0,filenameBaseEnd);
-        TRACE(filenameBase);
-        filenameBasesSet.insert(filenameBase);
+        std::string id = filename.substr(0,idEnd);
+        TRACE(id);
+        idsSet.insert(id);
       }
     }
   }
@@ -274,14 +274,14 @@ SimLoopSaver::listFilenameBases()
   {
     std::set<std::string>::iterator it;
 
-    for (it=filenameBasesSet.begin(); it!=filenameBasesSet.end(); ++it)
+    for (it=idsSet.begin(); it!=idsSet.end(); ++it)
     {
-      filenameBases.push_back(*it);
+      ids.push_back(*it);
       TRACE(*it);
     }
   }
 
-  return filenameBases;
+  return ids;
 }
 
 std::vector<unsigned long>
@@ -299,13 +299,13 @@ SimLoopSaver::listIterations()
 
     std::locale loc;
 
-    if (filename.find(filenamePrefix) == 0 &&
-        filename.size() > filenamePrefix.size() &&
-        std::isdigit(filename[filenamePrefix.size()],loc))
+    if (filename.find(idPrefix) == 0 &&
+        filename.size() > idPrefix.size() &&
+        std::isdigit(filename[idPrefix.size()],loc))
     {
-      std::istringstream iss(filename.substr(filenamePrefix.size()));
+      std::istringstream iss(filename.substr(idPrefix.size()));
 
-      TRACE(filename.substr(filenamePrefix.size()));
+      TRACE(filename.substr(idPrefix.size()));
 
       unsigned long iter;
       iss >> iter;
@@ -330,7 +330,7 @@ SimLoopSaver::listIterations()
 int
 SimLoopSaver::loadIteration(unsigned long iteration)
 {
-  return load(generateFilenameBase(iteration));
+  return load(generateId(iteration));
 }
 
 int
@@ -344,7 +344,7 @@ SimLoopSaver::loadIterationLatest()
 int
 SimLoopSaver::write()
 {
-  return write(generateFilenameBase(mdloop.iteration));
+  return write(generateId(mdloop.iteration));
 }
 
 }

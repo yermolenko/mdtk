@@ -38,13 +38,13 @@ namespace mdtk
 class SimLoopSaver
 {
   SimLoop& mdloop;
-  const std::string filenamePrefix;
-  std::string generateFilenameBase(unsigned long iteration);
+  const std::string idPrefix;
+  std::string generateId(unsigned long iteration);
 public:
   SimLoopSaver(SimLoop& mdloopInstance);
   virtual ~SimLoopSaver() {}
 
-  int write(std::string filenameBase);
+  int write(std::string id);
   int write();
 
   enum {LOADED_Z = (1<<0)};
@@ -57,9 +57,9 @@ public:
   enum {LOADED_ZRV_PBC = LOADED_Z | LOADED_R | LOADED_V | LOADED_PBC};
   enum {LOADED_A = (1<<5)};
 
-  int load(std::string filenameBase);
+  int load(std::string id);
   static bool mayContainData(std::string filename);
-  static std::vector<std::string> listFilenameBases();
+  static std::vector<std::string> listIds();
   std::vector<unsigned long> listIterations();
   int loadIteration(unsigned long iteration);
   int loadIterationLatest();
