@@ -40,6 +40,7 @@ class SimLoopSaver
   SimLoop& mdloop;
   const std::string idPrefix;
   std::string generateId(unsigned long iteration);
+  void prepareForAttributeReading(yaatk::binary_ifstream& is, size_t attributeSize);
 public:
   SimLoopSaver(SimLoop& mdloopInstance);
   virtual ~SimLoopSaver() {}
@@ -51,11 +52,15 @@ public:
   enum {LOADED_R = (1<<1)};
   enum {LOADED_V = (1<<2)};
   enum {LOADED_ZRV = LOADED_Z | LOADED_R | LOADED_V};
+
   enum {LOADED_PBC_RECT = (1<<3)};
   enum {LOADED_PBC_COUNT = (1<<4)};
-  enum {LOADED_PBC = LOADED_PBC_RECT | LOADED_PBC_COUNT};
-  enum {LOADED_ZRV_PBC = LOADED_Z | LOADED_R | LOADED_V | LOADED_PBC};
-  enum {LOADED_A = (1<<5)};
+  enum {LOADED_PBC_ENABLED = (1<<5)};
+  enum {LOADED_PBC = LOADED_PBC_RECT | LOADED_PBC_COUNT | LOADED_PBC_ENABLED};
+
+  enum {LOADED_ZRV_PBC = LOADED_ZRV | LOADED_PBC};
+
+  enum {LOADED_A = (1<<6)};
 
   int load(std::string id);
   static bool mayContainData(std::string filename);
