@@ -355,9 +355,33 @@ try
       fo1.close();
     }
 //    if (0)
+    mdloop.iteration += 222222;
     {
       mdtk::SimLoopSaver mds(mdloop);
       mds.write();
+    }
+    {
+      CustomSimLoop mdloopX;
+      {
+        mdtk::SimLoopSaver mds(mdloopX);
+        mds.loadIteration(222222);
+      }
+      mdloopX.iteration += 555555;
+      {
+        mdtk::SimLoopSaver mds(mdloopX);
+        mds.write();
+      }
+    }
+    {
+      std::ofstream fosimple(".pos");
+      fosimple << mdloop.atoms.size() << "\n";
+      for(size_t i = 0; i < mdloop.atoms.size(); ++i)
+      {
+        const mdtk::Atom& atom = mdloop.atoms[i];
+        fosimple << atom.coords.x/Ao << " " << atom.coords.y/Ao << " " << atom.coords.z/Ao << "\n";
+      }
+      fosimple.close();
+      exit(0);
     }
   }
 
