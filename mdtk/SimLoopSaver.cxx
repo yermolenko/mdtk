@@ -643,7 +643,7 @@ SimLoopSaver::loadIterationLatest()
 {
   std::vector<unsigned long> iterations = listIterations();
   REQUIRE(iterations.size() > 0);
-  return loadIteration(iterations.size()-1);
+  return loadIteration(iterations[iterations.size()-1]);
 }
 
 int
