@@ -351,6 +351,9 @@ int runTraj(std::string inputFile)
       mds.loadIterationLatest();
     }
 
+    if (yaatk::exists("snapshots.conf"))
+      snapshotList.loadstate();
+
     mdloop.execute();
     mds.write();
 
