@@ -635,6 +635,7 @@ SimLoopSaver::listIterations()
 int
 SimLoopSaver::loadIteration(unsigned long iteration)
 {
+  mdloop.iteration = iteration;
   return load(generateId(iteration));
 }
 
