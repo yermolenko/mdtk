@@ -193,6 +193,13 @@ int remove(const char *name)
 }
 
 inline
+int remove(const std::string name)
+{
+  std::cout << "Removing file " << name.c_str() << std::endl;
+  return std::remove(name.c_str());
+}
+
+inline
 int rename(const char *oldname, const char *newname)
 {
   return std::rename(oldname,newname);
