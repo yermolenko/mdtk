@@ -570,7 +570,7 @@ SimLoopSaver::listIds()
       if (idEnd != std::string::npos)
       {
         std::string id = filename.substr(0,idEnd);
-        TRACE(id);
+//        TRACE(id);
         idsSet.insert(id);
       }
     }
@@ -582,7 +582,7 @@ SimLoopSaver::listIds()
     for (it=idsSet.begin(); it!=idsSet.end(); ++it)
     {
       ids.push_back(*it);
-      TRACE(*it);
+//      TRACE(*it);
     }
   }
 
@@ -610,7 +610,7 @@ SimLoopSaver::listIterations()
     {
       std::istringstream iss(filename.substr(idPrefix.size()));
 
-      TRACE(filename.substr(idPrefix.size()));
+//      TRACE(filename.substr(idPrefix.size()));
 
       unsigned long iter;
       iss >> iter;
@@ -625,7 +625,7 @@ SimLoopSaver::listIterations()
     for (it=iterationsSet.begin(); it!=iterationsSet.end(); ++it)
     {
       iterations.push_back(*it);
-      TRACE(*it);
+//      TRACE(*it);
     }
   }
 
