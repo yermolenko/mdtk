@@ -66,6 +66,7 @@ public:
   static bool mayContainData(std::string filename);
   static std::vector<std::string> listIds();
   std::vector<unsigned long> listIterations();
+  void removeIterations(const std::vector<unsigned long>&);
   int loadIteration(unsigned long iteration);
   int loadIterationLatest();
 };
