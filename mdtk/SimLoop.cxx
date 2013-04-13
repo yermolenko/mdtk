@@ -1047,6 +1047,14 @@ SimLoop::writestate()
   mdtk::SimLoopSaver mds(*this);
   mds.write();
 
+  {
+    static char s[1024];
+    sprintf(s,"mde_init_%010ld",iteration);
+    yaatk::text_ofstream fo(s);
+    saveToStream(fo);
+    fo.close();
+  }
+
   if (0)
   {
     yaatk::binary_ofstream fo1("simloop.conf.bak");
