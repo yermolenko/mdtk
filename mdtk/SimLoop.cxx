@@ -22,6 +22,7 @@
 
 #include "Exception.hpp"
 #include "SimLoop.hpp"
+#include "SimLoopSaver.hpp"
 #include <fstream>
 #include "release_info.hpp"
 
@@ -1043,12 +1044,17 @@ SimLoop::writestate()
 {
   if (preventFileOutput) return;
 
+  mdtk::SimLoopSaver mds(*this);
+  mds.write();
+
+  if (0)
   {
     yaatk::binary_ofstream fo1("simloop.conf.bak");
     saveToStream(fo1,YAATK_FSTREAM_BIN);
     fo1.close();
   }
 
+  if (0)
   {
     yaatk::binary_ofstream fo1("simloop.conf");
     saveToStream(fo1,YAATK_FSTREAM_BIN);
