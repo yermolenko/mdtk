@@ -344,22 +344,12 @@ int runTraj(std::string inputFile)
       mdloop.loadFromStream(fi);
       fi.close();
 
-      yaatk::text_ofstream fo("mde_init_resave_from_mde_init");
-      mdloop.saveToStream(fo);
-      fo.close();
-
       mds.write();
     }
     else
     {
       mds.loadIterationLatest();
-
-      yaatk::text_ofstream fo("mde_init_resave_from_latest_iteration");
-      mdloop.saveToStream(fo);
-      fo.close();
     }
-
-    mdloop.iterationFlushStateInterval = 100;
 
     mdloop.execute();
     mds.write();
