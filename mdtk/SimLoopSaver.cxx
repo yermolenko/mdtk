@@ -635,33 +635,25 @@ SimLoopSaver::listIterations()
 void
 SimLoopSaver::removeIterations(const std::vector<unsigned long>& its)
 {
-  std::string ext = yaatk::Stream::zipInvokeInfoGlobal.extension;
-  REQUIRE(ext.size() >= 2);
-  REQUIRE(ext[0] == '.');
-  for(size_t i = 0; i < its.size(); ++i)
+  std::vector<std::string> filenames = yaatk::listFiles(yaatk::getcwd());
+
+  for(size_t i = 0; i < filenames.size(); ++i)
   {
-    std::string id = generateId(its[i]);
-    yaatk::remove(id + ".r" + ext);
-    yaatk::remove(id + ".a" + ext);
-    yaatk::remove(id + ".check" + ext);
-    yaatk::remove(id + ".indices" + ext);
-    yaatk::remove(id + ".pbc_rect.count" + ext);
-    yaatk::remove(id + ".pbc_rect.enabled" + ext);
-    yaatk::remove(id + ".pbc_rect" + ext);
-    yaatk::remove(id + ".r" + ext);
-    yaatk::remove(id + ".tag.cluster" + ext);
-    yaatk::remove(id + ".tag.fixed" + ext);
-    yaatk::remove(id + ".tag.fullerene" + ext);
-    yaatk::remove(id + ".tag.monomer" + ext);
-    yaatk::remove(id + ".tag.projectile" + ext);
-    yaatk::remove(id + ".tag.substrate" + ext);
-    yaatk::remove(id + ".tag.target" + ext);
-    yaatk::remove(id + ".tag.thermal_bath_applicable" + ext);
-    yaatk::remove(id + ".thermal_bath" + ext);
-    yaatk::remove(id + ".time" + ext);
-    yaatk::remove(id + ".v" + ext);
-    yaatk::remove(id + ".z" + ext);
-   }
+    std::string filename = filenames[i];
+
+    if (filename.find(idPrefix) == 0)
+    {
+      for(size_t idi = 0; idi < its.size(); ++idi)
+      {
+        std::string id = generateId(its[idi]);
+
+        if (filename.find(id) == 0 && filename.find(id) != std::string::npos)
+        {
+          yaatk::remove(filename);
+        }
+      }
+    }
+  }
 }
 
 int
