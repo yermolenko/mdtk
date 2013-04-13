@@ -204,10 +204,10 @@ SimLoop MDTrajectory_read_ng(
   {
     TRACE(states[i]);
     mds.load(states[i]);
-  }
 
-  MDSnapshot s_base(ml);
-  mdt[s_base.time] = s_base;
+    MDSnapshot s_base(ml);
+    mdt[s_base.time] = s_base;
+  }
 
   for(size_t i = 0; i < xvas.size(); ++i)
   {
