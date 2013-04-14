@@ -57,8 +57,6 @@
 #else
 #endif  
 
-#include <dirent.h>
-
 enum YAATK_FSTREAM_MODE {YAATK_FSTREAM_TEXT = 0, YAATK_FSTREAM_BIN = 1};
 
 namespace yaatk
@@ -205,31 +203,8 @@ int rename(const char *oldname, const char *newname)
   return std::rename(oldname,newname);
 }
 
-inline
 std::vector<std::string>
-listFilesystemItems(std::string dir, bool listRegularFiles, bool listDirectories)
-{
-  std::vector<std::string> items;
-
-  DIR* dirHandle = opendir(dir.c_str());
-  REQUIRE(dirHandle != NULL);
-
-  struct dirent* entry = readdir(dirHandle);
-  while (entry != NULL)
-  {
-    if ((entry->d_type == DT_REG && listRegularFiles) ||
-        (entry->d_type == DT_DIR && listDirectories))
-    {
-      items.push_back(std::string(entry->d_name));
-    }
-
-    entry = readdir(dirHandle);
-  }
-
-  closedir(dirHandle);
-
-  return items;
-}
+listFilesystemItems(std::string dir, bool listRegularFiles, bool listDirectories);
 
 inline
 std::vector<std::string>
