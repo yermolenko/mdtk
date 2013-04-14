@@ -29,8 +29,6 @@
 #include <cstring>
 #include <algorithm>
 
-#include <stdint.h>
-
 #include <mdtk/Vector3D.hpp>
 #include <mdtk/SimLoop.hpp>
 

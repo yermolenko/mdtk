@@ -34,6 +34,13 @@
 
 #include <sstream>
 
+#ifdef _MSC_VER
+  typedef unsigned char uint8_t;
+  typedef int int32_t;
+  typedef unsigned int uint32_t;
+#else
+  #include <stdint.h>
+#endif
 
 #ifndef __WIN32__
 #include <unistd.h>
