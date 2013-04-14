@@ -228,7 +228,7 @@ SimLoopSaver::prepareForAttributeReading(yaatk::binary_ifstream& is, size_t attr
   {                                                                     \
     prepareForAttributeReading(stream,type##_saver().binarySize());     \
     for(size_t i = 0; i < mdloop.atoms.size(); ++i)                     \
-      mdloop.atoms[i].##attribute = type##_saver(stream);               \
+      mdloop.atoms[i].attribute = type##_saver(stream);                 \
   }
 
 #define MDTK_LOAD_ATOM_TAG(stream,tagmask)                              \
