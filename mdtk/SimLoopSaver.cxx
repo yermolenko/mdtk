@@ -292,7 +292,7 @@ SimLoopSaver::load(std::string id)
   {
     yaatk::binary_ifstream stream(id + ".pbc_rect");
     REQUIRE(stream.getDataLength() == Vector3D_double_saver().binarySize());
-    mdloop.atoms.PBC(Vector3D_double_saver(stream));
+    mdloop.atoms.arrayPBC = Vector3D_double_saver(stream);
     retval |= LOADED_PBC_RECT;
   }
   catch (...)
@@ -321,10 +321,16 @@ SimLoopSaver::load(std::string id)
         Vector3D_bool_saver saver(stream);
         if (saver.x() == false)
           mdloop.atoms[i].PBC.x = NO_PBC.x;
+        else
+          mdloop.atoms[i].PBC.x = mdloop.atoms.arrayPBC.x;
         if (saver.y() == false)
           mdloop.atoms[i].PBC.y = NO_PBC.y;
+        else
+          mdloop.atoms[i].PBC.y = mdloop.atoms.arrayPBC.y;
         if (saver.z() == false)
           mdloop.atoms[i].PBC.z = NO_PBC.z;
+        else
+          mdloop.atoms[i].PBC.z = mdloop.atoms.arrayPBC.z;
       }
     }
     retval |= LOADED_PBC_ENABLED;
