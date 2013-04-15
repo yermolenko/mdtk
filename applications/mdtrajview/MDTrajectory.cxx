@@ -197,6 +197,8 @@ SimLoop MDTrajectory_read_ng(
   bool loadPartialSnapshots
   )
 {
+  REQUIRE(states.size() > 0);
+
   SimLoop ml;
 
   mdtk::SimLoopSaver mds(ml);
@@ -232,6 +234,17 @@ SimLoop MDTrajectory_read_ng(
       MDSnapshot s_shots(ml,shots,i);
       mdt[s_shots.time] = s_shots;
     }
+  }
+
+  REQUIRE(states.size() > 0);
+  {
+    size_t i = 0;
+
+    TRACE(states[i]);
+    mds.load(states[i]);
+
+    MDSnapshot s_base(ml);
+    mdt[s_base.time] = s_base;
   }
 
   return ml;
