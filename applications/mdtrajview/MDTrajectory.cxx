@@ -197,26 +197,17 @@ SimLoop MDTrajectory_read_ng(
   bool loadPartialSnapshots
   )
 {
-  REQUIRE(states.size() > 0);
-
   SimLoop ml;
 
   mdtk::SimLoopSaver mds(ml);
-  for(size_t i = 0; i < states.size(); ++i)
+  REQUIRE(states.size() > 0);
   {
-    TRACE(states[i]);
-    mds.load(states[i]);
+    PRINT("Loading ");
+    TRACE(states[0]);
+    mds.load(states[0]);
 
     MDSnapshot s_base(ml);
     mdt[s_base.time] = s_base;
-  }
-
-  for(size_t i = 0; i < xvas.size(); ++i)
-  {
-    TRACE(xvas[i]);
-
-    MDSnapshot s_xva(ml,xvas[i]);
-    mdt[s_xva.time] = s_xva;
   }
 
   if (loadPartialSnapshots)
@@ -229,6 +220,7 @@ SimLoop MDTrajectory_read_ng(
 
     for(size_t i = 0; i < shots.snapshots.size(); ++i)
     {
+      PRINT("Loading partial snapshot ");
       TRACE(i);
 
       MDSnapshot s_shots(ml,shots,i);
@@ -236,10 +228,18 @@ SimLoop MDTrajectory_read_ng(
     }
   }
 
-  REQUIRE(states.size() > 0);
+  for(size_t i = 0; i < xvas.size(); ++i)
   {
-    size_t i = 0;
+    PRINT("Loading ");
+    TRACE(xvas[i]);
 
+    MDSnapshot s_xva(ml,xvas[i]);
+    mdt[s_xva.time] = s_xva;
+  }
+
+  for(size_t i = 0; i < states.size(); ++i)
+  {
+    PRINT("Loading ");
     TRACE(states[i]);
     mds.load(states[i]);
 
