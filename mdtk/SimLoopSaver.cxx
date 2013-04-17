@@ -661,6 +661,19 @@ SimLoopSaver::removeIterations(const std::vector<unsigned long>& its)
   }
 }
 
+void
+SimLoopSaver::removeIterations(bool keepFirst, bool keepLast)
+{
+  std::vector<unsigned long> its = listIterations();
+
+  if (its.size() >= 1 && !keepLast)
+    its.erase(its.end()-1);
+  if (its.size() >= 1 && !keepFirst)
+    its.erase(its.begin());
+
+  removeIterations(its);
+}
+
 int
 SimLoopSaver::loadIteration(unsigned long iteration)
 {

@@ -362,13 +362,7 @@ int runTraj(std::string inputFile)
       yaatk::text_ofstream fo2("completed.ok");
       fo2.close();
 
-      std::vector<unsigned long> its = mds.listIterations();
-      if (its.size() >= 2)
-      {
-        its.erase(its.end()-1);
-        its.erase(its.begin());
-        mds.removeIterations(its);
-      }
+      mds.removeIterations();
     }
   }
   catch(mdtk::Exception& e)

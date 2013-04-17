@@ -67,6 +67,7 @@ public:
   static std::vector<std::string> listIds();
   std::vector<unsigned long> listIterations();
   void removeIterations(const std::vector<unsigned long>&);
+  void removeIterations(bool keepFirst = true, bool keepLast = true);
   int loadIteration(unsigned long iteration);
   int loadIterationLatest();
 };
