@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
   bool xvasSpecified = false;
   bool basefilesOnly = false;
 
-  bool newFileFormats = false;
+  bool newFileFormats = true;
 
   for(int argi = 1; argi < argc; ++argi)
   {
@@ -138,9 +138,9 @@ int main(int argc, char *argv[])
       instantAnimate = true;
     }
 
-    if (!std::strcmp(argv[argi],"-n"))
+    if (!std::strcmp(argv[argi],"--legacy-file-formats") || !std::strcmp(argv[argi],"-l"))
     {
-      newFileFormats = true;
+      newFileFormats = false;
     }
 
     if (!strcmp(argv[argi],"--version"))
@@ -157,11 +157,11 @@ Usage: mdtrajview [OPTION] [base file with complete info] [XVA files with incomp
 Visualizes molecular dynamics trajectory previously simulated by mdtrajsim.\n\
 Operates on results of mdtrajsim's run in the current directory.\n\
 \n\
-      -a, --instant-animation  start animation immediately\n\
-      -s, --partial-snapshots  try to load partial snapshots file (snapshots.conf)\n\
-      -n                       use new file formats\n\
-      -h, --help               display this help and exit\n\
-      --version                output version information and exit\n\
+      -a, --instant-animation    start animation immediately\n\
+      -s, --partial-snapshots    try to load partial snapshots file (snapshots.conf)\n\
+      -l, --legacy-file-formats  use legacy input file formats\n\
+      -h, --help                 display this help and exit\n\
+      --version                  output version information and exit\n\
 \n\
 Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 ";
