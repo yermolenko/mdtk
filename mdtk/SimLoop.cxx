@@ -51,7 +51,7 @@ SimLoop::SimLoop()
     dt(1e-20),
     dt_prev(1e-20),
     iteration(0),
-    iterationFlushStateInterval(1000),
+    iterationFlushStateInterval(1000000),
     thermalBath(),
     initNLafterLoading(true),
     allowPartialLoading(false),

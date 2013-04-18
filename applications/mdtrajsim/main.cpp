@@ -354,6 +354,7 @@ int runTraj(std::string inputFile)
     if (yaatk::exists("snapshots.conf"))
       snapshotList.loadstate();
 
+    mdloop.iterationFlushStateInterval = 1000;
     mdloop.execute();
     mds.write();
 
