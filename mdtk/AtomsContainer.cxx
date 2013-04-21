@@ -112,6 +112,7 @@ AtomsArray::prepareForSimulatation()
 //    at(i).PBC = arrayPBC;
     at(i).applyPBC();
     at(i).globalIndex = i;
+    at(i).setAttributesByElementID();
   }
 
   if (!fitInPBC())

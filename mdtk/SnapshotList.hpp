@@ -1,7 +1,7 @@
 /*
    SnapshotList class header file.
 
-   Copyright (C) 2011, 2012 Oleksandr Yermolenko
+   Copyright (C) 2011, 2012, 2013 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -39,7 +39,7 @@ struct SnapshotList
 {
   struct AtomSnapshot
   {
-    short PBC_count[3];
+    int32_t PBC_count[3];
     float pos[3];
     float v[3];
     AtomSnapshot(const Atom& a)
@@ -80,8 +80,8 @@ struct SnapshotList
       }
   };
   typedef std::vector<AtomSnapshot> SelectedAtomSnapshotList;
-  typedef std::pair<Float,SelectedAtomSnapshotList> TimeSnapshot;
-  std::vector<size_t> atomsSelectedForSaving;
+  typedef std::pair<double,SelectedAtomSnapshotList> TimeSnapshot;
+  std::vector<uint32_t> atomsSelectedForSaving;
   bool initialized;
   std::vector<TimeSnapshot> snapshots;
   void initSelectedAtomList(const SimLoop& sl)
@@ -90,13 +90,6 @@ struct SnapshotList
       for(size_t ai = 0; ai < sl.atoms.size(); ++ai)
         if (sl.atoms[ai].hasTag(ATOMTAG_PROJECTILE) ||
             sl.atoms[ai].hasTag(ATOMTAG_CLUSTER))
-//        if (sl.atoms[ai].coords.z < -1.0*Ao)
-/*
-        if (sl.atoms[ai]->ID == Cu_EL ||
-            sl.atoms[ai]->ID == Au_EL ||
-            sl.atoms[ai]->ID == Ar_EL ||
-            sl.atoms[ai]->ID == Xe_EL)
-*/
           atomsSelectedForSaving.push_back(ai);
     }
   SnapshotList():
@@ -130,7 +123,7 @@ struct SnapshotList
   void writestate()
     {
       yaatk::binary_ofstream state("snapshots.conf");
-      size_t size;
+      uint32_t size;
 
       size = atomsSelectedForSaving.size();
       YAATK_BIN_WRITE(state,size);
@@ -158,7 +151,7 @@ struct SnapshotList
     {
       REQUIRE(yaatk::exists("snapshots.conf"));
       yaatk::binary_ifstream state("snapshots.conf");
-      size_t size;
+      uint32_t size;
 
       YAATK_BIN_READ(state,size);
       atomsSelectedForSaving.resize(size);

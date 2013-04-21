@@ -71,6 +71,13 @@ void MDTrajectory_read_from_mdloop_states(
   const std::vector<std::string>& mdloopStates
   );
 
+SimLoop MDTrajectory_read_ng(
+  MDTrajectory& mdt,
+  const std::vector<std::string>& states,
+  const std::vector<std::string>& xvas,
+  bool loadPartialSnapshots = false
+  );
+
 void MDTrajectory_add_from_simulation(
   MDTrajectory& mdt,
   SimLoop slInit,
