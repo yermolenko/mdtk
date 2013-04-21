@@ -1,8 +1,8 @@
 /* 
    mdtrajsim (molecular dynamics trajectory simulator)
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
-   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
+   2013 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -26,6 +26,7 @@
 #include <cstring>
 #include <algorithm>
 #include <mdtk/SimLoop.hpp>
+#include <mdtk/SimLoopSaver.hpp>
 #include <mdtk/SnapshotList.hpp>
 
 #include "../common.h"
@@ -319,7 +320,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
     return 0;
   }
 
-  std::string inputFile = "mde_init";
+  std::string inputFile = "";
   if (argc > 1) inputFile = argv[1];
 
   return runTraj(inputFile);
@@ -329,52 +330,54 @@ int runTraj(std::string inputFile)
 {
   if (isAlreadyFinished()) return 0;
 
-try
-{
-  CustomSimLoop mdloop;
+  try
+  {
+    CustomSimLoop mdloop;
+    mdtk::SimLoopSaver mds(mdloop);
 
-  setupPotentials(mdloop);
-  if (yaatk::exists("simloop.conf") || yaatk::exists("simloop.conf.bak")) // have to continue interrupted simulation ?
-  {
-    mdloop.loadstate();
-    snapshotList.loadstate();
-  }
-  else
-  {
-    REQUIRE(yaatk::exists(inputFile.c_str()));
-    yaatk::text_ifstream fi(inputFile.c_str());
-    mdloop.loadFromStream(fi);
-//    mdloop.simTimeFinal = 6.0*ps;
-//    mdloop.loadFromMDE_OLD(fi);
-    fi.close();
-    if (0)
+    setupPotentials(mdloop);
+
+    if (inputFile != "")
     {
-      yaatk::text_ofstream fo1("mde""_init");
-      mdloop.saveToStream(fo1);
-      fo1.close();
+      REQUIRE(yaatk::exists(inputFile.c_str()));
+      yaatk::text_ifstream fi(inputFile.c_str());
+      mdloop.loadFromStream(fi);
+      fi.close();
+
+      mds.write();
+    }
+    else
+    {
+      mds.loadIterationLatest();
+    }
+
+    if (yaatk::exists("snapshots.conf"))
+      snapshotList.loadstate();
+
+    mdloop.iterationFlushStateInterval = 1000;
+    mdloop.execute();
+    mds.write();
+
+    if (mdloop.simTime >= mdloop.simTimeFinal) // is simulation really finished ?
+    {
+      yaatk::text_ofstream fo2("completed.ok");
+      fo2.close();
+
+      mds.removeIterations();
     }
   }
-
-  mdloop.execute();
-
-  if (mdloop.simTime >= mdloop.simTimeFinal) // is simulation really finished ?
+  catch(mdtk::Exception& e)
   {
-    yaatk::text_ofstream fo2("completed.ok");
-    fo2.close();
+    std::cerr << "MDTK exception in the main thread: "
+              << e.what() << std::endl;
+    std::cerr << "Probably wrong input file format or no input files" << std::endl;
+    return 1;
   }
-}  
-catch(mdtk::Exception& e)
-{ 
-  std::cerr << "MDTK exception in the main thread: "
-            << e.what() << std::endl;
-  std::cerr << "Probably wrong input file format or no input file (default is in.mde)" << std::endl;
-  return 1;
-}
-catch(...)
-{
-  std::cerr << "Unknown exception in the main thread." << std::endl; 
-  return 2;
-}  
+  catch(...)
+  {
+    std::cerr << "Unknown exception in the main thread." << std::endl;
+    return 2;
+  }
 
   return 0;
 }

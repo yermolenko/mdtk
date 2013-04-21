@@ -2,7 +2,7 @@
    mdC2H6 - example program for the Molecular Dynamics Toolkit (MDTK).
    Molecular dynamics simulation of the ethane molecule.
 
-   Copyright (C) 2009, 2012 Oleksandr Yermolenko
+   Copyright (C) 2009, 2012, 2013 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -46,10 +46,6 @@ main()
 
   mdloop.simTimeSaveTrajInterval = 0.001*ps;
   mdloop.simTimeFinal = 0.5*ps;
-
-  yaatk::text_ofstream fo_init("mde_init");
-  mdloop.saveToStream(fo_init);
-  fo_init.close();
 
   mdloop.execute();
 

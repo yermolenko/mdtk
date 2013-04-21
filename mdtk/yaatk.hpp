@@ -34,6 +34,13 @@
 
 #include <sstream>
 
+#ifdef _MSC_VER
+  typedef unsigned char uint8_t;
+  typedef int int32_t;
+  typedef unsigned int uint32_t;
+#else
+  #include <stdint.h>
+#endif
 
 #ifndef __WIN32__
 #include <unistd.h>
@@ -191,10 +198,42 @@ int remove(const char *name)
 }
 
 inline
+int remove(const std::string name)
+{
+  std::cout << "Removing file " << name.c_str() << std::endl;
+  return std::remove(name.c_str());
+}
+
+inline
 int rename(const char *oldname, const char *newname)
 {
   return std::rename(oldname,newname);
 }
+
+std::vector<std::string>
+listFilesystemItems(std::string dir, bool listRegularFiles, bool listDirectories);
+
+inline
+std::vector<std::string>
+listFiles(std::string dir)
+{
+  return listFilesystemItems(dir, true, false);
+}
+
+inline
+std::vector<std::string>
+listDirectories(std::string dir)
+{
+  return listFilesystemItems(dir, false, true);
+}
+
+inline
+std::vector<std::string>
+listFilesAndDirectories(std::string dir)
+{
+  return listFilesystemItems(dir, true, true);
+}
+
 
 #define DIR_DELIMIT_CHAR '/'
 #define DIR_DELIMIT_STR "/"
@@ -252,6 +291,13 @@ int rename(const char *oldname, const char *newname)
     binary_ifstream(std::string fname)
       :binary_fstream(fname,false) {}
     virtual ~binary_ifstream() {}
+    int getDataLength()
+      {
+        seekg(0, end);
+        int length = tellg();
+        seekg(0, beg);
+        return length;
+      }
   };
 
   class binary_ofstream : public binary_fstream
@@ -419,6 +465,25 @@ public:
                           precision);                                   \
     stream << x << std::flush;                                          \
   }
+
+inline
+bool
+isOption(const std::string arg, const std::string longOption, const char shortOption = '\0')
+{
+  bool is = false;
+  if (arg == std::string("--") + longOption)
+  {
+    is = true;
+  }
+  if (shortOption != '\0' &&
+      arg.size() >= 2 &&
+      arg[0] == '-' && arg[1] != '-' &&
+      arg.find(shortOption) != std::string::npos)
+  {
+    is = true;
+  }
+  return is;
+}
 
 }
 

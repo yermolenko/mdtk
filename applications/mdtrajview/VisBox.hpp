@@ -148,6 +148,10 @@ public:
                          const std::vector<std::string>& xvas,
                          bool loadPartialSnapshots = false);
   void loadDataFromMDLoopStates(const std::vector<std::string>& mdloopStates);
+  void loadDataFromFilesOfNewFileFormat(
+    const std::vector<std::string>& states,
+    const std::vector<std::string>& xvas,
+    bool loadPartialSnapshots = false);
   void loadDataFromSimulation(bool quench);
   virtual ~VisBox(){delete ml_;};
 

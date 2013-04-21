@@ -27,6 +27,7 @@
 #include "mdtk/config.hpp"
 #include "mdtk/consts.hpp"
 #include "mdtk/SimLoop.hpp"
+#include "mdtk/SimLoopSaver.hpp"
 
 #include <fstream>
 #include <algorithm>
@@ -38,66 +39,29 @@ using namespace mdtk;
 void
 findIntermediateStates(std::string trajDir,std::vector<std::string>& states)
 {
+  std::vector<std::string> fileList = yaatk::listFiles(yaatk::getcwd());
+
+  for(size_t i = 0; i < fileList.size(); ++i)
   {
-    {
-      dirent **list = NULL;
-      //      TRACE(trajDir.c_str());
-      int list_size = fl_filename_list(trajDir.c_str(),&list);
+    const std::string& filename = fileList[i];
+    if (filename.find("mde0") == 0 && filename.find(".xva") != std::string::npos)
+      states.push_back(filename);
+  }
 
-      for(int i = 0; i < list_size; i++)
-	{
-	  dirent* entry = list[i];
-	  if (!fl_filename_isdir(entry->d_name))
-	    {
-	      if (entry->d_name[0] == 'm' && entry->d_name[1] == 'd' && entry->d_name[2] == 'e' &&
-		  entry->d_name[3] == '0' && strstr(entry->d_name,".xva"))
-		{
-		  states.push_back(entry->d_name);
-		}
-	    }
-	};
-
-      for (int i = list_size; i > 0;) {
-	free((void*)(list[--i]));
-      }
-
-      free((void*)list);
-
-    }  
-  }  
   sort(states.begin(),states.end());
 }
 
 void
 findBaseFiles(std::string trajDir,std::vector<std::string>& states)
 {
+  std::vector<std::string> fileList = yaatk::listFiles(yaatk::getcwd());
+
+  for(size_t i = 0; i < fileList.size(); ++i)
   {
-    {
-      dirent **list = NULL;
-      //      TRACE(trajDir.c_str());
-      int list_size = fl_filename_list(trajDir.c_str(),&list);
-
-      for(int i = 0; i < list_size; i++)
-	{
-	  dirent* entry = list[i];
-	  if (!fl_filename_isdir(entry->d_name))
-	    {
-	      if (strstr(entry->d_name,".mde"))
-		{
-		  states.push_back(entry->d_name);
-		}
-	    }
-	};
-
-      for (int i = list_size; i > 0;) {
-	free((void*)(list[--i]));
-      }
-
-      free((void*)list);
-
-    }  
-  }  
-//  sort(states.begin(),states.end());
+    const std::string& filename = fileList[i];
+    if (filename.find(".mde") != std::string::npos)
+      states.push_back(filename);
+  }
 }
 
 int main(int argc, char *argv[])
@@ -108,6 +72,15 @@ int main(int argc, char *argv[])
   bool loadPartialSnapshots = false;
   bool xvasSpecified = false;
   bool basefilesOnly = false;
+
+  bool newFileFormats = true;
+  if (yaatk::exists("in.mde") ||
+      yaatk::exists("mde_init") ||
+      yaatk::exists("simloop.conf") ||
+      yaatk::exists("mde_final"))
+  {
+    newFileFormats = false;
+  }
 
   for(int argi = 1; argi < argc; ++argi)
   {
@@ -125,40 +98,55 @@ int main(int argc, char *argv[])
         break;
     }
 
-    if (!strcmp(argv[argi],"--partial-snapshots") || !std::strcmp(argv[argi],"-s"))
+    if (yaatk::isOption(argv[argi],"partial-snapshots",'s'))
     {
       loadPartialSnapshots = true;
     }
 
-    if (!strcmp(argv[argi],"--instant-animation") || !std::strcmp(argv[argi],"-a"))
+    if (yaatk::isOption(argv[argi],"instant-animation",'a'))
     {
       instantAnimate = true;
     }
 
-    if (!strcmp(argv[argi],"--version"))
+    if (yaatk::isOption(argv[argi],"legacy-file-formats",'l'))
+    {
+      newFileFormats = false;
+    }
+
+    if (yaatk::isOption(argv[argi],"new-file-formats",'n'))
+    {
+      newFileFormats = true;
+    }
+
+    if (yaatk::isOption(argv[argi],"version"))
     {
       std::cout << "mdtrajview (Molecular dynamics trajectory viewer) ";
       mdtk::release_info.print();
       return 0;
     }
 
-    if (!std::strcmp(argv[argi],"--help") || !std::strcmp(argv[argi],"-h"))
+    if (yaatk::isOption(argv[argi],"help",'h'))
     {
       std::cout << "\
 Usage: mdtrajview [OPTION] [base file with complete info] [XVA files with incomplete info]... \n\
 Visualizes molecular dynamics trajectory previously simulated by mdtrajsim.\n\
 Operates on results of mdtrajsim's run in the current directory.\n\
 \n\
-      -a, --instant-animation  start animation immediately\n\
-      -s, --partial-snapshots  try to load partial snapshots file (snapshots.conf)\n\
-      -h, --help               display this help and exit\n\
-      --version                output version information and exit\n\
+      -a, --instant-animation    start animation immediately\n\
+      -s, --partial-snapshots    try to load partial snapshots file (snapshots.conf)\n\
+      -l, --legacy-file-formats  use legacy input file formats (heuristics is by default)\n\
+      -n, --new-file-formats     use new input file formats (heuristics is by default)\n\
+      -h, --help                 display this help and exit\n\
+      --version                  output version information and exit\n\
 \n\
 Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 ";
       return 0;
     }
   }
+
+  if (!newFileFormats)
+  {
 
   if (!xvasSpecified && baseFile == "")
   {
@@ -214,13 +202,25 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
 //  const size_t maxsize = 2000;
 //  if (fileList.size() > maxsize) fileList.resize(maxsize);
+  }
 
   xmde::VisBox avb(15,35,500,500);
   avb.set_non_modal();
+
+  if (!newFileFormats)
+  {
   if (!basefilesOnly)
     avb.loadDataFromFiles(baseFile,fileList,loadPartialSnapshots);
   else
     avb.loadDataFromMDLoopStates(fileList);
+  }
+  else
+  {
+    std::vector<std::string> states_ng = mdtk::SimLoopSaver::listIds();
+    std::vector<std::string> xvas;
+    findIntermediateStates("./",xvas);
+    avb.loadDataFromFilesOfNewFileFormat(states_ng,xvas,loadPartialSnapshots);
+  }
 
   xmde::MainWindow w(&avb, instantAnimate);
   MainWindow_GlobalPtr = &w;

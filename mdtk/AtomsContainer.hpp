@@ -1,7 +1,7 @@
 /*
    The AtomsContainer class (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -30,6 +30,7 @@ namespace mdtk
 
 class AtomsArray:public std::vector<Atom>
 {
+  friend class SimLoopSaver;
   Vector3D arrayPBC;
 public:
   void applyPBC();

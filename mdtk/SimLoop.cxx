@@ -22,6 +22,7 @@
 
 #include "Exception.hpp"
 #include "SimLoop.hpp"
+#include "SimLoopSaver.hpp"
 #include <fstream>
 #include "release_info.hpp"
 
@@ -50,7 +51,7 @@ SimLoop::SimLoop()
     dt(1e-20),
     dt_prev(1e-20),
     iteration(0),
-    iterationFlushStateInterval(1000),
+    iterationFlushStateInterval(1000000),
     thermalBath(),
     initNLafterLoading(true),
     allowPartialLoading(false),
@@ -229,7 +230,7 @@ SimLoop::executeMain()
       cout << "dt : " << dt << endl;
     }
 
-    if (iteration%iterationFlushStateInterval == 0/* && iteration != 0*/)
+    if (iteration%iterationFlushStateInterval == 0 && iteration != 0)
     {
       if (verboseTrace) cout << "Writing state ... " ;
       writestate();
@@ -237,7 +238,9 @@ SimLoop::executeMain()
     };
 
 
-    if (simTime == 0.0 || int(simTime/simTimeSaveTrajInterval) != int((simTime - dt_prev)/simTimeSaveTrajInterval))
+    if(iteration == 0 ||
+       simTime == 0.0 ||
+       int(simTime/simTimeSaveTrajInterval) != int((simTime - dt_prev)/simTimeSaveTrajInterval))
     {
       if (verboseTrace) cout << "Writing trajectory ... " ;
       writetrajXVA();
@@ -1043,12 +1046,17 @@ SimLoop::writestate()
 {
   if (preventFileOutput) return;
 
+  mdtk::SimLoopSaver mds(*this);
+  mds.write();
+
+  if (0)
   {
     yaatk::binary_ofstream fo1("simloop.conf.bak");
     saveToStream(fo1,YAATK_FSTREAM_BIN);
     fo1.close();
   }
 
+  if (0)
   {
     yaatk::binary_ofstream fo1("simloop.conf");
     saveToStream(fo1,YAATK_FSTREAM_BIN);

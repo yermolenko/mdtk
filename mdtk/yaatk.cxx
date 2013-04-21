@@ -1,8 +1,8 @@
 /*
    Yet another auxiliary toolkit.
 
-   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012, 2013
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -28,6 +28,12 @@
 
 #include <sstream>
 #include <fstream>
+
+#ifdef __WIN32__
+  #include <windows.h>
+#else
+  #include <dirent.h>
+#endif
 
 namespace yaatk
 {
@@ -354,6 +360,68 @@ std::string extractItemFromEnd(std::string trajNameFinal, int fromEnd)
       res = mde_dirname.substr(i,itemLen);
     }
     return res;
+}
+
+std::vector<std::string>
+listFilesystemItems(std::string dir, bool listRegularFiles, bool listDirectories)
+{
+  std::vector<std::string> items;
+
+#ifdef __WIN32__
+
+  WIN32_FIND_DATA ffd;
+  char szDir[MAX_PATH];
+  HANDLE hFind = INVALID_HANDLE_VALUE;
+  DWORD dwError=0;
+
+  strncpy(szDir, dir.c_str(), MAX_PATH);
+  strncat(szDir, "\\*", MAX_PATH);
+
+  hFind = FindFirstFile(szDir, &ffd);
+
+  REQUIRE(INVALID_HANDLE_VALUE != hFind);
+
+  do
+  {
+    if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && listDirectories)
+    {
+      items.push_back(std::string(ffd.cFileName));
+    }
+
+    if ((!(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) && listRegularFiles)
+    {
+      items.push_back(std::string(ffd.cFileName));
+    }
+  }
+  while (FindNextFile(hFind, &ffd) != 0);
+
+  dwError = GetLastError();
+  REQUIRE(dwError == ERROR_NO_MORE_FILES);
+
+  FindClose(hFind);
+
+#else
+
+  DIR* dirHandle = opendir(dir.c_str());
+  REQUIRE(dirHandle != NULL);
+
+  struct dirent* entry = readdir(dirHandle);
+  while (entry != NULL)
+  {
+    if ((entry->d_type == DT_REG && listRegularFiles) ||
+        (entry->d_type == DT_DIR && listDirectories))
+    {
+      items.push_back(std::string(entry->d_name));
+    }
+
+    entry = readdir(dirHandle);
+  }
+
+  closedir(dirHandle);
+
+#endif
+
+  return items;
 }
 
 
