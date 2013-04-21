@@ -230,7 +230,7 @@ SimLoop::executeMain()
       cout << "dt : " << dt << endl;
     }
 
-    if (iteration%iterationFlushStateInterval == 0/* && iteration != 0*/)
+    if (iteration%iterationFlushStateInterval == 0 && iteration != 0)
     {
       if (verboseTrace) cout << "Writing state ... " ;
       writestate();
