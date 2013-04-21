@@ -39,66 +39,29 @@ using namespace mdtk;
 void
 findIntermediateStates(std::string trajDir,std::vector<std::string>& states)
 {
+  std::vector<std::string> fileList = yaatk::listFiles(yaatk::getcwd());
+
+  for(size_t i = 0; i < fileList.size(); ++i)
   {
-    {
-      dirent **list = NULL;
-      //      TRACE(trajDir.c_str());
-      int list_size = fl_filename_list(trajDir.c_str(),&list);
+    const std::string& filename = fileList[i];
+    if (filename.find("mde0") == 0 && filename.find(".xva") != std::string::npos)
+      states.push_back(filename);
+  }
 
-      for(int i = 0; i < list_size; i++)
-	{
-	  dirent* entry = list[i];
-	  if (!fl_filename_isdir(entry->d_name))
-	    {
-	      if (entry->d_name[0] == 'm' && entry->d_name[1] == 'd' && entry->d_name[2] == 'e' &&
-		  entry->d_name[3] == '0' && strstr(entry->d_name,".xva"))
-		{
-		  states.push_back(entry->d_name);
-		}
-	    }
-	};
-
-      for (int i = list_size; i > 0;) {
-	free((void*)(list[--i]));
-      }
-
-      free((void*)list);
-
-    }  
-  }  
   sort(states.begin(),states.end());
 }
 
 void
 findBaseFiles(std::string trajDir,std::vector<std::string>& states)
 {
+  std::vector<std::string> fileList = yaatk::listFiles(yaatk::getcwd());
+
+  for(size_t i = 0; i < fileList.size(); ++i)
   {
-    {
-      dirent **list = NULL;
-      //      TRACE(trajDir.c_str());
-      int list_size = fl_filename_list(trajDir.c_str(),&list);
-
-      for(int i = 0; i < list_size; i++)
-	{
-	  dirent* entry = list[i];
-	  if (!fl_filename_isdir(entry->d_name))
-	    {
-	      if (strstr(entry->d_name,".mde"))
-		{
-		  states.push_back(entry->d_name);
-		}
-	    }
-	};
-
-      for (int i = list_size; i > 0;) {
-	free((void*)(list[--i]));
-      }
-
-      free((void*)list);
-
-    }  
-  }  
-//  sort(states.begin(),states.end());
+    const std::string& filename = fileList[i];
+    if (filename.find(".mde") != std::string::npos)
+      states.push_back(filename);
+  }
 }
 
 int main(int argc, char *argv[])
