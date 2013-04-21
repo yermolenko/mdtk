@@ -113,7 +113,7 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
 {
   VerboseOutput vo(false);
 
-  SimLoop mdloop(simloop);
+  SimLoopNoMomentums mdloop(simloop);
   initialize_simloop(mdloop);
 
   const Float ENERGYINF = 1e6*eV;
@@ -166,9 +166,11 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
       mdloop.simTimeFinal += 1.0*ps;
 
       mdloop.atoms.removeMomentum();
+      mdloop.atoms.removeAngularMomentum();
       if (mdloop.execute())
         return ENERGYINF;
       mdloop.atoms.removeMomentum();
+      mdloop.atoms.removeAngularMomentum();
 
       if (areUnparted(mdloop.atoms))
         stopHeating = true;
@@ -227,9 +229,11 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
       mdloop.simTimeFinal += 1.0*ps;
 
       mdloop.atoms.removeMomentum();
+      mdloop.atoms.removeAngularMomentum();
       if (mdloop.execute())
         return ENERGYINF;
       mdloop.atoms.removeMomentum();
+      mdloop.atoms.removeAngularMomentum();
 
       if (areUnparted(mdloop.atoms))
         stopCooling = true;
@@ -247,9 +251,11 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
       mdloop.simTimeFinal += 0.05*ps;
 
       mdloop.atoms.removeMomentum();
+      mdloop.atoms.removeAngularMomentum();
       if (mdloop.execute())
         return ENERGYINF;
       mdloop.atoms.removeMomentum();
+      mdloop.atoms.removeAngularMomentum();
     }
 
     mdloop.preventFileOutput = false;

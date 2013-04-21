@@ -1,7 +1,7 @@
 /*
    Common routines for mdbuilder (header)
 
-   Copyright (C) 2008, 2010, 2011, 2012 Oleksandr Yermolenko
+   Copyright (C) 2008, 2010, 2011, 2012, 2013 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -156,6 +156,32 @@ public:
         for(size_t i = 0; i < atoms.size(); ++i)
           atoms[i].V *= dumpConstant;
     };
+};
+
+class SimLoopNoMomentums : public SimLoop
+{
+  void removeMomentums()
+    {
+      atoms.removeMomentum();
+      atoms.removeAngularMomentum();
+    }
+public:
+  SimLoopNoMomentums()
+    :SimLoop()
+    {
+    }
+  SimLoopNoMomentums(const SimLoop &c)
+  :SimLoop(c)
+    {
+    }
+  virtual void doBeforeIteration()
+    {
+      removeMomentums();
+    }
+  virtual void doAfterIteration()
+    {
+//      removeMomentums();
+    }
 };
 
 void
