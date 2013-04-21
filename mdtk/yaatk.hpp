@@ -466,6 +466,25 @@ public:
     stream << x << std::flush;                                          \
   }
 
+inline
+bool
+isOption(const std::string arg, const std::string longOption, const char shortOption = '\0')
+{
+  bool is = false;
+  if (arg == std::string("--") + longOption)
+  {
+    is = true;
+  }
+  if (shortOption != '\0' &&
+      arg.size() >= 2 &&
+      arg[0] == '-' && arg[1] != '-' &&
+      arg.find(shortOption) != std::string::npos)
+  {
+    is = true;
+  }
+  return is;
+}
+
 }
 
 #endif

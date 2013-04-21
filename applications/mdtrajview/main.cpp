@@ -135,34 +135,34 @@ int main(int argc, char *argv[])
         break;
     }
 
-    if (!strcmp(argv[argi],"--partial-snapshots") || !std::strcmp(argv[argi],"-s"))
+    if (yaatk::isOption(argv[argi],"partial-snapshots",'s'))
     {
       loadPartialSnapshots = true;
     }
 
-    if (!strcmp(argv[argi],"--instant-animation") || !std::strcmp(argv[argi],"-a"))
+    if (yaatk::isOption(argv[argi],"instant-animation",'a'))
     {
       instantAnimate = true;
     }
 
-    if (!std::strcmp(argv[argi],"--legacy-file-formats") || !std::strcmp(argv[argi],"-l"))
+    if (yaatk::isOption(argv[argi],"legacy-file-formats",'l'))
     {
       newFileFormats = false;
     }
 
-    if (!std::strcmp(argv[argi],"--new-file-formats") || !std::strcmp(argv[argi],"-n"))
+    if (yaatk::isOption(argv[argi],"new-file-formats",'n'))
     {
       newFileFormats = true;
     }
 
-    if (!strcmp(argv[argi],"--version"))
+    if (yaatk::isOption(argv[argi],"version"))
     {
       std::cout << "mdtrajview (Molecular dynamics trajectory viewer) ";
       mdtk::release_info.print();
       return 0;
     }
 
-    if (!std::strcmp(argv[argi],"--help") || !std::strcmp(argv[argi],"-h"))
+    if (yaatk::isOption(argv[argi],"help",'h'))
     {
       std::cout << "\
 Usage: mdtrajview [OPTION] [base file with complete info] [XVA files with incomplete info]... \n\
