@@ -27,6 +27,7 @@
 
 #include <mdtk/tools.hpp>
 #include <mdtk/SimLoop.hpp>
+#include <mdtk/SimLoopSaver.hpp>
 
 #include "../common.h"
 

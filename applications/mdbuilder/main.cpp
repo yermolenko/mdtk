@@ -94,9 +94,13 @@ buildCommands()
         sl.simTimeFinal = 10.0*ps;
         sl.simTimeSaveTrajInterval = 0.1*ps;
 
-        yaatk::text_ofstream fomde("mde_init");
+        yaatk::text_ofstream fomde("mdloop.opti.best");
         sl.saveToStream(fomde);
         fomde.close();
+
+        SimLoopSaver mds(sl);
+        mds.write("most-optimal");
+        mds.removeAttributesButPosVel("most-optimal");
       }
     }
     else // bombardment experiment preparation was requested

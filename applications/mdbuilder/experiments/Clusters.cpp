@@ -265,6 +265,10 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
     mdloop.saveToStream(fo);
     fo.close();
 
+    SimLoopSaver mds(mdloop);
+    mds.write("optimal");
+    mds.removeAttributesButPosVel("optimal");
+
     Float energyValue = mdloop.energyPot();
     if (energyValue < minPotEnergy)
     {
