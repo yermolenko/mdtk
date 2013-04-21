@@ -689,9 +689,12 @@ SimLoop::saveToStreamXVA(ostream& os)
     os << fixed;
 #endif
     os.precision(2);
-    os << atoms[i].V.x/XVA_VELOCITY_SCALE  << " ";
-    os << atoms[i].V.y/XVA_VELOCITY_SCALE  << " ";
-    os << atoms[i].V.z/XVA_VELOCITY_SCALE  << "\n";
+    // os << atoms[i].V.x/XVA_VELOCITY_SCALE  << " ";
+    // os << atoms[i].V.y/XVA_VELOCITY_SCALE  << " ";
+    // os << atoms[i].V.z/XVA_VELOCITY_SCALE  << "\n";
+    os << "0" << " ";
+    os << "0" << " ";
+    os << "0" << "\n";
 
 #ifndef DONT_USE_XVASCALE
     os << fixed;
