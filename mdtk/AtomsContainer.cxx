@@ -277,6 +277,38 @@ AtomsArray::removeMomentum()
 }
 
 void
+AtomsArray::removeAngularMomentum()
+{
+  Vector3D mc = massCenter();
+  Vector3D vc = velocity();
+
+  Vector3D L(0,0,0);
+  Float I = 0;
+
+  REQUIRE(size() > 0);
+  for(size_t ai = 0; ai < size(); ai++)
+  {
+    mdtk::Atom& atom = at(ai);
+    if (atom.isFixed()) continue;
+    Vector3D ri  = atom.coords - mc;
+    Vector3D vi  = atom.V - vc;
+    L += atom.M*vectormul(ri,vi);
+    I += atom.M*ri.module_squared();
+  }
+
+  Vector3D omega = L/I;
+
+  for(size_t ai = 0; ai < size(); ai++)
+  {
+    mdtk::Atom& atom = at(ai);
+    if (atom.isFixed()) continue;
+    Vector3D ri  = atom.coords - mc;
+    Vector3D vi  = atom.V - vc;
+    atom.V -= vectormul(omega,ri);
+  }
+}
+
+void
 AtomsArray::setTranslationalEnergy(Float energy, Vector3D direction)
 {
   direction.normalize();
