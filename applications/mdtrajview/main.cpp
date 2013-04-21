@@ -111,6 +111,13 @@ int main(int argc, char *argv[])
   bool basefilesOnly = false;
 
   bool newFileFormats = true;
+  if (yaatk::exists("in.mde") ||
+      yaatk::exists("mde_init") ||
+      yaatk::exists("simloop.conf") ||
+      yaatk::exists("mde_final"))
+  {
+    newFileFormats = false;
+  }
 
   for(int argi = 1; argi < argc; ++argi)
   {
@@ -143,6 +150,11 @@ int main(int argc, char *argv[])
       newFileFormats = false;
     }
 
+    if (!std::strcmp(argv[argi],"--new-file-formats") || !std::strcmp(argv[argi],"-n"))
+    {
+      newFileFormats = true;
+    }
+
     if (!strcmp(argv[argi],"--version"))
     {
       std::cout << "mdtrajview (Molecular dynamics trajectory viewer) ";
@@ -159,7 +171,8 @@ Operates on results of mdtrajsim's run in the current directory.\n\
 \n\
       -a, --instant-animation    start animation immediately\n\
       -s, --partial-snapshots    try to load partial snapshots file (snapshots.conf)\n\
-      -l, --legacy-file-formats  use legacy input file formats\n\
+      -l, --legacy-file-formats  use legacy input file formats (heuristics is by default)\n\
+      -n, --new-file-formats     use new input file formats (heuristics is by default)\n\
       -h, --help                 display this help and exit\n\
       --version                  output version information and exit\n\
 \n\
