@@ -238,7 +238,9 @@ SimLoop::executeMain()
     };
 
 
-    if (simTime == 0.0 || int(simTime/simTimeSaveTrajInterval) != int((simTime - dt_prev)/simTimeSaveTrajInterval))
+    if(iteration == 0 ||
+       simTime == 0.0 ||
+       int(simTime/simTimeSaveTrajInterval) != int((simTime - dt_prev)/simTimeSaveTrajInterval))
     {
       if (verboseTrace) cout << "Writing trajectory ... " ;
       writetrajXVA();
