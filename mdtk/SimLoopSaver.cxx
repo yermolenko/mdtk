@@ -546,6 +546,22 @@ SimLoopSaver::generateId(unsigned long iteration)
   return oss.str();
 }
 
+std::string
+SimLoopSaver::extractAttributeName(const std::string filename)
+{
+  size_t idEnd = filename.find(".");
+  REQUIRE(idEnd != std::string::npos);
+
+  size_t attrEnd = filename.rfind(".");
+  REQUIRE(attrEnd != std::string::npos);
+
+  REQUIRE(attrEnd - idEnd > 0 && attrEnd - idEnd < 50);
+
+  std::string attr = filename.substr(idEnd + 1, attrEnd - idEnd - 1);
+
+  return attr;
+}
+
 bool
 SimLoopSaver::mayContainData(std::string filename)
 {
@@ -672,6 +688,58 @@ SimLoopSaver::removeIterations(bool keepFirst, bool keepLast)
     its.erase(its.begin());
 
   removeIterations(its);
+}
+
+void
+SimLoopSaver::removeAttributes(const std::string id, const std::set<std::string>& protectedAttributes)
+{
+  std::vector<std::string> filenames = yaatk::listFiles(yaatk::getcwd());
+
+  for(size_t i = 0; i < filenames.size(); ++i)
+  {
+    std::string filename = filenames[i];
+
+    if (filename.find(id) == 0 && filename.find(id) != std::string::npos)
+    {
+      std::string attribute = extractAttributeName(filename);
+      if (protectedAttributes.find(attribute) == protectedAttributes.end())
+      {
+        yaatk::remove(filename);
+      }
+    }
+  }
+}
+
+void
+SimLoopSaver::removeAttributesButPos(const std::string id)
+{
+  std::set<std::string> pa;
+  pa.insert("z");
+  pa.insert("r");
+  removeAttributes(id,pa);
+}
+
+void
+SimLoopSaver::removeAttributesButPosVel(const std::string id)
+{
+  std::set<std::string> pa;
+  pa.insert("z");
+  pa.insert("r");
+  pa.insert("v");
+  removeAttributes(id,pa);
+}
+
+void
+SimLoopSaver::removeAttributesButPosVelPBC(const std::string id)
+{
+  std::set<std::string> pa;
+  pa.insert("z");
+  pa.insert("r");
+  pa.insert("v");
+  pa.insert("pbc_rect");
+  pa.insert("pbc_rect.count");
+  pa.insert("pbc_rect.enabled");
+  removeAttributes(id,pa);
 }
 
 int

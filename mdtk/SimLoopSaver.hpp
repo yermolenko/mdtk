@@ -40,6 +40,7 @@ class SimLoopSaver
   SimLoop& mdloop;
   const std::string idPrefix;
   std::string generateId(unsigned long iteration);
+  std::string extractAttributeName(const std::string filename);
   void prepareForAttributeReading(yaatk::binary_ifstream& is, size_t attributeSize);
 public:
   SimLoopSaver(SimLoop& mdloopInstance);
@@ -63,13 +64,23 @@ public:
   enum {LOADED_A = (1<<6)};
 
   int load(std::string id);
+  int loadIteration(unsigned long iteration);
+  int loadIterationLatest();
+
   static bool mayContainData(std::string filename);
   static std::vector<std::string> listIds();
   std::vector<unsigned long> listIterations();
+
   void removeIterations(const std::vector<unsigned long>&);
   void removeIterations(bool keepFirst = true, bool keepLast = true);
-  int loadIteration(unsigned long iteration);
-  int loadIterationLatest();
+
+  void removeAttributes(const std::string id, const std::set<std::string>& protectedAttributes);
+  void removeAttributesButPos(const std::string id);
+  void removeAttributesButPos() {removeAttributesButPos(generateId(mdloop.iteration));}
+  void removeAttributesButPosVel(const std::string id);
+  void removeAttributesButPosVel() {removeAttributesButPosVel(generateId(mdloop.iteration));}
+  void removeAttributesButPosVelPBC(const std::string id);
+  void removeAttributesButPosVelPBC() {removeAttributesButPosVelPBC(generateId(mdloop.iteration));}
 };
 
 }
