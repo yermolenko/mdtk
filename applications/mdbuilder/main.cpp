@@ -109,14 +109,13 @@ buildCommands()
 
       AtomsArray cluster;
       SimLoop clusterMDLoop;
-      if (!yaatk::exists(clusterConfigurationFile.c_str()))
+      if (!yaatk::exists((clusterConfigurationFile+".r").c_str()))
       {
         std::cerr << "Can not open cluster configuration file. Exiting." << std::endl;
         exit(1);
       }
-      yaatk::text_ifstream fi(clusterConfigurationFile.c_str());
-      clusterMDLoop.loadFromStream(fi);
-      fi.close();
+      SimLoopSaver mds(clusterMDLoop);
+      mds.load(clusterConfigurationFile);
       cluster = clusterMDLoop.atoms;
 
       TRACE(cluster.size());
@@ -293,7 +292,7 @@ int main(int argc, char *argv[])
     {
       if (!(argi+1 < argc))
       {
-        std::cerr << "You should specify existing cluster configuration file, e.g. --cluster-size Cu13.mdloop\n";
+        std::cerr << "You should specify existing cluster configuration file id, e.g. --cluster Cu13\nIn this example current directory should contain files Cu13.z and Cu13.r\n";
         return -1;
       }
       std::istringstream iss(argv[argi+1]);
@@ -310,7 +309,7 @@ int main(int argc, char *argv[])
       }
       std::istringstream iss(argv[argi+1]);
       iss >> numberOfImpacts;
-      if (!(numberOfImpacts > 0 && numberOfImpacts <= 2048))
+      if (!(numberOfImpacts > 0 && numberOfImpacts <= 8192))
       {
         std::cerr << "Unsupported number of impacts\n";
         return -1;
@@ -332,12 +331,12 @@ Prepares molecular dynamics experiments.\n\
 To prepare clusters of the specific size run:\n\
   mdbuilder --cluster-size  <cluster size>\n\
 To prepare an experiment for the specific cluster run:\n\
-  mdbuilder --cluster <mdloop file containing cluster configuration> --number-of-impacts  <number of impacts>\n\
+  mdbuilder --cluster <id of files containing cluster configuration> --number-of-impacts  <number of impacts>\n\
 \n\
       --help     display this help and exit\n\
       --version  output version information and exit\n\
       --cluster-size  <cluster size>  generate Cu, Au and Ag clusters of the specific size\n\
-      --cluster  <mdloop file containing cluster configuration>  prepare an experiment for the specific cluster\n\
+      --cluster  <id of files containing cluster configuration>  prepare an experiment for the specific cluster\n\
       --number-of-impacts  <number of impacts>  generate specific number of impacts for each experiment (default : 1024)\n\
 \n\
 Report bugs to <oleksandr.yermolenko@gmail.com>\n\

@@ -1007,6 +1007,26 @@ bomb_Cluster_with_Ions(
 
   yaatk::ChDir cd_dataset("dataset");
 
+  {
+    Atom projectile(ionElement,Vector3D(0,0,clusterZMin-5.5*Ao));
+    projectile.V = Vector3D(0,0,sqrt(2.0*ionEnergy/(projectile.M)));
+//    projectile->apply_PBC=false;
+//    projectile.apply_ThermalBath=false;
+    projectile.tag(ATOMTAG_PROJECTILE);
+    sl.atoms.push_back(projectile);
+
+    sl.iteration = 0;
+    sl.simTime = 0.0*ps;
+    sl.simTimeFinal = 10.0*ps;
+    sl.simTimeSaveTrajInterval = 0.1*ps;
+
+    SimLoopSaver mds(sl);
+    mds.write("base");
+  }
+
+  yaatk::binary_ofstream ionpos_bin("ionpos.bin");
+  yaatk::text_ofstream ionpos_txt("ionpos.txt");
+
   for(int trajIndex = 0; trajIndex < numberOfImpacts; trajIndex++)
   {
     Float bombX = 0.0;
@@ -1046,29 +1066,14 @@ bomb_Cluster_with_Ions(
     REQUIRE(bombX > 0.0 + sl.thermalBath.dBoundary && bombX < sl.atoms.PBC().x - sl.thermalBath.dBoundary);
     REQUIRE(bombY > 0.0 + sl.thermalBath.dBoundary && bombY < sl.atoms.PBC().y - sl.thermalBath.dBoundary);
 
-    Atom projectile(ionElement,Vector3D(bombX,bombY,clusterZMin-5.5*Ao));
-
-    projectile.V = Vector3D(0,0,sqrt(2.0*ionEnergy/(projectile.M)));
-//    projectile->apply_PBC=false;
-//    projectile.apply_ThermalBath=false;
-    projectile.tag(ATOMTAG_PROJECTILE);
-    sl.atoms.push_back(projectile);
-
-    char trajDirName[1024];
-    sprintf(trajDirName,"%08d",trajIndex);
-    yaatk::ChDir cd(trajDirName);
-
-    sl.iteration = 0;
-    sl.simTime = 0.0*ps;
-    sl.simTimeFinal = 10.0*ps;
-    sl.simTimeSaveTrajInterval = 0.1*ps;
-
-    yaatk::text_ofstream fomde("mde_init");
-    sl.saveToStream(fomde);
-    fomde.close();
-
-    sl.atoms.resize(sl.atoms.size()-1);
+    YAATK_BIN_WRITE(ionpos_bin,bombX);
+    YAATK_BIN_WRITE(ionpos_bin,bombY);
+    ionpos_txt << bombX << " "
+               << bombY << "\n";
   }
+
+  ionpos_txt.close();
+  ionpos_bin.close();
 
   rngout.close();
   rngNOTout.close();
