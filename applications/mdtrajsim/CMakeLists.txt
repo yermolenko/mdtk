@@ -1,7 +1,7 @@
 #  CMakeLists.txt file for Molecular Dynamics Trajectory Simulator
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
-#  <oleksandr.yermolenko@gmail.com>
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2013 Oleksandr
+#  Yermolenko <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
 #
@@ -63,5 +63,5 @@ ENDMACRO(mdtrajsim)
 
 mdtrajsim(FALSE)
 IF(MPI_FOUND)
-  mdtrajsim(TRUE)
+#  mdtrajsim(TRUE)
 ENDIF(MPI_FOUND)
