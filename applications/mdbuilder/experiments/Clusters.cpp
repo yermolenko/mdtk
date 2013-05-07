@@ -1005,7 +1005,7 @@ bomb_Cluster_with_Ions(
   gsl_qrng * coord2d_qrng = gsl_qrng_alloc (/*gsl_qrng_sobol*/ gsl_qrng_niederreiter_2, 2);
   REQUIRE(coord2d_qrng != NULL);
 
-  yaatk::ChDir cd_dataset("dataset");
+//  yaatk::ChDir cd_dataset("dataset");
 
   {
     Atom projectile(ionElement,Vector3D(0,0,clusterZMin-5.5*Ao));
