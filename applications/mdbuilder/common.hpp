@@ -32,6 +32,7 @@
 #include "../common.h"
 
 //#define MDBUILDER_DRY_RUN_HOOK return;
+//#define MDBUILDER_DRY_RUN_HOOK {forTime = 0.05*ps;}
 #define MDBUILDER_DRY_RUN_HOOK ;
 
 namespace mdbuilder
