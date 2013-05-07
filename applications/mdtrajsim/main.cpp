@@ -33,11 +33,10 @@
 
 using namespace mdtk;
 
-SnapshotList snapshotList;
-
 class CustomSimLoop : public SimLoop
 {
 public:
+  SnapshotList snapshotList;
   CustomSimLoop();
   bool isItTimeToSave(Float interval);
   void doBeforeIteration();
@@ -45,7 +44,7 @@ public:
 };
 
 CustomSimLoop::CustomSimLoop()
-  :SimLoop()
+  :SimLoop(),snapshotList()
 {
   verboseTrace = true;
 }
@@ -82,7 +81,7 @@ CustomSimLoop::doBeforeIteration()
     }
   }
 
-  if (iteration%iterationFlushStateInterval == 0/* && iteration != 0*/)
+  if (iteration%iterationFlushStateInterval == 0 && iteration != 0)
   {
     snapshotList.writestate();
   }
@@ -95,42 +94,25 @@ CustomSimLoop::doAfterIteration()
 }
 
 bool
-isAlreadyFinished();
-
-int runTraj(std::string inputFile);
-
-int
-main(int argc , char *argv[])
+isAlreadyFinished()
 {
-  if (argc > 1 && !strcmp(argv[1],"--version"))
   {
-    std::cout << "mdtrajsim (Molecular dynamics trajectory simulator) ";
-    mdtk::release_info.print();
-    return 0;
+    if (yaatk::exists("completed.ok")) return true;
   }
-
-  if (argc > 1 && (!std::strcmp(argv[1],"--help") || !std::strcmp(argv[1],"-h")))
   {
-    std::cout << "\
-Usage: mdtrajsim [OPTION]... [FILE]\n\
-Simulates molecular dynamics trajectory described in the FILE\
- (in.mde.gz file in the current directory by default)\n\
-\n\
-      --help     display this help and exit\n\
-      --version  output version information and exit\n\
-\n\
-Report bugs to <oleksandr.yermolenko@gmail.com>\n\
-";
-    return 0;
+    if (yaatk::exists("completed.error")) return true;
   }
-
-  std::string inputFile = "";
-  if (argc > 1) inputFile = argv[1];
-
-  return runTraj(inputFile);
+  {
+    std::ifstream ifinal("in.mde.after_crash");
+    if (ifinal)
+      return true;
+    else
+      ifinal.close();
+  }
+  return false;
 }
 
-int runTraj(std::string inputFile)
+int runTraj(std::string inputFilesId = "")
 {
   if (isAlreadyFinished()) return 0;
 
@@ -141,26 +123,43 @@ int runTraj(std::string inputFile)
 
     setupPotentials(mdloop);
 
-    if (inputFile != "")
+    if (inputFilesId != "")
     {
-      REQUIRE(yaatk::exists(inputFile.c_str()));
-      yaatk::text_ifstream fi(inputFile.c_str());
-      mdloop.loadFromStream(fi);
-      fi.close();
+      if (mds.load(inputFilesId) & mdtk::SimLoopSaver::LOADED_R)
+      {
+        PRINT("Input files loaded\n");
+      }
+      else
+      {
+        REQUIRE(yaatk::exists(inputFilesId.c_str()));
+        yaatk::text_ifstream fi(inputFilesId.c_str());
+        mdloop.loadFromStream(fi);
+        fi.close();
+      }
 
       mds.write();
     }
     else
     {
-      mds.loadIterationLatest();
+      if (mds.listIterations().size() > 0)
+      {
+        mds.loadIterationLatest();
+      }
+      else
+      {
+        std::vector<std::string> ids = mds.listIds();
+        if (ids.size() > 0)
+          mds.load(ids[0]);
+      }
     }
 
     if (yaatk::exists("snapshots.conf"))
-      snapshotList.loadstate();
+      mdloop.snapshotList.loadstate();
 
     mdloop.iterationFlushStateInterval = 1000;
     mdloop.execute();
     mds.write();
+    mdloop.snapshotList.writestate();
 
     if (mdloop.simTime >= mdloop.simTimeFinal) // is simulation really finished ?
     {
@@ -186,19 +185,164 @@ int runTraj(std::string inputFile)
   return 0;
 }
 
-bool
-isAlreadyFinished()
+int
+main(int argc, char *argv[])
 {
+  int startFromImpact = 0;
+  bool commonUsage = false; // by default perform experiment-specific simulation
+
+  std::string inputFilesId = "base";
+
+  for(int argi = 1; argi < argc; ++argi)
   {
-    if (yaatk::exists("completed.ok")) return true;
+    if ((argv[argi][0] != '-'))
+    {
+      inputFilesId = argv[argi];
+      argi++;
+      while (argi < argc && argv[argi][0] != '-')
+      {
+        argi++;
+      }
+      if (argi == argc)
+        break;
+    }
+
+    if (yaatk::isOption(argv[argi],"common-usage",'c'))
+    {
+      commonUsage = true;
+    }
+
+    if (yaatk::isOption(argv[argi],"start-from-impact",'i'))
+    {
+      commonUsage = false;
+
+      argi++;
+
+      if (!(argi < argc))
+      {
+        std::cerr << "You should specify index of the first impact to simulate, e.g. --start-from-impact 0\n";
+        return -1;
+      }
+      std::istringstream iss(argv[argi]);
+      iss >> startFromImpact;
+      if (!(startFromImpact >= 0))
+      {
+        std::cerr << "Wrong starting impact number\n";
+        return -1;
+      }
+    }
+
+    if (yaatk::isOption(argv[argi],"version"))
+    {
+      std::cout << "mdtrajsim (Molecular dynamics trajectory simulator) ";
+      mdtk::release_info.print();
+      return 0;
+    }
+
+    if (yaatk::isOption(argv[argi],"help",'h'))
+    {
+      std::cout << "\
+Usage: mdtrajsim [OPTION]... [FILE]\n\
+Simulates molecular dynamics trajectory described by the files with FILE id\n\
+\n\
+Common options:\n\
+      -c, --common-usage           force common usage\n\
+      -h, --help                   display this help and exit\n\
+      --version                    output version information and exit\n\
+Experiment-specific options:\n\
+      -i, --start-from-impact <i>  start simulation from the i-th impact\n\
+\n\
+Report bugs to <oleksandr.yermolenko@gmail.com>\n\
+";
+      return 0;
+    }
   }
+
+  int retcode = 0;
+
+  if (commonUsage)
   {
-    std::ifstream ifinal("in.mde.after_crash");
-    if (ifinal)
-      return true;
-    else
-      ifinal.close();
+    PRINT("Performing simple simulation.\n");
+    TRACE(inputFilesId);
+    retcode = runTraj(inputFilesId);
   }
-  return false;
+  else
+  {
+    PRINT("Peforming simulation of impact sequence.\n");
+    TRACE(startFromImpact);
+    TRACE(inputFilesId);
+
+    {
+      CustomSimLoop mdloop;
+      mdtk::SimLoopSaver mds(mdloop);
+
+      int loadRetCode = mds.load(inputFilesId);
+      REQUIRE(loadRetCode & mdtk::SimLoopSaver::LOADED_R);
+
+      double bombX, bombY;
+
+      yaatk::binary_ifstream ionpos_bin("ionpos.bin");
+      int recordLength = ionpos_bin.getDataLength();
+      REQUIRE(recordLength % (sizeof(bombX) + sizeof(bombY)) == 0);
+      int impactCount = recordLength/(sizeof(bombX) + sizeof(bombY));
+      TRACE(impactCount);
+
+      for(int impact = 0; impact < impactCount; ++impact)
+      {
+        YAATK_BIN_READ(ionpos_bin,bombX);
+        YAATK_BIN_READ(ionpos_bin,bombY);
+
+        Atom& projectile = mdloop.atoms.back();
+        projectile.coords.x = bombX;
+        projectile.coords.y = bombY;
+
+        if (impact < startFromImpact)
+          continue;
+
+        {
+          char trajDirName[1024];
+          sprintf(trajDirName,"%08d",impact);
+          yaatk::ChDir cd(trajDirName);
+
+          if (isAlreadyFinished())
+            continue;
+
+          {
+            yaatk::binary_ofstream ionpos_used_bin("ionpos_used.bin");
+            yaatk::text_ofstream ionpos_used_txt("ionpos_used.txt");
+
+            YAATK_BIN_WRITE(ionpos_used_bin,bombX);
+            YAATK_BIN_WRITE(ionpos_used_bin,bombY);
+
+            ionpos_used_txt << bombX << " "
+                            << bombY << "\n";
+
+
+            ionpos_used_bin.close();
+            ionpos_used_txt.close();
+          }
+
+/*
+          mdloop.iteration = 0;
+          mdloop.simTime = 0.0*ps;
+          mdloop.simTimeFinal = 10.0*ps;
+          mdloop.simTimeSaveTrajInterval = 0.1*ps;
+*/
+
+          mdloop.simTimeSaveTrajInterval = 1e6*ps;
+
+          mds.write();
+
+          retcode |= runTraj();
+
+          mds.removeIterations(false,true);
+        }
+      }
+
+      ionpos_bin.close();
+    }
+  }
+
+  return retcode;
 }
 
