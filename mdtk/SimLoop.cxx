@@ -150,6 +150,10 @@ SimLoop::execute()
   catch (Exception& e)
   {
     std::cerr << "Caught mdtk Exception: " << e.what() << std::endl;
+    {
+      yaatk::text_ofstream fo2("completed.error");
+      fo2.close();
+    }
     std::cerr << "Flushing state.....";
     writestate();
     {
@@ -427,6 +431,7 @@ SimLoop::executeMain()
 
     cout << "--------------------------------------------------------- " << endl;
   }
+  if (0)
   {
     if (verboseTrace) cout << "Writing trajectory ... ";
     writetrajXVA();

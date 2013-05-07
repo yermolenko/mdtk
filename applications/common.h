@@ -1,7 +1,7 @@
 /*
    Common configuration for mdtrajsim and mdtrajview.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -31,6 +31,7 @@
 #include <mdtk/potentials/manybody/TightBinding/TightBinding.hpp>
 #include <mdtk/potentials/manybody/Ackland/Ackland.hpp>
 #include <mdtk/SimLoop.hpp>
+#include <mdtk/SimLoopSaver.hpp>
 
 inline
 void
