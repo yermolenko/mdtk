@@ -1162,18 +1162,50 @@ VisBox::saveToMDE(char* filename)
   fo.close();
 }  
 
-void
-VisBox::saveState(char* filename)
+mdtk::Vector3D getPosition()
 {
-  if (yaatk::exists(filename))
+  GLdouble m[16];
+  glGetDoublev(GL_MODELVIEW_MATRIX,m);
+  return Vector3D(m[3*4+0],m[3*4+1],m[3*4+2]);
+}
+
+void
+VisBox::saveState(std::string id, bool discardRotation)
+{
+  if (yaatk::exists(id) || yaatk::exists(id + ".r"))
   {
     if (fl_choice("File exists. Do you really want to overwrite it?","No","Yes",NULL)!=1)
       return;
   }
 
-  yaatk::text_ofstream fo(filename);
+  AtomsArray backup;
+
+  if (!discardRotation)
+  {
+    backup = ml_->atoms;
+
+    glMatrixMode(GL_MODELVIEW);
+
+    for(size_t i = 0; i < R.size();i++)
+    {
+      glPushMatrix();
+      glTranslated(R[i].coords.x,R[i].coords.y,R[i].coords.z);
+      ml_->atoms[i].coords = getPosition();
+      glPopMatrix();
+    }
+  }
+
+  yaatk::text_ofstream fo("mdloop.compat-" + id);
   ml_->saveToStream(fo);
   fo.close();
+
+  mdtk::SimLoopSaver mds(*ml_);
+  mds.write(id);
+
+  if (!discardRotation)
+  {
+    ml_->atoms = backup;
+  }
 }
 
 #ifdef MDTRAJVIEW_PNG

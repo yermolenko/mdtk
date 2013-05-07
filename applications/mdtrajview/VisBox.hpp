@@ -161,7 +161,7 @@ public:
   void saveImageToFile(char* filename);
   void saveTiledImageToFile(char* filename);
   void saveToMDE(char* filename);
-  void saveState(char* filename);
+  void saveState(std::string id, bool discardRotation = false);
 
   static void window_cb(Fl_Widget *, void *);
 
