@@ -2,7 +2,7 @@
    The MainWindow class for the molecular dynamics trajectory viewer.
 
    Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
-   2012 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   2012, 2013 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -521,8 +521,15 @@ MainWindow::MainWindow(VisBox* avb, bool instantAnimate):
   {
     Fl_Button* t
       = new Fl_Button(415,380,145,20,
-		      "Save current state");
-    t->callback((Fl_Callback*)btn_save_state_cb);
+		      "Save state (rotated)");
+    t->callback((Fl_Callback*)btn_save_state_cb, (void*)0);
+  }
+
+  {
+    Fl_Button* t
+      = new Fl_Button(415,400,145,20,
+		      "Save state");
+    t->callback((Fl_Callback*)btn_save_state_cb, (void*)1);
   }
 
   {
@@ -955,7 +962,7 @@ MainWindow::btn_save_mde_cb(Fl_Widget *w, void *)
 }
 
 void
-MainWindow::btn_save_state_cb(Fl_Widget *w, void *)
+MainWindow::btn_save_state_cb(Fl_Widget *w, void *p)
 {
   MainWindow* MainWindow_Ptr;
   MainWindow_Ptr =
@@ -964,15 +971,17 @@ MainWindow::btn_save_state_cb(Fl_Widget *w, void *)
   VisBox* VisBox_Ptr;
   VisBox_Ptr = MainWindow_Ptr->renderBox;
 
-  char *tmp_filename = fl_file_chooser
-    (
-      "Choose a file to save SimLoop state to ...",
-      "",
-      "mde_init",0
-      );
-  if (tmp_filename && (!fl_filename_isdir(tmp_filename)))
+  bool discardRotation = (bool) p;
+
+  char *tmp_filename = fl_dir_chooser("Choose a directory to save files to ...","",0);
+  if (tmp_filename && (fl_filename_isdir(tmp_filename)))
   {
-    VisBox_Ptr->saveState(tmp_filename);
+    yaatk::ChDir cd(tmp_filename,false);
+    const char *id = fl_input("Id of the new state:","new000");
+    if (id)
+      VisBox_Ptr->saveState(id, discardRotation);
+    else
+      VisBox_Ptr->saveState("new", discardRotation);
   }
 }
 
