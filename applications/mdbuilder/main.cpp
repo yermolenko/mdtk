@@ -164,6 +164,10 @@ buildCommands()
       ionEnergies.push_back(400*eV);
       ionEnergies.push_back(500*eV);
 
+      std::set<Float> halos;
+      halos.insert(5.5*Ao);
+      halos.insert(1.3*Ao);
+
       SimLoop target;
 
       SimLoopSaver mds(target);
@@ -172,6 +176,7 @@ buildCommands()
       mdbuilder::bomb_landedCluster_with_Ions(target,
                                               ionElements,
                                               ionEnergies,
+                                              halos,
                                               4096);
     }
   }

@@ -86,7 +86,7 @@ bomb_Cluster_with_Ions(
   std::vector<size_t> clusterAtomIndices,
   ElementID ionElement,
   Float ionEnergy,
-  Float halo,
+  std::set<Float> halos,
   size_t numberOfImpacts = 1024
   );
 
@@ -95,6 +95,7 @@ bomb_landedCluster_with_Ions(
   const SimLoop& target,
   std::vector<ElementID> ionElements,
   std::vector<Float> ionEnergies,
+  std::set<Float> halos,
   size_t numberOfImpacts = 1024
 );
 

@@ -938,19 +938,16 @@ bomb_Cluster_with_Ions(
   std::vector<size_t> clusterAtomIndices,
   ElementID ionElement,
   Float ionEnergy,
-  Float halo,
+  std::set<Float> halos,
   size_t numberOfImpacts
   )
 {
+  REQUIRE(halos.size() > 0);
+
   yaatk::ChDir cd(dirname);
 
   SimLoop sl(target);
   sl.atoms.tag(ATOMTAG_TARGET);
-
-  std::ofstream rngout("rng.out");
-  REQUIRE(rngout != NULL);
-  std::ofstream rngNOTout("rng.NOT.out");
-  REQUIRE(rngNOTout != NULL);
 
   TRACE(clusterAtomIndices.size());
   REQUIRE(clusterAtomIndices.size() > 0);
@@ -992,18 +989,19 @@ bomb_Cluster_with_Ions(
       clusterZMin = clusterAtom.coords.z;
   }
 
-  clusterXMin -= halo;
-  clusterXMax += halo;
-  clusterYMin -= halo;
-  clusterYMax += halo;
+  {
+    Float halo = *halos.rbegin();
+    clusterXMin -= halo;
+    clusterXMax += halo;
+    clusterYMin -= halo;
+    clusterYMax += halo;
+  }
+
   Float a = clusterXMax - clusterXMin;
   Float b = clusterYMax - clusterYMin;
 
   REQUIRE(clusterXMin > 0.0 + sl.thermalBath.dBoundary && clusterXMax < sl.atoms.PBC().x - sl.thermalBath.dBoundary);
   REQUIRE(clusterYMin > 0.0 + sl.thermalBath.dBoundary && clusterYMax < sl.atoms.PBC().y - sl.thermalBath.dBoundary);
-
-  gsl_qrng * coord2d_qrng = gsl_qrng_alloc (/*gsl_qrng_sobol*/ gsl_qrng_niederreiter_2, 2);
-  REQUIRE(coord2d_qrng != NULL);
 
 //  yaatk::ChDir cd_dataset("dataset");
 
@@ -1024,60 +1022,89 @@ bomb_Cluster_with_Ions(
     mds.write("base");
   }
 
-  yaatk::binary_ofstream ionpos_bin("ionpos.bin");
-  yaatk::text_ofstream ionpos_txt("ionpos.txt");
-
-  for(int trajIndex = 0; trajIndex < numberOfImpacts; trajIndex++)
+  for(std::set<Float>::iterator hi = halos.begin(); hi != halos.end(); ++hi)
   {
-    Float bombX = 0.0;
-    Float bombY = 0.0;
-    bool allowBomb = false;
-    Float cell_part_x;
-    Float cell_part_y;
-    do
+    std::ostringstream ossHaloId;
+    ossHaloId << "halo-" << *hi/mdtk::Ao << "Ao";
+    yaatk::ChDir cd(ossHaloId.str());
+
+    gsl_qrng * coord2d_qrng = gsl_qrng_alloc (/*gsl_qrng_sobol*/ gsl_qrng_niederreiter_2, 2);
+    REQUIRE(coord2d_qrng != NULL);
+
+    std::ofstream rngUsedTrace("rng.used.trace");
+    REQUIRE(rngUsedTrace != NULL);
+    std::ofstream rngSkippedTrace("rng.skipped.trace");
+    REQUIRE(rngSkippedTrace != NULL);
+
+    yaatk::binary_ofstream ionpos_bin("ionpos.bin");
+    yaatk::text_ofstream ionpos_txt("ionpos.txt");
+
+    for(int trajIndex = 0; trajIndex < numberOfImpacts; trajIndex++)
     {
-      double v[2];
-      gsl_qrng_get (coord2d_qrng, v);
-      cell_part_x = v[0];
-      cell_part_y = v[1];
-
-      allowBomb = false;
-      for(size_t i = 0; i < clusterAtomIndices.size(); i++)
+      Float bombX = 0.0;
+      Float bombY = 0.0;
+      bool allowBomb = false;
+      Float cell_part_x;
+      Float cell_part_y;
+      do
       {
-        const Atom& clusterAtom = target.atoms[clusterAtomIndices[i]];
+        double v[2];
+        gsl_qrng_get (coord2d_qrng, v);
+        cell_part_x = v[0];
+        cell_part_y = v[1];
 
-        bombX = clusterXMin + cell_part_x*(a+b);
-        bombY = clusterYMin + cell_part_y*(a+b);
-
-        if (distance(clusterAtom.coords,
-                     Vector3D(bombX,bombY,clusterAtom.coords.z))
-            < halo)
+        allowBomb = false;
+        Float dMin = 1e6*Ao;
+        for(size_t i = 0; i < clusterAtomIndices.size(); i++)
         {
-          allowBomb = true; break;
+          const Atom& clusterAtom = target.atoms[clusterAtomIndices[i]];
+
+          bombX = clusterXMin + cell_part_x*(a+b);
+          bombY = clusterYMin + cell_part_y*(a+b);
+
+          Float d = distance(clusterAtom.coords,
+                             Vector3D(bombX,bombY,clusterAtom.coords.z));
+
+          if (d < dMin)
+            dMin = d;
         }
-      }
+        REQUIRE(dMin < 1e5*Ao);
 
-      if ((cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) || !allowBomb)
-        rngNOTout << cell_part_x << " " << cell_part_y << "\n";
+        if (hi == halos.begin())
+        {
+          if (dMin < *hi)
+            allowBomb = true;
+        }
+        else
+        {
+          std::set<Float>::iterator hprev = hi;
+          --hprev;
+          if (dMin < *hi && dMin >= *hprev)
+            allowBomb = true;
+        }
 
-    }while ( (cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) || !allowBomb);
-    rngout << cell_part_x << " " << cell_part_y << "\n";
+        if ((cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) || !allowBomb)
+          rngSkippedTrace << cell_part_x << " " << cell_part_y << "\n";
 
-    REQUIRE(bombX > 0.0 + sl.thermalBath.dBoundary && bombX < sl.atoms.PBC().x - sl.thermalBath.dBoundary);
-    REQUIRE(bombY > 0.0 + sl.thermalBath.dBoundary && bombY < sl.atoms.PBC().y - sl.thermalBath.dBoundary);
+      }while ( (cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) || !allowBomb);
+      rngUsedTrace << cell_part_x << " " << cell_part_y << "\n";
 
-    YAATK_BIN_WRITE(ionpos_bin,bombX);
-    YAATK_BIN_WRITE(ionpos_bin,bombY);
-    ionpos_txt << bombX << " "
-               << bombY << "\n";
+      REQUIRE(bombX > 0.0 + sl.thermalBath.dBoundary && bombX < sl.atoms.PBC().x - sl.thermalBath.dBoundary);
+      REQUIRE(bombY > 0.0 + sl.thermalBath.dBoundary && bombY < sl.atoms.PBC().y - sl.thermalBath.dBoundary);
+
+      YAATK_BIN_WRITE(ionpos_bin,bombX);
+      YAATK_BIN_WRITE(ionpos_bin,bombY);
+      ionpos_txt << bombX << " "
+                 << bombY << "\n";
+    }
+
+    ionpos_txt.close();
+    ionpos_bin.close();
+
+    gsl_qrng_free (coord2d_qrng);
+    rngUsedTrace.close();
+    rngSkippedTrace.close();
   }
-
-  ionpos_txt.close();
-  ionpos_bin.close();
-
-  rngout.close();
-  rngNOTout.close();
-  gsl_qrng_free (coord2d_qrng);
 }
 
 void
@@ -1085,6 +1112,7 @@ bomb_landedCluster_with_Ions(
   const SimLoop& target,
   std::vector<ElementID> ionElements,
   std::vector<Float> ionEnergies,
+  std::set<Float> halos,
   size_t numberOfImpacts
   )
 {
@@ -1115,13 +1143,11 @@ bomb_landedCluster_with_Ions(
               int(ionEnergy/eV));
       std::string dirname(id_string);
 
-      Float halo = 5.5*Ao;
-
       bomb_Cluster_with_Ions(dirname,
                              target,
                              clusterAtomIndices,
                              ionElement, ionEnergy,
-                             halo,
+                             halos,
                              numberOfImpacts);
     }
   }
