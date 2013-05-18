@@ -37,6 +37,9 @@ quench(
   MDBUILDER_DRY_RUN_HOOK;
   yaatk::ChDir cd(tmpDir);
 
+  bool preventFileOutput_backup = sl.preventFileOutput;
+  sl.preventFileOutput = true;
+
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = 0.0;
   sl.simTimeSaveTrajInterval = 0.05*ps;
@@ -46,11 +49,18 @@ quench(
   {
     sl.simTimeFinal += checkTime;
     sl.writestate();
+    {
+      sl.preventFileOutput = false;
+      sl.writetraj();
+      sl.preventFileOutput = true;
+    }
     sl.execute();
     Float Temp = sl.energyKin()/(3.0/2.0*kb*sl.atoms.size());
     if (Temp < forTemp) break;
   }
   sl.thermalBath.zMin = tb_zMin_bak;
+
+  sl.preventFileOutput = preventFileOutput_backup;
 }
 
 void
