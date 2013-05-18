@@ -1081,11 +1081,8 @@ bomb_Cluster_with_Ions(
 }
 
 void
-bomb_MetalCluster_on_Polyethylene_with_Ions(
-  int a_num,
-  int b_num,
-  int c_num,
-  AtomsArray cluster,
+bomb_landedCluster_with_Ions(
+  const SimLoop& target,
   std::vector<ElementID> ionElements,
   std::vector<Float> ionEnergies,
   size_t numberOfImpacts
@@ -1093,12 +1090,11 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
 {
   VerboseOutput vo(true);
 
-  SimLoop sl_Polyethylene =
-    build_Polyethylene_lattice_with_folds(a_num,b_num,c_num);
-  sl_Polyethylene.atoms.tag(ATOMTAG_SUBSTRATE);
+  std::vector<size_t> clusterAtomIndices;
+  for(size_t ai = 0; ai < target.atoms.size(); ++ai)
+    if (target.atoms[ai].hasTag(ATOMTAG_CLUSTER))
+      clusterAtomIndices.push_back(ai);
 
-  SimLoop sl_Landed =
-    build_Cluster_Landed_on_Substrate(sl_Polyethylene, cluster);
   for(size_t ionEnergyIndex = 0;
       ionEnergyIndex < ionEnergies.size();
       ++ionEnergyIndex)
@@ -1113,21 +1109,16 @@ bomb_MetalCluster_on_Polyethylene_with_Ions(
       char id_string[1000];
       sprintf(id_string,
               "%s%03d_on_PE_by_%s_%04deV",
-              ElementIDtoString(cluster[0].ID).c_str(),
-              int(cluster.size()),
+              ElementIDtoString(target.atoms[clusterAtomIndices[0]].ID).c_str(),
+              int(clusterAtomIndices.size()),
               ElementIDtoString(ionElement).c_str(),
               int(ionEnergy/eV));
       std::string dirname(id_string);
 
       Float halo = 5.5*Ao;
 
-      std::vector<size_t> clusterAtomIndices;
-      for(size_t ai = 0; ai < sl_Landed.atoms.size(); ++ai)
-        if (sl_Landed.atoms[ai].ID == cluster[0].ID)
-          clusterAtomIndices.push_back(ai);
-
       bomb_Cluster_with_Ions(dirname,
-                             sl_Landed,
+                             target,
                              clusterAtomIndices,
                              ionElement, ionEnergy,
                              halo,

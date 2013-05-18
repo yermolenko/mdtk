@@ -91,11 +91,8 @@ bomb_Cluster_with_Ions(
   );
 
 void
-bomb_MetalCluster_on_Polyethylene_with_Ions(
-  int a_num,
-  int b_num,
-  int c_num,
-  AtomsArray cluster,
+bomb_landedCluster_with_Ions(
+  const SimLoop& target,
   std::vector<ElementID> ionElements,
   std::vector<Float> ionEnergies,
   size_t numberOfImpacts = 1024

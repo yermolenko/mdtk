@@ -49,8 +49,16 @@
 static bool generateClusters = false;
 static int clusterSize = 0;
 
-static std::string clusterConfigurationFile;
-static size_t numberOfImpacts = 1024;
+// Polyethylene target size
+static int a_num = 8;
+static int b_num = 12;
+static int c_num = 17;
+
+static bool landCluster = false;
+static std::string clusterDataId;
+
+static bool prepareBombardment = false;
+static std::string targetDataId;
 
 void
 buildCommands()
@@ -58,7 +66,7 @@ buildCommands()
   using namespace mdtk;
   glLoadIdentity();
   {
-    if (generateClusters) // cluster generation was requested
+    if (generateClusters)
     {
       PRINT("Generating clusters.\n");
       TRACE(clusterSize);
@@ -103,27 +111,49 @@ buildCommands()
         mds.removeAttributesButPosVel("most-optimal");
       }
     }
-    else // bombardment experiment preparation was requested
+
+    if (landCluster)
     {
-      PRINT("Preparing MD experiment.\n");
+      PRINT("Landing cluster on the surface.\n");
 
       AtomsArray cluster;
-      SimLoop clusterMDLoop;
-      if (!yaatk::exists((clusterConfigurationFile+".r").c_str()))
       {
-        std::cerr << "Can not open cluster configuration file. Exiting." << std::endl;
-        exit(1);
+        SimLoop clusterMDLoop;
+        if (!yaatk::exists((clusterDataId+".r").c_str()))
+        {
+          std::cerr << "Can not open cluster configuration file. Exiting." << std::endl;
+          exit(1);
+        }
+        SimLoopSaver mds(clusterMDLoop);
+        mds.load(clusterDataId);
+        cluster = clusterMDLoop.atoms;
       }
-      SimLoopSaver mds(clusterMDLoop);
-      mds.load(clusterConfigurationFile);
-      cluster = clusterMDLoop.atoms;
 
       TRACE(cluster.size());
       REQUIRE(cluster.size() > 0);
       TRACE(ElementIDtoString(cluster[0].ID));
-      TRACE(numberOfImpacts);
 
       glLoadIdentity();
+
+      VerboseOutput vo(true);
+
+      SimLoop sl_Polyethylene =
+        mdbuilder::build_Polyethylene_lattice_with_folds(a_num,b_num,c_num);
+      sl_Polyethylene.atoms.tag(ATOMTAG_SUBSTRATE);
+
+      SimLoop sl_Landed =
+        mdbuilder::build_Cluster_Landed_on_Substrate(sl_Polyethylene, cluster);
+
+      {
+        SimLoopSaver mds(sl_Landed);
+        mds.write("target");
+      }
+    }
+
+    if (prepareBombardment)
+    {
+      PRINT("Preparing MD experiment.\n");
+
       std::vector<ElementID> ionElements;
       ionElements.push_back(Ar_EL);
       ionElements.push_back(Xe_EL);
@@ -133,11 +163,16 @@ buildCommands()
       ionEnergies.push_back(300*eV);
       ionEnergies.push_back(400*eV);
       ionEnergies.push_back(500*eV);
-      mdbuilder::bomb_MetalCluster_on_Polyethylene_with_Ions(8,12,17,
-                                                             cluster,
-                                                             ionElements,
-                                                             ionEnergies,
-                                                             numberOfImpacts);
+
+      SimLoop target;
+
+      SimLoopSaver mds(target);
+      mds.load("target");
+
+      mdbuilder::bomb_landedCluster_with_Ions(target,
+                                              ionElements,
+                                              ionEnergies,
+                                              4096);
     }
   }
   exit(0);
@@ -269,11 +304,15 @@ int main(int argc, char *argv[])
 {
   for(int argi = 0; argi < argc; ++argi)
   {
+    if (!strcmp(argv[argi],"--generate-clusters"))
+    {
+      generateClusters = true;
+    }
     if (!strcmp(argv[argi],"--cluster-size"))
     {
       if (!(argi+1 < argc))
       {
-        std::cerr << "You should specify cluster size, e.g. --cluster-size 13\n";
+        std::cerr << "You should specify cluster size, e.g. --generate-clusters --cluster-size 13\n";
         return -1;
       }
       std::istringstream iss(argv[argi+1]);
@@ -283,37 +322,36 @@ int main(int argc, char *argv[])
         std::cerr << "Unsupported cluster size\n";
         return -1;
       }
-      else
-      {
-        generateClusters = true;
-      }
+    }
+
+    if (!strcmp(argv[argi],"--land-cluster"))
+    {
+      landCluster = true;
     }
     if (!strcmp(argv[argi],"--cluster"))
     {
       if (!(argi+1 < argc))
       {
-        std::cerr << "You should specify existing cluster configuration file id, e.g. --cluster Cu13\nIn this example current directory should contain files Cu13.z and Cu13.r\n";
+        std::cerr << "You should specify existing cluster configuration file id, e.g. --land-cluster --cluster Cu13\nIn this example current directory should contain files Cu13.z and Cu13.r\n";
         return -1;
       }
       std::istringstream iss(argv[argi+1]);
-      iss >> clusterConfigurationFile;
-      generateClusters = false;
+      iss >> clusterDataId;
     }
 
-    if (!strcmp(argv[argi],"--number-of-impacts"))
+    if (!strcmp(argv[argi],"--prepare-bombardment"))
+    {
+      prepareBombardment = true;
+    }
+    if (!strcmp(argv[argi],"--target"))
     {
       if (!(argi+1 < argc))
       {
-        std::cerr << "You should specify number of impacts, e.g. --number-of-impacts 300\n";
+        std::cerr << "You should specify existing cluster configuration file id, e.g. --prepare-bombardment --target Cu13_landed_on_PE\n";
         return -1;
       }
       std::istringstream iss(argv[argi+1]);
-      iss >> numberOfImpacts;
-      if (!(numberOfImpacts > 0 && numberOfImpacts <= 8192))
-      {
-        std::cerr << "Unsupported number of impacts\n";
-        return -1;
-      }
+      iss >> targetDataId;
     }
 
     if (!strcmp(argv[argi],"--version"))
@@ -328,16 +366,15 @@ int main(int argc, char *argv[])
       std::cout << "\
 Usage: mdbuilder [OPTION]... \n\
 Prepares molecular dynamics experiments.\n\
-To prepare clusters of the specific size run:\n\
-  mdbuilder --cluster-size  <cluster size>\n\
-To prepare an experiment for the specific cluster run:\n\
-  mdbuilder --cluster <id of files containing cluster configuration> --number-of-impacts  <number of impacts>\n\
+To prepare Cu, Ag and Au clusters of the specific size run:\n\
+  mdbuilder --generate-cluters --cluster-size <cluster size>\n\
+To land a cluster on polyethylene run:\n\
+  mdbuilder --land-cluster --cluster <id of files containing the cluster configuration>\n\
+To prepare bombardment of the specific target run:\n\
+  mdbuilder --prepare-bombardment --target <id of files containing the target>\n\
 \n\
       --help     display this help and exit\n\
       --version  output version information and exit\n\
-      --cluster-size  <cluster size>  generate Cu, Au and Ag clusters of the specific size\n\
-      --cluster  <id of files containing cluster configuration>  prepare an experiment for the specific cluster\n\
-      --number-of-impacts  <number of impacts>  generate specific number of impacts for each experiment (default : 1024)\n\
 \n\
 Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 ";
