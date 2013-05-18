@@ -216,9 +216,27 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
   }
   else
   {
-    std::vector<std::string> states_ng = mdtk::SimLoopSaver::listIds();
+    std::vector<std::string> states_ng;
+    if (baseFile == "")
+      states_ng = mdtk::SimLoopSaver::listIds();
+    else
+      states_ng.push_back(baseFile);
+
     std::vector<std::string> xvas;
-    findIntermediateStates("./",xvas);
+    if (fileList.size() == 0)
+      findIntermediateStates("./",xvas);
+    if (fileList.size() > 0 && fileList[0].find(".xva") == std::string::npos)
+    {
+      basefilesOnly = true;
+      for(size_t i = 0; i < fileList.size(); ++i)
+        states_ng.push_back(fileList[i]);
+    }
+    else
+    {
+      for(size_t i = 0; i < fileList.size(); ++i)
+        xvas.push_back(fileList[i]);
+    }
+
     avb.loadDataFromFilesOfNewFileFormat(states_ng,xvas,loadPartialSnapshots);
   }
 
