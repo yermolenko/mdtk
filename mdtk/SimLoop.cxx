@@ -52,7 +52,10 @@ SimLoop::SimLoop()
     dt_prev(1e-20),
     iteration(0),
     iterationFlushStateInterval(1000000),
-    thermalBath(),
+    thermalBathCommon(),
+    thermalBathGeomBox(),
+    thermalBathGeomSphere(),
+    thermalBathGeomType(TB_GEOM_NONE),
     initNLafterLoading(true),
     allowPartialLoading(false),
     fpot(),
@@ -77,7 +80,10 @@ SimLoop::SimLoop(const SimLoop &c)
     dt_prev(1e-20), // check this!
     iteration(c.iteration),
     iterationFlushStateInterval(c.iterationFlushStateInterval),
-    thermalBath(c.thermalBath),
+    thermalBathCommon(c.thermalBathCommon),
+    thermalBathGeomBox(c.thermalBathGeomBox),
+    thermalBathGeomSphere(c.thermalBathGeomSphere),
+    thermalBathGeomType(c.thermalBathGeomType),
     initNLafterLoading(true),
     allowPartialLoading(false),
     fpot(),
@@ -108,7 +114,10 @@ SimLoop::operator =(const SimLoop &c)
   dt_prev = 1e-20; // check this!
   iteration = c.iteration;
   iterationFlushStateInterval = c.iterationFlushStateInterval;
-  thermalBath = c.thermalBath;
+  thermalBathCommon = c.thermalBathCommon;
+  thermalBathGeomBox = c.thermalBathGeomBox;
+  thermalBathGeomSphere = c.thermalBathGeomSphere;
+  thermalBathGeomType = c.thermalBathGeomType;
   initNLafterLoading = true;
   allowPartialLoading = false;
 //  fpot();
@@ -135,16 +144,33 @@ SimLoop::execute()
   try
   {
     fpot.diagnose();
+    TRACE(atoms.front().ID);
     TRACE(atoms.front().PBCEnabled());
     TRACE(atoms.front().lateralPBCEnabled());
+    TRACE(atoms.front().PBC/Ao);
+    TRACE(atoms.front().apply_ThermalBath);
+    TRACE(atoms.back().ID);
     TRACE(atoms.back().PBCEnabled());
     TRACE(atoms.back().lateralPBCEnabled());
-    TRACE(atoms.front().PBC/Ao);
     TRACE(atoms.back().PBC/Ao);
-    TRACE(thermalBath.zMin/Ao);
-    TRACE(thermalBath.dBoundary/Ao);
-    TRACE(thermalBath.zMinOfFreeZone/Ao);
-    TRACE(thermalBath.To/K);
+    TRACE(atoms.back().apply_ThermalBath);
+    TRACE((atoms.rbegin()+1)->ID);
+    TRACE((atoms.rbegin()+1)->PBCEnabled());
+    TRACE((atoms.rbegin()+1)->lateralPBCEnabled());
+    TRACE((atoms.rbegin()+1)->PBC/Ao);
+    TRACE((atoms.rbegin()+1)->apply_ThermalBath);
+    TRACE(thermalBathGeomType == TB_GEOM_NONE);
+    TRACE(thermalBathGeomType == TB_GEOM_UNIVERSE);
+    TRACE(thermalBathGeomType == TB_GEOM_BOX);
+    TRACE(thermalBathGeomType == TB_GEOM_SPHERE);
+    TRACE(thermalBathCommon.gamma);
+    TRACE(thermalBathCommon.To/K);
+    TRACE(thermalBathGeomBox.zMin/Ao);
+    TRACE(thermalBathGeomBox.dBoundary/Ao);
+    TRACE(thermalBathGeomBox.zMinOfFreeZone/Ao);
+    TRACE(thermalBathGeomSphere.center/Ao);
+    TRACE(thermalBathGeomSphere.radius/Ao);
+    TRACE(thermalBathGeomSphere.zMinOfFreeZone/Ao);
     return executeMain();
   }
   catch (Exception& e)
@@ -323,16 +349,16 @@ SimLoop::executeMain()
 
       Vector3D  vdt2 = atom.V + atom.an*dt/2.0; // eq 2
 
-      if (isWithinThermalBath(atom) && atom.apply_ThermalBath)
+      if (thermalBathShouldBeApplied(atom))
       {
 //        Float T = check.temperatureCur;
         Float T = actualThermalBathTemp;
-        Float To_by_T = (fabs(T)<1e-5)?0:(thermalBath.To/T);
+        Float To_by_T = (fabs(T)<1e-5)?0:(thermalBathCommon.To/T);
         Float max_To_by_T = 5.0;
         if (To_by_T < -max_To_by_T) To_by_T = -max_To_by_T;
         if (To_by_T > +max_To_by_T) To_by_T = +max_To_by_T;
 
-        Vector3D dforce = -atom.V*atom.M*thermalBath.gamma*(1.0-sqrt(To_by_T));
+        Vector3D dforce = -atom.V*atom.M*thermalBathCommon.gamma*(1.0-sqrt(To_by_T));
 
         // try to account energy transfered to thermalbath
         // only required to perform energy conservation check
@@ -511,7 +537,7 @@ SimLoop::actualTemperatureOfThermalBath()
   {
     Atom& atom = atoms[j];
     if (atom.isFixed()) continue;
-    if (isWithinThermalBath(atom) && atom.apply_ThermalBath)
+    if (thermalBathShouldBeApplied(atom))
     {
       energyKinCur += atom.M*SQR(atom.V.module())/2.0;
       atoms_accounted++;
@@ -563,7 +589,8 @@ SimLoop::loadFromStream(istream& is, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_READ(is,iteration,smode);
   YAATK_FSTREAM_READ(is,iterationFlushStateInterval,smode);
 
-  thermalBath.loadFromStream(is,smode);
+  legacyThermalBathStruct.loadFromStream(is,smode);
+  updateThermalBathFromLegacyStruct();
 
 //  fpot.LoadFromStream(is,smode);
 
@@ -597,7 +624,7 @@ SimLoop::saveToStream(ostream& os, YAATK_FSTREAM_MODE smode)
   YAATK_FSTREAM_WRITE(os,iteration,smode);
   YAATK_FSTREAM_WRITE(os,iterationFlushStateInterval,smode);
 
-  thermalBath.saveToStream(os,smode);
+  legacyThermalBathStruct.saveToStream(os,smode);
 
 //  fpot.SaveToStream(os,smode);
 
@@ -1154,7 +1181,7 @@ SimLoop::saveToMDE(std::ostream& fo)
 
   REQUIRE(atoms.size() > 0);
   fo << atoms.PBC() << std::endl;
-  thermalBath.saveToStream(fo,YAATK_FSTREAM_TEXT);
+  legacyThermalBathStruct.saveToStream(fo,YAATK_FSTREAM_TEXT);
 }
 
 void
@@ -1206,7 +1233,8 @@ SimLoop::loadFromMDE(std::istream& fi)
   Vector3D PBC;
   fi >> PBC;
   setPBC(PBC);
-  thermalBath.loadFromStream(fi,YAATK_FSTREAM_TEXT);
+  legacyThermalBathStruct.loadFromStream(fi,YAATK_FSTREAM_TEXT);
+  updateThermalBathFromLegacyStruct();
 
   executeDryRun();
 }
@@ -1282,13 +1310,13 @@ ThermalBath::disableGlobally()
 }
 */
 
-SimLoop::ThermalBath::ThermalBath(Float zMin_, Float dBoundary_, Float zMinOfFreeZone_)
+SimLoop::LegacyThermalBathStruct::LegacyThermalBathStruct(Float zMin_, Float dBoundary_, Float zMinOfFreeZone_)
   :zMin(zMin_), dBoundary(dBoundary_), zMinOfFreeZone(zMinOfFreeZone_), To(0.0), gamma(1.0e13)
 {
 }
 
 void
-SimLoop::ThermalBath::saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
+SimLoop::LegacyThermalBathStruct::saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
 {
   YAATK_FSTREAM_WRITE(os,zMin,smode);
   YAATK_FSTREAM_WRITE(os,dBoundary,smode);
@@ -1298,7 +1326,7 @@ SimLoop::ThermalBath::saveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
 }
 
 void
-SimLoop::ThermalBath::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
+SimLoop::LegacyThermalBathStruct::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
 {
   YAATK_FSTREAM_READ(is,zMin,smode);
   YAATK_FSTREAM_READ(is,dBoundary,smode);
@@ -1308,16 +1336,16 @@ SimLoop::ThermalBath::loadFromStream(std::istream& is, YAATK_FSTREAM_MODE smode)
 }
 
 bool
-SimLoop::isWithinThermalBath(const Atom& a)
+SimLoop::LegacyThermalBathStruct::isInsideThermalBath(const Atom& a)
 {
-  return (a.coords.z > thermalBath.zMin) ||
+  return (a.coords.z > zMin) ||
     (a.lateralPBCEnabled() &&
      (
-       (a.coords.x < 0.0 + thermalBath.dBoundary) ||
-       (a.coords.x > a.PBC.x - thermalBath.dBoundary) ||
-       (a.coords.y < 0.0 + thermalBath.dBoundary) ||
-       (a.coords.y > a.PBC.y - thermalBath.dBoundary)
-       ) && a.coords.z > thermalBath.zMinOfFreeZone
+       (a.coords.x < 0.0 + dBoundary) ||
+       (a.coords.x > a.PBC.x - dBoundary) ||
+       (a.coords.y < 0.0 + dBoundary) ||
+       (a.coords.y > a.PBC.y - dBoundary)
+       ) && a.coords.z > zMinOfFreeZone
       );
 }
 

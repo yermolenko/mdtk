@@ -114,8 +114,10 @@ private:
   void listVertexes();
   void listAxes();
   void listBarrier();
-  void listThermalBath();
-  void listThermalBathSketch();
+  void listThermalBathGeomBox();
+  void listThermalBathGeomBoxSketch();
+  void listThermalBathGeomSphere();
+  void listThermalBathGeomSphereSketch();
   void listCTree();
   void listBonds();
   void listCustom1();

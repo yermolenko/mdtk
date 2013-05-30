@@ -429,13 +429,15 @@ void MDTrajectory_add_from_simulation(
 
   InteractiveSimLoop sl(slInit);
   setupPotentials(sl);
+  mdtk::SimLoop::TB_GEOM_TYPE tb_type_bak = sl.thermalBathGeomType;
   if (quench)
-    sl.thermalBath.zMin = -100000.0*Ao;
+    sl.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_UNIVERSE;
   if (sl.simTimeFinal < sl.simTime + 4.0*ps)
     sl.simTimeFinal = sl.simTime + 4.0*ps;
   sl.execute();
   if (sl.simTimeFinal <= sl.simTime)
     MainWindow_GlobalPtr->btn_simulate->value(0);
+  sl.thermalBathGeomType = tb_type_bak;
 }
 
 }

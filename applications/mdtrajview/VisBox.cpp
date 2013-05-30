@@ -373,17 +373,24 @@ VisBox::drawObjects()
     listBarrier();
     glEnable(GL_LIGHTING);
   }
-  if (showBath)
+  if (ml_->thermalBathGeomType != mdtk::SimLoop::TB_GEOM_NONE)
   {
-    glDisable(GL_LIGHTING);
-    listThermalBath();
-    glEnable(GL_LIGHTING);
-  }
-  if (showBathSketch)
-  {
-    glDisable(GL_LIGHTING);
-    listThermalBathSketch();
-    glEnable(GL_LIGHTING);
+    if (showBath)
+    {
+      glDisable(GL_LIGHTING);
+      if (ml_->thermalBathGeomType == mdtk::SimLoop::TB_GEOM_BOX)
+        listThermalBathGeomBox();
+      glEnable(GL_LIGHTING);
+    }
+    if (showBathSketch)
+    {
+      glDisable(GL_LIGHTING);
+      if (ml_->thermalBathGeomType == mdtk::SimLoop::TB_GEOM_BOX)
+        listThermalBathGeomBoxSketch();
+      if (ml_->thermalBathGeomType == mdtk::SimLoop::TB_GEOM_SPHERE)
+        listThermalBathGeomSphereSketch();
+      glEnable(GL_LIGHTING);
+    }
   }
   if (showCustom1)
   {
@@ -427,16 +434,16 @@ VisBox::listBarrier()
 }
 
 void
-VisBox::listThermalBath()
+VisBox::listThermalBathGeomBox()
 {
   Float tb[3][2];
 
-  tb[0][0] = ml_->thermalBath.dBoundary;
-  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->atoms.PBC().x;
-  tb[1][0] = ml_->thermalBath.dBoundary;
-  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->atoms.PBC().y;
-  tb[2][0] = ml_->thermalBath.zMinOfFreeZone;
-  tb[2][1] = ml_->thermalBath.zMin;
+  tb[0][0] = ml_->thermalBathGeomBox.dBoundary;
+  tb[0][1] = -ml_->thermalBathGeomBox.dBoundary+ml_->atoms.PBC().x;
+  tb[1][0] = ml_->thermalBathGeomBox.dBoundary;
+  tb[1][1] = -ml_->thermalBathGeomBox.dBoundary+ml_->atoms.PBC().y;
+  tb[2][0] = ml_->thermalBathGeomBox.zMinOfFreeZone;
+  tb[2][1] = ml_->thermalBathGeomBox.zMin;
 
   Float cb[3][2] = {{0,0},{0,0},{0,0}};
   cb[0][1] = ml_->atoms.PBC().x;
@@ -456,7 +463,7 @@ VisBox::listThermalBath()
   glVertex3d(tb[0][1],tb[1][0],tb[2][1]);
   glEnd();
 
-  if (ml_->thermalBath.dBoundary != 0.0)
+  if (ml_->thermalBathGeomBox.dBoundary != 0.0)
   {
     int vi = 0, vj;
     do
@@ -484,16 +491,16 @@ VisBox::listThermalBath()
 }
 
 void
-VisBox::listThermalBathSketch()
+VisBox::listThermalBathGeomBoxSketch()
 {
   Float tb[3][2];
 
-  tb[0][0] = ml_->thermalBath.dBoundary;
-  tb[0][1] = -ml_->thermalBath.dBoundary+ml_->atoms.PBC().x;
-  tb[1][0] = ml_->thermalBath.dBoundary;
-  tb[1][1] = -ml_->thermalBath.dBoundary+ml_->atoms.PBC().y;
-  tb[2][0] = ml_->thermalBath.zMinOfFreeZone;
-  tb[2][1] = ml_->thermalBath.zMin;
+  tb[0][0] = ml_->thermalBathGeomBox.dBoundary;
+  tb[0][1] = -ml_->thermalBathGeomBox.dBoundary+ml_->atoms.PBC().x;
+  tb[1][0] = ml_->thermalBathGeomBox.dBoundary;
+  tb[1][1] = -ml_->thermalBathGeomBox.dBoundary+ml_->atoms.PBC().y;
+  tb[2][0] = ml_->thermalBathGeomBox.zMinOfFreeZone;
+  tb[2][1] = ml_->thermalBathGeomBox.zMin;
 
   Float cb[3][2] = {{0,0},{0,0},{0,0}};
   cb[0][1] = ml_->atoms.PBC().x;
@@ -520,7 +527,7 @@ VisBox::listThermalBathSketch()
   glVertex3d(cb[0][1]/2.0+cb[0][0],cb[1][1],cb[2][1]);
   glEnd();
 
-  if (ml_->thermalBath.dBoundary != 0.0)
+  if (ml_->thermalBathGeomBox.dBoundary != 0.0)
   {
     glBegin(GL_QUADS);
     glVertex3d(cb[0][0],cb[1][1]/2.0+cb[1][0],cb[2][0]);
@@ -550,6 +557,58 @@ VisBox::listThermalBathSketch()
   }
 
   glPopMatrix();  
+}
+
+void
+VisBox::listThermalBathGeomSphereSketch()
+{
+  Float tb_sphere_radius = ml_->thermalBathGeomSphere.radius;
+  Vector3D tb_sphere_center = ml_->thermalBathGeomSphere.center;
+  Float tb_sphere_zMinOfFreeZone = ml_->thermalBathGeomSphere.zMinOfFreeZone;
+
+  Float z_max = tb_sphere_radius*3;
+  Float y = tb_sphere_center.y;
+
+  std::vector<Float> x_values;
+  std::vector<Float> z_min_values;
+  Float x_half_range = tb_sphere_radius*3;
+  for(Float x = -x_half_range; x < +x_half_range; x += 0.1*Ao)
+  {
+    Float z_min = tb_sphere_zMinOfFreeZone;
+    if ((Vector3D(x,y,z_min) - tb_sphere_center).module() < tb_sphere_radius)
+    {
+      z_min = tb_sphere_center.z +
+        sqrt(SQR(tb_sphere_radius) - SQR(x - tb_sphere_center.x));
+    }
+
+    x_values.push_back(x);
+    z_min_values.push_back(z_min);
+  }
+
+  for(size_t i = 0; i < x_values.size()-1; ++i)
+  {
+    GLubyte tbc[4]={0,227,127,127};
+
+    glColor4ubv(tbc);
+
+    glPushMatrix();
+
+    glBegin(GL_QUADS);
+    glVertex3d(x_values[i+1],y,z_min_values[i+1]);
+    glVertex3d(x_values[i+1],y,z_max);
+    glVertex3d(x_values[i],y,z_max);
+    glVertex3d(x_values[i],y,z_min_values[i+1]);
+    glEnd();
+
+    glBegin(GL_QUADS);
+    glVertex3d(y,x_values[i+1],z_min_values[i+1]);
+    glVertex3d(y,x_values[i+1],z_max);
+    glVertex3d(y,x_values[i],z_max);
+    glVertex3d(y,x_values[i],z_min_values[i+1]);
+    glEnd();
+
+    glPopMatrix();
+  }
 }
 
 void
