@@ -81,6 +81,11 @@ public:
     Float z_max;
     Float z_min;
     Float z_len;
+
+    Vector3D center()
+      {
+        return Vector3D(x_min + x_len/2, y_min + y_len/2, z_min + z_len/2);
+      }
   };
 
   Dimensions dimensions() const;

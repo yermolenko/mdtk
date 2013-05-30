@@ -143,13 +143,35 @@ SimLoopSaver::write(std::string id)
     yaatk::binary_ofstream tag_cluster_(id + ".tag.cluster");
     yaatk::binary_ofstream tag_fullerene_(id + ".tag.fullerene");
 
-    yaatk::binary_ofstream thermal_bath_(id + ".thermal_bath");
+    if (mdloop.thermalBathGeomType != mdtk::SimLoop::TB_GEOM_NONE)
     {
-      double_saver(mdloop.thermalBath.To).write(thermal_bath_);
-      double_saver(mdloop.thermalBath.zMin).write(thermal_bath_);
-      double_saver(mdloop.thermalBath.dBoundary).write(thermal_bath_);
-      double_saver(mdloop.thermalBath.zMinOfFreeZone).write(thermal_bath_);
-      double_saver(mdloop.thermalBath.gamma).write(thermal_bath_);
+      yaatk::binary_ofstream thermal_bath_common_(id + ".thermal_bath.common");
+      {
+        double_saver(mdloop.thermalBathCommon.To).write(thermal_bath_common_);
+        double_saver(mdloop.thermalBathCommon.gamma).write(thermal_bath_common_);
+      }
+      if (mdloop.thermalBathGeomType == mdtk::SimLoop::TB_GEOM_UNIVERSE)
+      {
+        yaatk::binary_ofstream thermal_bath_box_(id + ".thermal_bath.univserse");
+      }
+      if (mdloop.thermalBathGeomType == mdtk::SimLoop::TB_GEOM_BOX)
+      {
+        yaatk::binary_ofstream thermal_bath_box_(id + ".thermal_bath.box");
+        {
+          double_saver(mdloop.thermalBathGeomBox.zMin).write(thermal_bath_box_);
+          double_saver(mdloop.thermalBathGeomBox.dBoundary).write(thermal_bath_box_);
+          double_saver(mdloop.thermalBathGeomBox.zMinOfFreeZone).write(thermal_bath_box_);
+        }
+      }
+      if (mdloop.thermalBathGeomType == mdtk::SimLoop::TB_GEOM_SPHERE)
+      {
+        yaatk::binary_ofstream thermal_bath_sphere_(id + ".thermal_bath.sphere");
+        {
+          Vector3D_double_saver(mdloop.thermalBathGeomSphere.center).write(thermal_bath_sphere_);
+          double_saver(mdloop.thermalBathGeomSphere.radius).write(thermal_bath_sphere_);
+          double_saver(mdloop.thermalBathGeomSphere.zMinOfFreeZone).write(thermal_bath_sphere_);
+        }
+      }
     }
     yaatk::binary_ofstream time_(id + ".time");
     {
@@ -449,20 +471,61 @@ SimLoopSaver::load(std::string id)
     VEPRINT("Error reading 'fullerene' tags.\n");
   }
 
+  mdloop.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_NONE;
+
   try
   {
-    yaatk::binary_ifstream stream(id + ".thermal_bath");
-    REQUIRE(stream.getDataLength() == double_saver().binarySize()*5);
-    mdloop.thermalBath.To = double_saver(stream);
-    mdloop.thermalBath.zMin = double_saver(stream);
-    mdloop.thermalBath.dBoundary = double_saver(stream);
-    mdloop.thermalBath.zMinOfFreeZone = double_saver(stream);
-    mdloop.thermalBath.gamma = double_saver(stream);
+    yaatk::binary_ifstream stream(id + ".thermal_bath.common");
+    REQUIRE(stream.getDataLength() == double_saver().binarySize()*2);
+    mdloop.thermalBathCommon.To = double_saver(stream);
+    mdloop.thermalBathCommon.gamma = double_saver(stream);
 //    retval |= LOADED_;
   }
   catch (...)
   {
-    VEPRINT("Error reading thermal bath parameters.\n");
+    VEPRINT("Error reading common thermal bath parameters.\n");
+  }
+
+  try
+  {
+    yaatk::binary_ifstream stream(id + ".thermal_bath.univserse");
+    REQUIRE(stream.getDataLength() == 0);
+    mdloop.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_UNIVERSE;
+//    retval |= LOADED_;
+  }
+  catch (...)
+  {
+    VEPRINT("Error reading thermal bath parameters for 'univserse' geometry.\n");
+  }
+
+  try
+  {
+    yaatk::binary_ifstream stream(id + ".thermal_bath.box");
+    REQUIRE(stream.getDataLength() == double_saver().binarySize()*3);
+    mdloop.thermalBathGeomBox.zMin = double_saver(stream);
+    mdloop.thermalBathGeomBox.dBoundary = double_saver(stream);
+    mdloop.thermalBathGeomBox.zMinOfFreeZone = double_saver(stream);
+    mdloop.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_BOX;
+//    retval |= LOADED_;
+  }
+  catch (...)
+  {
+    VEPRINT("Error reading thermal bath parameters for 'box' geometry.\n");
+  }
+
+  try
+  {
+    yaatk::binary_ifstream stream(id + ".thermal_bath.sphere");
+    REQUIRE(stream.getDataLength() == Vector3D_double_saver().binarySize() + double_saver().binarySize()*2);
+    mdloop.thermalBathGeomSphere.center = Vector3D_double_saver(stream);
+    mdloop.thermalBathGeomSphere.radius = double_saver(stream);
+    mdloop.thermalBathGeomSphere.zMinOfFreeZone = double_saver(stream);
+    mdloop.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_SPHERE;
+//    retval |= LOADED_;
+  }
+  catch (...)
+  {
+    VEPRINT("Error reading thermal bath parameters for 'sphere' geometry.\n");
   }
 
   try
