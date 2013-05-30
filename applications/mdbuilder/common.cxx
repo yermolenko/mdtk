@@ -60,6 +60,12 @@ quench(
   }
   sl.thermalBathGeomType = tb_type_bak;
 
+  {
+    sl.preventFileOutput = false;
+    sl.writestate();
+    sl.preventFileOutput = true;
+  }
+
   sl.preventFileOutput = preventFileOutput_backup;
 }
 
@@ -149,6 +155,7 @@ relax(
   sl.simTimeFinal = forTime;
   sl.simTimeSaveTrajInterval = 0.05*ps;
   sl.execute();
+  sl.writestate();
 }
 
 void
