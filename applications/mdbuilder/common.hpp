@@ -198,6 +198,12 @@ place_Cluster(
   const mdtk::AtomsArray sl_element
   );
 
+void
+setupSpherical(
+  mdtk::SimLoop& sl,
+  const mdtk::Float centerHeightAboveSurface
+  );
+
 }
 
 #endif

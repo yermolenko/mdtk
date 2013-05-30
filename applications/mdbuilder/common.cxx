@@ -43,8 +43,8 @@ quench(
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = 0.0;
   sl.simTimeSaveTrajInterval = 0.05*ps;
-  Float tb_zMin_bak = sl.thermalBath.zMin;
-  sl.thermalBath.zMin = -100000.0*Ao;
+  mdtk::SimLoop::TB_GEOM_TYPE tb_type_bak = sl.thermalBathGeomType;
+  sl.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_UNIVERSE;
   while (1)
   {
     sl.simTimeFinal += checkTime;
@@ -58,7 +58,7 @@ quench(
     Float Temp = sl.energyKin()/(3.0/2.0*kb*sl.atoms.size());
     if (Temp < forTemp) break;
   }
-  sl.thermalBath.zMin = tb_zMin_bak;
+  sl.thermalBathGeomType = tb_type_bak;
 
   sl.preventFileOutput = preventFileOutput_backup;
 }
@@ -98,22 +98,22 @@ heatUp(
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = 0.0;
   sl.simTimeSaveTrajInterval = 0.05*ps;
-  Float tb_zMin_bak = sl.thermalBath.zMin;
+  mdtk::SimLoop::TB_GEOM_TYPE tb_type_bak = sl.thermalBathGeomType;
   if (uniformHeatUp)
-    sl.thermalBath.zMin = -100000.0*Ao;
+    sl.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_UNIVERSE;
   const int steps = 20;
-  sl.thermalBath.To = 0.0;
+  sl.thermalBathCommon.To = 0.0;
   while (1)
   {
-    if (sl.thermalBath.To < forTemp)
-      sl.thermalBath.To += forTemp/steps;
+    if (sl.thermalBathCommon.To < forTemp)
+      sl.thermalBathCommon.To += forTemp/steps;
 
     sl.simTimeFinal += checkTime;
     sl.writestate();
     sl.execute();
     if (sl.simTimeFinal > checkTime*(steps+3)) break;
   }
-  sl.thermalBath.zMin = tb_zMin_bak;
+  sl.thermalBathGeomType = tb_type_bak;
 }
 
 void
@@ -247,6 +247,89 @@ place_Cluster(
   }
 
   glPopMatrix();
+}
+
+void
+setupSpherical(
+  mdtk::SimLoop& sl,
+  const mdtk::Float centerHeightAboveSurface
+  )
+{
+//  sl.atoms.unfoldPBC(); // already called in atoms.PBC(NO_PBC)
+  Vector3D PBC = sl.atoms.PBC();
+  sl.atoms.PBC(NO_PBC); // essential
+
+  mdtk::AtomsArray::Dimensions dim = sl.atoms.dimensions();
+  Vector3D sphereCenter = dim.center();
+  sphereCenter.z = dim.z_min - centerHeightAboveSurface;
+
+  Float minLateralSize1 = min2(PBC.x,PBC.y);
+  Float minLateralSize2 = min2(dim.x_len,dim.y_len);
+  Float minLateralSize = min2(minLateralSize1,minLateralSize2);
+  Float radius = sqrt(SQR(minLateralSize/2.0) + SQR(centerHeightAboveSurface));
+
+  {
+    TRACE(centerHeightAboveSurface/Ao);
+    TRACE(dim.z_len/Ao);
+    TRACE(radius/Ao);
+    REQUIRE(centerHeightAboveSurface + dim.z_len >= radius);
+  }
+
+#define CHECK_RADIUS(axis)                                   \
+  {                                                          \
+    Vector3D edgeCenter = dim.center();                      \
+    edgeCenter.axis = dim.axis##_max;                        \
+    edgeCenter.z = dim.z_min;                                \
+    TRACE("dim max check");                                  \
+    PRINT(#axis"\n");                                        \
+    TRACE((sphereCenter - edgeCenter).module()/Ao);          \
+    TRACE(radius/Ao);                                        \
+    REQUIRE((sphereCenter - edgeCenter).module() >= radius); \
+  }
+
+  CHECK_RADIUS(x);
+  CHECK_RADIUS(y);
+
+#define CHECK_RADIUS_USING_PBC(axis)                         \
+  {                                                          \
+    Vector3D edgeCenter = PBC/2.0;                           \
+    edgeCenter.axis += PBC.axis/2.0;                         \
+    edgeCenter.z = dim.z_min;                                \
+    TRACE("dim PBC check");                                  \
+    PRINT(#axis"\n");                                        \
+    TRACE((sphereCenter - edgeCenter).module()/Ao);          \
+    TRACE(radius/Ao);                                        \
+    REQUIRE((sphereCenter - edgeCenter).module() >= radius); \
+  }
+
+  CHECK_RADIUS_USING_PBC(x);
+  CHECK_RADIUS_USING_PBC(y);
+
+  Float fixedSphereRadius = radius - 5.5*Ao;
+  REQUIRE(fixedSphereRadius > 0);
+  AtomsArray allAtoms = sl.atoms;
+  sl.atoms.clear();
+  for(size_t i = 0; i < allAtoms.size(); ++i)
+  {
+    if ((allAtoms[i].coords - sphereCenter).module() < radius)
+    {
+      sl.atoms.push_back(allAtoms[i]);
+      if ((sl.atoms.back().coords - sphereCenter).module() >= fixedSphereRadius)
+        sl.atoms.back().fix();
+    }
+  }
+
+  sl.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_SPHERE;
+  sl.thermalBathGeomSphere.center = sphereCenter;
+  sl.thermalBathGeomSphere.radius = fixedSphereRadius - 3.0*Ao;
+
+  {
+    size_t fixedAtomsCount = 0;
+    for(size_t i = 0; i < sl.atoms.size(); ++i)
+      if (sl.atoms[i].isFixed())
+        ++fixedAtomsCount;
+    TRACE(fixedAtomsCount);
+  }
 }
 
 }

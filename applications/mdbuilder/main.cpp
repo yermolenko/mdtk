@@ -46,16 +46,42 @@
 #include "experiments/Fullerite.hpp"
 #include "experiments/Fulleride.hpp"
 
-static bool generateClusters = false;
+static bool prepareClusters = false;
 static int clusterSize = 0;
 
+static bool prepareSubstrate = false;
 // Polyethylene target size
-static int a_num = 8;
-static int b_num = 12;
-static int c_num = 17;
+// static int a_num = 8;
+// static int b_num = 12;
+// static int c_num = 17;
+
+// static int a_num = 12;
+// static int b_num = 18;
+// static int c_num = 35;
+
+// static int a_num = 12;
+// static int b_num = 18;
+// static int c_num = 17;
+
+// static int a_num = 16;
+// static int b_num = 24;
+// static int c_num = 17;
+
+// static int a_num = 16;
+// static int b_num = 24;
+// static int c_num = 20;
+
+// static int a_num = 16;
+// static int b_num = 24;
+// static int c_num = 21;
+
+static int a_num = 15;
+static int b_num = 22;
+static int c_num = 15+2;
 
 static bool landCluster = false;
 static std::string clusterDataId;
+static std::string substrateDataId;
 
 static bool prepareBombardment = false;
 static std::string targetDataId;
@@ -66,7 +92,7 @@ buildCommands()
   using namespace mdtk;
   glLoadIdentity();
   {
-    if (generateClusters)
+    if (prepareClusters)
     {
       PRINT("Generating clusters.\n");
       TRACE(clusterSize);
@@ -112,9 +138,58 @@ buildCommands()
       }
     }
 
+    if (prepareSubstrate)
+    {
+      PRINT("Preparing a substrate (polyethylene).\n");
+
+      glLoadIdentity();
+      VerboseOutput vo(true);
+
+      SimLoop sl_Polyethylene =
+        mdbuilder::build_Polyethylene_lattice_with_folds(a_num,b_num,c_num);
+      sl_Polyethylene.atoms.tag(ATOMTAG_SUBSTRATE);
+
+      {
+        SimLoopSaver mds(sl_Polyethylene);
+        mds.write("substrate-000-pbc-box");
+      }
+
+//      Float unfixedDepth = (c_num-2-2)*2.547*Ao;
+//      Float dAboveSurface = 10.0*Ao;
+//      mdbuilder::setupSpherical(sl_Polyethylene,dAboveSurface,unfixedDepth + dAboveSurface);
+
+//      Float dAboveSurface = 25.0*Ao;
+      Float dAboveSurface = 25.0*Ao;
+      mdbuilder::setupSpherical(sl_Polyethylene,dAboveSurface);
+
+      {
+        SimLoopSaver mds(sl_Polyethylene);
+        mds.write("substrate-010-spherical-unrelaxed");
+      }
+
+      {
+        yaatk::ChDir cd("_build_PE_spherical_relax");
+        mdbuilder::initialize_simloop(sl_Polyethylene);
+        mdbuilder::relax(sl_Polyethylene,10.0*ps,"010-relax");
+        mdbuilder::quench(sl_Polyethylene,0.01*K,200*ps,0.01*ps,"011-quench");
+        sl_Polyethylene.atoms.removeMomentum();
+      }
+
+      {
+        SimLoopSaver mds(sl_Polyethylene);
+        mds.write("substrate");
+      }
+    }
+
     if (landCluster)
     {
       PRINT("Landing cluster on the surface.\n");
+
+      SimLoop sl_Polyethylene;
+      {
+        SimLoopSaver mds(sl_Polyethylene);
+        mds.load(substrateDataId);
+      }
 
       AtomsArray cluster;
       {
@@ -136,10 +211,6 @@ buildCommands()
       glLoadIdentity();
 
       VerboseOutput vo(true);
-
-      SimLoop sl_Polyethylene =
-        mdbuilder::build_Polyethylene_lattice_with_folds(a_num,b_num,c_num);
-      sl_Polyethylene.atoms.tag(ATOMTAG_SUBSTRATE);
 
       SimLoop sl_Landed =
         mdbuilder::build_Cluster_Landed_on_Substrate(sl_Polyethylene, cluster);
@@ -309,9 +380,9 @@ int main(int argc, char *argv[])
 {
   for(int argi = 0; argi < argc; ++argi)
   {
-    if (!strcmp(argv[argi],"--generate-clusters"))
+    if (!strcmp(argv[argi],"--prepare-clusters"))
     {
-      generateClusters = true;
+      prepareClusters = true;
     }
     if (!strcmp(argv[argi],"--cluster-size"))
     {
@@ -329,6 +400,11 @@ int main(int argc, char *argv[])
       }
     }
 
+    if (!strcmp(argv[argi],"--prepare-substrate"))
+    {
+      prepareSubstrate = true;
+    }
+
     if (!strcmp(argv[argi],"--land-cluster"))
     {
       landCluster = true;
@@ -337,11 +413,21 @@ int main(int argc, char *argv[])
     {
       if (!(argi+1 < argc))
       {
-        std::cerr << "You should specify existing cluster configuration file id, e.g. --land-cluster --cluster Cu13\nIn this example current directory should contain files Cu13.z and Cu13.r\n";
+        std::cerr << "You should specify existing cluster configuration file id, e.g. --land-cluster --cluster Cu13 --substrate PE\nIn this example current directory should contain files Cu13.z and Cu13.r\n";
         return -1;
       }
       std::istringstream iss(argv[argi+1]);
       iss >> clusterDataId;
+    }
+    if (!strcmp(argv[argi],"--substrate"))
+    {
+      if (!(argi+1 < argc))
+      {
+        std::cerr << "You should specify existing substrate configuration file id, e.g. --land-cluster --cluster Cu13 --substrate PE\n";
+        return -1;
+      }
+      std::istringstream iss(argv[argi+1]);
+      iss >> substrateDataId;
     }
 
     if (!strcmp(argv[argi],"--prepare-bombardment"))
@@ -352,7 +438,7 @@ int main(int argc, char *argv[])
     {
       if (!(argi+1 < argc))
       {
-        std::cerr << "You should specify existing cluster configuration file id, e.g. --prepare-bombardment --target Cu13_landed_on_PE\n";
+        std::cerr << "You should specify existing target configuration file id, e.g. --prepare-bombardment --target Cu13_landed_on_PE\n";
         return -1;
       }
       std::istringstream iss(argv[argi+1]);
@@ -372,10 +458,12 @@ int main(int argc, char *argv[])
 Usage: mdbuilder [OPTION]... \n\
 Prepares molecular dynamics experiments.\n\
 To prepare Cu, Ag and Au clusters of the specific size run:\n\
-  mdbuilder --generate-cluters --cluster-size <cluster size>\n\
-To land a cluster on polyethylene run:\n\
-  mdbuilder --land-cluster --cluster <id of files containing the cluster configuration>\n\
-To prepare bombardment of the specific target run:\n\
+  mdbuilder --prepare-clusters --cluster-size <cluster size>\n\
+To prepare polyethylene substrate run:\n\
+  mdbuilder --prepare-substrate\n\
+To land a cluster on substrate run:\n\
+  mdbuilder --land-cluster --cluster <id of files containing the cluster configuration> --substrate <id of files containing the substrate configuration>\n\
+To prepare bombardment of the specific target containing a cluster run:\n\
   mdbuilder --prepare-bombardment --target <id of files containing the target>\n\
 \n\
       --help     display this help and exit\n\

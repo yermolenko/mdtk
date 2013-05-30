@@ -1,7 +1,7 @@
 /*
    Building of graphite stuctures
 
-   Copyright (C) 2008, 2009, 2011, 2012 Oleksandr Yermolenko
+   Copyright (C) 2008, 2009, 2011, 2012, 2013 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -136,8 +136,10 @@ build_Graphite_lattice(
   place_Graphite_lattice(sl.atoms,a_num,b_num,c_num,fixBottomCellLayer,a,b,c);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num*sin(gamma), NO_PBC.z));
-  sl.thermalBath.zMin = c*c_num-c*3-c/4.0;
-  sl.thermalBath.dBoundary = 3.0*Ao;
+  sl.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_BOX;
+  sl.thermalBathGeomBox.zMinOfFreeZone = -5.0*Ao;
+  sl.thermalBathGeomBox.zMin = c*c_num-c*3-c/4.0;
+  sl.thermalBathGeomBox.dBoundary = 3.0*Ao;
 
   relax(sl,0.01*ps);
   quench(sl,1.0*K);

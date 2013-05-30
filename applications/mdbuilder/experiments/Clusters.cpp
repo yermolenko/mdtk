@@ -128,7 +128,7 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
   mdloop.simTimeSaveTrajInterval = 1000.0*ps;
   mdloop.iterationFlushStateInterval = 1000000;
 
-  mdloop.thermalBath.zMin = -100000.0*Ao;
+  mdloop.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_UNIVERSE;
 
   bool stopHeating = false;
   std::vector<OptiSnapshot> snapshots;
@@ -140,20 +140,20 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
 
     mdloop.preventFileOutput = true;
 
-    while (!stopHeating && mdloop.thermalBath.To <= 10000.0*K)
+    while (!stopHeating && mdloop.thermalBathCommon.To <= 10000.0*K)
     {
       Float T = mdloop.temperature();
       cerr << "To( " << mdloop.simTime/ps << " ps ) = "
-           << mdloop.thermalBath.To << " K" << endl;
+           << mdloop.thermalBathCommon.To << " K" << endl;
       cerr << "T ( " << mdloop.simTime/ps << " ps ) = "
            << T << " K" << endl;
 
       Float dTo = 0.5*K;
-      mdloop.thermalBath.To = (dTo)/(1.0*ps)*mdloop.simTime;
+      mdloop.thermalBathCommon.To = (dTo)/(1.0*ps)*mdloop.simTime;
 
       Float ToSnapshotInterval = 10.0*K;
-      if (int(mdloop.thermalBath.To/ToSnapshotInterval) !=
-          int((mdloop.thermalBath.To - dTo)/ToSnapshotInterval))
+      if (int(mdloop.thermalBathCommon.To/ToSnapshotInterval) !=
+          int((mdloop.thermalBathCommon.To - dTo)/ToSnapshotInterval))
       {
         REQUIRE(mdloop.atoms.size() > 0);
         ElementID id = mdloop.atoms[0].ID;
@@ -180,7 +180,7 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
     mdloop.writestate();
   }
 
-  VETRACE(mdloop.thermalBath.To);
+  VETRACE(mdloop.thermalBathCommon.To);
   VETRACE(snapshots.size());
   REQUIRE(snapshots.size() > 0);
 
@@ -197,7 +197,7 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
     yaatk::ChDir cd(dirname.str());
 
     mdloop.atoms = snapshots[i].atoms;
-    mdloop.thermalBath.To = snapshots[i].T;
+    mdloop.thermalBathCommon.To = snapshots[i].T;
 
     mdloop.simTime = 0.0*ps;
     mdloop.simTimeFinal = 0.0*ps;
@@ -207,24 +207,24 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
     mdloop.simTimeSaveTrajInterval = 1000.0*ps;
     mdloop.iterationFlushStateInterval = 1000000;
 
-    mdloop.thermalBath.zMin = -100000.0*Ao;
+    mdloop.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_UNIVERSE;
 
     mdloop.writetrajXVA();
     mdloop.preventFileOutput = true;
 
     bool stopCooling = false;
 
-    while (!stopCooling && mdloop.thermalBath.To > 2.0*K)
+    while (!stopCooling && mdloop.thermalBathCommon.To > 2.0*K)
     {
       Float T = mdloop.energyKin()/(3.0/2.0*kb*mdloop.atoms.size());
       cerr << "To( " << mdloop.simTime/ps << " ps ) = "
-           << mdloop.thermalBath.To << " K" << endl;
+           << mdloop.thermalBathCommon.To << " K" << endl;
       cerr << "T ( " << mdloop.simTime/ps << " ps ) = "
            << T << " K" << endl;
 
-      mdloop.thermalBath.To -= 10.0*K;
-      if (mdloop.thermalBath.To < 0)
-        mdloop.thermalBath.To = 0;
+      mdloop.thermalBathCommon.To -= 10.0*K;
+      if (mdloop.thermalBathCommon.To < 0)
+        mdloop.thermalBathCommon.To = 0;
 
       mdloop.simTimeFinal += 1.0*ps;
 
@@ -239,8 +239,8 @@ optimize_single(SimLoop& simloop, gsl_rng* rng)
         stopCooling = true;
     }
 
-    mdloop.thermalBath.To = 0.0;
-    mdloop.thermalBath.zMin = -100000.0*Ao;
+    mdloop.thermalBathCommon.To = 0.0;
+    mdloop.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_UNIVERSE;
     mdloop.dt = 1e-20;
 
     while (!stopCooling && mdloop.temperature() > 0.001*K)
@@ -639,7 +639,7 @@ add_rotational_motion(
   sl.atoms = atoms;
 
   TRACE(sl.energyKin()/eV);
-  sl.thermalBath.zMin = +100000.0*Ao;
+  sl.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_NONE;
   relax/*_flush*/(sl,0.2*ps);
   TRACE(sl.energyKin()/eV);
   sl.atoms.removeMomentum();
@@ -662,7 +662,18 @@ build_target_by_cluster_bombardment(
     = cluster.maxDistanceFrom(cluster.geomCenter());
   TRACE(clusterRadius/Ao);
 
-  Vector3D dCluster = sl_target.atoms.PBC()/2.0;
+  Vector3D dCluster;
+  if (sl_target.atoms.PBCEnabled())
+  {
+    dCluster = sl_target.atoms.PBC()/2.0;
+  }
+  else
+  {
+    if (sl_target.thermalBathGeomType == mdtk::SimLoop::TB_GEOM_SPHERE)
+      dCluster = sl_target.thermalBathGeomSphere.center;
+    else
+      dCluster = sl_target.atoms.dimensions().center();
+  }
   dCluster.z = -(10.0*Ao+clusterRadius);
   TRACE(dCluster/Ao);
 
@@ -893,17 +904,17 @@ build_Cluster_Landed_on_Substrate(
   }
 
 
-  std::vector<size_t> fixedAtoms = sl.atoms.fixUnfixedCHAtoms(0,sl.atoms.size());
-  if (0)
-  {
-    Float tb_zMin_bak = sl.thermalBath.zMin;
-    sl.thermalBath.zMin = -1.0*Ao;
+  // std::vector<size_t> fixedAtoms = sl.atoms.fixUnfixedCHAtoms(0,sl.atoms.size());
+  // if (0)
+  // {
+  //   Float tb_zMin_bak = sl.thermalBath.zMin;
+  //   sl.thermalBath.zMin = -1.0*Ao;
 
-    relax(sl,5.0*ps,"001-relax");
+  //   relax(sl,5.0*ps,"001-relax");
 
-    sl.thermalBath.zMin = tb_zMin_bak;
-  }
-  sl.atoms.unfixAtoms(fixedAtoms);
+  //   sl.thermalBath.zMin = tb_zMin_bak;
+  // }
+  // sl.atoms.unfixAtoms(fixedAtoms);
 
   relax(sl,20.0*ps,"010-relax");
   quench(sl,0.01*K,200*ps,0.01*ps,"011-quench");
@@ -911,7 +922,7 @@ build_Cluster_Landed_on_Substrate(
   relax(sl,10.0*ps,"020-relax");
   quench(sl,0.01*K,200*ps,0.01*ps,"021-quench");
 
-  if (!applyPBCtoCluster)
+  if (!applyPBCtoCluster) // TODO: should be forced if PBC are disabled
   {
     for(size_t i = 0; i < sl.atoms.size(); ++i)
     {
@@ -956,9 +967,6 @@ bomb_Cluster_with_Ions(
   {
     TRACE(i);
     Atom& clusterAtom = sl.atoms[clusterAtomIndices[i]];
-
-//    clusterAtom.apply_PBC = false;
-//    clusterAtom.apply_ThermalBath = false;
   }
 
   const Atom& clusterAtom = target.atoms[clusterAtomIndices[0]];
@@ -1000,16 +1008,24 @@ bomb_Cluster_with_Ions(
   Float a = clusterXMax - clusterXMin;
   Float b = clusterYMax - clusterYMin;
 
-  REQUIRE(clusterXMin > 0.0 + sl.thermalBath.dBoundary && clusterXMax < sl.atoms.PBC().x - sl.thermalBath.dBoundary);
-  REQUIRE(clusterYMin > 0.0 + sl.thermalBath.dBoundary && clusterYMax < sl.atoms.PBC().y - sl.thermalBath.dBoundary);
+  if (sl.thermalBathGeomType == mdtk::SimLoop::TB_GEOM_BOX)
+  {
+    REQUIRE(sl.atoms.PBCEnabled());
+    REQUIRE(clusterXMin > 0.0 + sl.thermalBathGeomBox.dBoundary && clusterXMax < sl.atoms.PBC().x - sl.thermalBathGeomBox.dBoundary);
+    REQUIRE(clusterYMin > 0.0 + sl.thermalBathGeomBox.dBoundary && clusterYMax < sl.atoms.PBC().y - sl.thermalBathGeomBox.dBoundary);
+  }
+  else
+  {
+    mdtk::AtomsArray::Dimensions dim = sl.atoms.dimensions();
+    REQUIRE(clusterXMin > dim.x_min && clusterXMax < dim.x_max);
+    REQUIRE(clusterYMin > dim.y_min && clusterYMax < dim.y_max);
+  }
 
 //  yaatk::ChDir cd_dataset("dataset");
 
   {
     Atom projectile(ionElement,Vector3D(0,0,clusterZMin-5.5*Ao));
     projectile.V = Vector3D(0,0,sqrt(2.0*ionEnergy/(projectile.M)));
-//    projectile->apply_PBC=false;
-//    projectile.apply_ThermalBath=false;
     projectile.tag(ATOMTAG_PROJECTILE);
     sl.atoms.push_back(projectile);
 
@@ -1089,8 +1105,17 @@ bomb_Cluster_with_Ions(
       }while ( (cell_part_x >= a/(a+b) || cell_part_y >= b/(a+b)) || !allowBomb);
       rngUsedTrace << cell_part_x << " " << cell_part_y << "\n";
 
-      REQUIRE(bombX > 0.0 + sl.thermalBath.dBoundary && bombX < sl.atoms.PBC().x - sl.thermalBath.dBoundary);
-      REQUIRE(bombY > 0.0 + sl.thermalBath.dBoundary && bombY < sl.atoms.PBC().y - sl.thermalBath.dBoundary);
+      if (sl.thermalBathGeomType == mdtk::SimLoop::TB_GEOM_BOX)
+      {
+        REQUIRE(bombX > 0.0 + sl.thermalBathGeomBox.dBoundary && bombX < sl.atoms.PBC().x - sl.thermalBathGeomBox.dBoundary);
+        REQUIRE(bombY > 0.0 + sl.thermalBathGeomBox.dBoundary && bombY < sl.atoms.PBC().y - sl.thermalBathGeomBox.dBoundary);
+      }
+      else
+      {
+        mdtk::AtomsArray::Dimensions dim = sl.atoms.dimensions();
+        REQUIRE(bombX > dim.x_min && bombX < dim.x_max);
+        REQUIRE(bombY > dim.y_min && bombY < dim.y_max);
+      }
 
       YAATK_BIN_WRITE(ionpos_bin,bombX);
       YAATK_BIN_WRITE(ionpos_bin,bombY);

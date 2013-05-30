@@ -363,8 +363,10 @@ build_Polyethylene_lattice_without_folds(
   place_Polyethylene_lattice(sl.atoms,a_num,b_num,c_num,fixBottomCellLayer,0,a,b,c);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
-  sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
-  sl.thermalBath.dBoundary = 3.0*Ao;
+  sl.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_BOX;
+  sl.thermalBathGeomBox.zMinOfFreeZone = -5.0*Ao;
+  sl.thermalBathGeomBox.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
+  sl.thermalBathGeomBox.dBoundary = 3.0*Ao;
 
   relax(sl,0.01*ps);
   quench(sl,1.0*K);
@@ -492,9 +494,10 @@ build_Polyethylene_lattice_with_folds(
 
   quench(sl,0.01*K, 200*ps, 0.01*ps,"033-crystal-quench-AIREBO");
 
-  sl.thermalBath.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
-  sl.thermalBath.dBoundary = 3.0*Ao;
-  sl.thermalBath.zMinOfFreeZone = 0.0*Ao;
+  sl.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_BOX;
+  sl.thermalBathGeomBox.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
+  sl.thermalBathGeomBox.dBoundary = 3.0*Ao;
+  sl.thermalBathGeomBox.zMinOfFreeZone = 0.0*Ao;
 
   sl.atoms.removeMomentum();
 
