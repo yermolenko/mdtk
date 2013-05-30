@@ -73,7 +73,7 @@ place_and_inherit(mdtk::AtomsArray& atoms, const Atom& base, Vector3D pos = getP
 void
 quench(
   mdtk::SimLoop& sl,
-  Float forTemp = 1.0*K,
+  Float forTemp = 0.1*K,
   Float forTime = 200*ps,
   Float checkTime = 0.01*ps,
   std::string tmpDir = "_tmp-X"
@@ -82,7 +82,7 @@ quench(
 void
 quench(
   mdtk::AtomsArray& atoms,
-  Float forTemp = 1.0*K,
+  Float forTemp = 0.1*K,
   Float forTime = 200*ps,
   Float checkTime = 0.01*ps,
   std::string tmpDir = "_tmp-X"

@@ -369,7 +369,7 @@ build_Polyethylene_lattice_without_folds(
   sl.thermalBathGeomBox.dBoundary = 3.0*Ao;
 
   relax(sl,0.01*ps);
-  quench(sl,1.0*K);
+  quench(sl,0.1*K);
 
   sl.atoms.removeMomentum();
 

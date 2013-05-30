@@ -61,7 +61,7 @@ C60()
   glLoadIdentity();
   place_C60(atoms);
 
-  quench(atoms,1.0*K);
+  quench(atoms,0.1*K);
 
   atoms.shiftToOrigin();
 
@@ -574,7 +574,7 @@ clusterFromFCCCrystal(ElementID id, int clusterSize)
   AtomsArray atoms;
   place_FCC_lattice(atoms,num,num,num,id,false,a,a,a);
 
-  return clusterFromCrystal(atoms,clusterSize,num/2*a);
+  return clusterFromCrystal(atoms,clusterSize,Vector3D(num/2*a,num/2*a,num/2*a));
 }
 
 AtomsArray
@@ -601,7 +601,7 @@ embed(AtomsArray cluster, AtomsArray shell)
     a.V = 0.0;
   }
 
-  quench(atoms,1.0*K);
+  quench(atoms,0.1*K);
 
   atoms.removeMomentum();
 
