@@ -77,7 +77,7 @@ static bool prepareSubstrate = false;
 
 static int a_num = 15;
 static int b_num = 22;
-static int c_num = 15+2;
+static int c_num = 15+2+3;
 
 static bool landCluster = false;
 static std::string clusterDataId;
@@ -146,7 +146,7 @@ buildCommands()
       VerboseOutput vo(true);
 
       SimLoop sl_Polyethylene =
-        mdbuilder::build_Polyethylene_lattice_with_folds(a_num,b_num,c_num);
+        mdbuilder::build_Polyethylene_lattice_with_folds(a_num,b_num,c_num,false);
       sl_Polyethylene.atoms.tag(ATOMTAG_SUBSTRATE);
 
       {
