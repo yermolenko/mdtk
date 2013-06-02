@@ -492,8 +492,7 @@ build_Polyethylene_lattice_with_folds(
 
   sl.disableDump();
 
-  relax(sl, 10*ps,"033-crystal-relax-AIREBO-without-harddamping");
-  quench(sl,0.01*K, 200*ps, 0.01*ps,"034-crystal-quench-AIREBO-without-harddamping");
+  quench(sl,0.01*K, 200*ps, 0.01*ps,"033-crystal-quench-AIREBO");
 
   sl.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_BOX;
   sl.thermalBathGeomBox.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
