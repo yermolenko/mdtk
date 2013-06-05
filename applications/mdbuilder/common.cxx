@@ -51,7 +51,7 @@ quench(
     sl.writestate();
     {
       sl.preventFileOutput = false;
-      sl.writetraj();
+      sl.writetrajXVA();
       sl.preventFileOutput = true;
     }
     sl.execute();
