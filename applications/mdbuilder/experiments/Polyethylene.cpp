@@ -389,92 +389,144 @@ build_Polyethylene_lattice_with_folds(
 {
   yaatk::ChDir cd("_build_PE");
 
-  SimLoopDump sl_with_chain;
-  initialize_simloop(sl_with_chain);
+  AtomsArray bulkAtoms;
 
   {
-    SimLoopDump sl_rebo;
-    initialize_simloop_REBO_only(sl_rebo);
+    SimLoop sl_bulk_PE;
+    initialize_simloop_REBO_only(sl_bulk_PE);
 
-    place_Polyethylene_lattice(sl_rebo.atoms,1,1,c_num,fixBottomCellLayer,2,a,b,c);
+    place_Polyethylene_lattice(sl_bulk_PE.atoms,a_num,b_num,c_num,false,2,a,b,c);
+    sl_bulk_PE.thermalBathGeomType = SimLoop::TB_GEOM_UNIVERSE;
+    sl_bulk_PE.atoms.PBC(Vector3D(a*a_num, b*b_num, c*(c_num-2)));
 
-    std::vector<size_t> fixedAtoms =
-      sl_rebo.atoms.fixNotFixedAtoms(0,sl_rebo.atoms.size());
-    {
-      place_Polyethylene_folds(sl_rebo.atoms,1,1,c_num,2,a,b,c);
+    relax(sl_bulk_PE,1.0*ps,"000-relax-bulk-PE-REBO");
+    quench(sl_bulk_PE,0.01*K, 200*ps, 0.01*ps,"001-cooling-bulk-PE-REBO");
 
-      sl_rebo.enableDump();
-
-      sl_rebo.dumpConst(0.95);
-      relax(sl_rebo,0.05*ps,"000-folds-relax-REBO");
-
-      sl_rebo.dumpConst(0.97);
-      relax(sl_rebo,0.05*ps,"001-folds-relax-REBO");
-
-      sl_rebo.dumpConst(0.99);
-      relax(sl_rebo,0.05*ps,"002-folds-relax-REBO");
-
-      sl_rebo.disableDump();
-
-      quench(sl_rebo,0.01*K, 200*ps, 0.01*ps, "003-folds-quench-REBO");
-
-      {
-        SimLoopDump sl_airebo(sl_rebo);
-        initialize_simloop(sl_airebo);
-
-        sl_airebo.enableDump();
-
-        sl_airebo.dumpConst(0.95);
-        relax(sl_airebo,0.05*ps,"010-folds-relax-AIREBO");
-
-        sl_airebo.dumpConst(0.97);
-        relax(sl_airebo,0.05*ps,"011-folds-relax-AIREBO");
-
-        sl_airebo.dumpConst(0.99);
-        relax(sl_airebo,0.05*ps,"012-folds-relax-AIREBO");
-
-        sl_airebo.disableDump();
-
-        quench(sl_airebo,0.01*K, 200*ps, 0.01*ps,"013-folds-quench-AIREBO");
-
-        sl_with_chain = sl_airebo;
-      }
-    }
-    sl_with_chain.atoms.unfixAtoms(fixedAtoms);
-
-    {
-      yaatk::text_ofstream fomdloop("013-folds-quench-AIREBO.mdloop");
-      sl_with_chain.saveToStream(fomdloop);
-      fomdloop.close();
-    }
-
-    sl_with_chain.enableDump();
-
-    sl_with_chain.dumpConst(0.95);
-    relax(sl_with_chain,0.05*ps,"020-chain-relax-REBO");
-
-    sl_with_chain.dumpConst(0.97);
-    relax(sl_with_chain,0.05*ps,"021-chain-relax-REBO");
-
-    sl_with_chain.dumpConst(0.99);
-    relax(sl_with_chain,0.05*ps,"022-chain-relax-REBO");
-
-    sl_with_chain.disableDump();
-
-    quench(sl_with_chain,0.01*K, 200*ps, 0.01*ps,"023-chain-quench-REBO");
+    sl_bulk_PE.atoms.PBC(NO_PBC);
+    bulkAtoms = sl_bulk_PE.atoms;
   }
 
-  sl_with_chain.atoms.removeMomentum();
+  {
+    SimLoop sl_bulk_PE;
+    initialize_simloop(sl_bulk_PE);
+
+    sl_bulk_PE.atoms = bulkAtoms;
+    sl_bulk_PE.thermalBathGeomType = SimLoop::TB_GEOM_UNIVERSE;
+    sl_bulk_PE.atoms.PBC(Vector3D(a*a_num, b*b_num, c*(c_num-2)));
+
+    relax(sl_bulk_PE,1.0*ps,"002-relax-bulk-PE-AIREBO");
+    quench(sl_bulk_PE,0.01*K, 200*ps, 0.01*ps,"003-cooling-bulk-PE-AIREBO");
+
+    sl_bulk_PE.atoms.PBC(NO_PBC);
+    bulkAtoms = sl_bulk_PE.atoms;
+  }
+
+  AtomsArray chainCap;
+
+  {
+    SimLoopDump sl_with_chain;
+    initialize_simloop(sl_with_chain);
+
+    size_t atomsInChainCap;
+
+    {
+      SimLoopDump sl_rebo;
+      initialize_simloop_REBO_only(sl_rebo);
+
+      place_Polyethylene_lattice(sl_rebo.atoms,1,1,c_num,fixBottomCellLayer,2,a,b,c);
+
+      std::vector<size_t> fixedAtoms =
+        sl_rebo.atoms.fixNotFixedAtoms(0,sl_rebo.atoms.size());
+      {
+        size_t atomsCount_wo_caps = sl_rebo.atoms.size();
+        place_Polyethylene_folds(sl_rebo.atoms,1,1,c_num,2,a,b,c);
+        size_t atomsCount_with_caps = sl_rebo.atoms.size();
+        atomsInChainCap = atomsCount_with_caps - atomsCount_wo_caps;
+
+        sl_rebo.enableDump();
+
+        sl_rebo.dumpConst(0.95);
+        relax(sl_rebo,0.05*ps,"010-folds-relax-REBO");
+
+        sl_rebo.dumpConst(0.97);
+        relax(sl_rebo,0.05*ps,"011-folds-relax-REBO");
+
+        sl_rebo.dumpConst(0.99);
+        relax(sl_rebo,0.05*ps,"012-folds-relax-REBO");
+
+        sl_rebo.disableDump();
+
+        quench(sl_rebo,0.01*K, 200*ps, 0.01*ps, "013-folds-quench-REBO");
+
+        {
+          SimLoopDump sl_airebo(sl_rebo);
+          initialize_simloop(sl_airebo);
+
+          sl_airebo.enableDump();
+
+          sl_airebo.dumpConst(0.95);
+          relax(sl_airebo,0.05*ps,"020-folds-relax-AIREBO");
+
+          sl_airebo.dumpConst(0.97);
+          relax(sl_airebo,0.05*ps,"021-folds-relax-AIREBO");
+
+          sl_airebo.dumpConst(0.99);
+          relax(sl_airebo,0.05*ps,"022-folds-relax-AIREBO");
+
+          sl_airebo.disableDump();
+
+          quench(sl_airebo,0.01*K, 200*ps, 0.01*ps,"023-folds-quench-AIREBO");
+
+          sl_with_chain = sl_airebo;
+        }
+      }
+      sl_with_chain.atoms.unfixAtoms(fixedAtoms);
+
+      {
+        yaatk::text_ofstream fomdloop("023-folds-quench-AIREBO.mdloop");
+        sl_with_chain.saveToStream(fomdloop);
+        fomdloop.close();
+      }
+
+      sl_with_chain.enableDump();
+
+      sl_with_chain.dumpConst(0.95);
+      relax(sl_with_chain,0.05*ps,"030-chain-relax-REBO");
+
+      sl_with_chain.dumpConst(0.97);
+      relax(sl_with_chain,0.05*ps,"031-chain-relax-REBO");
+
+      sl_with_chain.dumpConst(0.99);
+      relax(sl_with_chain,0.05*ps,"032-chain-relax-REBO");
+
+      sl_with_chain.disableDump();
+
+      quench(sl_with_chain,0.01*K, 200*ps, 0.01*ps,"033-chain-quench-REBO");
+    }
+
+    sl_with_chain.atoms.removeMomentum();
+
+    REQUIRE(atomsInChainCap > 0 && atomsInChainCap < 20);
+
+    for(size_t i = sl_with_chain.atoms.size() - atomsInChainCap;
+        i < sl_with_chain.atoms.size();
+        ++i)
+      chainCap.push_back(sl_with_chain.atoms[i]);
+
+    REQUIRE(chainCap.size() == atomsInChainCap);
+  }
 
   SimLoopDump sl;
   initialize_simloop(sl);
 
-  place_Polyethylene_folded_chains(sl.atoms,sl_with_chain.atoms,a_num,b_num,a,b);
+  sl.atoms = bulkAtoms;
+
+  place_Polyethylene_folded_chains(sl.atoms,chainCap,a_num,b_num,a,b);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
 
   {
-    yaatk::text_ofstream fomdloop("023-crystal-unrelaxed.mdloop");
+    yaatk::text_ofstream fomdloop("033-crystal-unrelaxed.mdloop");
     sl.saveToStream(fomdloop);
     fomdloop.close();
   }
@@ -482,17 +534,17 @@ build_Polyethylene_lattice_with_folds(
   sl.enableDump();
 
   sl.dumpConst(0.95);
-  relax(sl,0.05*ps,"030-crystal-relax-AIREBO");
+  relax(sl,0.05*ps,"040-crystal-relax-AIREBO");
 
   sl.dumpConst(0.97);
-  relax(sl,0.05*ps,"031-crystal-relax-AIREBO");
+  relax(sl,0.05*ps,"041-crystal-relax-AIREBO");
 
   sl.dumpConst(0.99);
-  relax(sl,0.05*ps,"032-crystal-relax-AIREBO");
+  relax(sl,0.05*ps,"042-crystal-relax-AIREBO");
 
   sl.disableDump();
 
-  quench(sl,0.01*K, 200*ps, 0.01*ps,"033-crystal-quench-AIREBO");
+  quench(sl,0.01*K, 200*ps, 0.01*ps,"043-crystal-quench-AIREBO");
 
   sl.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_BOX;
   sl.thermalBathGeomBox.zMin = (c_num > 3)?(c*(c_num-3)-0.5*Ao):(0.0);
