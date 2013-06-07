@@ -75,7 +75,7 @@ static bool prepareSubstrate = false;
 // static int b_num = 24;
 // static int c_num = 21;
 
-static int a_num = 15;
+static int a_num = 16;
 static int b_num = 22;
 static int c_num = 15+2;
 
