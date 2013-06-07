@@ -916,7 +916,7 @@ build_Cluster_Landed_on_Substrate(
   // }
   // sl.atoms.unfixAtoms(fixedAtoms);
 
-  relax(sl,20.0*ps,"010-relax");
+  relax(sl,40.0*ps,"010-relax");
   quench(sl,0.01*K,200*ps,0.01*ps,"011-quench");
 
   relax(sl,10.0*ps,"020-relax");
