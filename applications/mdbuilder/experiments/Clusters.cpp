@@ -1137,7 +1137,6 @@ bomb_landedCluster_with_Ions(
   const SimLoop& target,
   std::vector<ElementID> ionElements,
   std::vector<Float> ionEnergies,
-  std::set<Float> halos,
   size_t numberOfImpacts
   )
 {
@@ -1147,6 +1146,9 @@ bomb_landedCluster_with_Ions(
   for(size_t ai = 0; ai < target.atoms.size(); ++ai)
     if (target.atoms[ai].hasTag(ATOMTAG_CLUSTER))
       clusterAtomIndices.push_back(ai);
+  REQUIRE(clusterAtomIndices.size() > 0);
+  ElementID clusterElement = target.atoms[clusterAtomIndices[0]].ID;
+
 
   for(size_t ionEnergyIndex = 0;
       ionEnergyIndex < ionEnergies.size();
@@ -1162,11 +1164,56 @@ bomb_landedCluster_with_Ions(
       char id_string[1000];
       sprintf(id_string,
               "%s%03d_on_PE_by_%s_%04deV",
-              ElementIDtoString(target.atoms[clusterAtomIndices[0]].ID).c_str(),
+              ElementIDtoString(clusterElement).c_str(),
               int(clusterAtomIndices.size()),
               ElementIDtoString(ionElement).c_str(),
               int(ionEnergy/eV));
       std::string dirname(id_string);
+
+      std::set<Float> halos;
+      Float maxHalo = 6.0*Ao;
+      {
+        AtomsArray::Dimensions dim = target.atoms.dimensions();
+        Float minLateralSize = min2(dim.x_len,dim.y_len);
+        maxHalo = minLateralSize/4.0;
+      }
+      REQUIRE(maxHalo > 5.5*Ao);
+      halos.insert(5.5*Ao);
+      halos.insert(1.3*Ao);
+      TRACE(clusterElement);
+      TRACE(ionElement);
+      if (clusterElement == Cu_EL && ionElement == Ar_EL)
+      {
+        halos.clear();
+        halos.insert(5.5*Ao);
+        halos.insert(1.243*Ao); // ~40 eV
+        // halos.insert(1.326*Ao); // ~30 eV
+      }
+      if (clusterElement == Au_EL && ionElement == Ar_EL)
+      {
+        halos.clear();
+        halos.insert(5.5*Ao);
+        halos.insert(1.397*Ao); // ~40 eV
+        // halos.insert(1.481*Ao); // ~30 eV
+      }
+      if (clusterElement == Cu_EL && ionElement == Xe_EL)
+      {
+        halos.clear();
+        halos.insert(5.5*Ao);
+        halos.insert(1.425*Ao); // ~40 eV
+        // halos.insert(1.511*Ao); // ~30 eV
+      }
+      if (clusterElement == Au_EL && ionElement == Xe_EL)
+      {
+        halos.clear();
+        halos.insert(5.5*Ao);
+        halos.insert(1.582*Ao); // ~40 eV
+        // halos.insert(1.668*Ao); // ~30 eV
+      }
+      for(Float halo = 10.0*Ao; halo <= maxHalo; halo += 10.0*Ao)
+        halos.insert(halo);
+      for(std::set<Float>::iterator halo = halos.begin(); halo != halos.end(); ++halo)
+        TRACE(*halo/Ao);
 
       bomb_Cluster_with_Ions(dirname,
                              target,
