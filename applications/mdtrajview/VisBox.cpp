@@ -879,41 +879,102 @@ VisBox::listCustom1()
   for(size_t i = 0; i < ml_->atoms.size(); i++)
   {
     mdtk::Atom& a = ml_->atoms[i];
-    if (a.ID == Cu_EL) cluster.push_back(a);
+    if (a.hasTag(ATOMTAG_CLUSTER)) cluster.push_back(a);
   }
 
   Float halo = 1.3*Ao;
   Float depth = 0.0;
   {
-    halo = 5.0*Ao;
-    glColor4ub(0,0,255,255);
     depth = -15.0*Ao;
+
+//    halo = 26.6285*Ao;
+    halo = 30.0*Ao;
+    glColor4ub(127,127,127,255);
 
     for(size_t i = 0; i < cluster.size(); i++)
     {
       glPushMatrix();
       glTranslated(cluster[i].coords.x,cluster[i].coords.y,depth);
       glScaled(halo,halo,halo);
-      glCallList(hqMode?lstBallHQ:lstBall);
-      glPopMatrix();  
+//      glCallList(hqMode?lstBallHQ:lstBall);
+      glCallList(lstBallHQ);
+      glPopMatrix();
     }
+  }
+
+  {
+    depth -= halo;
+
+    halo = 20.0*Ao;
+    glColor4ub(0,127,0,255);
+
+    for(size_t i = 0; i < cluster.size(); i++)
+    {
+      glPushMatrix();
+      glTranslated(cluster[i].coords.x,cluster[i].coords.y,depth);
+      glScaled(halo,halo,halo);
+//      glCallList(hqMode?lstBallHQ:lstBall);
+      glCallList(lstBallHQ);
+      glPopMatrix();
+    }
+  }
+
+  {
+    depth -= halo;
+
+    halo = 10.0*Ao;
+    glColor4ub(127,0,0,255);
+
+    for(size_t i = 0; i < cluster.size(); i++)
+    {
+      glPushMatrix();
+      glTranslated(cluster[i].coords.x,cluster[i].coords.y,depth);
+      glScaled(halo,halo,halo);
+//      glCallList(hqMode?lstBallHQ:lstBall);
+      glCallList(lstBallHQ);
+      glPopMatrix();
+    }
+  }
+
+  {
+    depth -= halo;
+
+    halo = 5.5*Ao;
+    glColor4ub(0,0,255,255);
+
+    for(size_t i = 0; i < cluster.size(); i++)
+    {
+      glPushMatrix();
+      glTranslated(cluster[i].coords.x,cluster[i].coords.y,depth);
+      glScaled(halo,halo,halo);
+//      glCallList(hqMode?lstBallHQ:lstBall);
+      glCallList(lstBallHQ);
+      glPopMatrix();
+    }
+  }
+
+  {
+    depth -= halo;
 
     glColor4ub(0,255,0,255);
     halo = 1.3*Ao;
-    depth = -22.0*Ao;
 
     for(size_t i = 0; i < cluster.size(); i++)
     {
       glPushMatrix();
       glTranslated(cluster[i].coords.x,cluster[i].coords.y,depth);
       glScaled(halo,halo,halo);
-      glCallList(hqMode?lstBallHQ:lstBall);
-      glPopMatrix();  
+//      glCallList(hqMode?lstBallHQ:lstBall);
+      glCallList(lstBallHQ);
+      glPopMatrix();
     }
+  }
+
+  {
+    depth -= halo;
 
     glColor4ub(255,255,0,255);
     halo = 0.3*Ao;
-    depth = -24.0*Ao;
 
     for(size_t i = 0; i < cluster.size(); i++)
     {
