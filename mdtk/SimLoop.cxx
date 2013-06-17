@@ -1244,11 +1244,14 @@ SimLoop::heatUpEveryAtom(Float upEnergy, gsl_rng* rng)
 {
   for(size_t i = 0; i < atoms.size(); i++)
   {
-    Vector3D vn(gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0);
-    vn.normalize();
+    if (atoms[i].isFixed()) continue;
+
+    Vector3D vn;
+    gsl_ran_dir_3d(rng, &vn.x, &vn.y, &vn.z);
 
     atoms[i].V = vn*sqrt(2.0*upEnergy/atoms[i].M);
   }
+  atoms.removeMomentum();
 }
 
 void
@@ -1256,8 +1259,10 @@ SimLoop::displaceEveryAtom(Float dist, gsl_rng* rng)
 {
   for(size_t i = 0; i < atoms.size(); i++)
   {
-    Vector3D vn(gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0,gsl_rng_uniform(rng)-1.0);
-    vn.normalize();
+    if (atoms[i].isFixed()) continue;
+
+    Vector3D vn;
+    gsl_ran_dir_3d(rng, &vn.x, &vn.y, &vn.z);
 
     TRACE(vn*dist/Ao);
     TRACE((vn*dist).module()/Ao);
