@@ -101,6 +101,9 @@ heatUp(
   MDBUILDER_DRY_RUN_HOOK;
   yaatk::ChDir cd(tmpDir);
 
+  bool preventFileOutput_backup = sl.preventFileOutput;
+  sl.preventFileOutput = true;
+
   sl.simTime = 0.0*ps;
   sl.simTimeFinal = 0.0;
   sl.simTimeSaveTrajInterval = 0.05*ps;
@@ -116,10 +119,23 @@ heatUp(
 
     sl.simTimeFinal += checkTime;
     sl.writestate();
+    {
+      sl.preventFileOutput = false;
+      sl.writetrajXVA();
+      sl.preventFileOutput = true;
+    }
     sl.execute();
     if (sl.simTimeFinal > checkTime*(steps+3)) break;
   }
   sl.thermalBathGeomType = tb_type_bak;
+
+  {
+    sl.preventFileOutput = false;
+    sl.writestate();
+    sl.preventFileOutput = true;
+  }
+
+  sl.preventFileOutput = preventFileOutput_backup;
 }
 
 void
