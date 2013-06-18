@@ -389,6 +389,18 @@ build_Polyethylene_lattice_with_folds(
 {
   yaatk::ChDir cd("_build_PE");
 
+  const gsl_rng_type* T;
+  gsl_rng* r;
+
+  T = gsl_rng_ranlxd2;
+  r = gsl_rng_alloc(T);
+  REQUIRE(r != NULL);
+
+  gsl_rng_set(r, 123);
+
+  REQUIRE(gsl_rng_min(r) == 0);
+  REQUIRE(gsl_rng_max(r) > 1000);
+
   AtomsArray bulkAtoms;
 
   {
@@ -396,6 +408,7 @@ build_Polyethylene_lattice_with_folds(
     initialize_simloop_REBO_only(sl_bulk_PE);
 
     place_Polyethylene_lattice(sl_bulk_PE.atoms,a_num,b_num,c_num,false,2,a,b,c);
+    sl_bulk_PE.heatUpEveryAtom(0.001*eV, r);
     sl_bulk_PE.thermalBathGeomType = SimLoop::TB_GEOM_UNIVERSE;
     sl_bulk_PE.atoms.PBC(Vector3D(a*a_num, b*b_num, c*(c_num-2)));
 
@@ -522,6 +535,7 @@ build_Polyethylene_lattice_with_folds(
   sl.atoms = bulkAtoms;
 
   place_Polyethylene_folded_chains(sl.atoms,chainCap,a_num,b_num,a,b);
+  sl.heatUpEveryAtom(0.001*eV, r);
 
   sl.setPBC(Vector3D(a*a_num, b*b_num, NO_PBC.z));
 
@@ -552,6 +566,8 @@ build_Polyethylene_lattice_with_folds(
   sl.thermalBathGeomBox.zMinOfFreeZone = 0.0*Ao;
 
   sl.atoms.removeMomentum();
+
+  gsl_rng_free(r);
 
   return sl;
 }
