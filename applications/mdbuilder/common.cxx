@@ -226,6 +226,26 @@ relax_flush(
 }
 
 void
+randomizeVelocities(SimLoop& sl, Float energyPerAtom)
+{
+  const gsl_rng_type* T;
+  gsl_rng* r;
+
+  T = gsl_rng_ranlxd2;
+  r = gsl_rng_alloc(T);
+  REQUIRE(r != NULL);
+
+  gsl_rng_set(r, 123);
+
+  REQUIRE(gsl_rng_min(r) == 0);
+  REQUIRE(gsl_rng_max(r) > 1000);
+
+  sl.heatUpEveryAtom(energyPerAtom, r);
+
+  gsl_rng_free(r);
+}
+
+void
 initialize_simloop(mdtk::SimLoop& sl)
 {
   setupPotentials(sl);

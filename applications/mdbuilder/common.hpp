@@ -136,6 +136,9 @@ relax_flush(
   std::string tmpDir = "_tmp-X"
 );
 
+void
+randomizeVelocities(SimLoop& sl, Float energyPerAtom = 0.001*eV);
+
 class SimLoopDump : public SimLoop
 {
   Float dumpConstant;
