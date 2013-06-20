@@ -194,6 +194,7 @@ buildCommands()
       AtomsArray cluster;
       {
         SimLoop clusterMDLoop;
+        mdbuilder::initialize_simloop(clusterMDLoop);
         if (!yaatk::exists((clusterDataId+".r").c_str()))
         {
           std::cerr << "Can not open cluster configuration file. Exiting." << std::endl;
@@ -201,6 +202,13 @@ buildCommands()
         }
         SimLoopSaver mds(clusterMDLoop);
         mds.load(clusterDataId);
+        {
+          yaatk::ChDir cd("cluster-preheating");
+
+          mdbuilder::randomizeVelocities(clusterMDLoop,0.001*eV);
+          mdbuilder::relax(clusterMDLoop,10.0*ps,"000-relax-after-preheating");
+          mdbuilder::quench(clusterMDLoop,0.01*K, 200*ps, 0.01*ps,"001-cooling-after-preheating");
+        }
         cluster = clusterMDLoop.atoms;
       }
 
