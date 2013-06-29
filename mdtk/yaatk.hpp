@@ -106,6 +106,14 @@ namespace yaatk
   }  \
 }
 
+#define REQUIRE_SILENT(cond) \
+{ \
+  if (!(cond)) \
+  { \
+    throw mdtk::Exception((#cond)); \
+  }  \
+}
+
 #define TRACE_EMPH(x) { std::cout << #x << " : " << "<<<##  " << (x) << "" << std::endl; }
 
 #define FPRINT(x) { std::cout << x << std::flush; }
