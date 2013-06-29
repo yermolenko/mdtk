@@ -277,12 +277,13 @@ SimLoopSaver::load(std::string id)
   try
   {
     yaatk::binary_ifstream stream(id + ".z");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_ATTRIBUTE(stream,ID,uint8_t);
     retval |= LOADED_Z;
   }
   catch (...)
   {
-    VEPRINT("Error reading Z numbers.\n");
+    VEPRINT("Cannot read Z numbers.\n");
   }
 
   mdloop.atoms.setAttributesByElementID();
@@ -290,51 +291,56 @@ SimLoopSaver::load(std::string id)
   try
   {
     yaatk::binary_ifstream stream(id + ".r");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_ATTRIBUTE(stream,coords,Vector3D_double);
     retval |= LOADED_R;
   }
   catch (...)
   {
-    VEPRINT("Error reading positions.\n");
+    VEPRINT("Cannot read positions.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".v");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_ATTRIBUTE(stream,V,Vector3D_double);
     retval |= LOADED_V;
   }
   catch (...)
   {
-    VEPRINT("Error reading velocities.\n");
+    VPRINT("Cannot read velocities.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".pbc_rect");
+    REQUIRE_SILENT(stream.isOpened());
     REQUIRE(stream.getDataLength() == Vector3D_double_saver().binarySize());
     mdloop.atoms.arrayPBC = Vector3D_double_saver(stream);
     retval |= LOADED_PBC_RECT;
   }
   catch (...)
   {
-    VEPRINT("Error reading PBC.\n");
+    VPRINT("Cannot read PBC.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".pbc_rect.count");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_ATTRIBUTE(stream,PBC_count,Vector3D_int32_t);
     retval |= LOADED_PBC_COUNT;
   }
   catch (...)
   {
-    VEPRINT("Error reading PBC counts.\n");
+    VPRINT("Cannot read PBC counts.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".pbc_rect.enabled");
+    REQUIRE_SILENT(stream.isOpened());
     {
       prepareForAttributeReading(stream,Vector3D_bool_saver().binarySize());
       for(size_t i = 0; i < mdloop.atoms.size(); ++i)
@@ -358,117 +364,127 @@ SimLoopSaver::load(std::string id)
   }
   catch (...)
   {
-    VEPRINT("Error reading 'PBC-enabled' properties.\n");
+    VPRINT("Cannot read 'PBC-enabled' properties.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".a");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_ATTRIBUTE(stream,an,Vector3D_double);
     retval |= LOADED_A;
   }
   catch (...)
   {
-    VEPRINT("Error reading accelerations.\n");
+    VPRINT("Cannot read accelerations.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".indices");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_ATTRIBUTE(stream,globalIndex,uint32_t);
 //    retval |= LOADED_;
   }
   catch (...)
   {
-    VEPRINT("Error reading atoms indices.\n");
+    VPRINT("Cannot read atoms indices.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".tag.thermal_bath_applicable");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_ATTRIBUTE(stream,apply_ThermalBath,bool);
 //    retval |= LOADED_;
   }
   catch (...)
   {
-    VEPRINT("Error reading 'thermal-bath-applicable' tags.\n");
+    VPRINT("Cannot read 'thermal-bath-applicable' tags.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".tag.fixed");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_ATTRIBUTE(stream,fixed,bool);
 //    retval |= LOADED_;
   }
   catch (...)
   {
-    VEPRINT("Error reading 'fixed' tags.\n");
+    VPRINT("Cannot read 'fixed' tags.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".tag.target");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_TAG(stream,ATOMTAG_TARGET);
 //    retval |= LOADED_;
   }
   catch (...)
   {
-    VEPRINT("Error reading 'target' tags.\n");
+    VPRINT("Cannot read 'target' tags.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".tag.projectile");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_TAG(stream,ATOMTAG_PROJECTILE);
 //    retval |= LOADED_;
   }
   catch (...)
   {
-    VEPRINT("Error reading 'projectile' tags.\n");
+    VPRINT("Cannot read 'projectile' tags.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".tag.substrate");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_TAG(stream,ATOMTAG_SUBSTRATE);
 //    retval |= LOADED_;
   }
   catch (...)
   {
-    VEPRINT("Error reading 'substrate' tags.\n");
+    VPRINT("Cannot read 'substrate' tags.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".tag.monomer");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_TAG(stream,ATOMTAG_MONOMER);
 //    retval |= LOADED_;
   }
   catch (...)
   {
-    VEPRINT("Error reading 'monomer' tags.\n");
+    VPRINT("Cannot read 'monomer' tags.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".tag.cluster");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_TAG(stream,ATOMTAG_CLUSTER);
 //    retval |= LOADED_;
   }
   catch (...)
   {
-    VEPRINT("Error reading 'cluster' tags.\n");
+    VPRINT("Cannot read 'cluster' tags.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".tag.fullerene");
+    REQUIRE_SILENT(stream.isOpened());
     MDTK_LOAD_ATOM_TAG(stream,ATOMTAG_FULLERENE);
 //    retval |= LOADED_;
   }
   catch (...)
   {
-    VEPRINT("Error reading 'fullerene' tags.\n");
+    VPRINT("Cannot read 'fullerene' tags.\n");
   }
 
   mdloop.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_NONE;
@@ -476,6 +492,7 @@ SimLoopSaver::load(std::string id)
   try
   {
     yaatk::binary_ifstream stream(id + ".thermal_bath.common");
+    REQUIRE_SILENT(stream.isOpened());
     REQUIRE(stream.getDataLength() == double_saver().binarySize()*2);
     mdloop.thermalBathCommon.To = double_saver(stream);
     mdloop.thermalBathCommon.gamma = double_saver(stream);
@@ -483,24 +500,26 @@ SimLoopSaver::load(std::string id)
   }
   catch (...)
   {
-    VEPRINT("Error reading common thermal bath parameters.\n");
+    VPRINT("Cannot read common thermal bath parameters.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".thermal_bath.univserse");
+    REQUIRE_SILENT(stream.isOpened());
     REQUIRE(stream.getDataLength() == 0);
     mdloop.thermalBathGeomType = mdtk::SimLoop::TB_GEOM_UNIVERSE;
 //    retval |= LOADED_;
   }
   catch (...)
   {
-    VEPRINT("Error reading thermal bath parameters for 'univserse' geometry.\n");
+    VPRINT("Cannot read thermal bath parameters for 'univserse' geometry.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".thermal_bath.box");
+    REQUIRE_SILENT(stream.isOpened());
     REQUIRE(stream.getDataLength() == double_saver().binarySize()*3);
     mdloop.thermalBathGeomBox.zMin = double_saver(stream);
     mdloop.thermalBathGeomBox.dBoundary = double_saver(stream);
@@ -510,12 +529,13 @@ SimLoopSaver::load(std::string id)
   }
   catch (...)
   {
-    VEPRINT("Error reading thermal bath parameters for 'box' geometry.\n");
+    VPRINT("Cannot read thermal bath parameters for 'box' geometry.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".thermal_bath.sphere");
+    REQUIRE_SILENT(stream.isOpened());
     REQUIRE(stream.getDataLength() == Vector3D_double_saver().binarySize() + double_saver().binarySize()*2);
     mdloop.thermalBathGeomSphere.center = Vector3D_double_saver(stream);
     mdloop.thermalBathGeomSphere.radius = double_saver(stream);
@@ -525,12 +545,13 @@ SimLoopSaver::load(std::string id)
   }
   catch (...)
   {
-    VEPRINT("Error reading thermal bath parameters for 'sphere' geometry.\n");
+    VPRINT("Cannot read thermal bath parameters for 'sphere' geometry.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".time");
+    REQUIRE_SILENT(stream.isOpened());
     REQUIRE(stream.getDataLength() == double_saver().binarySize()*4);
     mdloop.simTime = double_saver(stream);
     mdloop.simTimeFinal = double_saver(stream);
@@ -540,12 +561,13 @@ SimLoopSaver::load(std::string id)
   }
   catch (...)
   {
-    VEPRINT("Error reading time parameters.\n");
+    VPRINT("Cannot read time parameters.\n");
   }
 
   try
   {
     yaatk::binary_ifstream stream(id + ".check");
+    REQUIRE_SILENT(stream.isOpened());
     REQUIRE(stream.getDataLength() == bool_saver().binarySize()*2 + Vector3D_double_saver().binarySize() + double_saver().binarySize()*4);
     mdloop.check.checkForce = bool_saver(stream);
     mdloop.check.netForce = Vector3D_double_saver(stream);
@@ -560,7 +582,7 @@ SimLoopSaver::load(std::string id)
   }
   catch (...)
   {
-    VEPRINT("Error reading check values.\n");
+    VPRINT("Cannot read check values.\n");
   }
 
 /*
