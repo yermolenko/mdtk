@@ -64,19 +64,19 @@ CustomSimLoop::doBeforeIteration()
 
   if (simTime < 2.0*ps)
   {
-    if (isItTimeToSave(5e-16*5))
+    if (isItTimeToSave(5e-16*5*4))
       snapshotList.getSnapshot(*this);
   }
   else
   {
     if (simTime < 4.0*ps)
     {
-      if (isItTimeToSave(5e-16*25))
+      if (isItTimeToSave(5e-16*25*4))
         snapshotList.getSnapshot(*this);
     }
     else
     {
-      if (isItTimeToSave(5e-16*50))
+      if (isItTimeToSave(5e-16*50*4))
         snapshotList.getSnapshot(*this);
     }
   }
