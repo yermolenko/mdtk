@@ -200,7 +200,7 @@ int remove(const char *name)
 inline
 int remove(const std::string name)
 {
-  std::cout << "Removing file " << name.c_str() << std::endl;
+//  std::cout << "Removing file " << name.c_str() << std::endl;
   return std::remove(name.c_str());
 }
 
