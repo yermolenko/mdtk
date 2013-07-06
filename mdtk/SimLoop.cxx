@@ -412,12 +412,7 @@ SimLoop::executeMain()
     dt_prev = dt;
 
     const Float dt_max = 5e-16;
-    Float dt_min = 1e-20;
-    // keep dt small during the first 2.5 ps only
-    dt_min = dt_min + (dt_max - dt_min)/(2.5*ps)*simTime;
-    if (dt_min > dt_max)
-      dt_min = dt_max;
-
+    const Float dt_min = 1e-20;
     if (v_max != 0.0)
       dt = 0.05*timeaccel/v_max;
     else
