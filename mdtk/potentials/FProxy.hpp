@@ -1,8 +1,8 @@
 /*
    The proxy class for interatomic potentials (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012, 2013
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -87,7 +87,7 @@ public:
     for(size_t i = 0; i < potentials.size(); i++)
       potentials[i]->LoadFromStream(is,smode);
   }  
-  bool hasNB(Atom& atom)
+  bool hasNeighbors(Atom& atom)
   {
     for(size_t i = 0; i < potentials.size(); i++)
       if (potentials[i]->NL(atom).size() > 0) return true;
