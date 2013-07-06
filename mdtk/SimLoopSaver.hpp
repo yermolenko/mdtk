@@ -40,7 +40,10 @@ class SimLoopSaver
   SimLoop& mdloop;
   const std::string idPrefix;
   std::string generateId(unsigned long iteration);
-  std::string extractAttributeName(const std::string filename);
+public:
+  static std::string extractAttributeName(const std::string filename);
+  static std::string extractId(const std::string filename);
+private:
   void prepareForAttributeReading(yaatk::binary_ifstream& is, size_t attributeSize);
 public:
   SimLoopSaver(SimLoop& mdloopInstance);

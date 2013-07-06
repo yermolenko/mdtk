@@ -647,6 +647,23 @@ SimLoopSaver::extractAttributeName(const std::string filename)
   return attr;
 }
 
+std::string
+SimLoopSaver::extractId(const std::string filename)
+{
+  size_t dirEnd = filename.rfind(DIR_DELIMIT_STR);
+  if(dirEnd == std::string::npos)
+    dirEnd = 0;
+  else
+    dirEnd++;
+
+  size_t idEnd = filename.find(".",dirEnd);
+  REQUIRE(idEnd != 0);
+
+  std::string id = filename.substr(0, idEnd);
+
+  return id;
+}
+
 bool
 SimLoopSaver::mayContainData(std::string filename)
 {
