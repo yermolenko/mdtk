@@ -237,6 +237,15 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
         xvas.push_back(fileList[i]);
     }
 
+    for(size_t i = 0; i < states_ng.size(); ++i)
+      states_ng[i] = mdtk::SimLoopSaver::extractId(states_ng[i]);
+
+    // remove duplicates
+    {
+      std::sort(states_ng.begin(), states_ng.end());
+      states_ng.erase(std::unique(states_ng.begin(), states_ng.end()), states_ng.end());
+    }
+
     avb.loadDataFromFilesOfNewFileFormat(states_ng,xvas,loadPartialSnapshots);
   }
 
