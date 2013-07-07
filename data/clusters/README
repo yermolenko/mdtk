@@ -1,0 +1,10 @@
+Original cluster configurations were obtained using mdbuilder. For
+example:
+
+        mdbuilder --prepare-clusters --cluster-size 39
+
+The configurations can be found in the 'original' subdirectories.
+
+Then clusters were rotated using mdtrajview GUI to unify their orientation
+taking into account their symmetry. The configurations can be found in the
+'rotated' subdirectories.
