@@ -73,8 +73,17 @@ public:
   }
   void NL_UpdateIfNeeded(AtomsArray& atoms)
   {
+    std::vector<NeighbourList*> nlObjectsToUpdate;
     for(size_t i = 0; i < potentials.size(); i++)
-      potentials[i]->NL_UpdateIfNeeded(atoms);
+    {
+      NeighbourList& nlObject = potentials[i]->nl;
+      if (nlObject.ListUpdateRequested)
+      {
+        nlObjectsToUpdate.push_back(&nlObject);
+        nlObject.ListUpdateRequested = false;
+      }
+    }
+    NeighbourList::Update(atoms,nlObjectsToUpdate);
   }
 
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)

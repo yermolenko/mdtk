@@ -61,8 +61,8 @@ public:
   bool isHandled(const Atom& atom) const;
   bool isHandledPair(const Atom& atom1, const Atom& atom2) const;
 protected:
-  NeighbourList nl;
 public:
+  NeighbourList nl;
   AtomRefsContainer& NL(const Atom& atom)
   {
     return nl.nl[atom.globalIndex];
@@ -71,7 +71,16 @@ public:
   virtual
   void NL_checkRequestUpdate(AtomsArray& atoms) {nl.checkRequestUpdate(atoms);}
   virtual
-  void NL_UpdateIfNeeded(AtomsArray& atoms) {nl.UpdateIfNeeded(atoms);}
+  void NL_UpdateIfNeeded(AtomsArray& atoms)
+    {
+      if (nl.ListUpdateRequested)
+      {
+        std::vector<NeighbourList*> nlObjectsToUpdate;
+        nlObjectsToUpdate.push_back(&nl);
+        NeighbourList::Update(atoms, nlObjectsToUpdate);
+        nl.ListUpdateRequested = false;
+      }
+    }
   virtual
   void NL_init(AtomsArray& atoms) {nl.init(atoms);}
 
