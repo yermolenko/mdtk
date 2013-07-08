@@ -57,6 +57,19 @@ NeighbourList::Update(AtomsArray& atoms_, std::vector<NeighbourList*>& nlObjects
     }
   }
 
+  Float range_squared_max = 0.0;
+  for(size_t nloi = 0; nloi < nlObjectsToUpdate.size(); ++nloi)
+  {
+    NeighbourList& nlObject = *(nlObjectsToUpdate[nloi]);
+
+    Float range_squared = SQR((1.0+NLSKIN_FACTOR)*nlObject.Rcutoff);
+
+    if (range_squared_max < range_squared)
+      range_squared_max = range_squared;
+  }
+  REQUIRE(range_squared_max > 0.0);
+//  TRACE(sqrt(range_squared_max)/Ao);
+
   for(size_t i = 0; i < N; i++)
   {
     Atom& atom_i = atoms_[i];
@@ -66,6 +79,9 @@ NeighbourList::Update(AtomsArray& atoms_, std::vector<NeighbourList*>& nlObjects
       Atom& atom_j = atoms_[j];
 
       Float dij_squared = depos(atom_i,atom_j).module_squared();
+
+      if (dij_squared > range_squared_max)
+        continue;
 
       for(size_t nloi = 0; nloi < nlObjectsToUpdate.size(); ++nloi)
       {
