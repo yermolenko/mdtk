@@ -41,8 +41,8 @@ class FGeneral;
 class NeighbourList
 {
   const FGeneral* fpot;
-  bool ListUpdateRequested;
 public:
+  bool ListUpdateRequested;
   Float Rcutoff;
   std::vector<AtomRefsContainer> nl;
   std::vector<Vector3D> displacements;
@@ -69,16 +69,7 @@ public:
     ListUpdateRequested = MovedTooMuch(atoms);
   };
   bool MovedTooMuch(AtomsArray&);
-  void Update(AtomsArray&);
-  void UpdateIfNeeded(AtomsArray& atoms)
-  {
-    if (ListUpdateRequested)
-    {
-      Update(atoms);
-      ListUpdateRequested = false;
-    }
-  }  
-  
+  static void Update(AtomsArray&, std::vector<NeighbourList*>&);
 
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {

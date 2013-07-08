@@ -29,42 +29,61 @@ namespace mdtk
 #define NLSKIN_FACTOR 0.44
 
 void
-NeighbourList::Update(AtomsArray& atoms_)
+NeighbourList::Update(AtomsArray& atoms_, std::vector<NeighbourList*>& nlObjectsToUpdate)
 {
-  REQUIRE(Rcutoff > 0.0);
-  PRINT("NL update\n");
-  Float range_squared = SQR((1.0+NLSKIN_FACTOR)*Rcutoff);
+  if (nlObjectsToUpdate.size() == 0)
+    return;
+
+  {
+    int NL2UPD = nlObjectsToUpdate.size();
+    TRACE(NL2UPD);
+  }
+
   size_t N = atoms_.size();
 
   for(size_t i = 0; i < N; i++)
   {
-    displacements[i] = Vector3D(0,0,0);
+    for(size_t nloi = 0; nloi < nlObjectsToUpdate.size(); ++nloi)
+    {
+      NeighbourList& nlObject = *(nlObjectsToUpdate[nloi]);
 
-    AtomRefsContainer& nl_ = nl[i];
+      nlObject.displacements[i] = Vector3D(0,0,0);
 
-    size_t nl_size_prev = nl_.size();
-    nl_.clear();
-    nl_.reserve(nl_size_prev+MDTK_NB_RESERVE_ADD);
+      AtomRefsContainer& nl_ = nlObject.nl[i];
+
+      size_t nl_size_prev = nl_.size();
+      nl_.clear();
+      nl_.reserve(nl_size_prev+MDTK_NB_RESERVE_ADD);
+    }
   }
 
   for(size_t i = 0; i < N; i++)
   {
     Atom& atom_i = atoms_[i];
 
-    if (!fpot->isHandled(atom_i)) continue;
-
     for(size_t j = i+1; j < N; j++)
     {
       Atom& atom_j = atoms_[j];
 
-      if (!fpot->isHandled(atom_j)) continue;
-//      if (!fpot->isHandledPair(atom_i,atom_j)) continue;
-
       Float dij_squared = depos(atom_i,atom_j).module_squared();
-      if (dij_squared < range_squared)
+
+      for(size_t nloi = 0; nloi < nlObjectsToUpdate.size(); ++nloi)
       {
-        nl[i].push_back(&atom_j);
-        nl[j].push_back(&atom_i);
+        NeighbourList& nlObject = *(nlObjectsToUpdate[nloi]);
+
+        if (!nlObject.fpot->isHandled(atom_i)) continue;
+        if (!nlObject.fpot->isHandled(atom_j)) continue;
+//      if (!nlObject.fpot->isHandledPair(atom_i,atom_j)) continue;
+
+//        REQUIRE(nlObject.Rcutoff > 0.0);
+//        PRINT("NL update\n");
+        Float range_squared = SQR((1.0+NLSKIN_FACTOR)*nlObject.Rcutoff);
+
+        if (dij_squared < range_squared)
+        {
+          nlObject.nl[i].push_back(&atom_j);
+          nlObject.nl[j].push_back(&atom_i);
+        }
       }
     }
   }
