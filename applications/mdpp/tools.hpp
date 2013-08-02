@@ -125,7 +125,7 @@ addTrajDirNames(std::vector<std::string> &stateFileNames,const char *trajsetDir_
         if (entry->d_name[0] == '0')
         {
           std::sprintf(trajdir_src,"%s%s",trajsetDir,entry->d_name);
-          std::sprintf(stateFileName,"%s"DIR_DELIMIT_STR,trajdir_src);
+          std::sprintf(stateFileName,"%s" DIR_DELIMIT_STR,trajdir_src);
           if (fpt(stateFileName) && isAlreadyFinished(stateFileName))
 	    stateFileNames.push_back(stateFileName);
         }
