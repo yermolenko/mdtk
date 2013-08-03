@@ -189,7 +189,7 @@ int
 main(int argc, char *argv[])
 {
   int startFromImpact = 0;
-  bool commonUsage = false; // by default perform experiment-specific simulation
+  bool commonUsage = true; // by default do not perform experiment-specific simulation
 
   std::string inputFilesId = "base";
 
