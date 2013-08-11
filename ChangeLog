@@ -1,4 +1,4 @@
-0.7.1
+0.8.0
 
 	* libmdtk: improved neighbor lists update procedure
 	* libmdtk: new space-saving file format for storing MD system configurations
