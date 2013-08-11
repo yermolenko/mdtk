@@ -1,0 +1,17 @@
+0.7.1
+
+	* libmdtk: improved neighbor lists update procedure
+	* libmdtk: new space-saving file format for storing MD system configurations
+	* libmdtk: optional 'hemispherical' thermal bath geometry
+	* mdtrajview: ability to save rotational transformations
+	* mdtrajview: unified visualization of 'halo' bombardment areas
+	* mdtrajsim, mdtrajview: more flexible command line options processing
+	* Bugfixes
+
+0.7.0
+
+	* libmdtk: improved simulation core, speedup ~3-8 times
+	* mdtrajview: interactive simulation
+	* build-system: mingw cross compiling
+	* build-system: partial FLTK 1.3 support
+	* Bugfixes
