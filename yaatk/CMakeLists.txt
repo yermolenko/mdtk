@@ -19,7 +19,7 @@
 #  along with YAATK.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-include_directories (${MDTK_SOURCE_DIR})
+include_directories (../)
 add_library (yaatk
   config.cxx
   Exception.cxx
