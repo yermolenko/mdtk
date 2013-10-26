@@ -1,7 +1,7 @@
 #  CMakeLists.txt file for the mdC2H6 - example program for the
 #  Molecular Dynamics Toolkit (MDTK).
 #
-#  Copyright (C) 2009 Oleksandr Yermolenko
+#  Copyright (C) 2009, 2013 Oleksandr Yermolenko
 #  <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -28,7 +28,7 @@ link_directories (${MDTK_BINARY_DIR})
 
 add_executable (${MDTK_CurrentTarget} main.cpp)
 
-target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
+target_link_libraries (${MDTK_CurrentTarget} mdtk yaatk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
   IF(WIN32)

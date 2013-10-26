@@ -4,24 +4,24 @@
    Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012, 2013
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
-   This file is part of MDTK, the Molecular Dynamics Toolkit.
+   This file is part of YAATK, Yet another auxiliary toolkit.
 
-   MDTK is free software: you can redistribute it and/or modify
+   YAATK is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
-   MDTK is distributed in the hope that it will be useful,
+   YAATK is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
+   along with YAATK.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "mdtk/yaatk.hpp"
-#include "mdtk/Exception.hpp"
+#include <yaatk/yaatk.hpp>
+#include <yaatk/Exception.hpp>
 
 #include <zlib.h>
 #include <cstring>
@@ -182,7 +182,6 @@ int
 Stream::zipMe()
 {
   if (zipInvokeInfo.command=="gzip_internal") return zipMe_internal();
-  using mdtk::Exception;
   char buf[MDTK_GZ_BUFFER_SIZE];
   FILE* zipped;
   if (zipInvokeInfo.command!="nozip")
@@ -227,7 +226,6 @@ int
 Stream::unZipMe()
 {
   if (zipInvokeInfo.command=="gzip_internal") return unZipMe_internal();
-  using mdtk::Exception;
   char buf[MDTK_GZ_BUFFER_SIZE];
   FILE* zipped;
   if (zipInvokeInfo.command!="nozip")
@@ -271,7 +269,6 @@ Stream::unZipMe()
 int
 Stream::zipMe_internal()
 {
-  using mdtk::Exception;
   char buf[MDTK_GZ_BUFFER_SIZE];
   gzFile   zipped   = gzopen(getZippedFileName().c_str(),"wb");
   REQUIRE(zipped != 0);
@@ -290,7 +287,6 @@ Stream::zipMe_internal()
 int
 Stream::unZipMe_internal()
 {
-  using mdtk::Exception;
   char buf[MDTK_GZ_BUFFER_SIZE];
   gzFile zipped   = gzopen(getZippedFileName().c_str(),"rb");
   if(!zipped) return -1;
@@ -430,7 +426,6 @@ listFilesystemItems(std::string dir, bool listRegularFiles, bool listDirectories
 bool
 isIdentical(const std::string& file1,const std::string& file2)
 {
-  using mdtk::Exception;
   char buf1[MDTK_FILECMP_BUFFER_SIZE];
   char buf2[MDTK_FILECMP_BUFFER_SIZE];
   gzFile  f1   = gzopen(file1.c_str(),"rb");

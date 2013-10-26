@@ -1,6 +1,6 @@
 #  Top-level CMakeLists.txt file for MDTK
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Oleksandr
 #  Yermolenko <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -82,6 +82,7 @@ FIND_PACKAGE(ZLIB REQUIRED)
 
 FIND_PACKAGE(PNG)
 
+add_subdirectory (yaatk)
 add_subdirectory (mdtk)
 add_subdirectory (applications)
 add_subdirectory (examples)

@@ -1,7 +1,7 @@
 /*
    Some useful macros and routines (header file).
 
-   Copyright (C) 2004, 2009 Oleksandr Yermolenko
+   Copyright (C) 2004, 2009, 2013 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -37,7 +37,7 @@
 
 #include "tools.h"
 
-#include <mdtk/yaatk.hpp>
+#include <yaatk/yaatk.hpp>
 
 
 #include <string>
