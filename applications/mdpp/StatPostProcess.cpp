@@ -1,7 +1,7 @@
 /* 
    Molecular dynamics postprocessor, main classes
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -309,31 +309,26 @@ StatPostProcess::setSpottedDistanceFromInit()
 
   REQUIRE(trajData.size() > 0);
 
-  std::string mde_init_filename = trajData[0].trajDir+"mde_init";
+  SimLoop mdbase;
+  mdtk::SimLoopSaver mds(mdbase);
 
-  mdtk::SimLoop* mde_init = new mdtk::SimLoop();
-  mde_init->allowToFreePotentials = true;
-//  mde_init->allowToFreeAtoms = true;
-  setupPotentials(*mde_init);
-  yaatk::text_ifstream fi(mde_init_filename.c_str());
-  mde_init->initNLafterLoading = false;
-  mde_init->loadFromStream(fi/*,false*/);
-  setTags(mde_init);
-  mde_init->initNLafterLoading = true;
-  fi.close();
-  mdtk::AtomsArray& mde_init_atoms = mde_init->atoms;
+//  setupPotentials(mdloop);
+  REQUIRE(mds.load("base") & mdtk::SimLoopSaver::LOADED_R);
+
+  setTags(&mdbase);
+  mdtk::AtomsArray& mde_init_atoms = mdbase.atoms;
   Float minInitZ = 1000000.0*mdtk::Ao;
   for(size_t ai = 0; ai < mde_init_atoms.size(); ai++)
   {
     const mdtk::Atom& init_atom = mde_init_atoms[ai];
-    if (init_atom.coords.z < minInitZ && !isProjectileAtom(init_atom))
+    REQUIRE(!isProjectileAtom(init_atom) || ai == mde_init_atoms.size()-1);
+    if (init_atom.coords.z < minInitZ)
       minInitZ = init_atom.coords.z;
   }
   SPOTTED_DISTANCE = minInitZ - 0.05*mdtk::Ao;
   SPOTTED_DISTANCE = -4.55*mdtk::Ao;
   SPOTTED_DISTANCE = -1.0*mdtk::Ao;
   TRACE(SPOTTED_DISTANCE/mdtk::Ao);
-  delete mde_init;
 }
 
 void
