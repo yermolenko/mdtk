@@ -249,30 +249,17 @@ StatPostProcess::removeBadTrajectories()
   {
     TrajData& td = trajData[trajIndex];
 
+    yaatk::ChDir cd(td.trajDir, false);
+
     mdtk::SimLoop* state = new mdtk::SimLoop();
     state->allowToFreePotentials = true;
     setupPotentials(*state);
 
-    {
-      std::string trajFinalName = trajData[trajIndex].trajDir+"mde_final";
-      if (yaatk::exists(trajFinalName))
-      {
-        cout << "Loading state " << trajFinalName << std::endl;
-        yaatk::text_ifstream fi(trajFinalName.c_str());
-        state->initNLafterLoading = false;
-        state->loadFromStream(fi);
-        fi.close();
-      }
-      else
-      {
-        trajFinalName = trajData[trajIndex].trajDir+"simloop.conf";
-        cout << "Loading state " << trajFinalName << std::endl;
-        yaatk::binary_ifstream fi(trajFinalName.c_str());
-        state->initNLafterLoading = false;
-        state->loadFromStream(fi,YAATK_FSTREAM_BIN);
-        fi.close();
-      }
-    }
+    state->initNLafterLoading = false;
+
+    mdtk::SimLoopSaver mds(*state);
+    REQUIRE(mds.loadIterationLatest() & mdtk::SimLoopSaver::LOADED_R);
+
     state->atoms.prepareForSimulatation();
 
     {
@@ -284,6 +271,14 @@ StatPostProcess::removeBadTrajectories()
       {
         cerr << "Trajectory " << trajData[trajIndex].trajDir << " has bad energy conservation. Handle it separately." << endl;
         badTrajIndices.push_back(trajIndex);
+      }
+      else
+      {
+        if (state->simTimeFinal > state->simTime)
+        {
+          cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to be unfinished. Handle it separately." << endl;
+          badTrajIndices.push_back(trajIndex);
+        }
       }
     }
 
@@ -345,32 +340,24 @@ StatPostProcess::execute()
   {
     TrajData& td = trajData[trajIndex];
 
+    yaatk::ChDir cd(td.trajDir, false);
+
     mdtk::SimLoop* state = new mdtk::SimLoop();
     state->allowToFreePotentials = true;
     setupPotentials(*state);
 
     {
-      std::string trajFinalName = trajData[trajIndex].trajDir+"mde_final";
-      if (yaatk::exists(trajFinalName))
-      {
-        cout << "Loading state " << trajFinalName << std::endl;
-        yaatk::text_ifstream fi(trajFinalName.c_str());
-        state->initNLafterLoading = false;
-        state->loadFromStream(fi);
-        fi.close();
-      }
-      else
-      {
-        trajFinalName = trajData[trajIndex].trajDir+"simloop.conf";
-        cout << "Loading state " << trajFinalName << std::endl;
-        yaatk::binary_ifstream fi(trajFinalName.c_str());
-        state->initNLafterLoading = false;
-        state->loadFromStream(fi,YAATK_FSTREAM_BIN);
-        fi.close();
-      }
+      state->initNLafterLoading = false;
+
+      mdtk::SimLoopSaver mds(*state);
+      REQUIRE(mds.loadIterationLatest() & mdtk::SimLoopSaver::LOADED_R);
+
       state->atoms.prepareForSimulatation();
       setTags(state);
-      cout << "State " << trajFinalName << " loaded." << std::endl;
+      {
+        REQUIRE(mds.listIterations().size() > 0);
+        cout << "State " << *mds.listIterations().rbegin() << " loaded." << std::endl;
+      }
     }
     NeighbourList nl(state->atoms);
 
