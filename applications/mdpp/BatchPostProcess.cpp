@@ -1,7 +1,7 @@
 /* 
    Molecular dynamics postprocessor, BatchPostProcess  class
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2014 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -200,7 +200,7 @@ BatchPostProcess::printResults()
   clusterSizes.push_back(27);
   clusterSizes.push_back(39);
   clusterSizes.push_back(75);
-  clusterSizes.push_back(195);
+//  clusterSizes.push_back(195);
   for(size_t i = 0; i < clusterSizes.size(); i++)
   {
 //    plotEnergyLoss(DUMMY_EL, clusterSizes[i]);
