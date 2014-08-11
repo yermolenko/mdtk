@@ -333,6 +333,12 @@ StatPostProcess::execute()
 
   removeBadTrajectories();
 
+  if (0)
+  {
+    REQUIRE(trajData.size() >= 1);
+    trajData.resize(1);
+  }
+
   cout << "PostProcess::execute() started." << std::endl;
   cerr << "PostProcess::execute() started." << std::endl;
 

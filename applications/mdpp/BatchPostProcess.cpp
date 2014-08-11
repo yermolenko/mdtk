@@ -386,6 +386,15 @@ plot \\\n\
     }
   }
 
+  if (!(plotCmds.size() > 0))
+  {
+    TRACE(yieldOfWhat);
+    TRACE(idStr);
+    TRACE(specIonElement);
+    TRACE(specClusterSize);
+    TRACE(specClusterElement);
+  }
+
   REQUIRE(plotCmds.size() > 0);
   for(size_t i = 0; i < plotCmds.size(); ++i)
   {
