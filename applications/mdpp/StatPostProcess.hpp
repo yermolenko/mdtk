@@ -1,8 +1,8 @@
 /* 
    Molecular dynamics postprocessor, main classes, header
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -233,7 +233,6 @@ public:
     id()
   {
   }
-
   void  setSpottedDistanceFromInit();
 
   int   getAboveSpottedHeight(mdtk::SimLoop&) const; 

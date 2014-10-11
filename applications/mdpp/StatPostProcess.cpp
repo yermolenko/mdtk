@@ -1,8 +1,8 @@
 /* 
    Molecular dynamics postprocessor, main classes
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -251,19 +251,19 @@ StatPostProcess::removeBadTrajectories()
 
     yaatk::ChDir cd(td.trajDir, false);
 
-    mdtk::SimLoop* state = new mdtk::SimLoop();
-    state->allowToFreePotentials = true;
-    setupPotentials(*state);
+    mdtk::SimLoop state;
+    state.allowToFreePotentials = true;
+    setupPotentials(state);
 
-    state->initNLafterLoading = false;
+    state.initNLafterLoading = false;
 
-    mdtk::SimLoopSaver mds(*state);
+    mdtk::SimLoopSaver mds(state);
     REQUIRE(mds.loadIterationLatest() & mdtk::SimLoopSaver::LOADED_R);
 
-    state->atoms.prepareForSimulatation();
+    state.atoms.prepareForSimulatation();
 
     {
-      SimLoop::Check& check = state->check;
+      SimLoop::Check& check = state.check;
       Float Eo_plus_Eb = check.initialEnergy + check.energyTransferredFromBath;
       Float dE = check.currentEnergy - Eo_plus_Eb;
       Float dE_by_Eo_plus_Eb = dE/Eo_plus_Eb;
@@ -274,15 +274,13 @@ StatPostProcess::removeBadTrajectories()
       }
       else
       {
-        if (state->simTimeFinal > state->simTime)
+        if (state.simTimeFinal > state.simTime)
         {
           cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to be unfinished. Handle it separately." << endl;
           badTrajIndices.push_back(trajIndex);
         }
       }
     }
-
-    delete state;
   }
 
   size_t oldSize = trajData.size();
@@ -310,7 +308,7 @@ StatPostProcess::setSpottedDistanceFromInit()
 //  setupPotentials(mdloop);
   REQUIRE(mds.load("base") & mdtk::SimLoopSaver::LOADED_R);
 
-  setTags(&mdbase);
+  setTags(mdbase);
   mdtk::AtomsArray& mde_init_atoms = mdbase.atoms;
   Float minInitZ = 1000000.0*mdtk::Ao;
   for(size_t ai = 0; ai < mde_init_atoms.size(); ai++)
@@ -348,49 +346,49 @@ StatPostProcess::execute()
 
     yaatk::ChDir cd(td.trajDir, false);
 
-    mdtk::SimLoop* state = new mdtk::SimLoop();
-    state->allowToFreePotentials = true;
-    setupPotentials(*state);
+    mdtk::SimLoop state;
+    state.allowToFreePotentials = true;
+    setupPotentials(state);
 
     {
-      state->initNLafterLoading = false;
+      state.initNLafterLoading = false;
 
-      mdtk::SimLoopSaver mds(*state);
+      mdtk::SimLoopSaver mds(state);
       REQUIRE(mds.loadIterationLatest() & mdtk::SimLoopSaver::LOADED_R);
 
-      state->atoms.prepareForSimulatation();
+      state.atoms.prepareForSimulatation();
       setTags(state);
       {
         REQUIRE(mds.listIterations().size() > 0);
         cout << "State " << *mds.listIterations().rbegin() << " loaded." << std::endl;
       }
     }
-    NeighbourList nl(state->atoms);
+    NeighbourList nl(state.atoms);
 
     Molecule projectile;
     {
-      projectile.buildByTag(*state,ATOMTAG_PROJECTILE);
-      td.trajProjectile[state->simTime] = projectile;
+      projectile.buildByTag(state,ATOMTAG_PROJECTILE);
+      td.trajProjectile[state.simTime] = projectile;
 
-      projectile.update(*state);
-      td.trajProjectile[state->simTime] = projectile;
+      projectile.update(state);
+      td.trajProjectile[state.simTime] = projectile;
     }
 
     Molecule cluster;
     {
-      cluster.buildByTag(*state,ATOMTAG_CLUSTER);
-      td.trajCluster[state->simTime] = cluster;
+      cluster.buildByTag(state,ATOMTAG_CLUSTER);
+      td.trajCluster[state.simTime] = cluster;
 
-      cluster.update(*state);
-      td.trajCluster[state->simTime] = cluster;
+      cluster.update(state);
+      td.trajCluster[state.simTime] = cluster;
     }
 
-    td.PBC = state->atoms.PBC();
+    td.PBC = state.atoms.PBC();
     TRACE(td.PBC/mdtk::Ao);
 
 //    TRACE(getAboveSpottedHeight(*state));
 
-    buildSputteredClassicMolecules(*state,trajIndex,STATE_FINAL,nl);
+    buildSputteredClassicMolecules(state,trajIndex,STATE_FINAL,nl);
 //    buildClusterDynamics(*state,trajIndex,STATE_FINAL,nl);
 //    buildProjectileDynamics(*state,trajIndex,STATE_FINAL);
 
@@ -400,37 +398,35 @@ StatPostProcess::execute()
 
 //    if (0)
     {
-      mdtk::SimLoop* mde_init = new mdtk::SimLoop();
-      mde_init->allowToFreePotentials = true;
-//      mde_init->allowToFreeAtoms = true;
-      setupPotentials(*mde_init);
+      mdtk::SimLoop mde_init;
+      mde_init.allowToFreePotentials = true;
+//      mde_init.allowToFreeAtoms = true;
+      setupPotentials(mde_init);
       std::string mde_init_filename = td.trajDir+"mde_init";
       cout << "Loading state " << mde_init_filename << std::endl;
       yaatk::text_ifstream fi(mde_init_filename.c_str());
-      mde_init->initNLafterLoading = false;
-      mde_init->loadFromStream(fi);
-      mde_init->atoms.prepareForSimulatation();
+      mde_init.initNLafterLoading = false;
+      mde_init.loadFromStream(fi);
+      mde_init.atoms.prepareForSimulatation();
       setTags(mde_init);
-      NeighbourList nl(mde_init->atoms);
+      NeighbourList nl(mde_init.atoms);
       fi.close();
 
       cout << "State " << mde_init_filename << " loaded." << std::endl;
 
-      buildSputteredClassicMolecules(*mde_init,trajIndex,STATE_INIT,nl);
-//      buildClusterDynamics(*mde_init,trajIndex,STATE_INIT,nl);
-//      buildProjectileDynamics(*mde_init,trajIndex,STATE_INIT);
+      buildSputteredClassicMolecules(mde_init,trajIndex,STATE_INIT,nl);
+//      buildClusterDynamics(mde_init,trajIndex,STATE_INIT,nl);
+//      buildProjectileDynamics(mde_init,trajIndex,STATE_INIT);
 
       {
-        projectile.update(*mde_init);
-        td.trajProjectile[mde_init->simTime] = projectile;
+        projectile.update(mde_init);
+        td.trajProjectile[mde_init.simTime] = projectile;
       }
 
       {
-        cluster.update(*mde_init);
-        td.trajCluster[mde_init->simTime] = cluster;
+        cluster.update(mde_init);
+        td.trajCluster[mde_init.simTime] = cluster;
       }
-
-      delete mde_init;
     }
 
 //  if (td.molecules.size() > 0)
@@ -438,16 +434,16 @@ StatPostProcess::execute()
       std::vector<std::string> interStates;
       findIntermediateStates(td.trajDir,interStates);
 
-      mdtk::SimLoop* mde_inter = new mdtk::SimLoop();
-      mde_inter->allowToFreePotentials = true;
-//      mde_inter->allowToFreeAtoms = true;
-      setupPotentials(*mde_inter);
+      mdtk::SimLoop mde_inter;
+      mde_inter.allowToFreePotentials = true;
+//      mde_inter.allowToFreeAtoms = true;
+      setupPotentials(mde_inter);
 
       std::string trajFinalName = td.trajDir+"mde_init";
       cout << "Loading state " << trajFinalName << std::endl;
       yaatk::text_ifstream fi(trajFinalName.c_str());
-      mde_inter->initNLafterLoading = false;
-      mde_inter->loadFromStream(fi);
+      mde_inter.initNLafterLoading = false;
+      mde_inter.loadFromStream(fi);
       fi.close();
 
       for(int stateIndex = interStates.size()-1; stateIndex >= 0; stateIndex--)
@@ -462,34 +458,31 @@ StatPostProcess::execute()
 
 	TRACE(mde_inter_filename);
 	yaatk::text_ifstream fi(mde_inter_filename.c_str());
-	mde_inter->loadFromStreamXVA(fi);
-	mde_inter->atoms.prepareForSimulatation();
+	mde_inter.loadFromStreamXVA(fi);
+	mde_inter.atoms.prepareForSimulatation();
 	setTags(mde_inter);
-	NeighbourList nl(mde_inter->atoms);
+	NeighbourList nl(mde_inter.atoms);
 	fi.close();
 
-	buildSputteredClassicMolecules(*mde_inter,trajIndex,STATE_INTER,nl);
-//	buildClusterDynamics(*mde_inter,trajIndex,STATE_INTER,nl);
-//	buildProjectileDynamics(*mde_inter,trajIndex,STATE_INTER);
+	buildSputteredClassicMolecules(mde_inter,trajIndex,STATE_INTER,nl);
+//	buildClusterDynamics(mde_inter,trajIndex,STATE_INTER,nl);
+//	buildProjectileDynamics(mde_inter,trajIndex,STATE_INTER);
 
 //        if (bombardingWithFullerene)
         {
-          projectile.update(*mde_inter);
-          td.trajProjectile[mde_inter->simTime] = projectile;
+          projectile.update(mde_inter);
+          td.trajProjectile[mde_inter.simTime] = projectile;
         }
         {
-          cluster.update(*mde_inter);
-          td.trajCluster[mde_inter->simTime] = cluster;
+          cluster.update(mde_inter);
+          td.trajCluster[mde_inter.simTime] = cluster;
         }
       }
-      delete mde_inter;
     }
 
 #endif
 
     cout << "Building molecules for state done." << std::endl;
-
-    delete state;
   }
 
   cout << "PostProcess::execute() done." << std::endl;

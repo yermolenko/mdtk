@@ -46,7 +46,7 @@ BatchPostProcess::BatchPostProcess(std::string mdeppinPath)
   {
     if (strlen(trajsetDir) > 0 && trajsetDir[0] != '#')
     {
-      pps.push_back(new mdepp::StatPostProcess(trajsetDir));
+      pps.push_back(mdepp::StatPostProcess(trajsetDir));
     }
   };
 
@@ -63,7 +63,7 @@ BatchPostProcess::saveToStream(std::ostream& os) const
 {
   os << pps.size() << "\n";
   for(size_t i = 0; i < pps.size(); i++)
-    pps[i]->saveToStream(os);
+    pps[i].saveToStream(os);
 }
 
 void
@@ -71,11 +71,11 @@ BatchPostProcess::loadFromStream(std::istream& is)
 {
   size_t sz;
   is >> sz;
-  pps.resize(sz);
-  for(size_t i = 0; i < pps.size(); i++)
+  for(size_t i = 0; i < sz; i++)
   {
-    pps[i] = new mdepp::StatPostProcess();
-    pps[i]->loadFromStream(is);
+    mdepp::StatPostProcess pp;
+    pp.loadFromStream(is);
+    pps.push_back(pp);
   }
 }
 
@@ -83,69 +83,69 @@ void
 BatchPostProcess::execute()
 {
   for(size_t i = 0; i < pps.size(); ++i)
-    pps[i]->execute();
+    pps[i].execute();
 }
 
 void
-BatchPostProcess::printResults()
+BatchPostProcess::printResults() const
 {
   yaatk::mkdir("results");
   yaatk::chdir("results");
 
   for(size_t i = 0; i < pps.size(); ++i)
   {
-    mdepp::StatPostProcess* pp = pps[i];
+    const mdepp::StatPostProcess& pp = pps[i];
 
-    yaatk::mkdir(pp->id.str.c_str());
-    yaatk::chdir(pp->id.str.c_str());
+    yaatk::mkdir(pp.id.str.c_str());
+    yaatk::chdir(pp.id.str.c_str());
 
     yaatk::StreamToFileRedirect cout_redir(std::cout,"stdout.txt");
     yaatk::StreamToFileRedirect cerr_redir(std::cerr,"stderr.txt");
 
-    for(size_t i = 0; i < pp->trajData.size(); i++)
+    for(size_t i = 0; i < pp.trajData.size(); i++)
     {
-      TRACE(pp->trajData[i].trajDir);
+      TRACE(pp.trajData[i].trajDir);
 
-      TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessFullerene));
-      TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessCluster));
-      TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessProjectile));
-      TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessSubstrate));
-      TRACE(pp->getYield(i,mdepp::StatPostProcess::ProcessAll));
+      TRACE(pp.getYield(i,mdepp::StatPostProcess::ProcessFullerene));
+      TRACE(pp.getYield(i,mdepp::StatPostProcess::ProcessCluster));
+      TRACE(pp.getYield(i,mdepp::StatPostProcess::ProcessProjectile));
+      TRACE(pp.getYield(i,mdepp::StatPostProcess::ProcessSubstrate));
+      TRACE(pp.getYield(i,mdepp::StatPostProcess::ProcessAll));
     }
 
-    TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessFullerene));
-    TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessCluster));
-    TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessProjectile));
-    TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessSubstrate));
-    TRACE(pp->getYieldSum(mdepp::StatPostProcess::ProcessAll));
+    TRACE(pp.getYieldSum(mdepp::StatPostProcess::ProcessFullerene));
+    TRACE(pp.getYieldSum(mdepp::StatPostProcess::ProcessCluster));
+    TRACE(pp.getYieldSum(mdepp::StatPostProcess::ProcessProjectile));
+    TRACE(pp.getYieldSum(mdepp::StatPostProcess::ProcessSubstrate));
+    TRACE(pp.getYieldSum(mdepp::StatPostProcess::ProcessAll));
 
-    TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessFullerene));
-    TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessCluster));
-    TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessProjectile));
-    TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessSubstrate));
-    TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessAll));
+    TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessFullerene));
+    TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessCluster));
+    TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessProjectile));
+    TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessSubstrate));
+    TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessAll));
 
-    pp->printClassicMoleculesTotal();
+    pp.printClassicMoleculesTotal();
 
     using namespace mdtk;
 
-//  pp->printCoefficients();
+//  pp.printCoefficients();
 
-//  pp->printClusterDynamicsTotal();
+//  pp.printClusterDynamicsTotal();
 
-//  pp->spottedTotalByMass();
+//  pp.spottedTotalByMass();
 
-//    pp->spottedByDepth();
+//    pp.spottedByDepth();
 
-    pp->buildMassSpectrum();
+    pp.buildMassSpectrum();
 
 #define MDPP_PROCESS_ONLY(FPM) \
     {\
       std::string s = "Process"#FPM;\
       yaatk::mkdir(s.c_str());\
       yaatk::chdir(s.c_str());\
-      pp->buildMassSpectrum(mdepp::StatPostProcess::Process##FPM);\
-      pp->buildAngular(mdepp::StatPostProcess::Process##FPM); \
+      pp.buildMassSpectrum(mdepp::StatPostProcess::Process##FPM);\
+      pp.buildAngular(mdepp::StatPostProcess::Process##FPM); \
       yaatk::chdir("..");\
     }
 
@@ -273,16 +273,16 @@ BatchPostProcess::printResults()
 
     for(size_t i = 0; i < pps.size(); ++i)
     {
-      mdepp::StatPostProcess* pp = pps[i];
+      const mdepp::StatPostProcess& pp = pps[i];
 
-      TRACE(pp->id.str);
+      TRACE(pp.id.str);
 
-      TRACE(pp->trajData.size());
+      TRACE(pp.trajData.size());
 
-      TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessCluster));
-      TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessProjectile));
-      TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessSubstrate));
-      TRACE(pp->getAverageYield(mdepp::StatPostProcess::ProcessAll));
+      TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessCluster));
+      TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessProjectile));
+      TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessSubstrate));
+      TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessAll));
 
       TRACE("--------------------");
     }
@@ -349,35 +349,35 @@ plot \\\n\
 
   for(size_t i = 0; i < pps.size(); ++i)
   {
-    mdepp::StatPostProcess* pp = pps[i];
+    const mdepp::StatPostProcess& pp = pps[i];
 
     if (specIonElement != DUMMY_EL)
     {
-      if (pp->id.ionElement != specIonElement)
+      if (pp.id.ionElement != specIonElement)
         continue;
     }
 
     if (specClusterElement != DUMMY_EL)
     {
-      if (pp->id.clusterElement != specClusterElement)
+      if (pp.id.clusterElement != specClusterElement)
         continue;
     }
 
     if (specClusterSize > 0)
     {
-      if (pp->id.clusterSize != specClusterSize)
+      if (pp.id.clusterSize != specClusterSize)
         continue;
     }
 
-    data << pp->id.ionEnergy << " " << pp->getAverageYield(fpm) << "\n";
+    data << pp.id.ionEnergy << " " << pp.getAverageYield(fpm) << "\n";
 
     if (i%3 == 2)
     {
       std::ostringstream cmd;
       cmd << "'-' title \"{/Italic "
-          << ElementIDtoString(pp->id.ionElement) << " -> "
-          << ElementIDtoString(pp->id.clusterElement)
-          << "_{" << pp->id.clusterSize << "}"
+          << ElementIDtoString(pp.id.ionElement) << " -> "
+          << ElementIDtoString(pp.id.clusterElement)
+          << "_{" << pp.id.clusterSize << "}"
           << "}\" "
           << "with linespoints";
       plotCmds.push_back(cmd.str());
@@ -491,29 +491,29 @@ plot \\\n\
 
   for(size_t i = 0; i < pps.size(); ++i)
   {
-    mdepp::StatPostProcess* pp = pps[i];
+    const mdepp::StatPostProcess& pp = pps[i];
 
     if (specIonElement != DUMMY_EL)
     {
-      if (pp->id.ionElement != specIonElement)
+      if (pp.id.ionElement != specIonElement)
         continue;
     }
 
     if (specClusterElement != DUMMY_EL)
     {
-      if (pp->id.clusterElement != specClusterElement)
+      if (pp.id.clusterElement != specClusterElement)
         continue;
     }
 
     if (specClusterSize > 0)
     {
-      if (pp->id.clusterSize != specClusterSize)
+      if (pp.id.clusterSize != specClusterSize)
         continue;
     }
 
     {
       ostringstream sfname;
-      sfname << pp->id.str << "/" << "Process" << idStr << "/"
+      sfname << pp.id.str << "/" << "Process" << idStr << "/"
              << "_angular" << "/"
              << (plotPolar?"atomsCount_by_polar_":"atomsCount_by_azimuth_")
              << n_str
@@ -533,10 +533,10 @@ plot \\\n\
     {
       std::ostringstream cmd;
       cmd << "'-' using 2:xticlabels(1) lt -1 title \"{/Italic "
-          << pp->id.ionEnergy << "еВ "
-          << ElementIDtoString(pp->id.ionElement) << " -> "
-          << ElementIDtoString(pp->id.clusterElement)
-          << "_{" << pp->id.clusterSize << "}"
+          << pp.id.ionEnergy << "еВ "
+          << ElementIDtoString(pp.id.ionElement) << " -> "
+          << ElementIDtoString(pp.id.clusterElement)
+          << "_{" << pp.id.clusterSize << "}"
           << "}\" "
           << "";
       plotCmds.push_back(cmd.str());
@@ -637,35 +637,35 @@ plot \\\n\
 
   for(size_t i = 0; i < pps.size(); ++i)
   {
-    mdepp::StatPostProcess* pp = pps[i];
+    const mdepp::StatPostProcess& pp = pps[i];
 
     if (specIonElement != DUMMY_EL)
     {
-      if (pp->id.ionElement != specIonElement)
+      if (pp.id.ionElement != specIonElement)
         continue;
     }
 
     if (specClusterElement != DUMMY_EL)
     {
-      if (pp->id.clusterElement != specClusterElement)
+      if (pp.id.clusterElement != specClusterElement)
         continue;
     }
 
     if (specClusterSize > 0)
     {
-      if (pp->id.clusterSize != specClusterSize)
+      if (pp.id.clusterSize != specClusterSize)
         continue;
     }
 
     if (specIonEnergy > 0)
     {
-      if (fabs(pp->id.ionEnergy*eV - specIonEnergy) > 0.05*eV)
+      if (fabs(pp.id.ionEnergy*eV - specIonEnergy) > 0.05*eV)
         continue;
     }
 
-    for(size_t ti = 0; ti < pp->trajData.size(); ti++)
+    for(size_t ti = 0; ti < pp.trajData.size(); ti++)
     {
-      StatPostProcess::TrajData& td = pp->trajData[ti];
+      const StatPostProcess::TrajData& td = pp.trajData[ti];
 
       SnapshotList sn;
       {
@@ -694,7 +694,7 @@ plot \\\n\
 
         if (shotIndex == 0)
         {
-          prevEk = Ek(pp->id.ionElement,asl[ionIndex]);
+          prevEk = Ek(pp.id.ionElement,asl[ionIndex]);
           TRACE(prevEk/eV);
         }
 
@@ -709,7 +709,7 @@ plot \\\n\
 
         if (transitionDetected || shotIndex == sn.snapshots.size()-1)
         {
-          Float curEk = Ek(pp->id.ionElement,
+          Float curEk = Ek(pp.id.ionElement,
                            asl[ionIndex]);
 
           dEs[dEindex] += curEk - prevEk;
@@ -737,8 +737,8 @@ plot \\\n\
 
         size_t ionIndex = asl_start.size()-1;
 
-        Float Ek_start = Ek(pp->id.ionElement,asl_start[ionIndex]);
-        Float Ek_end   = Ek(pp->id.ionElement,asl_end[ionIndex]);
+        Float Ek_start = Ek(pp.id.ionElement,asl_start[ionIndex]);
+        Float Ek_end   = Ek(pp.id.ionElement,asl_end[ionIndex]);
 
         TRACE(td.trajDir);
 
@@ -764,17 +764,17 @@ plot \\\n\
         x = (bounds[i]  +w/2);
       }
       data << x/Ao << " "
-           << -dEs[i]/pp->trajData.size()/eV << " "
+           << -dEs[i]/pp.trajData.size()/eV << " "
            << w/Ao << "\n";
     }
 
     {
       std::ostringstream cmd;
       cmd << "'-' title \"{/Italic "
-          << pp->id.ionEnergy << "еВ "
-          << ElementIDtoString(pp->id.ionElement) << " -> "
-          << ElementIDtoString(pp->id.clusterElement)
-          << "_{" << pp->id.clusterSize << "}"
+          << pp.id.ionEnergy << "еВ "
+          << ElementIDtoString(pp.id.ionElement) << " -> "
+          << ElementIDtoString(pp.id.clusterElement)
+          << "_{" << pp.id.clusterSize << "}"
           << "}\" "
           << "with boxes";
       plotCmds.push_back(cmd.str());

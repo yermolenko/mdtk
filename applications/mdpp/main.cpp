@@ -55,38 +55,43 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
 try
 {
-  mdepp::BatchPostProcess* pp;
-
   bool fullpp = !yaatk::exists("pp.state.orig");
 
   if (!fullpp)
   {
     yaatk::text_ifstream fi("pp.state.orig");
-    pp = new mdepp::BatchPostProcess();
-    pp->loadFromStream(fi);
+    mdepp::BatchPostProcess pp;
+    pp.loadFromStream(fi);
     fi.close();
+
+    pp.printResults();
+
+    {
+      yaatk::text_ofstream fo("pp.state.after");
+      pp.saveToStream(fo);
+      fo.close();
+    }
   }
   else
   {
-    pp = new mdepp::BatchPostProcess("../mdepp.in");
-    pp->execute();
+    mdepp::BatchPostProcess pp("../mdepp.in");
+    pp.execute();
+
+    pp.printResults();
+
+    {
+      yaatk::text_ofstream fo("pp.state.orig");
+      pp.saveToStream(fo);
+      fo.close();
+    }
+
+    {
+      yaatk::text_ofstream fo("pp.state.after");
+      pp.saveToStream(fo);
+      fo.close();
+    }
   }
-
-  pp->printResults();
-
-  if (fullpp)
-  {
-    yaatk::text_ofstream fo("pp.state.orig");
-    pp->saveToStream(fo);
-    fo.close();
-  }
-
-  yaatk::text_ofstream fo("pp.state.after");
-  pp->saveToStream(fo);
-  fo.close();
-
-  delete pp;
-}  
+}
 catch(mdtk::Exception& e)
 { 
   std::cerr << "MDTK exception in the main thread: "

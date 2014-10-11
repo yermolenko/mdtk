@@ -17,12 +17,12 @@ using namespace mdtk;
 
 inline
 void
-setTags(mdtk::SimLoop* ml)
+setTags(mdtk::SimLoop& ml)
 {
   return; // disable retagging
-  for(size_t i = 0; i < ml->atoms.size(); i++)
+  for(size_t i = 0; i < ml.atoms.size(); i++)
   {
-    mdtk::Atom& atom = ml->atoms[i];
+    mdtk::Atom& atom = ml.atoms[i];
     atom.clearTags();
 //    if (atom.M > 1000.0*mdtk::amu) atom.tag |= ATOMTAG_FIXED;
     if (atom.ID == mdtk::C_EL || atom.ID == mdtk::H_EL)

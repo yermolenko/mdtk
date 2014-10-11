@@ -1,7 +1,7 @@
 /* 
    Molecular dynamics postprocessor, BatchPostProcess classes, header
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2014 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -33,7 +33,7 @@ using namespace mdtk;
 class BatchPostProcess
 {
 public:
-  std::vector<mdepp::StatPostProcess*> pps;
+  std::vector<mdepp::StatPostProcess> pps;
 
   BatchPostProcess(std::string mdeppinPath);
   BatchPostProcess();
@@ -43,7 +43,7 @@ public:
 
   void execute();
 
-  void printResults();
+  void printResults() const;
 
   void plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
                                   std::string idStr = "yields",
