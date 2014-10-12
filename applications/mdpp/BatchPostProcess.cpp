@@ -33,7 +33,45 @@ namespace mdepp
 
 using mdtk::Exception;
 
-BatchPostProcess::BatchPostProcess(std::string mdeppinPath)
+size_t
+BatchPostProcess::getHaloIndex(std::string trajsetDir)
+{
+  std::string s = yaatk::extractItemFromEnd(trajsetDir,0);
+
+  bool haloSizeRecognized = false;
+  Float haloSizeAo = 0.0;
+
+  {
+    size_t istart = s.find("halo-");
+    REQUIRE(istart == 0);
+    istart += 5;
+
+    size_t iend = s.find("Ao");
+    REQUIRE(iend == s.size()-2);
+
+    std::string haloSizeString = s.substr(istart,iend-istart);
+    {
+      istringstream is(haloSizeString);
+      is >> haloSizeAo;
+    }
+
+    haloSizeRecognized = true;
+  }
+
+  REQUIRE(haloSizeRecognized);
+
+  size_t haloIndex = 3;
+  if (haloSizeAo < 11)
+    haloIndex = 2;
+  if (haloSizeAo < 6)
+    haloIndex = 1;
+  if (haloSizeAo < 2)
+    haloIndex = 0;
+
+  return haloIndex;
+}
+
+BatchPostProcess::BatchPostProcess(std::string mdeppinPath, size_t haloIndex)
   :pps()
 {
   char trajsetDir[10000];
@@ -44,7 +82,8 @@ BatchPostProcess::BatchPostProcess(std::string mdeppinPath)
 
   while(fi.getline(trajsetDir, 1000-1, '\n'))
   {
-    if (strlen(trajsetDir) > 0 && trajsetDir[0] != '#')
+    if (strlen(trajsetDir) > 0 && trajsetDir[0] != '#' &&
+        haloIndex == getHaloIndex(trajsetDir))
     {
       pps.push_back(mdepp::StatPostProcess(trajsetDir));
     }

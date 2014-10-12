@@ -32,10 +32,11 @@ using namespace mdtk;
 
 class BatchPostProcess
 {
+  size_t getHaloIndex(std::string);
 public:
   std::vector<mdepp::StatPostProcess> pps;
 
-  BatchPostProcess(std::string mdeppinPath);
+  BatchPostProcess(std::string mdeppinPath, size_t haloIndex = 0);
   BatchPostProcess();
 
   void saveToStream(std::ostream& os) const;

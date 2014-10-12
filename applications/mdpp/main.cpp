@@ -55,42 +55,89 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
 try
 {
-  bool fullpp = !yaatk::exists("pp.state.orig");
+  std::vector<mdepp::BatchPostProcess> bpps;
+  bpps.resize(4);
 
-  if (!fullpp)
+  for(size_t haloIndex = 0; haloIndex < bpps.size(); haloIndex++)
   {
-    yaatk::text_ifstream fi("pp.state.orig");
-    mdepp::BatchPostProcess pp;
-    pp.loadFromStream(fi);
-    fi.close();
+    std::stringstream resultsDir;
+    if (haloIndex == 0)
+      resultsDir << "area" << haloIndex;
+    else
+      resultsDir << "halo" << haloIndex;
+    yaatk::ChDir cd(resultsDir.str());
 
-    pp.printResults();
+    bool fullpp = !yaatk::exists("pp.state.orig");
+
+    if (!fullpp)
+    {
+      yaatk::text_ifstream fi("pp.state.orig");
+      bpps[haloIndex].loadFromStream(fi);
+      fi.close();
+
+      bpps[haloIndex].printResults();
+
+      {
+        yaatk::text_ofstream fo("pp.state.after");
+        bpps[haloIndex].saveToStream(fo);
+        fo.close();
+      }
+    }
+    else
+    {
+      bpps[haloIndex] = mdepp::BatchPostProcess("../../mdepp.in", haloIndex);
+      bpps[haloIndex].execute();
+
+      bpps[haloIndex].printResults();
+
+      {
+        yaatk::text_ofstream fo("pp.state.orig");
+        bpps[haloIndex].saveToStream(fo);
+        fo.close();
+      }
+
+      {
+        yaatk::text_ofstream fo("pp.state.after");
+        bpps[haloIndex].saveToStream(fo);
+        fo.close();
+      }
+    }
+  }
+
+  {
+    yaatk::ChDir cd("area0-reproducibility-test");
+    mdepp::BatchPostProcess bppsArea1;
+    for(size_t haloIndex = 0; haloIndex <= 0; haloIndex++)
+      bppsArea1 = bpps[haloIndex];
+
+    bppsArea1.printResults();
 
     {
       yaatk::text_ofstream fo("pp.state.after");
-      pp.saveToStream(fo);
+      bppsArea1.saveToStream(fo);
       fo.close();
     }
   }
-  else
+/*
   {
-    mdepp::BatchPostProcess pp("../mdepp.in");
-    pp.execute();
-
-    pp.printResults();
-
-    {
-      yaatk::text_ofstream fo("pp.state.orig");
-      pp.saveToStream(fo);
-      fo.close();
-    }
-
-    {
-      yaatk::text_ofstream fo("pp.state.after");
-      pp.saveToStream(fo);
-      fo.close();
-    }
+    yaatk::ChDir cd("area1");
+    mdepp::BatchPostProcess bppsArea1;
+    for(size_t haloIndex = 0; haloIndex <= 1; haloIndex++)
+      bppsArea1.addHalo(bpps[haloIndex]);
   }
+  {
+    yaatk::ChDir cd("area2");
+    mdepp::BatchPostProcess bppsArea2;
+    for(size_t haloIndex = 0; haloIndex <= 2; haloIndex++)
+      bppsArea2.addHalo(bpps[haloIndex]);
+  }
+  {
+    yaatk::ChDir cd("area3");
+    mdepp::BatchPostProcess bppsArea3;
+    for(size_t haloIndex = 0; haloIndex <= 3; haloIndex++)
+      bppsArea3.addHalo(bpps[haloIndex]);
+  }
+*/
 }
 catch(mdtk::Exception& e)
 { 
