@@ -434,7 +434,7 @@ plot \\\n\
     TRACE(specClusterElement);
   }
 
-  REQUIRE(plotCmds.size() > 0);
+//  REQUIRE(plotCmds.size() > 0);
   for(size_t i = 0; i < plotCmds.size(); ++i)
   {
     if (i != plotCmds.size()-1)
@@ -584,7 +584,7 @@ plot \\\n\
     }
   }
 
-  REQUIRE(plotCmds.size() > 0);
+//  REQUIRE(plotCmds.size() > 0);
   for(size_t i = 0; i < plotCmds.size(); ++i)
   {
     if (i != plotCmds.size()-1)
