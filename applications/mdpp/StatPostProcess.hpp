@@ -322,6 +322,7 @@ public:
     is >> SPOTTED_DISTANCE;
   }
   void execute();
+  void addHalo(const StatPostProcess&);
   void removeBadTrajectories();
 };
 

@@ -104,40 +104,27 @@ try
     }
   }
 
-  {
-    yaatk::ChDir cd("area0-reproducibility-test");
-    mdepp::BatchPostProcess bppsArea1;
-    for(size_t haloIndex = 0; haloIndex <= 0; haloIndex++)
-      bppsArea1 = bpps[haloIndex];
+#define PROCESS_AREA(areaDirName,areaIndex)                          \
+  {                                                                  \
+    yaatk::ChDir cd(areaDirName);                                    \
+    mdepp::BatchPostProcess bppsArea;                                \
+    bppsArea = bpps[0];                                              \
+    for(size_t haloIndex = 1; haloIndex <= areaIndex; haloIndex++)   \
+      bppsArea.addHalo(bpps[haloIndex]);                             \
+                                                                     \
+    bppsArea.printResults();                                         \
+                                                                     \
+    {                                                                \
+      yaatk::text_ofstream fo("pp.state.after");                     \
+      bppsArea.saveToStream(fo);                                     \
+      fo.close();                                                    \
+    }                                                                \
+  }
 
-    bppsArea1.printResults();
-
-    {
-      yaatk::text_ofstream fo("pp.state.after");
-      bppsArea1.saveToStream(fo);
-      fo.close();
-    }
-  }
-/*
-  {
-    yaatk::ChDir cd("area1");
-    mdepp::BatchPostProcess bppsArea1;
-    for(size_t haloIndex = 0; haloIndex <= 1; haloIndex++)
-      bppsArea1.addHalo(bpps[haloIndex]);
-  }
-  {
-    yaatk::ChDir cd("area2");
-    mdepp::BatchPostProcess bppsArea2;
-    for(size_t haloIndex = 0; haloIndex <= 2; haloIndex++)
-      bppsArea2.addHalo(bpps[haloIndex]);
-  }
-  {
-    yaatk::ChDir cd("area3");
-    mdepp::BatchPostProcess bppsArea3;
-    for(size_t haloIndex = 0; haloIndex <= 3; haloIndex++)
-      bppsArea3.addHalo(bpps[haloIndex]);
-  }
-*/
+  PROCESS_AREA("area0-reproducibility-test", 0);
+  PROCESS_AREA("area1", 1);
+  PROCESS_AREA("area2", 2);
+  PROCESS_AREA("area3", 3);
 }
 catch(mdtk::Exception& e)
 { 

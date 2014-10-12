@@ -126,6 +126,23 @@ BatchPostProcess::execute()
 }
 
 void
+BatchPostProcess::addHalo(const mdepp::BatchPostProcess& bppHalo)
+{
+  REQUIRE(pps.size() != 0);
+  for(size_t i = 0; i < pps.size(); ++i)
+  {
+    size_t haloMatches = 0;
+    for(size_t j = 0; j < bppHalo.pps.size(); ++j)
+      if (pps[i].id.str == bppHalo.pps[j].id.str)
+      {
+        ++haloMatches;
+        pps[i].addHalo(bppHalo.pps[j]);
+      }
+    REQUIRE(haloMatches <= 1);
+  }
+}
+
+void
 BatchPostProcess::printResults() const
 {
   yaatk::mkdir("results");

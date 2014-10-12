@@ -43,6 +43,7 @@ public:
   void loadFromStream(std::istream& is);
 
   void execute();
+  void addHalo(const mdepp::BatchPostProcess&);
 
   void printResults() const;
 

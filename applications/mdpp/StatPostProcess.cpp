@@ -490,6 +490,15 @@ StatPostProcess::execute()
 }
 
 void
+StatPostProcess::addHalo(const StatPostProcess& pp)
+{
+  REQUIRE(id.str == pp.id.str);
+  REQUIRE(SPOTTED_DISTANCE == pp.SPOTTED_DISTANCE);
+  for(size_t i = 0; i < pp.trajData.size(); i++)
+    trajData.push_back(pp.trajData[i]);
+}
+
+void
 StatPostProcess::buildMassSpectrum(FProcessClassicMolecule fpm) const
 {
   std::ofstream fo("massSpectrum.txt");
