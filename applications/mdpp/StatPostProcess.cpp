@@ -929,9 +929,9 @@ depthHist2file(const char* filename, std::vector<Float>& depth, Float scale = 1.
   }
   std::ofstream fo(filename);
 
-  fo << "# min depth = " << minDepth << " Ao" << std::endl
-     << "# max depth = " << maxDepth << " Ao" << std::endl
-     << "# number of bins = " << n << std::endl;
+  fo << "# min depth = " << minDepth << " Ao" << "\n"
+     << "# max depth = " << maxDepth << " Ao" << "\n"
+     << "# number of bins = " << n << "\n";
 
   gsl_histogram * h = gsl_histogram_alloc (n);
   gsl_histogram_set_ranges_uniform (h, minDepth, maxDepth);
@@ -943,7 +943,7 @@ depthHist2file(const char* filename, std::vector<Float>& depth, Float scale = 1.
   {
     double lower, upper;
     gsl_histogram_get_range (h, i, &lower, &upper);
-    fo << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i)*scale << std::endl;
+    fo << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i)*scale << "\n";
   }
 
   gsl_histogram_free (h);
@@ -955,9 +955,9 @@ void
 saveDepth(std::vector<Float>& depth, const char *filename)
 {
   std::ofstream fo(filename);
-  fo << depth.size() << std::endl;
+  fo << depth.size() << "\n";
   for(size_t i = 0; i < depth.size(); i++)
-    fo << depth[i] << std::endl;
+    fo << depth[i] << "\n";
   fo.close();
 }
 
@@ -1025,7 +1025,7 @@ saveHistogram(gsl_histogram *h, const char *datFileName)
   {
     double lower, upper;
     gsl_histogram_get_range (h, i, &lower, &upper);
-    foByEscapeHist << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i) << std::endl;
+    foByEscapeHist << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i) << "\n";
   }
   foByEscapeHist.close();
   foByEscapeHistPlt << "#reset\nset yrange [0:*]\nplot \'" << byEscapeTimeDatHist << "\' with boxes fs solid 1.0\n";
@@ -1042,7 +1042,7 @@ saveHistogram_new(gsl_histogram *h, const char *datFileName)
   {
     double lower, upper;
     gsl_histogram_get_range (h, i, &lower, &upper);
-    foByEscapeHist << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i) << std::endl;
+    foByEscapeHist << (lower+upper)/2.0 << " " << gsl_histogram_get(h,i) << "\n";
   }
   foByEscapeHist.close();
   foByEscapeHistPlt << "reset\nset yrange [0:*]\nset xrange [-180:180]\nplot \'" << byEscapeTimeDatHist << "\' with boxes\n";
@@ -1068,7 +1068,7 @@ saveHistogram_polar(gsl_histogram *h, const char *datFileName/*, bool halfshift 
     gsl_histogram_get_range (h, index, &lower, &upper);
     Float ang = (lower+upper)/2.0;//-(halfshift?((360.0/n)/2.0):0.0);
 //    if (ang < -180) ang += ;
-    foByEscapeHist << ang << " " << gsl_histogram_get(h,index) << std::endl;
+    foByEscapeHist << ang << " " << gsl_histogram_get(h,index) << "\n";
   }
   foByEscapeHist.close();
   foByEscapeHistPlt << "reset\nset style fill pattern 1\nset polar\nset angles degrees\nset size ratio -1\n\
