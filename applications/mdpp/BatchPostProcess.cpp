@@ -659,13 +659,10 @@ BatchPostProcess::plotEnergyLoss(ElementID specIonElement,
     bounds.push_back(c*i);
   bounds.push_back(+1000000.0*Ao);
 
-  std::vector<Float> dEs;
-  dEs.resize(bounds.size()-1);
-
   fplt << "# 1st bound = " << bounds[0]/Ao << " Ao" << "\n"
        << "# last depth = " << *(bounds.end()-1)/Ao << " Ao" << "\n"
        << "# number of bounds = " << bounds.size() << "\n"
-       << "# number of bins = " << dEs.size() << "\n";
+       << "# number of bins = " << bounds.size()-1 << "\n";
 
   fplt << "\
 reset\n\
@@ -718,6 +715,9 @@ plot \\\n\
       if (fabs(pp.id.ionEnergy*eV - specIonEnergy) > 0.05*eV)
         continue;
     }
+
+    std::vector<Float> dEs;
+    dEs.resize(bounds.size()-1);
 
     for(size_t ti = 0; ti < pp.trajData.size(); ti++)
     {
