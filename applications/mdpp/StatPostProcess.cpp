@@ -248,6 +248,8 @@ StatPostProcess::removeBadTrajectories()
   std::vector<size_t> badTrajIndices;
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
+    bool trajectoryIsBad = false;
+
     TrajData& td = trajData[trajIndex];
 
     yaatk::ChDir cd(td.trajDir, false);
@@ -271,43 +273,43 @@ StatPostProcess::removeBadTrajectories()
       if (fabs(dE_by_Eo_plus_Eb) > 0.01)
       {
         cerr << "Trajectory " << trajData[trajIndex].trajDir << " has bad energy conservation. Handle it separately." << endl;
-        badTrajIndices.push_back(trajIndex);
-      }
-      else
-      {
-        if (state.simTimeFinal > state.simTime)
-        {
-          cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to be unfinished. Handle it separately." << endl;
-          badTrajIndices.push_back(trajIndex);
-        }
-        else
-        {
-          SnapshotList sn;
-          sn.loadstate();
-
-          if (state.simTimeFinal - sn.snapshots[sn.snapshots.size()-1].first > (5e-16*50*4)*2)
-          {
-            cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to have incomplete partial snapshot info. Handle it separately." << endl;
-            badTrajIndices.push_back(trajIndex);
-          }
-          else
-          {
-            if (sn.snapshots[0].first > (5e-16*5*4)*2)
-            {
-              cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to have incomplete partial snapshot info. Handle it separately." << endl;
-              badTrajIndices.push_back(trajIndex);
-            }
-          }
-        }
+        trajectoryIsBad = true;
       }
     }
+    {
+      if (state.simTimeFinal > state.simTime)
+      {
+        cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to be unfinished. Handle it separately." << endl;
+        trajectoryIsBad = true;
+      }
+    }
+    {
+      SnapshotList sn;
+      sn.loadstate();
+
+      if (state.simTimeFinal - sn.snapshots[sn.snapshots.size()-1].first > (5e-16*50*4)*2)
+      {
+        cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to have incomplete partial snapshot info. Handle it separately." << endl;
+        trajectoryIsBad = true;
+      }
+
+      if (sn.snapshots[0].first > (5e-16*5*4)*2)
+      {
+        cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to have incomplete partial snapshot info. Handle it separately." << endl;
+        trajectoryIsBad = true;
+      }
+    }
+
+    if (trajectoryIsBad)
+      badTrajIndices.push_back(trajIndex);
   }
 
   size_t oldSize = trajData.size();
 
   for(int i = badTrajIndices.size()-1; i >= 0; i--)
   {
-    cerr << "Reoving trajectory from postprocess: "
+    REQUIRE(i == 0 || (badTrajIndices[i] > badTrajIndices[i-1]));
+    cerr << "Removing trajectory from postprocess: "
          << (trajData.begin()+badTrajIndices[i])->trajDir << endl;
     trajData.erase(trajData.begin()+badTrajIndices[i]);
   }
