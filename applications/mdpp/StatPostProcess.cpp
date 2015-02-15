@@ -1,7 +1,7 @@
 /* 
    Molecular dynamics postprocessor, main classes
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -28,6 +28,7 @@
 //using namespace std;
 #include <fstream>
 #include <mdtk/tools.hpp>
+#include <mdtk/SnapshotList.hpp>
 
 
 namespace mdepp
@@ -278,6 +279,25 @@ StatPostProcess::removeBadTrajectories()
         {
           cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to be unfinished. Handle it separately." << endl;
           badTrajIndices.push_back(trajIndex);
+        }
+        else
+        {
+          SnapshotList sn;
+          sn.loadstate();
+
+          if (state.simTimeFinal - sn.snapshots[sn.snapshots.size()-1].first > (5e-16*50*4)*2)
+          {
+            cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to have incomplete partial snapshot info. Handle it separately." << endl;
+            badTrajIndices.push_back(trajIndex);
+          }
+          else
+          {
+            if (sn.snapshots[0].first > (5e-16*5*4)*2)
+            {
+              cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to have incomplete partial snapshot info. Handle it separately." << endl;
+              badTrajIndices.push_back(trajIndex);
+            }
+          }
         }
       }
     }
