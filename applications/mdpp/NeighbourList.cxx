@@ -1,8 +1,8 @@
 /*
    The MDPP NeighbourList class.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2012, 2015
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -31,6 +31,7 @@ namespace mdepp
   NeighbourList::update(mdtk::AtomsArray& atoms)
   {
     REQUIRE(Rc > 0.0);
+    Float Rc_squared = SQR(Rc);
     size_t i,j,N;
     N = atoms.size();
     for(i = 0; i < N; ++i)
@@ -49,7 +50,7 @@ namespace mdepp
       for(j = 0; j < N; ++j)
       {
 	mdtk::Atom& atom_j = atoms[j];
-	if (j != i && depos(atom_i,atom_j).module() < Rc) 
+	if (j != i && depos(atom_i,atom_j).module_squared() < Rc_squared)
           nl_.push_back(&atom_j);
       }
     }
