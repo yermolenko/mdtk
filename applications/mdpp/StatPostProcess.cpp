@@ -245,6 +245,10 @@ StatPostProcess::buildDummyDynamics(mdtk::SimLoop& state,size_t trajIndex,
 void
 StatPostProcess::removeBadTrajectories()
 {
+  mdtk::SimLoop state;
+  state.allowToFreePotentials = true;
+  setupPotentials(state);
+
   std::vector<size_t> badTrajIndices;
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
@@ -253,10 +257,6 @@ StatPostProcess::removeBadTrajectories()
     TrajData& td = trajData[trajIndex];
 
     yaatk::ChDir cd(td.trajDir, false);
-
-    mdtk::SimLoop state;
-    state.allowToFreePotentials = true;
-    setupPotentials(state);
 
     state.initNLafterLoading = false;
 
@@ -362,15 +362,15 @@ StatPostProcess::execute()
   cout << "PostProcess::execute() started." << std::endl;
   cerr << "PostProcess::execute() started." << std::endl;
 
+  mdtk::SimLoop state;
+  state.allowToFreePotentials = true;
+  setupPotentials(state);
+
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
     TrajData& td = trajData[trajIndex];
 
     yaatk::ChDir cd(td.trajDir, false);
-
-    mdtk::SimLoop state;
-    state.allowToFreePotentials = true;
-    setupPotentials(state);
 
     {
       state.initNLafterLoading = false;
