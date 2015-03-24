@@ -594,6 +594,9 @@ plot \\\n\
         continue;
     }
 
+    if (pp.id.ionEnergy > 199.0 && pp.id.ionEnergy < 201.0)
+      continue;
+
     {
       std::ostringstream cmd;
       cmd << "'-' with points title \"{/Italic "
