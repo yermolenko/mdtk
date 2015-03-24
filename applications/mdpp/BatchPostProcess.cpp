@@ -624,10 +624,6 @@ plot \\\n\
 
     std::map<ClassicMolecule, size_t> massSpectrum = pp.buildMassSpectrum(fpm);
 
-/*
-  size_t specieYield = 0;
-  size_t specieIndex = 0;
-*/
     for(size_t c = 0; c < 2; ++c)
     {
       std::map<ClassicMolecule, size_t>::iterator i = massSpectrum.begin();
