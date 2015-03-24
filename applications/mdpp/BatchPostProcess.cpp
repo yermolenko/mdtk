@@ -597,6 +597,7 @@ plot \\\n\
     {
       std::ostringstream cmd;
       cmd << "'-' with points title \"{/Italic "
+          << pp.id.ionEnergy << "eV "
           << ElementIDtoString(pp.id.ionElement) << " -> "
           << ElementIDtoString(pp.id.clusterElement)
           << "_{" << pp.id.clusterSize << "}"
@@ -607,10 +608,12 @@ plot \\\n\
 
     {
       fo << "#"
+         << pp.id.ionEnergy << "eV "
          << ElementIDtoString(pp.id.ionElement) << " -> "
          << ElementIDtoString(pp.id.clusterElement)
          << "_{" << pp.id.clusterSize << "}\n";
       fsameMass << "#"
+                << pp.id.ionEnergy << "eV "
                 << ElementIDtoString(pp.id.ionElement) << " -> "
                 << ElementIDtoString(pp.id.clusterElement)
                 << "_{" << pp.id.clusterSize << "}\n";
