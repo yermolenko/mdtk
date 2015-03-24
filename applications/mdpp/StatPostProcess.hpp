@@ -1,7 +1,7 @@
 /* 
    Molecular dynamics postprocessor, main classes, header
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -260,7 +260,7 @@ public:
 
   void  printCoefficients() const;
 
-  void  buildMassSpectrum(FProcessClassicMolecule fpm = &ProcessAll) const;
+  std::map<ClassicMolecule, size_t>  buildMassSpectrum(FProcessClassicMolecule fpm = &ProcessAll) const;
 
   void  spottedByDepth() const;
 

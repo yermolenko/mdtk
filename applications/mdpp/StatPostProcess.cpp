@@ -520,61 +520,9 @@ StatPostProcess::addHalo(const StatPostProcess& pp)
     trajData.push_back(pp.trajData[i]);
 }
 
-void
+std::map<ClassicMolecule, size_t>
 StatPostProcess::buildMassSpectrum(FProcessClassicMolecule fpm) const
 {
-  std::ofstream fsameMass("massSpectrum.sameMass");
-
-  std::ofstream fo("massSpectrum.txt");
-
-  std::ofstream fplt("massSpectrum.plt");
-
-  fplt << "\
-reset\n\
-set yrange [0:*]\n\
-set xrange [0:*]\n\
-set border 1+2+4+8 lw 2\n\
-\n\
-set output \"massSpectrum.eps\"\n\
-set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
-set xlabel \"Mass (amu)\"\n\
-set ylabel ""\n\
-\n\
-#set label \"H\" at 2,279/1000.0+0.012\n\
-#set label \"Cu_2\" at 63.5*2,0.43\n\
-#set label \"Cu_1_3\" at 63.5*13,0.07\n\
-#set label \"Cu_2_5\" at 63.5*25,0.05\n\
-#set label \"Cu_3_5\" at 63.5*35,0.03\n\
-#set label \"H_2\" at 2,83/1000.0+0.012\n\
-#set label \"CH_3\" at 15,10/1000.0+0.012\n\
-#set label \"C_2H_2\" at 26,27/1000.0+0.012 center\n\
-#set label \"C_2H_4\" at 28,241/1000.0+0.012 center\n\
-#set label \"C_3H_6\" at 42,16/1000.0+0.012 center\n\
-#set label \"C_4H_7\" at 55,10/1000.0+0.012 center\n\
-#set label \"C_6H_1_0\" at 82,2/1000.0+0.012 center\n\
-#set label \"C_6H_1_0\\n(cyclohexene)\" at 82,2/1000.0+0.03 center\n\
-#set label \"C_6H_1_0\\n(cyclohexene)\" at 82,(7+6+1)/500.0 center\n\
-\n\
-set xtics nomirror 200\n\
-set tics scale -1\n\
-\n\
-plot \\\n\
-";
-
-  std::vector<std::string> plotCmds;
-  std::ostringstream data;
-
-  {
-    std::ostringstream cmd;
-    cmd << "'-' with points title \"{/Italic "
-        << ElementIDtoString(/*pp.*/id.ionElement) << " -> "
-        << ElementIDtoString(/*pp.*/id.clusterElement)
-        << "_{" << /*pp.*/id.clusterSize << "}"
-        << "}\", "
-        << "'-' with impulses notitle";
-    plotCmds.push_back(cmd.str());
-  }
-
   std::map<ClassicMolecule, size_t> massSpectrum;
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
@@ -585,56 +533,8 @@ plot \\\n\
       massSpectrum[td.molecules[mi]]++;
     }
   }
-/*
-  size_t specieYield = 0;
-  size_t specieIndex = 0;
-*/
-    for(size_t c = 0; c < 2; ++c)
-    {
-  std::map<ClassicMolecule, size_t>::iterator i = massSpectrum.begin();
-  size_t previousAMUMass = 0;
-  while (i != massSpectrum.end())
-  {
-    size_t AMUMass = i->first.getAMUMass();
 
-    fo << i->first.formula()
-       << " (" << AMUMass << " amu) : "
-       << i->second << "/" << trajData.size()
-       << " = " << double(i->second)/trajData.size() << "\n";
-
-    data << AMUMass << " " << double(i->second)/trajData.size() << "\n";
-
-    if (AMUMass == previousAMUMass)
-    {
-      fsameMass << i->first.formula()
-                << " (" << AMUMass << " amu) : "
-                << i->second << "/" << trajData.size()
-                << " = " << double(i->second)/trajData.size() << "\n";
-    }
-
-    previousAMUMass = AMUMass;
-
-    i++;
-  }
-      data << "e\n";
-    }
-
-//  REQUIRE(plotCmds.size() > 0);
-  for(size_t i = 0; i < plotCmds.size(); ++i)
-  {
-    if (i != plotCmds.size()-1)
-      fplt << plotCmds[i] << ",\\\n";
-    else
-      fplt << plotCmds[i] << "\n";
-  }
-
-  fplt << data.str();
-
-  fplt.close();
-
-  fo.close();
-
-  fsameMass.close();
+  return massSpectrum;
 }
 
 void

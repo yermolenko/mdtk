@@ -218,6 +218,11 @@ BatchPostProcess::printResults() const
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,"yields-Projectile");
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessSubstrate,"yields-Substrate");
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,"yields-All");
+
+    plotMassSpectrum(mdepp::StatPostProcess::ProcessCluster,"MassSpectrum-Cluster");
+    plotMassSpectrum(mdepp::StatPostProcess::ProcessProjectile,"MassSpectrum-Projectile");
+    plotMassSpectrum(mdepp::StatPostProcess::ProcessSubstrate,"MassSpectrum-Substrate");
+    plotMassSpectrum(mdepp::StatPostProcess::ProcessAll,"MassSpectrum-All");
   }
 
 
@@ -236,6 +241,15 @@ BatchPostProcess::printResults() const
                                "yields-Substrate", elements[i]);
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
                                "yields-All", elements[i]);
+
+    plotMassSpectrum(mdepp::StatPostProcess::ProcessCluster,
+                               "MassSpectrum-Cluster", elements[i]);
+    plotMassSpectrum(mdepp::StatPostProcess::ProcessProjectile,
+                               "MassSpectrum-Projectile", elements[i]);
+    plotMassSpectrum(mdepp::StatPostProcess::ProcessSubstrate,
+                               "MassSpectrum-Substrate", elements[i]);
+    plotMassSpectrum(mdepp::StatPostProcess::ProcessAll,
+                               "MassSpectrum-All", elements[i]);
 
 #define PLOT_ANGULAR_ION_TYPE(angleType)\
     plotAngular(angleType,mdepp::StatPostProcess::ProcessCluster,\
@@ -269,6 +283,15 @@ BatchPostProcess::printResults() const
                                "yields-Substrate", DUMMY_EL, clusterSizes[i]);
     plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
                                "yields-All", DUMMY_EL, clusterSizes[i]);
+
+    plotMassSpectrum(mdepp::StatPostProcess::ProcessCluster,
+                     "MassSpectrum-Cluster", DUMMY_EL, clusterSizes[i]);
+    plotMassSpectrum(mdepp::StatPostProcess::ProcessProjectile,
+                     "MassSpectrum-Projectile", DUMMY_EL, clusterSizes[i]);
+    plotMassSpectrum(mdepp::StatPostProcess::ProcessSubstrate,
+                     "MassSpectrum-Substrate", DUMMY_EL, clusterSizes[i]);
+    plotMassSpectrum(mdepp::StatPostProcess::ProcessAll,
+                     "MassSpectrum-All", DUMMY_EL, clusterSizes[i]);
 
 #define PLOT_ANGULAR(angleType,elementType,clusterSize,clusterElement)  \
     plotAngular(angleType,mdepp::StatPostProcess::ProcessCluster,       \
@@ -313,6 +336,15 @@ BatchPostProcess::printResults() const
                                      "yields-Substrate", elements[j],0,clusterElements[l]);
           plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
                                      "yields-All", elements[j],0,clusterElements[l]);
+
+          plotMassSpectrum(mdepp::StatPostProcess::ProcessCluster,
+                           "MassSpectrum-Cluster", elements[j],0,clusterElements[l]);
+          plotMassSpectrum(mdepp::StatPostProcess::ProcessProjectile,
+                           "MassSpectrum-Projectile", elements[j],0,clusterElements[l]);
+          plotMassSpectrum(mdepp::StatPostProcess::ProcessSubstrate,
+                           "MassSpectrum-Substrate", elements[j],0,clusterElements[l]);
+          plotMassSpectrum(mdepp::StatPostProcess::ProcessAll,
+                           "MassSpectrum-All", elements[j],0,clusterElements[l]);
         }
       }
 
@@ -463,6 +495,189 @@ plot \\\n\
   fplt << data.str();
 
   fplt.close();
+}
+
+void
+BatchPostProcess::plotMassSpectrum(StatPostProcess::FProcessClassicMolecule fpm,
+                                   std::string idStr,
+                                   ElementID specIonElement,
+                                   size_t specClusterSize,
+                                   ElementID specClusterElement) const
+{
+  std::stringstream fnb;
+  fnb << idStr;
+/*
+  bool pCluster = (fpm==mdepp::StatPostProcess::ProcessCluster);
+  bool pProjectile = (fpm==mdepp::StatPostProcess::ProcessProjectile);
+  bool pSubstrate = (fpm==mdepp::StatPostProcess::ProcessSubstrate);
+  bool pAll = (fpm==mdepp::StatPostProcess::ProcessAll);
+
+  string yieldOfWhat = "розпилення";
+  if (pCluster)
+  yieldOfWhat = "розпилення кластера";
+  if (pSubstrate)
+  yieldOfWhat = "розпилення підкладинки";
+  if (pProjectile)
+  yieldOfWhat = "зворотного розсіювання";
+*/
+  if (specIonElement != DUMMY_EL)
+    fnb << "_" << ElementIDtoString(specIonElement);
+
+  if (specClusterElement != DUMMY_EL)
+    fnb << "_" << ElementIDtoString(specClusterElement);
+
+  if (specClusterSize > 0)
+  {
+    if (specClusterElement == DUMMY_EL)
+      fnb << "_";
+    fnb << specClusterSize;
+  }
+
+  std::ofstream fsameMass((fnb.str()+".sameMass").c_str());
+  std::ofstream fo((fnb.str()+".txt").c_str());
+  std::ofstream fplt((fnb.str()+".plt").c_str());
+
+  fplt << "\
+reset\n\
+set yrange [0:*]\n\
+set xrange [0:*]\n\
+set border 1+2+4+8 lw 2\n\
+\n\
+set output \"" << fnb.str() << ".eps\"\n\
+set terminal postscript eps size 8cm, 8cm \"Arial,18\" enhanced\n\
+set xlabel \"Mass (amu)\"\n\
+set ylabel ""\n\
+\n\
+#set label \"H\" at 2,279/1000.0+0.012\n\
+#set label \"Cu_2\" at 63.5*2,0.43\n\
+#set label \"Cu_1_3\" at 63.5*13,0.07\n\
+#set label \"Cu_2_5\" at 63.5*25,0.05\n\
+#set label \"Cu_3_5\" at 63.5*35,0.03\n\
+#set label \"H_2\" at 2,83/1000.0+0.012\n\
+#set label \"CH_3\" at 15,10/1000.0+0.012\n\
+#set label \"C_2H_2\" at 26,27/1000.0+0.012 center\n\
+#set label \"C_2H_4\" at 28,241/1000.0+0.012 center\n\
+#set label \"C_3H_6\" at 42,16/1000.0+0.012 center\n\
+#set label \"C_4H_7\" at 55,10/1000.0+0.012 center\n\
+#set label \"C_6H_1_0\" at 82,2/1000.0+0.012 center\n\
+#set label \"C_6H_1_0\\n(cyclohexene)\" at 82,2/1000.0+0.03 center\n\
+#set label \"C_6H_1_0\\n(cyclohexene)\" at 82,(7+6+1)/500.0 center\n\
+\n\
+set xtics nomirror 200\n\
+set tics scale -1\n\
+\n\
+plot \\\n\
+";
+
+  std::vector<std::string> plotCmds;
+  std::ostringstream data;
+
+  for(size_t i = 0; i < pps.size(); ++i)
+  {
+    const mdepp::StatPostProcess& pp = pps[i];
+
+    if (specIonElement != DUMMY_EL)
+    {
+      if (pp.id.ionElement != specIonElement)
+        continue;
+    }
+
+    if (specClusterElement != DUMMY_EL)
+    {
+      if (pp.id.clusterElement != specClusterElement)
+        continue;
+    }
+
+    if (specClusterSize > 0)
+    {
+      if (pp.id.clusterSize != specClusterSize)
+        continue;
+    }
+
+    {
+      std::ostringstream cmd;
+      cmd << "'-' with points title \"{/Italic "
+          << ElementIDtoString(pp.id.ionElement) << " -> "
+          << ElementIDtoString(pp.id.clusterElement)
+          << "_{" << pp.id.clusterSize << "}"
+          << "}\", "
+          << "'-' with impulses notitle";
+      plotCmds.push_back(cmd.str());
+    }
+
+    {
+      fo << "#"
+         << ElementIDtoString(pp.id.ionElement) << " -> "
+         << ElementIDtoString(pp.id.clusterElement)
+         << "_{" << pp.id.clusterSize << "}\n";
+      fsameMass << "#"
+                << ElementIDtoString(pp.id.ionElement) << " -> "
+                << ElementIDtoString(pp.id.clusterElement)
+                << "_{" << pp.id.clusterSize << "}\n";
+    }
+
+    std::map<ClassicMolecule, size_t> massSpectrum = pp.buildMassSpectrum(fpm);
+
+/*
+  size_t specieYield = 0;
+  size_t specieIndex = 0;
+*/
+    for(size_t c = 0; c < 2; ++c)
+    {
+      std::map<ClassicMolecule, size_t>::iterator i = massSpectrum.begin();
+      size_t previousAMUMass = 0;
+      while (i != massSpectrum.end())
+      {
+        size_t AMUMass = i->first.getAMUMass();
+
+        fo << i->first.formula()
+           << " (" << AMUMass << " amu) : "
+           << i->second << "/" << pp.trajData.size()
+           << " = " << double(i->second)/pp.trajData.size() << "\n";
+
+        data << AMUMass << " " << double(i->second)/pp.trajData.size() << "\n";
+
+        if (AMUMass == previousAMUMass)
+        {
+          fsameMass << i->first.formula()
+                    << " (" << AMUMass << " amu) : "
+                    << i->second << "/" << pp.trajData.size()
+                    << " = " << double(i->second)/pp.trajData.size() << "\n";
+        }
+
+        previousAMUMass = AMUMass;
+
+        i++;
+      }
+      data << "e\n";
+    }
+  }
+
+  if (!(plotCmds.size() > 0))
+  {
+//    TRACE(yieldOfWhat);
+    TRACE(idStr);
+    TRACE(specIonElement);
+    TRACE(specClusterSize);
+    TRACE(specClusterElement);
+  }
+
+//  REQUIRE(plotCmds.size() > 0);
+  for(size_t i = 0; i < plotCmds.size(); ++i)
+  {
+    if (i != plotCmds.size()-1)
+      fplt << plotCmds[i] << ",\\\n";
+    else
+      fplt << plotCmds[i] << "\n";
+  }
+
+  fplt << data.str();
+
+  fplt.close();
+
+  fo.close();
+
+  fsameMass.close();
 }
 
 void
