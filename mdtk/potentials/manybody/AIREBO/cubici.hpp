@@ -112,6 +112,10 @@ FuncG::dCosT(Float CosT) const
 class FuncP_CC
 {
   Spline2D spline[4][4];
+  Float intarg[4][4];
+  Float dH_intarg[4][4];
+  Float dC_intarg[4][4];
+  void fill_intarg();
 public:
   FuncP_CC(int paramSet = 0);
   virtual ~FuncP_CC(){};
@@ -123,6 +127,10 @@ public:
 class FuncP_CH
 {
   Spline2D spline[4][4];
+  Float intarg[4][4];
+  Float dH_intarg[4][4];
+  Float dC_intarg[4][4];
+  void fill_intarg();
 public:
   FuncP_CH(int paramSet = 0);
   virtual ~FuncP_CH(){};
@@ -202,7 +210,13 @@ FuncP_CC::operator()(Float h, Float c) const
 {
   REQUIREM(h>=0 && c>=0,"H: h>=0 && c>=0");
   if (h>=4 || c>=4) return 0.0;
-  return spline[int(h)][int(c)].operator()(h,c);
+
+  int h_int = int(h);
+  int c_int = int(c);
+  if (Float(h_int) == h && Float(c_int) == c)
+    return intarg[h_int][c_int];
+
+  return spline[h_int][c_int].operator()(h,c);
 }
     
 inline
@@ -211,7 +225,13 @@ FuncP_CC::dH(Float h, Float c) const
 {
   REQUIREM(h>=0 && c>=0,"H: h>=0 && c>=0");
   if (h>=4 || c>=4) return 0.0;
-  return spline[int(h)][int(c)].dx(h,c);
+
+  int h_int = int(h);
+  int c_int = int(c);
+  if (Float(h_int) == h && Float(c_int) == c)
+    return dH_intarg[h_int][c_int];
+
+  return spline[h_int][c_int].dx(h,c);
 }
     
 inline
@@ -220,7 +240,13 @@ FuncP_CC::dC(Float h, Float c) const
 {
   REQUIREM(h>=0 && c>=0,"H: h>=0 && c>=0");
   if (h>=4 || c>=4) return 0.0;
-  return spline[int(h)][int(c)].dy(h,c);
+
+  int h_int = int(h);
+  int c_int = int(c);
+  if (Float(h_int) == h && Float(c_int) == c)
+    return dC_intarg[h_int][c_int];
+
+  return spline[h_int][c_int].dy(h,c);
 }
 
 
@@ -230,7 +256,13 @@ FuncP_CH::operator()(Float h, Float c) const
 {
   REQUIREM(h>=0 && c>=0,"H: h>=0 && c>=0");
   if (h>=4 || c>=4) return 0.0;
-  return spline[int(h)][int(c)].operator()(h,c);
+
+  int h_int = int(h);
+  int c_int = int(c);
+  if (Float(h_int) == h && Float(c_int) == c)
+    return intarg[h_int][c_int];
+
+  return spline[h_int][c_int].operator()(h,c);
 }
 
     
@@ -240,7 +272,13 @@ FuncP_CH::dH(Float h, Float c) const
 {
   REQUIREM(h>=0 && c>=0,"H: h>=0 && c>=0");
   if (h>=4 || c>=4) return 0.0;
-  return spline[int(h)][int(c)].dx(h,c);
+
+  int h_int = int(h);
+  int c_int = int(c);
+  if (Float(h_int) == h && Float(c_int) == c)
+    return dH_intarg[h_int][c_int];
+
+  return spline[h_int][c_int].dx(h,c);
 }
 
     
@@ -250,7 +288,13 @@ FuncP_CH::dC(Float h, Float c) const
 {
   REQUIREM(h>=0 && c>=0,"H: h>=0 && c>=0");
   if (h>=4 || c>=4) return 0.0;
-  return spline[int(h)][int(c)].dy(h,c);
+
+  int h_int = int(h);
+  int c_int = int(c);
+  if (Float(h_int) == h && Float(c_int) == c)
+    return dC_intarg[h_int][c_int];
+
+  return spline[h_int][c_int].dy(h,c);
 }
 
 
