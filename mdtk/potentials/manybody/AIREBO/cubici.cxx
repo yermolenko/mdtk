@@ -101,6 +101,19 @@ FuncG_H::init()
                          x[i+1],y[i+1],dy[i+1],d2y[i+1]);
 }  
 
+void
+FuncP_CC::fill_intarg()
+{
+  int h,c;
+  for(h = 0; h < 4; h++)
+    for(c = 0; c < 4; c++)
+      {
+        intarg[h][c] = spline[h][c].operator()(h,c);
+        dH_intarg[h][c] = spline[h][c].dx(h,c);
+        dC_intarg[h][c] = spline[h][c].dy(h,c);
+      }
+}
+
 FuncP_CC::FuncP_CC(int paramSet)
 {
   Float HCC[5][5];
@@ -165,7 +178,22 @@ FuncP_CC::FuncP_CC(int paramSet)
 
       spline[i][j] = Spline2D(x,y,z,dzdx,dzdy);
     }  
+
+  fill_intarg();
 }  
+
+void
+FuncP_CH::fill_intarg()
+{
+  int h,c;
+  for(h = 0; h < 4; h++)
+    for(c = 0; c < 4; c++)
+      {
+        intarg[h][c] = spline[h][c].operator()(h,c);
+        dH_intarg[h][c] = spline[h][c].dx(h,c);
+        dC_intarg[h][c] = spline[h][c].dy(h,c);
+      }
+}
 
 FuncP_CH::FuncP_CH(int paramSet)
 {
@@ -257,6 +285,8 @@ FuncP_CH::FuncP_CH(int paramSet)
 
       spline[i][j] = Spline2D(x,y,z,dzdx,dzdy);
     }  
+
+  fill_intarg();
 }  
 
 #define FCCfillUp(iBase, jBase, kBase, i_size, j_size, k_size) \
