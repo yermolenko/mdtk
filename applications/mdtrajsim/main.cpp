@@ -116,6 +116,8 @@ int runTraj(std::string inputFilesId = "")
 {
   if (isAlreadyFinished()) return 0;
 
+  TRACE(mdtk::buildID);
+
   try
   {
     CustomSimLoop mdloop;
