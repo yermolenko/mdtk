@@ -1,7 +1,7 @@
 /*
    Some configuration constants for MDTK (header file).
 
-   Copyright (C) 2004, 2005, 2009, 2013 Oleksandr Yermolenko
+   Copyright (C) 2004, 2005, 2009, 2013, 2015 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -54,6 +54,8 @@ struct VerboseOutput
       verboseTrace = prevVerboseOutputState;
     }
 };
+
+extern std::string buildID;
 
 }
 

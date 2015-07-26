@@ -1,7 +1,7 @@
 /*
    Some configuration constants for MDTK.
 
-   Copyright (C) 2004, 2005, 2009 Oleksandr Yermolenko
+   Copyright (C) 2004, 2005, 2009, 2015 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -29,6 +29,9 @@ namespace mdtk
 const int FLOAT_PRECISION = 10;//25;
 
 bool verboseTrace = true;
+
+std::string buildID = __DATE__" "__TIME__;
+
 }
 
 
