@@ -2,7 +2,7 @@
    The Lennard-Jones interatomic potential implementation
    (header file).
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2015
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -72,6 +72,7 @@ public:
 public:
   virtual Float operator()(AtomsArray&);
   FLJ(Rcutoff = Rcutoff());
+  virtual ~FLJ();
 
   void SaveToStream(std::ostream& os, YAATK_FSTREAM_MODE smode)
   {

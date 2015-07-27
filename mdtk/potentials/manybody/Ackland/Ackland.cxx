@@ -3,8 +3,8 @@
    gold, silver and their alloys.
    See [G.J. Ackland and V. Vitek, Phys. Rev. B 41, 10324 (1990)]
 
-   Copyright (C) 2007, 2008, 2009, 2012, 2013 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2007, 2008, 2009, 2012, 2013, 2015 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -234,7 +234,8 @@ Ackland::rho(Atom &atom_i, const Float V)
 }
 
 Ackland::Ackland():
-  FManybody()
+  FManybody(),
+  splines()
 {
   handledElements.insert(Cu_EL);
   handledElementPairs.insert(std::make_pair(Cu_EL,Cu_EL));
@@ -263,6 +264,14 @@ Ackland::Ackland():
   setupPotential();
 
   nl.Rcutoff = getRcutoff();
+}
+
+Ackland::~Ackland()
+{
+  for(size_t i = 0; i < ECOUNT; i++)
+    for(size_t j = 0; j < ECOUNT; j++)
+      if (splines[i][j])
+        delete splines[i][j];
 }
 
 void
