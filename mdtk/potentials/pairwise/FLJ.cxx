@@ -1,8 +1,8 @@
 /*
    The Lennard-Jones interatomic potential implementation.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
-   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013,
+   2015 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -32,7 +32,8 @@ using std::sqrt;
 using std::pow;
 
 FLJ::FLJ(Rcutoff rcutoff):
-  FPairwise(rcutoff)
+  FPairwise(rcutoff),
+  splines()
 {
   std::vector<ElementID> elements1;
   elements1.push_back(H_EL);
@@ -150,6 +151,14 @@ FLJ::FLJ(Rcutoff rcutoff):
   }
 
   fillR_concat_();
+}
+
+FLJ::~FLJ()
+{
+  for(size_t i = 0; i < ECOUNT; i++)
+    for(size_t j = 0; j < ECOUNT; j++)
+      if (splines[i][j])
+        delete splines[i][j];
 }
 
 void

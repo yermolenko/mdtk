@@ -825,8 +825,11 @@ REBO::REBO(ParamSet /*parSet*/):
   funcG_H(),
   func_Tij(),
   Nts(),
+  Nts2touch(),
   NCs(),
-  NHs()
+  NCs2touch(),
+  NHs(),
+  NHs2touch()
 {
 
   func_pi_rc_CC.init(0);

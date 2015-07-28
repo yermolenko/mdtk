@@ -4,7 +4,7 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013, 2015
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -34,6 +34,9 @@ namespace mdtk
 Float
 AIREBO::operator()(AtomsArray& gl)
 {
+  cleanup_Cij();
+  fill_Cij(gl);
+
   Float Ei = 0;
   for(size_t ii = 0; ii < gl.size(); ii++)
   {
@@ -201,6 +204,7 @@ AIREBO::BijAsterix(AtomsPair& ij, const Float V)
 AIREBO::AIREBO(CREBO* crebo):
   FManybody()
   ,rebo(*crebo)
+  ,CA()
 {
   setupPotential();
 
@@ -277,128 +281,125 @@ AIREBO::setupPotential()
   PRINT("AIREBO::LJ interatomic potential configured.\n");
 }
 
+void
+AIREBO::fill_Cij(AtomsArray& gl)
+{
+  CA.resize(gl.size());
+
+  for(size_t i1 = 0; i1 < gl.size(); i1++)
+  {
+    Atom &atom1 = gl[i1];
+    if (isHandled(atom1))
+    {
+      AtomRefsContainer& nl1 = rebo.NL(atom1);
+      for(size_t i2 = 0; i2 < nl1.size(); i2++)
+      {
+        Atom &atom2 = *(nl1[i2]);
+        if (!rebo.probablyAreNeighbours(atom1,atom2)) continue;
+        CEelement& pa
+          = CA[atom1.globalIndex][atom2.globalIndex];
+        Float w = pa.first;
+        AtomsPair p1(atom1,atom2,
+                     rebo.R(0,atom1,atom2),
+                     rebo.R(1,atom1,atom2));
+        Float new_w = p1.f();
+        if (new_w > w || (w > 0.0 && new_w == w && pa.second.size() > 1))
+        {
+          for(size_t pj = 0; pj < pa.second.size(); ++pj)
+            delete pa.second[pj];
+          pa.second.clear();
+          pa.first = new_w;
+          pa.second.push_back(new AtomsPair(p1));
+        }
+        AtomRefsContainer& nl2 = rebo.NL(atom2);
+        for(size_t i3 = 0; i3 < nl2.size(); i3++)
+        {
+          Atom &atom3 = *(nl2[i3]);
+          if (!rebo.probablyAreNeighbours(atom2,atom3)) continue;
+          CEelement& pa
+            = CA[atom1.globalIndex][atom3.globalIndex];
+          Float w = pa.first;
+          AtomsPair p2(atom2,atom3,
+                       rebo.R(0,atom2,atom3),
+                       rebo.R(1,atom2,atom3));
+          Float new_w = p1.f()*p2.f();
+          if (new_w > w || (w > 0.0 && new_w == w && pa.second.size() > 2))
+          {
+            for(size_t pj = 0; pj < pa.second.size(); ++pj)
+              delete pa.second[pj];
+            pa.second.clear();
+            pa.first = new_w;
+            pa.second.push_back(new AtomsPair(p1));
+            pa.second.push_back(new AtomsPair(p2));
+          }
+          AtomRefsContainer& nl3 = rebo.NL(atom3);
+          for(size_t i4 = 0; i4 < nl3.size(); i4++)
+          {
+            Atom &atom4 = *(nl3[i4]);
+            if (!rebo.probablyAreNeighbours(atom3,atom4)) continue;
+            CEelement& pa
+              = CA[atom1.globalIndex][atom4.globalIndex];
+            Float w = pa.first;
+            AtomsPair p3(atom3,atom4,
+                         rebo.R(0,atom3,atom4),
+                         rebo.R(1,atom3,atom4));
+            Float new_w = p1.f()*p2.f()*p3.f();
+            if (new_w > w/* || (w > 0.0 && new_w == w && pa.second.size() > 3)*/)
+            {
+              for(size_t pj = 0; pj < pa.second.size(); ++pj)
+                delete pa.second[pj];
+              pa.second.clear();
+              pa.first = new_w;
+              pa.second.push_back(new AtomsPair(p1));
+              pa.second.push_back(new AtomsPair(p2));
+              pa.second.push_back(new AtomsPair(p3));
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+void
+AIREBO::cleanup_Cij()
+{
+  for(size_t i = 0; i < CA.size(); i++)
+  {
+    for(CArray::iterator ca = CA[i].begin(); ca != CA[i].end(); ++ca)
+      for(size_t pj = 0; pj < ca->second.second.size(); ++pj)
+        delete ca->second.second[pj];
+    CA[i].clear();
+  }
+}
+
 inline
 Float
 AIREBO::Cij(AtomsPair& ij, const Float V)
 {
-  std::vector<std::pair<Atom*,Vector3D> > grads_bak;
+  CArray::iterator cel
+    = CA[ij.atom1.globalIndex].find(ij.atom2.globalIndex);
 
-#define RESTORE_GRADIENTS                                       \
-  {                                                             \
-    for(size_t x = 0; x < grads_bak.size(); ++x)                \
-      grads_bak[x].first->grad = grads_bak[x].second;           \
-    grads_bak.clear();                                          \
-  }
+  Float w = 0.0;
 
-#define BACKUP_GRADIENT(ATOM)                                           \
-  {                                                                     \
-    grads_bak.push_back(std::pair<Atom*,Vector3D>(&ATOM,ATOM.grad));    \
-  }
-
-  bool found = false;
-  Float wmax = 0.0;
+  if (cel != CA[ij.atom1.globalIndex].end())
   {
-    AtomsPair ij_rebo(ij.atom1,ij.atom2,rebo.R(0,ij),rebo.R(1,ij));
-    Float new_wmax = ij_rebo.f();
-    if (new_wmax > wmax)
+    w = cel->second.first;
+
+    if (V != 0.0)
     {
-      wmax  = new_wmax;
-      if (V != 0.0)
+      for(size_t pi = 0; pi < cel->second.second.size(); ++pi)
       {
-        RESTORE_GRADIENTS;
-        BACKUP_GRADIENT(ij_rebo.atom1);
-        BACKUP_GRADIENT(ij_rebo.atom2);
-        REQUIRE(grads_bak.size()==2);
-
-        ij_rebo.f(-V);
-      }
-      if (wmax >= 1.0)
-        found = true;
-    }
-    AtomRefsContainer& nli = rebo.NL(ij_rebo.atom1);
-    for(size_t k = 0; k < nli.size() && !found; k++)
-    {
-      Atom &atom_k = *(nli[k]);
-      if (!rebo.probablyAreNeighbours(ij_rebo.atom1,atom_k)) continue;
-      if (&atom_k != &ij_rebo.atom1 && &atom_k != &ij_rebo.atom2)
-      {
-        AtomsPair ik_rebo(ij_rebo.atom1,atom_k,
-                          rebo.R(0,ij_rebo.atom1,atom_k),
-                          rebo.R(1,ij_rebo.atom1,atom_k));
-        if (rebo.probablyAreNeighbours(ij_rebo.atom2,atom_k))
-        {
-          AtomsPair kj_rebo(atom_k,ij_rebo.atom2,
-                            rebo.R(0,ij_rebo.atom2,atom_k),
-                            rebo.R(1,ij_rebo.atom2,atom_k));
-          Float new_wmax = ik_rebo.f()*kj_rebo.f();
-          if (new_wmax > wmax)
-          {
-            wmax  = new_wmax;
-            if (V != 0.0)
-            {
-              RESTORE_GRADIENTS;
-              BACKUP_GRADIENT(ik_rebo.atom1);
-              BACKUP_GRADIENT(ik_rebo.atom2);
-              BACKUP_GRADIENT(kj_rebo.atom2);
-              REQUIRE(grads_bak.size()==3);
-
-              ik_rebo.f(-kj_rebo.f()*V);
-              kj_rebo.f(-ik_rebo.f()*V);
-            }
-            if (wmax >= 1.0)
-            {
-              found = true;
-              break;
-            }
-          }
-        }
-        AtomRefsContainer& nlj = rebo.NL(ij_rebo.atom2);
-        for(size_t l = 0; l < nlj.size() && !found; l++)
-        {
-          Atom &atom_l = *(nlj[l]);
-          if (!rebo.probablyAreNeighbours(ij_rebo.atom2,atom_l)) continue;
-          if (&atom_l != &atom_k && &atom_l != &ij_rebo.atom1 && &atom_l != &ij_rebo.atom2)
-          {
-            if (rebo.probablyAreNeighbours(atom_k,atom_l))
-            {
-              AtomsPair lj_rebo(atom_l,ij_rebo.atom2,
-                                rebo.R(0,ij_rebo.atom2,atom_l),
-                                rebo.R(1,ij_rebo.atom2,atom_l));
-              AtomsPair kl_rebo(atom_k,atom_l,
-                                rebo.R(0,atom_l,atom_k),
-                                rebo.R(1,atom_l,atom_k));
-              Float new_wmax = ik_rebo.f()*kl_rebo.f()*lj_rebo.f();
-              if (new_wmax > wmax)
-              {
-                wmax  = new_wmax;
-                if (V != 0.0)
-                {
-                  RESTORE_GRADIENTS;
-                  BACKUP_GRADIENT(ik_rebo.atom1);
-                  BACKUP_GRADIENT(ik_rebo.atom2);
-                  BACKUP_GRADIENT(kl_rebo.atom2);
-                  BACKUP_GRADIENT(lj_rebo.atom2);
-                  REQUIRE(grads_bak.size()==4);
-
-                  ik_rebo.f(-kl_rebo.f()*lj_rebo.f()*V);
-                  kl_rebo.f(-ik_rebo.f()*lj_rebo.f()*V);
-                  lj_rebo.f(-ik_rebo.f()*kl_rebo.f()*V);
-                }
-                if (wmax >= 1.0)
-                {
-                  found = true;
-                  break;
-                }
-              }
-            }
-          }
-        }
+        Float m = 1.0;
+        for(size_t pj = 0; pj < cel->second.second.size(); ++pj)
+          if (pi != pj)
+            m *= (cel->second.second)[pj]->f();
+        (cel->second.second)[pi]->f(-m*V);
       }
     }
   }
-  REQUIRE(1.0-wmax >= 0);
 
-  return 1.0-wmax;
+  return 1 - w;
 }
 
 }

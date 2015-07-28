@@ -4,8 +4,8 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2015
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -28,6 +28,7 @@
 
 #include <cstdlib>
 #include <cctype>
+#include <map>
 
 #include <mdtk/potentials/manybody/FManybody.hpp>
 #include <mdtk/potentials/manybody/AIREBO/REBO.hpp>
@@ -70,6 +71,11 @@ class AIREBO : public FManybody
 
   Float Vtors(AtomsPair& ij, AtomsPair& ik, AtomsPair& jl, const Float V = 0.0);
 
+  typedef std::pair<Float,std::vector<AtomsPair*> > CEelement;
+  typedef std::map<size_t, CEelement> CArray;
+  std::vector<CArray> CA;
+  void  fill_Cij(AtomsArray& gl);
+  void  cleanup_Cij();
   Float Cij(AtomsPair& ij, const Float V = 0.0);
 
   Float BijAsterix(AtomsPair& ij, const Float V = 0.0);

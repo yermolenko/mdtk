@@ -4,8 +4,8 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2015 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -101,6 +101,19 @@ FuncG_H::init()
                          x[i+1],y[i+1],dy[i+1],d2y[i+1]);
 }  
 
+void
+FuncP_CC::fill_intarg()
+{
+  int h,c;
+  for(h = 0; h < 4; h++)
+    for(c = 0; c < 4; c++)
+      {
+        intarg[h][c] = spline[h][c].operator()(h,c);
+        dH_intarg[h][c] = spline[h][c].dx(h,c);
+        dC_intarg[h][c] = spline[h][c].dy(h,c);
+      }
+}
+
 FuncP_CC::FuncP_CC(int paramSet)
 {
   Float HCC[5][5];
@@ -165,7 +178,22 @@ FuncP_CC::FuncP_CC(int paramSet)
 
       spline[i][j] = Spline2D(x,y,z,dzdx,dzdy);
     }  
+
+  fill_intarg();
 }  
+
+void
+FuncP_CH::fill_intarg()
+{
+  int h,c;
+  for(h = 0; h < 4; h++)
+    for(c = 0; c < 4; c++)
+      {
+        intarg[h][c] = spline[h][c].operator()(h,c);
+        dH_intarg[h][c] = spline[h][c].dx(h,c);
+        dC_intarg[h][c] = spline[h][c].dy(h,c);
+      }
+}
 
 FuncP_CH::FuncP_CH(int paramSet)
 {
@@ -257,6 +285,8 @@ FuncP_CH::FuncP_CH(int paramSet)
 
       spline[i][j] = Spline2D(x,y,z,dzdx,dzdy);
     }  
+
+  fill_intarg();
 }  
 
 #define FCCfillUp(iBase, jBase, kBase, i_size, j_size, k_size) \
@@ -361,6 +391,20 @@ FuncP_CH::FuncP_CH(int paramSet)
     }  \\
 
 
+void
+Func_pi_rc::fill_intarg()
+{
+  int i,j,k;
+  for(i = 0; i < i_size_pi_rc; i++)
+    for(j = 0; j < j_size_pi_rc; j++)
+      for(k = 0; k < k_size_pi_rc; k++)
+      {
+        intarg[i][j][k] = spline[i][j][k].operator()(i,j,k);
+        di_intarg[i][j][k] = spline[i][j][k].dx(i,j,k);
+        dj_intarg[i][j][k] = spline[i][j][k].dy(i,j,k);
+        dk_intarg[i][j][k] = spline[i][j][k].dz(i,j,k);
+      }
+}
 
 void  
 Func_pi_rc_CC::init(int paramSet)
@@ -415,6 +459,7 @@ pi_rc_c0_COMMON_INC;
 
 pi_rc_c1_COMMON_INC;
 
+fill_intarg();
 }    
   
 
@@ -447,6 +492,7 @@ pi_rc_c0_COMMON_INC;
 
 pi_rc_c1_COMMON_INC;
 
+fill_intarg();
 }    
   
 void  
@@ -465,6 +511,7 @@ pi_rc_c0_COMMON_INC;
 
 pi_rc_c1_COMMON_INC;
 
+fill_intarg();
 }    
   
 
@@ -485,6 +532,7 @@ pi_rc_c0_COMMON_INC;
 
 pi_rc_c1_COMMON_INC
 
+fill_intarg();
 }    
 
 }

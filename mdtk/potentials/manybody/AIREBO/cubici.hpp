@@ -4,8 +4,8 @@
    See [S.J. Stuart, A.B. Tutein and J.A. Harrison,
    J. Chem. Phys. 112, 6472 (2000)]
 
-   Copyright (C) 2005, 2006, 2007, 2008, 2009 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2015 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -112,6 +112,10 @@ FuncG::dCosT(Float CosT) const
 class FuncP_CC
 {
   Spline2D spline[4][4];
+  Float intarg[4][4];
+  Float dH_intarg[4][4];
+  Float dC_intarg[4][4];
+  void fill_intarg();
 public:
   FuncP_CC(int paramSet = 0);
   virtual ~FuncP_CC(){};
@@ -123,6 +127,10 @@ public:
 class FuncP_CH
 {
   Spline2D spline[4][4];
+  Float intarg[4][4];
+  Float dH_intarg[4][4];
+  Float dC_intarg[4][4];
+  void fill_intarg();
 public:
   FuncP_CH(int paramSet = 0);
   virtual ~FuncP_CH(){};
@@ -138,6 +146,11 @@ protected:
 #define j_size_pi_rc 5
 #define k_size_pi_rc 16
   Spline3D spline[i_size_pi_rc][j_size_pi_rc][k_size_pi_rc];
+  Float intarg[i_size_pi_rc][j_size_pi_rc][k_size_pi_rc];
+  Float di_intarg[i_size_pi_rc][j_size_pi_rc][k_size_pi_rc];
+  Float dj_intarg[i_size_pi_rc][j_size_pi_rc][k_size_pi_rc];
+  Float dk_intarg[i_size_pi_rc][j_size_pi_rc][k_size_pi_rc];
+  void fill_intarg();
 public:
   Func_pi_rc()
   {
@@ -148,10 +161,6 @@ public:
   Float di(Float i, Float j, Float k) const;  
   Float dj(Float i, Float j, Float k) const;  
   Float dk(Float i, Float j, Float k) const;  
-
-  Float di_num(Float i, Float j, Float k) const;  
-  Float dj_num(Float i, Float j, Float k) const;  
-  Float dk_num(Float i, Float j, Float k) const;  
 };
 
 class Func_pi_rc_CC : public Func_pi_rc
@@ -201,7 +210,13 @@ FuncP_CC::operator()(Float h, Float c) const
 {
   REQUIREM(h>=0 && c>=0,"H: h>=0 && c>=0");
   if (h>=4 || c>=4) return 0.0;
-  return spline[int(h)][int(c)].operator()(h,c);
+
+  int h_int = int(h);
+  int c_int = int(c);
+  if (Float(h_int) == h && Float(c_int) == c)
+    return intarg[h_int][c_int];
+
+  return spline[h_int][c_int].operator()(h,c);
 }
     
 inline
@@ -210,7 +225,13 @@ FuncP_CC::dH(Float h, Float c) const
 {
   REQUIREM(h>=0 && c>=0,"H: h>=0 && c>=0");
   if (h>=4 || c>=4) return 0.0;
-  return spline[int(h)][int(c)].dx(h,c);
+
+  int h_int = int(h);
+  int c_int = int(c);
+  if (Float(h_int) == h && Float(c_int) == c)
+    return dH_intarg[h_int][c_int];
+
+  return spline[h_int][c_int].dx(h,c);
 }
     
 inline
@@ -219,7 +240,13 @@ FuncP_CC::dC(Float h, Float c) const
 {
   REQUIREM(h>=0 && c>=0,"H: h>=0 && c>=0");
   if (h>=4 || c>=4) return 0.0;
-  return spline[int(h)][int(c)].dy(h,c);
+
+  int h_int = int(h);
+  int c_int = int(c);
+  if (Float(h_int) == h && Float(c_int) == c)
+    return dC_intarg[h_int][c_int];
+
+  return spline[h_int][c_int].dy(h,c);
 }
 
 
@@ -229,7 +256,13 @@ FuncP_CH::operator()(Float h, Float c) const
 {
   REQUIREM(h>=0 && c>=0,"H: h>=0 && c>=0");
   if (h>=4 || c>=4) return 0.0;
-  return spline[int(h)][int(c)].operator()(h,c);
+
+  int h_int = int(h);
+  int c_int = int(c);
+  if (Float(h_int) == h && Float(c_int) == c)
+    return intarg[h_int][c_int];
+
+  return spline[h_int][c_int].operator()(h,c);
 }
 
     
@@ -239,7 +272,13 @@ FuncP_CH::dH(Float h, Float c) const
 {
   REQUIREM(h>=0 && c>=0,"H: h>=0 && c>=0");
   if (h>=4 || c>=4) return 0.0;
-  return spline[int(h)][int(c)].dx(h,c);
+
+  int h_int = int(h);
+  int c_int = int(c);
+  if (Float(h_int) == h && Float(c_int) == c)
+    return dH_intarg[h_int][c_int];
+
+  return spline[h_int][c_int].dx(h,c);
 }
 
     
@@ -249,7 +288,13 @@ FuncP_CH::dC(Float h, Float c) const
 {
   REQUIREM(h>=0 && c>=0,"H: h>=0 && c>=0");
   if (h>=4 || c>=4) return 0.0;
-  return spline[int(h)][int(c)].dy(h,c);
+
+  int h_int = int(h);
+  int c_int = int(c);
+  if (Float(h_int) == h && Float(c_int) == c)
+    return dC_intarg[h_int][c_int];
+
+  return spline[h_int][c_int].dy(h,c);
 }
 
 
@@ -260,7 +305,14 @@ Func_pi_rc::operator()(Float i, Float j, Float k) const
   REQUIREM(i>=0 && j>=0 && k>=1,"F: i>=0 && j>=0 && k>=1");
   if (i>=i_size_pi_rc-1 || j>=j_size_pi_rc-1) return 0.0;
   if (k > (k_size_pi_rc-1)) k = (k_size_pi_rc-1);
-  return spline[int(i)][int(j)][int(k)].operator()(i,j,k);
+
+  int i_int = int(i);
+  int j_int = int(j);
+  int k_int = int(k);
+  if (Float(i_int) == i && Float(j_int) == j && Float(k_int) == k)
+    return intarg[i_int][j_int][k_int];
+
+  return spline[i_int][j_int][k_int].operator()(i,j,k);
 }
 
 inline
@@ -270,7 +322,14 @@ Func_pi_rc::di(Float i, Float j, Float k) const
   REQUIREM(i>=0 && j>=0 && k>=1,"F: i>=0 && j>=0 && k>=1");
   if (i>=i_size_pi_rc-1 || j>=j_size_pi_rc-1) return 0.0;
   if (k > (k_size_pi_rc-1)) k = (k_size_pi_rc-1);
-  return spline[int(i)][int(j)][int(k)].dx(i,j,k);
+
+  int i_int = int(i);
+  int j_int = int(j);
+  int k_int = int(k);
+  if (Float(i_int) == i && Float(j_int) == j && Float(k_int) == k)
+    return di_intarg[i_int][j_int][k_int];
+
+  return spline[i_int][j_int][k_int].dx(i,j,k);
 }
 
 
@@ -281,7 +340,14 @@ Func_pi_rc::dj(Float i, Float j, Float k) const
   REQUIREM(i>=0 && j>=0 && k>=1,"F: i>=0 && j>=0 && k>=1");
   if (i>=i_size_pi_rc-1 || j>=j_size_pi_rc-1) return 0.0;
   if (k > (k_size_pi_rc-1)) k = (k_size_pi_rc-1);
-  return spline[int(i)][int(j)][int(k)].dy(i,j,k);
+
+  int i_int = int(i);
+  int j_int = int(j);
+  int k_int = int(k);
+  if (Float(i_int) == i && Float(j_int) == j && Float(k_int) == k)
+    return dj_intarg[i_int][j_int][k_int];
+
+  return spline[i_int][j_int][k_int].dy(i,j,k);
 }
 
 
@@ -292,7 +358,14 @@ Func_pi_rc::dk(Float i, Float j, Float k) const
   REQUIREM(i>=0 && j>=0 && k>=1,"F: i>=0 && j>=0 && k>=1");
   if (i>=i_size_pi_rc-1 || j>=j_size_pi_rc-1) return 0.0;
   if (k > (k_size_pi_rc-1)) k = (k_size_pi_rc-1);
-  return spline[int(i)][int(j)][int(k)].dz(i,j,k);
+
+  int i_int = int(i);
+  int j_int = int(j);
+  int k_int = int(k);
+  if (Float(i_int) == i && Float(j_int) == j && Float(k_int) == k)
+    return dk_intarg[i_int][j_int][k_int];
+
+  return spline[i_int][j_int][k_int].dz(i,j,k);
 }
 
 }
