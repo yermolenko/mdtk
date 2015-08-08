@@ -228,7 +228,8 @@ public:
       TRACE(trajData[i].trajDir);
   }
   StatPostProcess()
-   :trajData(),
+   :testProcessClassicMolecule(&ProcessAll),
+    trajData(),
     SPOTTED_DISTANCE(-5.0*mdtk::Ao),
     id()
   {
