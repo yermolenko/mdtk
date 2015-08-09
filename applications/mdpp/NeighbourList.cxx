@@ -32,26 +32,36 @@ namespace mdepp
   {
     REQUIRE(Rc > 0.0);
     Float Rc_squared = SQR(Rc);
-    size_t i,j,N;
-    N = atoms.size();
-    for(i = 0; i < N; ++i)
+    size_t N = atoms.size();
+    for(size_t i = 0; i < N; ++i)
+    {
+      nl[i].clear();
+      nl[i].reserve(50);
+    }
+    for(size_t i = 0; i < N; ++i)
     {
       mdtk::Atom& atom_i = atoms[i];
       if (
-	atom_i.coords.z > 3.615*mdtk::Ao
-	&& !(atom_i.hasTag(ATOMTAG_FULLERENE))
-	&& !(atom_i.hasTag(ATOMTAG_CLUSTER))
-	) continue;
-      mdtk::AtomRefsContainer& nl_ = nl[i];
-    
-      nl_.clear();
-      nl_.reserve(50);
+        atom_i.coords.z > 3.615*mdtk::Ao
+        && !(atom_i.hasTag(ATOMTAG_FULLERENE))
+        && !(atom_i.hasTag(ATOMTAG_CLUSTER))
+        ) continue;
 
-      for(j = 0; j < N; ++j)
+      for(size_t j = i+1; j < N; ++j)
       {
-	mdtk::Atom& atom_j = atoms[j];
-	if (j != i && depos(atom_i,atom_j).module_squared() < Rc_squared)
-          nl_.push_back(&atom_j);
+        mdtk::Atom& atom_j = atoms[j];
+        if (
+          atom_j.coords.z > 3.615*mdtk::Ao
+          && !(atom_j.hasTag(ATOMTAG_FULLERENE))
+          && !(atom_j.hasTag(ATOMTAG_CLUSTER))
+          ) continue;
+
+        Float dij_squared = depos(atom_i,atom_j).module_squared();
+        if (dij_squared < Rc_squared)
+        {
+          nl[i].push_back(&atom_j);
+          nl[j].push_back(&atom_i);
+        }
       }
     }
   }
