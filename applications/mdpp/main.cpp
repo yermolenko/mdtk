@@ -1,7 +1,7 @@
 /* 
    mdpp (molecular dynamics postprocessor)
 
-   Copyright (C) 2010, 2011 Oleksandr Yermolenko
+   Copyright (C) 2010, 2011, 2015 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -55,6 +55,8 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
 
 try
 {
+  TRACE(mdtk::buildID);
+
   std::vector<mdepp::BatchPostProcess> bpps;
   bpps.resize(4);
 
