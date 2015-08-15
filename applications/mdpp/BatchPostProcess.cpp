@@ -374,6 +374,25 @@ BatchPostProcess::printResults() const
       TRACE("--------------------");
     }
   }
+
+  {
+    std::ofstream trajdb("trajdb.txt");
+
+    for(size_t i = 0; i < pps.size(); ++i)
+    {
+      const mdepp::StatPostProcess& pp = pps[i];
+
+      for(size_t trajIndex = 0; trajIndex < pp.trajData.size(); trajIndex++)
+      {
+        const mdepp::StatPostProcess::TrajData& td = pp.trajData[trajIndex];
+        trajdb << td.trajDir << "\t"
+               << pp.getYield(trajIndex, mdepp::StatPostProcess::ProcessCluster) << "\t"
+               << pp.getYieldNormalizedByClusterSize(trajIndex, mdepp::StatPostProcess::ProcessCluster) << "\t"
+               << pp.getYieldFragmentsCount(trajIndex, mdepp::StatPostProcess::ProcessCluster) << "\t"
+               << pp.getYieldFragmentsCountNormalizedByClusterSize(trajIndex, mdepp::StatPostProcess::ProcessCluster) << "\n";
+      }
+    }
+  }
 }
 
 void
