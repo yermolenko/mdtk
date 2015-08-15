@@ -823,13 +823,19 @@ StatPostProcess::getYield(size_t trajIndex, FProcessClassicMolecule fpm) const
 }
 
 Float
-StatPostProcess::getAverageYield( FProcessClassicMolecule fpm) const
+StatPostProcess::getYieldAverage( FProcessClassicMolecule fpm) const
 {
   return Float(getYieldSum(fpm))/trajData.size();
 }
 
 Float
-StatPostProcess::getAverageYieldProgress( FProcessClassicMolecule fpm) const
+StatPostProcess::getYieldNormalizedByClusterSize(size_t trajIndex, FProcessClassicMolecule fpm) const
+{
+  return Float(getYield(trajIndex,fpm))/id.clusterSize;
+}
+
+Float
+StatPostProcess::getYieldAverageProgress( FProcessClassicMolecule fpm) const
 {
   char ofilename[1024];
   sprintf(ofilename,"average_Yield.dat");
@@ -849,6 +855,26 @@ StatPostProcess::getAverageYieldProgress( FProcessClassicMolecule fpm) const
   }
   fo.close();
   return avg/i;
+}
+
+int
+StatPostProcess::getYieldFragmentsCount(size_t trajIndex, FProcessClassicMolecule fpm) const
+{
+  int spotted = 0;
+  const TrajData& td = trajData[trajIndex];
+  for(size_t mi = 0; mi < td.molecules.size(); mi++)
+  {
+    const ClassicMolecule& mol = td.molecules[mi];
+    if (!fpm(mol)) continue;
+    spotted++;
+  }
+  return spotted;
+}
+
+Float
+StatPostProcess::getYieldFragmentsCountNormalizedByClusterSize(size_t trajIndex, FProcessClassicMolecule fpm) const
+{
+  return Float(getYieldFragmentsCount(trajIndex,fpm))/id.clusterSize;
 }
 
 Float

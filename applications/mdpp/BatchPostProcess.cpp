@@ -1,8 +1,8 @@
 /* 
    Molecular dynamics postprocessor, BatchPostProcess  class
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2014 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2014, 2015
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -175,11 +175,11 @@ BatchPostProcess::printResults() const
     TRACE(pp.getYieldSum(mdepp::StatPostProcess::ProcessSubstrate));
     TRACE(pp.getYieldSum(mdepp::StatPostProcess::ProcessAll));
 
-    TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessFullerene));
-    TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessCluster));
-    TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessProjectile));
-    TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessSubstrate));
-    TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessAll));
+    TRACE(pp.getYieldAverage(mdepp::StatPostProcess::ProcessFullerene));
+    TRACE(pp.getYieldAverage(mdepp::StatPostProcess::ProcessCluster));
+    TRACE(pp.getYieldAverage(mdepp::StatPostProcess::ProcessProjectile));
+    TRACE(pp.getYieldAverage(mdepp::StatPostProcess::ProcessSubstrate));
+    TRACE(pp.getYieldAverage(mdepp::StatPostProcess::ProcessAll));
 
     pp.printClassicMoleculesTotal();
 
@@ -366,10 +366,10 @@ BatchPostProcess::printResults() const
 
       TRACE(pp.trajData.size());
 
-      TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessCluster));
-      TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessProjectile));
-      TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessSubstrate));
-      TRACE(pp.getAverageYield(mdepp::StatPostProcess::ProcessAll));
+      TRACE(pp.getYieldAverage(mdepp::StatPostProcess::ProcessCluster));
+      TRACE(pp.getYieldAverage(mdepp::StatPostProcess::ProcessProjectile));
+      TRACE(pp.getYieldAverage(mdepp::StatPostProcess::ProcessSubstrate));
+      TRACE(pp.getYieldAverage(mdepp::StatPostProcess::ProcessAll));
 
       TRACE("--------------------");
     }
@@ -456,7 +456,7 @@ plot \\\n\
         continue;
     }
 
-    data << pp.id.ionEnergy << " " << pp.getAverageYield(fpm) << "\n";
+    data << pp.id.ionEnergy << " " << pp.getYieldAverage(fpm) << "\n";
 
     if (i%3 == 2)
     {

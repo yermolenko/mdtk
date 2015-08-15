@@ -239,14 +239,31 @@ public:
   int   getAboveSpottedHeight(mdtk::SimLoop&) const; 
 
   int   getYield(size_t trajIndex, FProcessClassicMolecule fpm) const;
+  Float getYieldNormalizedByClusterSize(size_t trajIndex, FProcessClassicMolecule fpm) const;
   int   getYieldSum( FProcessClassicMolecule fpm) const;
+  // int   getYieldMax( FProcessClassicMolecule fpm) const;
+  Float getYieldAverage( FProcessClassicMolecule fpm) const;
+  Float getYieldAverageProgress( FProcessClassicMolecule fpm) const;
+
+  // Float getYieldMass(size_t trajIndex, FProcessClassicMolecule fpm) const;
+  // Float getYieldMassSum( FProcessClassicMolecule fpm) const;
+  // Float getYieldMassMax( FProcessClassicMolecule fpm) const;
+  // Float getYieldMassAverage( FProcessClassicMolecule fpm) const;
+
+  int   getYieldFragmentsCount(size_t trajIndex, FProcessClassicMolecule fpm) const;
+  Float getYieldFragmentsCountNormalizedByClusterSize(size_t trajIndex, FProcessClassicMolecule fpm) const;
+  // int   getYieldFragmentsCountSum( FProcessClassicMolecule fpm) const;
+  // int   getYieldFragmentsCountMax( FProcessClassicMolecule fpm) const;
+  // Float getYieldFragmentsCountAverage( FProcessClassicMolecule fpm) const;
+
+  // int   getFragmentsCount(size_t trajIndex, FProcessClassicMolecule fpm) const;
+  // int   getFragmentsCountSum( FProcessClassicMolecule fpm) const;
+  // int   getFragmentsCountMax( FProcessClassicMolecule fpm) const;
+  // Float getFragmentsCountAverage( FProcessClassicMolecule fpm) const;
 
   Float   getEnergyOfSputtered(size_t trajIndex, FProcessClassicMolecule fpm) const;
   Float   getTotalEnergyOfSputtered( FProcessClassicMolecule fpm) const;
   Float   getAverageEnergyOfSputtered( FProcessClassicMolecule fpm) const;
-
-  Float getAverageYield( FProcessClassicMolecule fpm) const;
-  Float getAverageYieldProgress( FProcessClassicMolecule fpm) const;
 
   enum StateType{STATE_FINAL,STATE_INIT,STATE_INTER};
 
