@@ -193,14 +193,13 @@ BatchPostProcess::printResults() const
 
 //    pp.spottedByDepth();
 
-    pp.buildMassSpectrum();
+    // pp.buildMassSpectrum();
 
 #define MDPP_PROCESS_ONLY(FPM) \
     {\
       std::string s = "Process"#FPM;\
       yaatk::mkdir(s.c_str());\
       yaatk::chdir(s.c_str());\
-      pp.buildMassSpectrum(mdepp::StatPostProcess::Process##FPM);\
       pp.buildAngular(mdepp::StatPostProcess::Process##FPM); \
       yaatk::chdir("..");\
     }
