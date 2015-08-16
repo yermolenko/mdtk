@@ -2,7 +2,8 @@
    The VisBox class for the molecular dynamics trajectory viewer
 
    Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
-   2012, 2013 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   2012, 2013, 2015 Oleksandr Yermolenko
+   <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -670,7 +671,7 @@ VisBox::listVertexes()
       }
     }
     myglColor(c);
-    if (R[i].isFixed()) myglColor(0x0);
+    if (R[i].isFixed() && showBathSketch) myglColor(0x0);
 
     if (atomsQuality > 2)
     {
