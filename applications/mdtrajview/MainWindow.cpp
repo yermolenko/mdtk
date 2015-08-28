@@ -2,7 +2,8 @@
    The MainWindow class for the molecular dynamics trajectory viewer.
 
    Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
-   2012, 2013 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   2012, 2013, 2015 Oleksandr Yermolenko
+   <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -920,7 +921,21 @@ MainWindow::btn_quick_save_image_cb(Fl_Widget *w, void *)
   {
     std::string trajdir = yaatk::getcwd();
     yaatk::chdir(tmp_filename);
-    yaatk::mkdir("video");
+
+    char videoDirName[1024];
+    bool videoDirExists = true;
+    int videoDirIndex = 0;
+    while (videoDirExists)
+    {
+      sprintf(videoDirName,"video%02d",videoDirIndex);
+      if (fl_filename_isdir(videoDirName))
+        videoDirIndex++;
+      else
+        videoDirExists = false;
+      REQUIRE(videoDirIndex < 100);
+    }
+
+    yaatk::mkdir(videoDirName);
     yaatk::chdir(trajdir.c_str());
     for(size_t i = 0; i < MainWindow_Ptr->stateList.size()/*-1*/; i++)
     {
@@ -928,7 +943,7 @@ MainWindow::btn_quick_save_image_cb(Fl_Widget *w, void *)
       MainWindow_Ptr->current_stateindex->value(i);
       current_stateindex_cb(MainWindow_Ptr->current_stateindex,NULL);
       yaatk::chdir(tmp_filename);
-      yaatk::chdir("video");
+      yaatk::chdir(videoDirName);
       while (!Fl::ready()) {};
       Fl::flush();
       while (!Fl::ready()) {};
