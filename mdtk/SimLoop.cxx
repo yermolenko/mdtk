@@ -1103,7 +1103,7 @@ SimLoop::loadstate()
     REQUIRE(fo1!=0);
     fo1.close();
   }
-  catch(mdtk::Exception& e)
+  catch(Exception& e)
   {
     std::cerr << "simloop.conf is corrupted. Trying simloop.conf.bak" << std::endl;
     yaatk::binary_ifstream fo1bak("simloop.conf.bak");

@@ -1,8 +1,8 @@
 /*
    Custom exception classes header file.
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2013, 2015
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -24,38 +24,6 @@
 #define	mdtk_Exception_hpp
 
 #include <string>
-
-namespace mdtk
-{
-
-class Exception
-{
-  std::string _msg;
-public:
-  Exception() : _msg("Unknown MDTK exception") { }
-  Exception(const char* msg) : _msg(msg) { }
-  Exception(std::string msg) : _msg(msg) { }
-  const char* what() const
-  {
-    return _msg.c_str();
-  }
-}; 
-
-}
-
-class MPI_Exception
-{
-  std::string _msg;
-public:
-  MPI_Exception() : _msg("Unknown internal MPI exception") { }
-  MPI_Exception(const char* msg) : _msg(msg) { }
-  MPI_Exception(std::string msg) : _msg(msg) { }
-  MPI_Exception(int errorCode) : _msg("Error Code ") { _msg += errorCode; }
-  const char* what() const
-  {
-    return _msg.c_str();
-  }
-}; 
 
 #endif
 

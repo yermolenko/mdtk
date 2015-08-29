@@ -4,20 +4,20 @@
    Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012, 2013
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
-   This file is part of MDTK, the Molecular Dynamics Toolkit.
+   This file is part of YAATK, Yet another auxiliary toolkit.
 
-   MDTK is free software: you can redistribute it and/or modify
+   YAATK is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
-   MDTK is distributed in the hope that it will be useful,
+   YAATK is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
+   along with YAATK.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef yaatk_hpp
@@ -27,8 +27,8 @@
 #include <fstream>
 #include <iomanip>
 #include <vector>
-#include <mdtk/Exception.hpp>
-#include <mdtk/config.hpp>
+#include <yaatk/Exception.hpp>
+#include <yaatk/config.hpp>
 
 #include <cstdio>
 
@@ -91,7 +91,7 @@ namespace yaatk
   { \
     std::cerr << __FILE__ << "(" << __LINE__ << "): "  \
               << (msg) << std::endl << std::flush;     \
-    throw mdtk::Exception(msg); \
+    throw yaatk::Exception(msg);                       \
   }  \
 }
 
@@ -102,7 +102,7 @@ namespace yaatk
     std::cerr << __FILE__ << "(" << __LINE__ << "): "      \
               << "Assertion "  << (#cond) << " FAILED !!!" \
               << std::endl << std::flush;                  \
-    throw mdtk::Exception((#cond)); \
+    throw yaatk::Exception((#cond));                       \
   }  \
 }
 
@@ -110,7 +110,7 @@ namespace yaatk
 { \
   if (!(cond)) \
   { \
-    throw mdtk::Exception((#cond)); \
+    throw yaatk::Exception((#cond));            \
   }  \
 }
 
@@ -121,20 +121,20 @@ namespace yaatk
 #define FTRACE(x) { std::cout << #x << " : " << (x) << std::endl; }
 #define FETRACE(x) { std::cerr << #x << " : " << (x) << std::endl; }
 
-#ifdef MDTK_PARALLEL
-#define PRINT(x) { if (mdtk::verboseTrace && mdtk::mpi_comm_rank==0) std::cout << x << std::flush; }
-#define EPRINT(x) { if (mdtk::verboseTrace && mdtk::mpi_comm_rank==0) std::cerr << x << std::flush; }
-#define TRACE(x) { if (mdtk::verboseTrace && mdtk::mpi_comm_rank==0) std::cout << #x << " : " << (x) << std::endl; }
-#define ETRACE(x) { if (mdtk::verboseTrace && mdtk::mpi_comm_rank==0) std::cerr << #x << " : " << (x) << std::endl; }
-#define VPRINT(x) { if (mdtk::mpi_comm_rank==0) std::cout << x << std::flush; }
-#define VEPRINT(x) { if (mdtk::mpi_comm_rank==0) std::cerr << x << std::flush; }
-#define VTRACE(x) { if (mdtk::mpi_comm_rank==0) std::cout << #x << " : " << (x) << std::endl; }
-#define VETRACE(x) { if (mdtk::mpi_comm_rank==0) std::cerr << #x << " : " << (x) << std::endl; }
+#ifdef YAATK_PARALLEL
+#define PRINT(x) { if (yaatk::verboseTrace && yaatk::mpi_comm_rank==0) std::cout << x << std::flush; }
+#define EPRINT(x) { if (yaatk::verboseTrace && yaatk::mpi_comm_rank==0) std::cerr << x << std::flush; }
+#define TRACE(x) { if (yaatk::verboseTrace && yaatk::mpi_comm_rank==0) std::cout << #x << " : " << (x) << std::endl; }
+#define ETRACE(x) { if (yaatk::verboseTrace && yaatk::mpi_comm_rank==0) std::cerr << #x << " : " << (x) << std::endl; }
+#define VPRINT(x) { if (yaatk::mpi_comm_rank==0) std::cout << x << std::flush; }
+#define VEPRINT(x) { if (yaatk::mpi_comm_rank==0) std::cerr << x << std::flush; }
+#define VTRACE(x) { if (yaatk::mpi_comm_rank==0) std::cout << #x << " : " << (x) << std::endl; }
+#define VETRACE(x) { if (yaatk::mpi_comm_rank==0) std::cerr << #x << " : " << (x) << std::endl; }
 #else
-#define PRINT(x) { if (mdtk::verboseTrace) std::cout << x << std::flush; }
-#define EPRINT(x) { if (mdtk::verboseTrace) std::cerr << x << std::flush; }
-#define TRACE(x) { if (mdtk::verboseTrace) std::cout << #x << " : " << (x) << std::endl; }
-#define ETRACE(x) { if (mdtk::verboseTrace) std::cerr << #x << " : " << (x) << std::endl; }
+#define PRINT(x) { if (yaatk::verboseTrace) std::cout << x << std::flush; }
+#define EPRINT(x) { if (yaatk::verboseTrace) std::cerr << x << std::flush; }
+#define TRACE(x) { if (yaatk::verboseTrace) std::cout << #x << " : " << (x) << std::endl; }
+#define ETRACE(x) { if (yaatk::verboseTrace) std::cerr << #x << " : " << (x) << std::endl; }
 #define VPRINT(x) { std::cout << x << std::flush; }
 #define VEPRINT(x) { std::cerr << x << std::flush; }
 #define VTRACE(x) { std::cout << #x << " : " << (x) << std::endl; }
@@ -161,7 +161,7 @@ namespace yaatk
 #define YAATK_FSTREAM_READ(FSTREAM_INST,VAR_INST,SMODE) \
   {                                                                     \
   if (SMODE == YAATK_FSTREAM_TEXT) {FSTREAM_INST >> VAR_INST;} else YAATK_BIN_READ (FSTREAM_INST, VAR_INST); \
-  if (FSTREAM_INST.fail()) throw mdtk::Exception("Error in reading variable "#VAR_INST); \
+  if (FSTREAM_INST.fail()) throw yaatk::Exception("Error in reading variable "#VAR_INST); \
   }
 
 inline
