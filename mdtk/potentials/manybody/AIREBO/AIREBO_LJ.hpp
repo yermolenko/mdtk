@@ -83,6 +83,7 @@ public:
   virtual Float operator()(AtomsArray& nl);
 
   AIREBO(CREBO* crebo);
+  virtual ~AIREBO();
 //  virtual
   Float getRcutoff() const {return      max3(R_[C][C][1],R_[C][H][1],R_[H][H][1]);}
   bool probablyAreNeighbours(const Atom& atom1, const Atom& atom2) const
