@@ -211,6 +211,11 @@ AIREBO::AIREBO(CREBO* crebo):
   nl.Rcutoff = getRcutoff();
 }
 
+AIREBO::~AIREBO()
+{
+  cleanup_Cij();
+}
+
 void
 AIREBO::setupPotential()
 {
