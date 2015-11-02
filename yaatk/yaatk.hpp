@@ -1,7 +1,7 @@
 /*
    Yet another auxiliary toolkit (header file).
 
-   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012, 2013
+   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012, 2013, 2015
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of YAATK, Yet another auxiliary toolkit.
@@ -251,8 +251,14 @@ listFilesAndDirectories(std::string dir)
   {
     int zipMe();
     int unZipMe();
-    int zipMe_internal();
-    int unZipMe_internal();
+#ifdef YAATK_ENABLE_ZLIB
+    int zipMe_gzip_internal();
+    int unZipMe_gzip_internal();
+#endif
+#ifdef YAATK_ENABLE_LIBLZMA
+    int zipMe_xz_internal();
+    int unZipMe_xz_internal();
+#endif
     std::string filename;
     bool output;
     bool opened;
@@ -264,10 +270,11 @@ listFilesAndDirectories(std::string dir)
       std::string extension;
       ZipInvokeInfo(std::string c, std::string e)
 	:command(c),extension(e){}
-      bool works();
+      bool works() const;
     };
     static std::vector<ZipInvokeInfo> zipInvokeInfoList;
     static std::vector<ZipInvokeInfo> initZipInvokeInfoList();
+    static ZipInvokeInfo chooseZipMethod();
     std::string getZippedExt();
     std::string getFileName() {return filename;}
     void guessZipTypeByExtension();
@@ -357,8 +364,10 @@ std::string extractDir(std::string trajNameFinal);
 std::string extractLastItem(std::string trajNameFinal);
 std::string extractItemFromEnd(std::string trajNameFinal, int fromEnd = 0);
 
+#ifdef YAATK_ENABLE_ZLIB
 bool
 isIdentical(const std::string& file1,const std::string& file2);
+#endif
 
 struct StreamToFileRedirect
 {

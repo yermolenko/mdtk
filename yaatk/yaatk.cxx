@@ -1,7 +1,7 @@
 /*
    Yet another auxiliary toolkit.
 
-   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012, 2013
+   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012, 2013, 2015
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of YAATK, Yet another auxiliary toolkit.
@@ -23,7 +23,14 @@
 #include <yaatk/yaatk.hpp>
 #include <yaatk/Exception.hpp>
 
+#ifdef YAATK_ENABLE_ZLIB
 #include <zlib.h>
+#endif
+
+#ifdef YAATK_ENABLE_LIBLZMA
+#include <lzma.h>
+#endif
+
 #include <cstring>
 
 #include <sstream>
@@ -39,18 +46,26 @@ namespace yaatk
 {
 #define MDTK_GZ_BUFFER_SIZE 10000
 
-Stream::ZipInvokeInfo Stream::zipInvokeInfoGlobal =
-  ZipInvokeInfo("xz",".xz").works()?
-  ZipInvokeInfo("xz",".xz"):
-  ZipInvokeInfo("gzip_internal",".gz");
+Stream::ZipInvokeInfo Stream::zipInvokeInfoGlobal = chooseZipMethod();
 
 std::vector<Stream::ZipInvokeInfo> Stream::zipInvokeInfoList = Stream::initZipInvokeInfoList();
 
 bool
-Stream::ZipInvokeInfo::works()
+Stream::ZipInvokeInfo::works() const
 {
-  if (command == "gzip_internal")
-    return true;
+  if (command.find("_internal") != std::string::npos)
+  {
+#ifdef YAATK_ENABLE_ZLIB
+    if (command.find("gzip_internal") != std::string::npos)
+      return true;
+#endif
+#ifdef YAATK_ENABLE_LIBLZMA
+    if (command.find("xz_internal") != std::string::npos)
+      return true;
+#endif
+
+    return false;
+  }
 
   bool itWorks = true;
 
@@ -91,11 +106,31 @@ std::vector<Stream::ZipInvokeInfo>
 Stream::initZipInvokeInfoList()
 {
   std::vector<ZipInvokeInfo> v;
-  v.push_back(ZipInvokeInfo("gzip_internal",".gz"));
-  v.push_back(ZipInvokeInfo("gzip",".gz"));
-  v.push_back(ZipInvokeInfo("bzip2",".bz2"));
+#ifdef YAATK_ENABLE_LIBLZMA
+  v.push_back(ZipInvokeInfo("xz_internal",".xz"));
+#endif
   v.push_back(ZipInvokeInfo("xz",".xz"));
+  v.push_back(ZipInvokeInfo("bzip2",".bz2"));
+#ifdef YAATK_ENABLE_ZLIB
+  v.push_back(ZipInvokeInfo("gzip_internal",".gz"));
+#endif
+  v.push_back(ZipInvokeInfo("gzip",".gz"));
   return v;
+}
+
+Stream::ZipInvokeInfo
+Stream::chooseZipMethod()
+{
+  std::vector<Stream::ZipInvokeInfo> zil = Stream::initZipInvokeInfoList();
+
+  for(size_t i = 0; i < zil.size(); i++)
+  {
+    const ZipInvokeInfo& z = zil[i];
+    if (z.works())
+      return z;
+  }
+
+  return ZipInvokeInfo("nozip","");
 }
 
 std::string
@@ -181,7 +216,12 @@ Stream::close()
 int 
 Stream::zipMe()
 {
-  if (zipInvokeInfo.command=="gzip_internal") return zipMe_internal();
+#ifdef YAATK_ENABLE_ZLIB
+  if (zipInvokeInfo.command=="gzip_internal") return zipMe_gzip_internal();
+#endif
+#ifdef YAATK_ENABLE_LIBLZMA
+  if (zipInvokeInfo.command=="xz_internal") return zipMe_xz_internal();
+#endif
   char buf[MDTK_GZ_BUFFER_SIZE];
   FILE* zipped;
   if (zipInvokeInfo.command!="nozip")
@@ -225,7 +265,12 @@ Stream::zipMe()
 int
 Stream::unZipMe()
 {
-  if (zipInvokeInfo.command=="gzip_internal") return unZipMe_internal();
+#ifdef YAATK_ENABLE_ZLIB
+  if (zipInvokeInfo.command=="gzip_internal") return unZipMe_gzip_internal();
+#endif
+#ifdef YAATK_ENABLE_LIBLZMA
+  if (zipInvokeInfo.command=="xz_internal") return unZipMe_xz_internal();
+#endif
   char buf[MDTK_GZ_BUFFER_SIZE];
   FILE* zipped;
   if (zipInvokeInfo.command!="nozip")
@@ -266,8 +311,10 @@ Stream::unZipMe()
   return 0;
 }
 
+#ifdef YAATK_ENABLE_ZLIB
+
 int
-Stream::zipMe_internal()
+Stream::zipMe_gzip_internal()
 {
   char buf[MDTK_GZ_BUFFER_SIZE];
   gzFile   zipped   = gzopen(getZippedFileName().c_str(),"wb");
@@ -285,7 +332,7 @@ Stream::zipMe_internal()
 }
 
 int
-Stream::unZipMe_internal()
+Stream::unZipMe_gzip_internal()
 {
   char buf[MDTK_GZ_BUFFER_SIZE];
   gzFile zipped   = gzopen(getZippedFileName().c_str(),"rb");
@@ -300,6 +347,184 @@ Stream::unZipMe_internal()
   return 0;
 }
 
+#endif
+
+#ifdef YAATK_ENABLE_LIBLZMA
+
+int
+Stream::zipMe_xz_internal()
+{
+  uint32_t preset = 9;
+  preset |= LZMA_PRESET_EXTREME;
+
+  lzma_stream strm = LZMA_STREAM_INIT;
+
+  lzma_ret ret = lzma_easy_encoder(&strm, preset, LZMA_CHECK_CRC64);
+  if (ret != LZMA_OK)
+    return -1;
+
+  lzma_action action = LZMA_RUN;
+
+  uint8_t inbuf[MDTK_GZ_BUFFER_SIZE];
+  uint8_t outbuf[MDTK_GZ_BUFFER_SIZE];
+
+  strm.next_in = NULL;
+  strm.avail_in = 0;
+  strm.next_out = outbuf;
+  strm.avail_out = sizeof(outbuf);
+
+  FILE *outfile = fopen(getZippedFileName().c_str(), "wb");
+  if (outfile == NULL)
+    return -1;
+
+  while (true)
+  {
+    if (strm.avail_in == 0 && !eof())
+    {
+      strm.next_in = inbuf;
+      read((char *)inbuf,MDTK_GZ_BUFFER_SIZE);
+      strm.avail_in = gcount();
+
+      if (eof())
+        action = LZMA_FINISH;
+    }
+
+    lzma_ret ret = lzma_code(&strm, action);
+
+    if (strm.avail_out == 0 || ret == LZMA_STREAM_END)
+    {
+      size_t write_size = sizeof(outbuf) - strm.avail_out;
+
+      if (fwrite(outbuf, 1, write_size, outfile) != write_size)
+        return -1;
+
+      strm.next_out = outbuf;
+      strm.avail_out = sizeof(outbuf);
+    }
+
+    if (ret != LZMA_OK)
+    {
+      if (ret == LZMA_STREAM_END)
+      {
+        lzma_end(&strm);
+        fclose(outfile);
+        return 0;
+      }
+
+      std::string msg;
+      switch (ret)
+      {
+      case LZMA_MEM_ERROR:
+        msg = "Memory allocation failed";
+        break;
+      case LZMA_DATA_ERROR:
+        msg = "File size limits exceeded";
+        break;
+      default:
+        msg = "Unknown error, possibly a bug";
+        break;
+      }
+      std::cerr << "LZMA: Encoder error: " << msg << " "
+                << "(error code " << ret << ")" << std::endl;
+      fclose(outfile);
+      return -1;
+    }
+  }
+
+  fclose(outfile);
+
+  return 0;
+}
+
+int
+Stream::unZipMe_xz_internal()
+{
+  lzma_stream strm = LZMA_STREAM_INIT;
+
+  lzma_ret ret = lzma_stream_decoder(
+    &strm, UINT64_MAX, LZMA_CONCATENATED);
+  if (ret != LZMA_OK)
+    return -1;
+
+  lzma_action action = LZMA_RUN;
+
+  uint8_t inbuf[MDTK_GZ_BUFFER_SIZE];
+  uint8_t outbuf[MDTK_GZ_BUFFER_SIZE];
+
+  strm.next_in = NULL;
+  strm.avail_in = 0;
+  strm.next_out = outbuf;
+  strm.avail_out = sizeof(outbuf);
+
+  FILE *infile = fopen(getZippedFileName().c_str(), "rb");
+  if (infile == NULL)
+    return -1;
+
+  while (true)
+  {
+    if (strm.avail_in == 0 && !feof(infile))
+    {
+      strm.next_in = inbuf;
+      strm.avail_in = fread(inbuf, 1, sizeof(inbuf), infile);
+      if (ferror(infile))
+        return -1;
+      if (feof(infile))
+        action = LZMA_FINISH;
+    }
+
+    lzma_ret ret = lzma_code(&strm, action);
+
+    if (strm.avail_out == 0 || ret == LZMA_STREAM_END)
+    {
+      size_t write_size = sizeof(outbuf) - strm.avail_out;
+      write((char *)outbuf, write_size);
+      strm.next_out = outbuf;
+      strm.avail_out = sizeof(outbuf);
+    }
+    if (ret == LZMA_STREAM_END)
+    {
+      lzma_end(&strm);
+      fclose(infile);
+      return 0;
+    }
+    if (ret != LZMA_OK)
+    {
+      std::string msg;
+      switch (ret)
+      {
+      case LZMA_MEM_ERROR:
+        msg = "Memory allocation failed";
+        break;
+      case LZMA_FORMAT_ERROR:
+        msg = "The input is not in the .xz format";
+        break;
+      case LZMA_OPTIONS_ERROR:
+        msg = "Unsupported compression options";
+        break;
+      case LZMA_DATA_ERROR:
+        msg = "Compressed file is corrupt";
+        break;
+      case LZMA_BUF_ERROR:
+        msg = "Compressed file is truncated or otherwise corrupt";
+        break;
+      default:
+        msg = "Unknown error, possibly a bug";
+        break;
+      }
+      std::cerr << "LZMA: " << getZippedFileName() << ": "
+                << "Decoder error: " << msg << " "
+                << "(error code " << ret << ")" << std::endl;
+      fclose(infile);
+      return -1;
+    }
+  }
+
+  fclose(infile);
+
+  return 0;
+}
+
+#endif
 
 std::string extractDir(std::string trajNameFinal)
 {
@@ -423,6 +648,7 @@ listFilesystemItems(std::string dir, bool listRegularFiles, bool listDirectories
 
 #define  MDTK_FILECMP_BUFFER_SIZE 10000
 
+#ifdef YAATK_ENABLE_ZLIB
 bool
 isIdentical(const std::string& file1,const std::string& file2)
 {
@@ -447,7 +673,7 @@ isIdentical(const std::string& file1,const std::string& file2)
   gzclose(f2);  
   return true;
 }  
-
+#endif
 
 }
 
