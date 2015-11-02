@@ -1,7 +1,7 @@
 #  CMakeLists.txt file for Molecular Dynamics Postprocessor
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011 Oleksandr Yermolenko
-#  <oleksandr.yermolenko@gmail.com>
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2015 Oleksandr
+#  Yermolenko <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
 #
@@ -21,13 +21,13 @@
 
 SET(MDTK_CurrentTarget "mdpp${MDTK_BINARY_SUFFIX}")
 
-include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
+include_directories (${MDTK_SOURCE_DIR} ${YAATK_COMPRESSION_INCLUDE_DIRS})
 
 link_directories (${MDTK_BINARY_DIR})
 
 add_executable (${MDTK_CurrentTarget} main.cpp BatchPostProcess.cpp StatPostProcess.cpp ClassicMolecule.cpp Fragment.cpp AtomGroup.cpp Cluster.cpp Fullerene.cpp NeighbourList.cxx Molecule.cpp)
 
-target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
+target_link_libraries (${MDTK_CurrentTarget} mdtk yaatk ${YAATK_COMPRESSION_LIBRARIES} ${GSL_LIBRARIES})
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
   IF(WIN32)

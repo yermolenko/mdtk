@@ -1,6 +1,6 @@
 #  Top-level CMakeLists.txt file for MDTK
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2015 Oleksandr
 #  Yermolenko <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -78,10 +78,30 @@ ELSE(MSVC)
   SET(GSL_FOUND true)
 ENDIF(MSVC)
 
-FIND_PACKAGE(ZLIB REQUIRED)
+SET(YAATK_COMPRESSION_INCLUDE_DIRS "")
+SET(YAATK_COMPRESSION_LIBRARIES "")
+
+FIND_PACKAGE(ZLIB)
+IF(ZLIB_FOUND)
+  SET(YAATK_COMPRESSION_INCLUDE_DIRS ${YAATK_COMPRESSION_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIR})
+  SET(YAATK_COMPRESSION_LIBRARIES ${YAATK_COMPRESSION_LIBRARIES} ${ZLIB_LIBRARIES})
+  add_definitions(-DYAATK_ENABLE_ZLIB)
+ELSE(ZLIB_FOUND)
+  MESSAGE("ZLIB not found. YAATK will not be able to produce .gz files without external tools.")
+ENDIF(ZLIB_FOUND)
+
+FIND_PACKAGE(LibLZMA)
+IF(LIBLZMA_FOUND)
+  SET(YAATK_COMPRESSION_INCLUDE_DIRS ${YAATK_COMPRESSION_INCLUDE_DIRS} ${LIBLZMA_INCLUDE_DIRS})
+  SET(YAATK_COMPRESSION_LIBRARIES ${YAATK_COMPRESSION_LIBRARIES} ${LIBLZMA_LIBRARIES})
+  add_definitions(-DYAATK_ENABLE_LIBLZMA)
+ELSE(LIBLZMA_FOUND)
+  MESSAGE("LibLZMA not found. YAATK will not be able to produce .xz files without external tools.")
+ENDIF(LIBLZMA_FOUND)
 
 FIND_PACKAGE(PNG)
 
+add_subdirectory (yaatk)
 add_subdirectory (mdtk)
 add_subdirectory (applications)
 add_subdirectory (examples)

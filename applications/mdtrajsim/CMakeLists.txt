@@ -1,6 +1,6 @@
 #  CMakeLists.txt file for Molecular Dynamics Trajectory Simulator
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2013 Oleksandr
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2013, 2015 Oleksandr
 #  Yermolenko <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -32,14 +32,14 @@ link_directories (${MDTK_BINARY_DIR})
 
 IF(MPIBATCH)
   SET(MDTK_CurrentTarget "mdtrajsim${MDTK_BINARY_SUFFIX}_mpibatch")
-  include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR} ${MPI_INCLUDE_PATH})
+  include_directories (${MDTK_SOURCE_DIR} ${YAATK_COMPRESSION_INCLUDE_DIRS} ${MPI_INCLUDE_PATH})
   add_executable (${MDTK_CurrentTarget} main.cpp)
-  target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES} ${MPI_LIBRARIES})
+  target_link_libraries (${MDTK_CurrentTarget} mdtk yaatk ${YAATK_COMPRESSION_LIBRARIES} ${GSL_LIBRARIES} ${MPI_LIBRARIES})
 ELSE(MPIBATCH)
   SET(MDTK_CurrentTarget "mdtrajsim${MDTK_BINARY_SUFFIX}")
-  include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
+  include_directories (${MDTK_SOURCE_DIR} ${YAATK_COMPRESSION_INCLUDE_DIRS})
   add_executable (${MDTK_CurrentTarget} main.cpp)
-  target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
+  target_link_libraries (${MDTK_CurrentTarget} mdtk yaatk ${YAATK_COMPRESSION_LIBRARIES} ${GSL_LIBRARIES})
 ENDIF(MPIBATCH)
 
 IF(MPIBATCH)

@@ -1,7 +1,7 @@
 #  CMakeLists.txt file for the Molecular Dynamics Experiments Builder
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr Yermolenko
-#  <oleksandr.yermolenko@gmail.com>
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2015 Oleksandr
+#  Yermolenko <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
 #
@@ -21,7 +21,7 @@
 
 SET(MDTK_CurrentTarget "mdbuilder${MDTK_BINARY_SUFFIX}")
 
-include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
+include_directories (${MDTK_SOURCE_DIR} ${YAATK_COMPRESSION_INCLUDE_DIRS})
 
 link_directories (${MDTK_BINARY_DIR})
 
@@ -37,7 +37,7 @@ add_executable (${MDTK_CurrentTarget}
   experiments/Fulleride.cpp
   )
 
-target_link_libraries (${MDTK_CurrentTarget} mdtk ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
+target_link_libraries (${MDTK_CurrentTarget} mdtk yaatk ${YAATK_COMPRESSION_LIBRARIES} ${GSL_LIBRARIES})
 
 IF(WIN32)
   target_link_libraries (${MDTK_CurrentTarget} ole32 uuid comctl32 wsock32 gdi32)

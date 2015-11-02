@@ -26,34 +26,29 @@
 #include <cmath>
 #include <iostream>
 
+#include <yaatk/yaatk.hpp>
 #include <mdtk/release_info.hpp>
 
 #ifndef M_PI
 #define M_PI        3.14159265358979323846
 #endif
 
+#ifdef MDTK_PARALLEL
+#define YAATK_PARALLEL
+#endif
+
 namespace mdtk
 {
+
+using yaatk::verboseTrace;
+using yaatk::Exception;
+using yaatk::MPI_Exception;
 
 typedef double Float;
 
 extern const int FLOAT_PRECISION;
 
-extern bool verboseTrace;
-
-struct VerboseOutput
-{
-  bool prevVerboseOutputState;
-  VerboseOutput(bool newState)
-  :prevVerboseOutputState(verboseTrace)
-    {
-      verboseTrace = newState;
-    }
-  ~VerboseOutput()
-    {
-      verboseTrace = prevVerboseOutputState;
-    }
-};
+extern std::string buildID;
 
 extern std::string buildID;
 

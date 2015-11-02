@@ -637,12 +637,12 @@ VisBox::listVertexes()
   {
     glPushName(i);
     glPushMatrix();
-    switch (nativeVertexColors)
+    if (!nativeVertexColors)
     {
-    case false: 
       c = vertexColor;
-      break;
-    case true:  
+    }
+    else
+    {
       switch (R[i].ID)
       {
       case H_EL:  c = (0x00FF00); break; 

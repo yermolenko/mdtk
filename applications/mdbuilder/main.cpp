@@ -1,7 +1,7 @@
 /*
    mdbuilder (molecular dynamics experiments preparation tool)
 
-   Copyright (C) 2010, 2011, 2012, 2013 Oleksandr Yermolenko
+   Copyright (C) 2010, 2011, 2012, 2013, 2015 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -143,7 +143,7 @@ buildCommands()
       PRINT("Preparing a substrate (polyethylene).\n");
 
       glLoadIdentity();
-      VerboseOutput vo(true);
+      yaatk::VerboseOutput vo(true);
 
       SimLoop sl_Polyethylene =
         mdbuilder::build_Polyethylene_lattice_with_folds(a_num,b_num,c_num);
@@ -218,7 +218,7 @@ buildCommands()
 
       glLoadIdentity();
 
-      VerboseOutput vo(true);
+      yaatk::VerboseOutput vo(true);
 
       SimLoop sl_Landed =
         mdbuilder::build_Cluster_Landed_on_Substrate(sl_Polyethylene, cluster);

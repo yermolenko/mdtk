@@ -1,6 +1,6 @@
 #  CMakeLists.txt file for the Molecular Dynamics Trajectory Viewer
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2012 Oleksandr Yermolenko
+#  Copyright (C) 2007, 2008, 2009, 2010, 2012, 2013, 2015 Oleksandr Yermolenko
 #  <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -21,16 +21,16 @@
 
 SET(MDTK_CurrentTarget "mdtrajview${MDTK_BINARY_SUFFIX}")
 
-include_directories (${MDTK_SOURCE_DIR} ${ZLIB_INCLUDE_DIR} ${FLTK_INCLUDE_DIR})
+include_directories (${MDTK_SOURCE_DIR} ${YAATK_COMPRESSION_INCLUDE_DIRS} ${FLTK_INCLUDE_DIR})
 
 link_directories (${MDTK_BINARY_DIR})
 
 add_executable (${MDTK_CurrentTarget} main.cpp MainWindow.cpp VisBox.cpp bmpImage.cxx MDTrajectory.cxx)
 
 IF(WIN32)
-  target_link_libraries (${MDTK_CurrentTarget} mdtk ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES} ${ZLIB_LIBRARIES} ${GSL_LIBRARIES} ole32 uuid comctl32 wsock32 gdi32)
+  target_link_libraries (${MDTK_CurrentTarget} mdtk yaatk ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES} ${YAATK_COMPRESSION_LIBRARIES} ${GSL_LIBRARIES} ole32 uuid comctl32 wsock32 gdi32)
 ELSE(WIN32)
-  target_link_libraries (${MDTK_CurrentTarget} mdtk ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES} ${ZLIB_LIBRARIES} ${GSL_LIBRARIES})
+  target_link_libraries (${MDTK_CurrentTarget} mdtk yaatk ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES} ${YAATK_COMPRESSION_LIBRARIES} ${GSL_LIBRARIES})
 ENDIF(WIN32)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)

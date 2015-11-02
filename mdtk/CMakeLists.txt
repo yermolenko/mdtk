@@ -54,7 +54,6 @@ add_library (mdtk
   potentials/manybody/AIREBO/REBO.cxx
   potentials/manybody/AIREBO/AIREBO_ETors.cxx
   potentials/manybody/AIREBO/AIREBO_LJ.cxx
-  yaatk.cxx
   procmon.cxx
 )
 

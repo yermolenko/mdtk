@@ -1,7 +1,7 @@
 /*
    Building of various clusters
 
-   Copyright (C) 2007, 2008, 2010, 2011, 2012, 2013 Oleksandr
+   Copyright (C) 2007, 2008, 2010, 2011, 2012, 2013, 2015 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -111,7 +111,7 @@ struct OptiSnapshot
 Float
 optimize_single(SimLoop& simloop, gsl_rng* rng)
 {
-  VerboseOutput vo(false);
+  yaatk::VerboseOutput vo(false);
 
   SimLoopNoMomentums mdloop(simloop);
   initialize_simloop(mdloop);
@@ -1140,7 +1140,7 @@ bomb_landedCluster_with_Ions(
   size_t numberOfImpacts
   )
 {
-  VerboseOutput vo(true);
+  yaatk::VerboseOutput vo(true);
 
   std::vector<size_t> clusterAtomIndices;
   for(size_t ai = 0; ai < target.atoms.size(); ++ai)
