@@ -218,6 +218,12 @@ int rename(const char *oldname, const char *newname)
   return std::rename(oldname,newname);
 }
 
+inline
+int rename(const std::string oldname, const std::string newname)
+{
+  return std::rename(oldname.c_str(),newname.c_str());
+}
+
 std::vector<std::string>
 listFilesystemItems(std::string dir, bool listRegularFiles, bool listDirectories);
 
