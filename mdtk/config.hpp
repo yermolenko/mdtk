@@ -50,8 +50,6 @@ extern const int FLOAT_PRECISION;
 
 extern std::string buildID;
 
-extern std::string buildID;
-
 }
 
 #endif
