@@ -23,11 +23,6 @@ MACRO(mdtrajsim MPIBATCH)
 
 SET(MPIBATCH "${MPIBATCH}")
 
-FIND_PACKAGE(MPI)
-IF(MPI_FOUND)
-  MESSAGE("MPI FOUND!!!!")
-ENDIF(MPI_FOUND)
-
 link_directories (${MDTK_BINARY_DIR})
 
 IF(MPIBATCH)
@@ -62,6 +57,9 @@ install(TARGETS ${MDTK_CurrentTarget}
 ENDMACRO(mdtrajsim) 
 
 mdtrajsim(FALSE)
+
+FIND_PACKAGE(MPI)
 IF(MPI_FOUND)
-#  mdtrajsim(TRUE)
+  MESSAGE("MPI FOUND! Building mpibatch version too.")
+  mdtrajsim(TRUE)
 ENDIF(MPI_FOUND)
