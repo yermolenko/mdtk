@@ -553,6 +553,12 @@ main(int argc, char *argv[])
 
   std::string inputFilesId = "base";
 
+  if (yaatk::exists("mdtrajsim.option.batch"))
+  {
+    commonUsage = false;
+    batch = true;
+  }
+
   for(int argi = 1; argi < argc; ++argi)
   {
     if ((argv[argi][0] != '-'))
