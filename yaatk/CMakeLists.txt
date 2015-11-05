@@ -1,7 +1,7 @@
 #  CMakeLists.txt file for YAATK programming library
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Oleksandr
-#  Yermolenko <oleksandr.yermolenko@gmail.com>
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2015
+#  Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of YAATK, Yet another auxiliary toolkit.
 #
@@ -19,7 +19,7 @@
 #  along with YAATK.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-include_directories (../)
+include_directories (../ ${YAATK_COMPRESSION_INCLUDE_DIRS})
 add_library (yaatk
   config.cxx
   Exception.cxx
