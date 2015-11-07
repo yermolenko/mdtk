@@ -64,6 +64,8 @@
 #else
 #endif  
 
+#include <ctime>
+
 enum YAATK_FSTREAM_MODE {YAATK_FSTREAM_TEXT = 0, YAATK_FSTREAM_BIN = 1};
 
 namespace yaatk
@@ -524,6 +526,25 @@ public:
                           precision);                                   \
     stream << x << std::flush;                                          \
   }
+
+inline
+std::string
+getDateTime_YYYYMMDD_HHMMSS()
+{
+  std::time_t rawtime;
+  std::time(&rawtime);
+  std::tm *ptm = gmtime(&rawtime);
+
+  std::ostringstream osstime;
+  PRINT2STREAM_FW(osstime,(ptm->tm_year + 1900),'0',4);
+  PRINT2STREAM_FW(osstime,(ptm->tm_mon + 1),'0',2);
+  PRINT2STREAM_FW(osstime,ptm->tm_mday,'0',2);
+  osstime << "-";
+  PRINT2STREAM_FW(osstime,ptm->tm_hour,'0',2);
+  PRINT2STREAM_FW(osstime,ptm->tm_min,'0',2);
+  PRINT2STREAM_FW(osstime,ptm->tm_sec,'0',2);
+  return osstime.str();
+}
 
 inline
 bool
