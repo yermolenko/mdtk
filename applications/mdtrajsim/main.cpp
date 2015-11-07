@@ -530,12 +530,14 @@ main(int argc, char *argv[])
   MPI_TEST_SUCCESS(MPI_Init(&argc,&argv));
 
   std::ostringstream oss_stdout_redir_name;
+  oss_stdout_redir_name << yaatk::getDateTime_YYYYMMDD_HHMMSS() << "-";
   oss_stdout_redir_name << "stdout.txt-mpibatch";
   oss_stdout_redir_name << getProcessID();
   yaatk::StreamToFileRedirect* cout_redir
     = new yaatk::StreamToFileRedirect(std::cout,oss_stdout_redir_name.str());
 
   std::ostringstream oss_stderr_redir_name;
+  oss_stderr_redir_name << yaatk::getDateTime_YYYYMMDD_HHMMSS() << "-";
   oss_stderr_redir_name << "stderr.txt-mpibatch";
   oss_stderr_redir_name << getProcessID();
   yaatk::StreamToFileRedirect* cerr_redir
