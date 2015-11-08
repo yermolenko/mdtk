@@ -1,7 +1,7 @@
 #  CMakeLists.txt file for MDTK programming library
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Oleksandr
-#  Yermolenko <oleksandr.yermolenko@gmail.com>
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2015
+#  Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
 #
@@ -19,7 +19,7 @@
 #  along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-include_directories (${MDTK_SOURCE_DIR})
+include_directories (${MDTK_SOURCE_DIR} ${GSL_INCLUDE_DIRS})
 add_library (mdtk
   Atom.cxx
   AtomsContainer.cxx

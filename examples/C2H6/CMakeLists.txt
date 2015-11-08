@@ -22,7 +22,7 @@
 
 SET(MDTK_CurrentTarget "mdC2H6${MDTK_BINARY_SUFFIX}")
 
-include_directories (${MDTK_SOURCE_DIR} ${YAATK_COMPRESSION_INCLUDE_DIRS})
+include_directories (${MDTK_SOURCE_DIR} ${GSL_INCLUDE_DIRS})
 
 link_directories (${MDTK_BINARY_DIR})
 
