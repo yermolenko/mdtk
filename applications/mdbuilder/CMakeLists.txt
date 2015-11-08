@@ -21,7 +21,7 @@
 
 SET(MDTK_CurrentTarget "mdbuilder${MDTK_BINARY_SUFFIX}")
 
-include_directories (${MDTK_SOURCE_DIR} ${GSL_INCLUDE_DIRS})
+include_directories (${MDTK_SOURCE_DIR} ${GSL_INCLUDE_DIRS} ${OSMESA_INCLUDE_DIR} ${FLTK_INCLUDE_DIR})
 
 link_directories (${MDTK_BINARY_DIR})
 
