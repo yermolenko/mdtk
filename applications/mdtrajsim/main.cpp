@@ -219,6 +219,8 @@ shrinkLogFiles()
 {
   int retcode;
 
+  yaatk::DataState ds;
+
   const std::string dElogfilename="dE.dat";
   if (yaatk::exists(dElogfilename))
     return;
@@ -455,6 +457,13 @@ int runImpactSequence(
           continue;
         }
 
+        if (!yaatk::DataState::isClean())
+        {
+          cout << "MAY BE CORRUPTED" << std::endl;
+          removeMyLock();
+          continue;
+        }
+
         cout << "OK" << std::endl;
       }
 
@@ -462,6 +471,8 @@ int runImpactSequence(
         yaatk::ChDir cd(trajDirName);
 
         {
+          yaatk::DataState ds;
+
           yaatk::binary_ofstream ionpos_used_bin("ionpos_used.bin");
           yaatk::text_ofstream ionpos_used_txt("ionpos_used.txt");
 
