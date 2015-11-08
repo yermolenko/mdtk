@@ -21,7 +21,7 @@
 
 SET(MDTK_CurrentTarget "mdbuilder${MDTK_BINARY_SUFFIX}")
 
-include_directories (${MDTK_SOURCE_DIR} ${YAATK_COMPRESSION_INCLUDE_DIRS})
+include_directories (${MDTK_SOURCE_DIR} ${GSL_INCLUDE_DIRS})
 
 link_directories (${MDTK_BINARY_DIR})
 
@@ -52,11 +52,11 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 IF(OSMESA_FOUND)
-  MESSAGE("OSMesa found. Using OSMesa in mdbuilder.")
+  MESSAGE(STATUS "OSMesa found. Using OSMesa in mdbuilder.")
   target_link_libraries (${MDTK_CurrentTarget} ${OSMESA_LIBRARIES} GLU)
   SET_TARGET_PROPERTIES(${MDTK_CurrentTarget} PROPERTIES COMPILE_FLAGS "-DMDBUILDER_OSMESA")
 ELSE(OSMESA_FOUND)
-  MESSAGE("OSMesa not found. MDBuilder will require a graphics environment.")
+  MESSAGE(STATUS "OSMesa not found. MDBuilder will require a graphics environment.")
   target_link_libraries (${MDTK_CurrentTarget} ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES})
 ENDIF(OSMESA_FOUND)
 

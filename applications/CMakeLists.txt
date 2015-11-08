@@ -22,7 +22,7 @@
 add_subdirectory (mdtrajsim)
 
 IF(WIN32)
-  message("Molecular Dynamics Postprocessor will not be compiled on Win32. Use *nix to build it.")
+  message(STATUS "Molecular Dynamics Postprocessor will not be compiled on Win32. Use *nix to build it.")
 ELSE(WIN32)
   add_subdirectory (mdpp)
 ENDIF(WIN32)
