@@ -4,7 +4,7 @@
 # (Passing heavy optimize options to compiler, see top-level
 # CMakeLists.txt for details).
 #
-# Copyright (C) 2009 Oleksandr Yermolenko
+# Copyright (C) 2009, 2015 Oleksandr Yermolenko
 # <oleksandr.yermolenko@gmail.com>
 #
 # Copying and distribution of this file, with or without modification,
@@ -14,7 +14,7 @@
 
 mkdir _build-heavy-optimize
 cd _build-heavy-optimize
-  cmake -D MDTK_HEAVY_OPTIMZE=1 ..
+  cmake -D MDTK_HEAVY_OPTIMIZE=1 ..
   make
   make install
 cd ..

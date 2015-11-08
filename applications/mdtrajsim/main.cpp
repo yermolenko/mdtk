@@ -315,6 +315,9 @@ int runTraj(std::string inputFilesId = "")
   if (isAlreadyFinished() || isLockedByOthers())
     return 0;
 
+  if (!yaatk::DataState::isClean())
+    return 1;
+
   TRACE(mdtk::buildID);
 
   try

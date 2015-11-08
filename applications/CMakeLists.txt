@@ -1,6 +1,6 @@
 #  CMakeLists.txt file for MDTK applications and tools
 #
-#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr
+#  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2015 Oleksandr
 #  Yermolenko <oleksandr.yermolenko@gmail.com>
 #
 #  This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -41,5 +41,5 @@ IF(OPENGL_FOUND AND FLTK_FOUND)
   add_subdirectory (mdtrajview)
   add_subdirectory (mdbuilder)
 ELSE(OPENGL_FOUND AND FLTK_FOUND)
-  message("FLTK or OpenGL not found! Install it in order to visualize MD trajectories and prepare experiments using mdbuilder.")
+  message(STATUS "FLTK or OpenGL not found! Install it in order to visualize MD trajectories and prepare experiments using mdbuilder.")
 ENDIF(OPENGL_FOUND AND FLTK_FOUND)

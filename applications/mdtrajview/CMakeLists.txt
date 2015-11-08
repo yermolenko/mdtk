@@ -21,7 +21,7 @@
 
 SET(MDTK_CurrentTarget "mdtrajview${MDTK_BINARY_SUFFIX}")
 
-include_directories (${MDTK_SOURCE_DIR} ${YAATK_COMPRESSION_INCLUDE_DIRS} ${FLTK_INCLUDE_DIR})
+include_directories (${MDTK_SOURCE_DIR} ${GSL_INCLUDE_DIRS} ${FLTK_INCLUDE_DIR})
 
 link_directories (${MDTK_BINARY_DIR})
 
@@ -42,11 +42,11 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 IF(PNG_FOUND)
-  MESSAGE("libpng found. Using libpng in mdtrajview.")
+  MESSAGE(STATUS "libpng found. Using libpng in mdtrajview.")
   target_link_libraries (${MDTK_CurrentTarget} ${PNG_LIBRARIES})
   SET_TARGET_PROPERTIES(${MDTK_CurrentTarget} PROPERTIES COMPILE_FLAGS "-DMDTRAJVIEW_PNG")
 ELSE(PNG_FOUND)
-  MESSAGE("libpng not found. mdtrajview will write BMP files instead of PNG.")
+  MESSAGE(STATUS "libpng not found. mdtrajview will write BMP files instead of PNG.")
 ENDIF(PNG_FOUND)
 
 install(TARGETS ${MDTK_CurrentTarget}
