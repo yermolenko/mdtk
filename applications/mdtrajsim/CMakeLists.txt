@@ -60,6 +60,6 @@ mdtrajsim(FALSE)
 
 FIND_PACKAGE(MPI)
 IF(MPI_FOUND)
-  MESSAGE("MPI FOUND! Building mpibatch version too.")
+  MESSAGE(STATUS "MPI found. Building mpibatch version too.")
   mdtrajsim(TRUE)
 ENDIF(MPI_FOUND)
