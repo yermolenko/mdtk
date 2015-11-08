@@ -675,6 +675,9 @@ isIdentical(const std::string& file1,const std::string& file2)
 }  
 #endif
 
+const std::string DataState::flagFilename = "flag.write-is-in-progress";
+size_t DataState::flagRequestCount = 0;
+
 }
 
 

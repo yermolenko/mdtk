@@ -427,6 +427,42 @@ struct ChDir
     }
 };
 
+class DataState
+{
+  static const std::string flagFilename;
+  static size_t flagRequestCount;
+public:
+  DataState()
+    {
+      std::ifstream flagtest(flagFilename.c_str());
+      if (!flagtest)
+      {
+        std::ofstream flag(flagFilename.c_str());
+        flag.close();
+      }
+      ++flagRequestCount;
+    }
+  ~DataState()
+    {
+      --flagRequestCount;
+      std::ifstream flagtest(flagFilename.c_str());
+      REQUIRE(flagtest);
+      if (flagtest && flagRequestCount == 0)
+      {
+        int retval = yaatk::remove(flagFilename);
+        if (retval)
+          throw Exception("Cannot remove flag file");
+      }
+    }
+  static bool isClean()
+    {
+      std::ifstream flagtest(flagFilename.c_str());
+      if (flagtest)
+        return false;
+      return true;
+    }
+};
+
 class StreamMod
 {
   std::ostream& stream2modify;

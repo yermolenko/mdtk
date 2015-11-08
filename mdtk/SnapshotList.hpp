@@ -1,7 +1,7 @@
 /*
    SnapshotList class header file.
 
-   Copyright (C) 2011, 2012, 2013 Oleksandr Yermolenko
+   Copyright (C) 2011, 2012, 2013, 2015 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -122,6 +122,8 @@ struct SnapshotList
     }
   void writestate()
     {
+      yaatk::DataState ds;
+
       yaatk::binary_ofstream state("snapshots.conf");
       uint32_t size;
 

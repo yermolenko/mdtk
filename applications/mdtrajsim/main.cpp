@@ -2,7 +2,7 @@
    mdtrajsim (molecular dynamics trajectory simulator)
 
    Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-   2013 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   2013, 2015 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -115,6 +115,9 @@ isAlreadyFinished()
 int runTraj(std::string inputFilesId = "")
 {
   if (isAlreadyFinished()) return 0;
+
+  if (!yaatk::DataState::isClean())
+    return 1;
 
   TRACE(mdtk::buildID);
 

@@ -808,6 +808,8 @@ SimLoop::writetraj()
 {
   if (preventFileOutput) return;
 
+  yaatk::DataState ds;
+
   static char s[1024];
   sprintf(s,"mde""%010ld",iteration);
   yaatk::text_ofstream fo1(s);
@@ -819,6 +821,8 @@ void
 SimLoop::writetrajXVA()
 {
   if (preventFileOutput) return;
+
+  yaatk::DataState ds;
 
   static char s[1024];
   sprintf(s,"mde""%010ld.xva",iteration);
@@ -832,6 +836,8 @@ SimLoop::writetrajXVA_bin()
 {
   if (preventFileOutput) return;
 
+  yaatk::DataState ds;
+
   static char s[1024];
   sprintf(s,"mde""%010ld.xva.bin",iteration);
   yaatk::binary_ofstream fo1(s);
@@ -843,6 +849,8 @@ void
 SimLoop::writetrajXYZ()
 {
   if (preventFileOutput) return;
+
+  yaatk::DataState ds;
 
   static char s[1024];
   sprintf(s,"mde""%010ld.xyz",iteration);
@@ -867,6 +875,8 @@ void
 SimLoop::writetrajAccumulated(const std::vector<size_t>& atomIndices)
 {
   if (preventFileOutput) return;
+
+  yaatk::DataState ds;
 
   Float XVA_VELOCITY_SCALE = 0.0;//1.0e3;
   Float XVA_DISTANCE_SCALE = Ao;
@@ -981,6 +991,8 @@ void
 SimLoop::writetrajAccumulated_bin(const std::vector<size_t>& atomIndices)
 {
   if (preventFileOutput) return;
+
+  yaatk::DataState ds;
 
   yaatk::binary_ifstream accPrev("acc.bin");
   yaatk::binary_ofstream acc("acc_next.bin");
