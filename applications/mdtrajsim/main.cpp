@@ -27,6 +27,7 @@
 #include <algorithm>
 
 #ifdef __WIN32__
+#include <windows.h>
 #include <WinBase.h>
 #else
 #include <sys/types.h>
@@ -553,6 +554,13 @@ main(int argc, char *argv[])
             << "It's name is \"" << comm_name() << "\"" << std::endl;
 
   MPI_Barrier(MPI_COMM_WORLD);
+
+#ifdef __WIN32__
+  Sleep(10*comm_rank()*1000);
+#else
+  sleep(10*comm_rank());
+#endif
+
 #endif
   myLockFilename += getProcessID();
 
