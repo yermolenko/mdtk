@@ -451,6 +451,7 @@ public:
       REQUIRE(flagtest);
       if (flagtest && flagRequestCount == 0)
       {
+        flagtest.close();
         int retval = yaatk::remove(flagFilename);
         if (retval)
           throw Exception("Cannot remove flag file");
