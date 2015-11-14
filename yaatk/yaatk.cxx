@@ -411,21 +411,6 @@ Stream::zipMe_xz_internal()
         return 0;
       }
 
-      std::string msg;
-      switch (ret)
-      {
-      case LZMA_MEM_ERROR:
-        msg = "Memory allocation failed";
-        break;
-      case LZMA_DATA_ERROR:
-        msg = "File size limits exceeded";
-        break;
-      default:
-        msg = "Unknown error, possibly a bug";
-        break;
-      }
-      std::cerr << "LZMA: Encoder error: " << msg << " "
-                << "(error code " << ret << ")" << std::endl;
       fclose(outfile);
       return -1;
     }
@@ -489,31 +474,6 @@ Stream::unZipMe_xz_internal()
     }
     if (ret != LZMA_OK)
     {
-      std::string msg;
-      switch (ret)
-      {
-      case LZMA_MEM_ERROR:
-        msg = "Memory allocation failed";
-        break;
-      case LZMA_FORMAT_ERROR:
-        msg = "The input is not in the .xz format";
-        break;
-      case LZMA_OPTIONS_ERROR:
-        msg = "Unsupported compression options";
-        break;
-      case LZMA_DATA_ERROR:
-        msg = "Compressed file is corrupt";
-        break;
-      case LZMA_BUF_ERROR:
-        msg = "Compressed file is truncated or otherwise corrupt";
-        break;
-      default:
-        msg = "Unknown error, possibly a bug";
-        break;
-      }
-      std::cerr << "LZMA: " << getZippedFileName() << ": "
-                << "Decoder error: " << msg << " "
-                << "(error code " << ret << ")" << std::endl;
       fclose(infile);
       return -1;
     }
