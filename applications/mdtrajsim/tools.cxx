@@ -125,6 +125,7 @@ removeMyLock()
   std::ifstream test(myLockFilename.c_str());
   if (test)
   {
+    test.close();
     int retval = yaatk::remove(myLockFilename);
     if (retval)
       throw Exception("Cannot remove lockfile");
