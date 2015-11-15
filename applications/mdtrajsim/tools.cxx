@@ -230,6 +230,24 @@ shrinkLogFiles()
   REQUIRE(retcode == 0);
 }
 
+void
+removeXVAfiles()
+{
+  std::vector<std::string> cwdfiles
+    = yaatk::listFiles(yaatk::getcwd());
+  for(size_t i = 0; i < cwdfiles.size(); ++i)
+  {
+    const std::string& cwdfile = cwdfiles[i];
+    if (cwdfile.find("xva") != std::string::npos &&
+        cwdfile.find("mde") == 0)
+    {
+      int retval = yaatk::remove(cwdfile);
+      if (retval)
+        throw Exception("Cannot remove XVA file");
+    }
+  }
+}
+
 void SleepForSeconds(int seconds)
 {
 #ifdef __WIN32__

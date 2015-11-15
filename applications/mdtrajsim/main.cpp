@@ -317,7 +317,10 @@ int runImpactSequence(
         {
           placeMyLock();
           if (!isLockedByOthers())
+          {
             shrinkLogFiles();
+            removeXVAfiles();
+          }
           removeMyLock();
         }
       }

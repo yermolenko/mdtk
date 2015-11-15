@@ -39,6 +39,7 @@ void placeMyLock();
 void removeMyLock();
 
 void shrinkLogFiles();
+void removeXVAfiles();
 
 extern std::string myLockFilename;
 
