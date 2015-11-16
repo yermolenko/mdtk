@@ -342,15 +342,13 @@ main(int argc, char *argv[])
   oss_stdout_redir_name << yaatk::getDateTime_YYYYMMDD_HHMMSS() << "-";
   oss_stdout_redir_name << "stdout.txt-mpibatch";
   oss_stdout_redir_name << getProcessID();
-  yaatk::StreamToFileRedirect* cout_redir
-    = new yaatk::StreamToFileRedirect(std::cout,oss_stdout_redir_name.str());
+  yaatk::StreamToFileRedirect cout_redir(std::cout,oss_stdout_redir_name.str());
 
   std::ostringstream oss_stderr_redir_name;
   oss_stderr_redir_name << yaatk::getDateTime_YYYYMMDD_HHMMSS() << "-";
   oss_stderr_redir_name << "stderr.txt-mpibatch";
   oss_stderr_redir_name << getProcessID();
-  yaatk::StreamToFileRedirect* cerr_redir
-    = new yaatk::StreamToFileRedirect(std::cerr,oss_stderr_redir_name.str());
+  yaatk::StreamToFileRedirect cerr_redir(std::cerr,oss_stderr_redir_name.str());
 
   if (comm_rank() == 0)
   {
@@ -546,10 +544,6 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
   }
 
 #ifdef MPIBATCH
-  if (cout_redir != NULL)
-    delete cout_redir;
-  if (cerr_redir != NULL)
-    delete cerr_redir;
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_TEST_SUCCESS(MPI_Finalize());
 #endif
