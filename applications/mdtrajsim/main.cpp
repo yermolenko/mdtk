@@ -205,12 +205,6 @@ int runImpactSequence(
 {
   int retcode = 0;
 
-  CustomSimLoop mdloop;
-  mdtk::SimLoopSaver mds(mdloop);
-
-  int loadRetCode = mds.load(inputFilesId);
-  REQUIRE(loadRetCode & mdtk::SimLoopSaver::LOADED_R);
-
   double bombX, bombY;
 
   yaatk::binary_ifstream ionpos_bin("ionpos.bin");
@@ -230,10 +224,6 @@ int runImpactSequence(
     REQUIRE(ionpos_bin);
     YAATK_BIN_READ(ionpos_bin,bombY);
     REQUIRE(ionpos_bin);
-
-    Atom& projectile = mdloop.atoms.back();
-    projectile.coords.x = bombX;
-    projectile.coords.y = bombY;
 
     if (impact < startFromImpact)
       continue;
@@ -273,6 +263,16 @@ int runImpactSequence(
 
         cout << "OK" << std::endl;
       }
+
+      CustomSimLoop mdloop;
+      mdtk::SimLoopSaver mds(mdloop);
+
+      int loadRetCode = mds.load(inputFilesId);
+      REQUIRE(loadRetCode & mdtk::SimLoopSaver::LOADED_R);
+
+      Atom& projectile = mdloop.atoms.back();
+      projectile.coords.x = bombX;
+      projectile.coords.y = bombY;
 
       {
         yaatk::ChDir cd(trajDirName);
