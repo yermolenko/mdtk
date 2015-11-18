@@ -44,7 +44,8 @@
 
 namespace yaatk
 {
-#define MDTK_GZ_BUFFER_SIZE 10000
+
+const size_t Stream::YAATK_ZIP_BUFFER_SIZE = 500000;
 
 Stream::ZipInvokeInfo Stream::zipInvokeInfoGlobal = chooseZipMethod();
 
@@ -185,9 +186,19 @@ isBinary?
 )
       ,filename(fname),output(isOutput),opened(false),zipInvokeInfo(zipInvokeInfoGlobal)
 {
+  REQUIRE(YAATK_ZIP_BUFFER_SIZE > 0);
+  inbuf = new uint8_t[YAATK_ZIP_BUFFER_SIZE];
+  outbuf = new uint8_t[YAATK_ZIP_BUFFER_SIZE];
   if (!output) guessZipTypeByExtension();
   if (!output) guessZipTypeByPresence();
   open();
+}
+
+Stream::~Stream()
+{
+  close();
+  delete [] inbuf;
+  delete [] outbuf;
 }
 
 void Stream::open()
@@ -222,7 +233,6 @@ Stream::zipMe()
 #ifdef YAATK_ENABLE_LIBLZMA
   if (zipInvokeInfo.command=="xz_internal") return zipMe_xz_internal();
 #endif
-  char buf[MDTK_GZ_BUFFER_SIZE];
   FILE* zipped;
   if (zipInvokeInfo.command!="nozip")
   {
@@ -238,10 +248,10 @@ Stream::zipMe()
     
   REQUIRE(zipped != 0);
   int unzippedFileSize;
-  while((read(buf,MDTK_GZ_BUFFER_SIZE),unzippedFileSize = gcount()) > 0)
+  while((read((char *)inbuf,YAATK_ZIP_BUFFER_SIZE),unzippedFileSize = gcount()) > 0)
   {
     REQUIRE(unzippedFileSize != -1);
-    int bytesWritten    = fwrite(buf,1,unzippedFileSize,zipped);
+    int bytesWritten    = fwrite(inbuf,1,unzippedFileSize,zipped);
     REQUIRE(unzippedFileSize == bytesWritten);
   }
   REQUIRE(unzippedFileSize == 0);
@@ -271,7 +281,6 @@ Stream::unZipMe()
 #ifdef YAATK_ENABLE_LIBLZMA
   if (zipInvokeInfo.command=="xz_internal") return unZipMe_xz_internal();
 #endif
-  char buf[MDTK_GZ_BUFFER_SIZE];
   FILE* zipped;
   if (zipInvokeInfo.command!="nozip")
   {
@@ -287,9 +296,9 @@ Stream::unZipMe()
 
   if(!zipped) return -1;
   int unzippedFileSize;
-  while ((unzippedFileSize = fread(buf,1,MDTK_GZ_BUFFER_SIZE,zipped)) > 0)
+  while ((unzippedFileSize = fread(outbuf,1,YAATK_ZIP_BUFFER_SIZE,zipped)) > 0)
   {
-    write(buf,unzippedFileSize);
+    write((char *)outbuf,unzippedFileSize);
   }
   
   REQUIRE(unzippedFileSize == 0);
@@ -316,14 +325,13 @@ Stream::unZipMe()
 int
 Stream::zipMe_gzip_internal()
 {
-  char buf[MDTK_GZ_BUFFER_SIZE];
   gzFile   zipped   = gzopen(getZippedFileName().c_str(),"wb");
   REQUIRE(zipped != 0);
   int unzippedFileSize;
-  while((read(buf,MDTK_GZ_BUFFER_SIZE),unzippedFileSize = gcount()) > 0)
+  while((read((char *)inbuf,YAATK_ZIP_BUFFER_SIZE),unzippedFileSize = gcount()) > 0)
   {
     REQUIRE(unzippedFileSize != -1);
-    int bytesWritten    = gzwrite(zipped,buf,unzippedFileSize);
+    int bytesWritten    = gzwrite(zipped,inbuf,unzippedFileSize);
     REQUIRE(unzippedFileSize == bytesWritten);
   }
   REQUIRE(unzippedFileSize == 0);
@@ -334,13 +342,12 @@ Stream::zipMe_gzip_internal()
 int
 Stream::unZipMe_gzip_internal()
 {
-  char buf[MDTK_GZ_BUFFER_SIZE];
   gzFile zipped   = gzopen(getZippedFileName().c_str(),"rb");
   if(!zipped) return -1;
   int unzippedFileSize;
-  while ((unzippedFileSize = gzread(zipped,buf,MDTK_GZ_BUFFER_SIZE)) > 0)
+  while ((unzippedFileSize = gzread(zipped,outbuf,YAATK_ZIP_BUFFER_SIZE)) > 0)
   {
-    write(buf,unzippedFileSize);
+    write((char *)outbuf,unzippedFileSize);
   }
   REQUIRE(unzippedFileSize == 0);
   gzclose(zipped);
@@ -365,13 +372,10 @@ Stream::zipMe_xz_internal()
 
   lzma_action action = LZMA_RUN;
 
-  uint8_t inbuf[MDTK_GZ_BUFFER_SIZE];
-  uint8_t outbuf[MDTK_GZ_BUFFER_SIZE];
-
   strm.next_in = NULL;
   strm.avail_in = 0;
   strm.next_out = outbuf;
-  strm.avail_out = sizeof(outbuf);
+  strm.avail_out = YAATK_ZIP_BUFFER_SIZE;
 
   FILE *outfile = fopen(getZippedFileName().c_str(), "wb");
   if (outfile == NULL)
@@ -382,7 +386,7 @@ Stream::zipMe_xz_internal()
     if (strm.avail_in == 0 && !eof())
     {
       strm.next_in = inbuf;
-      read((char *)inbuf,MDTK_GZ_BUFFER_SIZE);
+      read((char *)inbuf,YAATK_ZIP_BUFFER_SIZE);
       strm.avail_in = gcount();
 
       if (eof())
@@ -393,13 +397,13 @@ Stream::zipMe_xz_internal()
 
     if (strm.avail_out == 0 || ret == LZMA_STREAM_END)
     {
-      size_t write_size = sizeof(outbuf) - strm.avail_out;
+      size_t write_size = YAATK_ZIP_BUFFER_SIZE - strm.avail_out;
 
       if (fwrite(outbuf, 1, write_size, outfile) != write_size)
         return -1;
 
       strm.next_out = outbuf;
-      strm.avail_out = sizeof(outbuf);
+      strm.avail_out = YAATK_ZIP_BUFFER_SIZE;
     }
 
     if (ret != LZMA_OK)
@@ -433,13 +437,10 @@ Stream::unZipMe_xz_internal()
 
   lzma_action action = LZMA_RUN;
 
-  uint8_t inbuf[MDTK_GZ_BUFFER_SIZE];
-  uint8_t outbuf[MDTK_GZ_BUFFER_SIZE];
-
   strm.next_in = NULL;
   strm.avail_in = 0;
   strm.next_out = outbuf;
-  strm.avail_out = sizeof(outbuf);
+  strm.avail_out = YAATK_ZIP_BUFFER_SIZE;
 
   FILE *infile = fopen(getZippedFileName().c_str(), "rb");
   if (infile == NULL)
@@ -450,7 +451,7 @@ Stream::unZipMe_xz_internal()
     if (strm.avail_in == 0 && !feof(infile))
     {
       strm.next_in = inbuf;
-      strm.avail_in = fread(inbuf, 1, sizeof(inbuf), infile);
+      strm.avail_in = fread(inbuf, 1, YAATK_ZIP_BUFFER_SIZE, infile);
       if (ferror(infile))
         return -1;
       if (feof(infile))
@@ -461,10 +462,10 @@ Stream::unZipMe_xz_internal()
 
     if (strm.avail_out == 0 || ret == LZMA_STREAM_END)
     {
-      size_t write_size = sizeof(outbuf) - strm.avail_out;
+      size_t write_size = YAATK_ZIP_BUFFER_SIZE - strm.avail_out;
       write((char *)outbuf, write_size);
       strm.next_out = outbuf;
-      strm.avail_out = sizeof(outbuf);
+      strm.avail_out = YAATK_ZIP_BUFFER_SIZE;
     }
     if (ret == LZMA_STREAM_END)
     {
