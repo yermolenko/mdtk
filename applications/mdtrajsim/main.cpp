@@ -20,15 +20,15 @@
    along with MDTK.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifdef MPIBATCH
+#include "mpi.h"
+#endif
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <cstring>
 #include <algorithm>
-
-#ifdef MPIBATCH
-#include "mpi.h"
-#endif
 
 #include <mdtk/SimLoop.hpp>
 #include <mdtk/SimLoopSaver.hpp>
