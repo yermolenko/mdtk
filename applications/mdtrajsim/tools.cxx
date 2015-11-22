@@ -168,7 +168,7 @@ shrinkLogFiles()
     {
       std::ifstream stdout_txt(logfilename.c_str());
       REQUIRE(stdout_txt);
-      std::vector<std::string> stdout_txt_lines(100);
+      std::vector<std::string> stdout_txt_lines(1000);
       size_t stdout_txt_lines_index = 0;
       size_t stdout_txt_lines_read = 0;
 
