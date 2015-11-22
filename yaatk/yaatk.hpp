@@ -257,6 +257,9 @@ listFilesAndDirectories(std::string dir)
 
   class Stream : public std::stringstream
   {
+    static const size_t YAATK_ZIP_BUFFER_SIZE;
+    uint8_t* inbuf;
+    uint8_t* outbuf;
     int zipMe();
     int unZipMe();
 #ifdef YAATK_ENABLE_ZLIB
@@ -293,7 +296,7 @@ listFilesAndDirectories(std::string dir)
     static ZipInvokeInfo zipInvokeInfoGlobal;
     ZipInvokeInfo zipInvokeInfo;
     Stream(std::string fname,bool isOutput,bool isBinary);
-    virtual ~Stream() { close(); }
+    virtual ~Stream();
     void open();
     void close();
   };
