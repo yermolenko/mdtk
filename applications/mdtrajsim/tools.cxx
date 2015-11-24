@@ -36,6 +36,9 @@
 #include <vector>
 #include <fstream>
 
+#include <cstdlib>
+#include <csignal>
+
 #include <yaatk/yaatk.hpp>
 
 #include "tools.hpp"
@@ -254,5 +257,27 @@ void SleepForSeconds(int seconds)
   Sleep(seconds*1000);
 #else
   sleep(seconds);
+#endif
+}
+
+#ifndef __WIN32__
+
+void sigIntHandler(int)
+{
+  if (yaatk::DataState::isClean())
+    removeMyLock();
+#ifdef MPIBATCH
+  MPI_TEST_SUCCESS(MPI_Finalize());
+#endif
+  std::exit(-1);
+}
+
+#endif
+
+void setupSignalHandlers()
+{
+#ifndef __WIN32__
+  std::signal(SIGINT, sigIntHandler);
+  std::signal(SIGTERM, sigIntHandler);
 #endif
 }

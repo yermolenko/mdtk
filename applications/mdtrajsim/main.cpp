@@ -369,6 +369,8 @@ main(int argc, char *argv[])
 
   myLockFilename += getProcessID();
 
+  setupSignalHandlers();
+
   int startFromImpact = 0;
   int maxFinalImpact = std::numeric_limits<int>::max();
 #ifdef MPIBATCH

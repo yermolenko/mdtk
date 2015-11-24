@@ -45,4 +45,6 @@ extern std::string myLockFilename;
 
 void SleepForSeconds(int seconds);
 
+void setupSignalHandlers();
+
 #endif
