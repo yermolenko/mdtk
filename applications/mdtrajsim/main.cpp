@@ -212,11 +212,9 @@ int runImpactSequence(
   int recordLength = ionpos_bin.getDataLength();
   REQUIRE(recordLength % (sizeof(bombX) + sizeof(bombY)) == 0);
   int impactCount = recordLength/(sizeof(bombX) + sizeof(bombY));
-  TRACE(impactCount);
 
   if (impactCount > 0 && impactCount-1 < finalImpact)
     finalImpact = impactCount-1;
-  TRACE(finalImpact);
 
   for(int impact = 0; impact <= finalImpact; ++impact)
   {
@@ -503,6 +501,7 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
       {
         for(int finalImpact = 0; finalImpact <= maxFinalImpact; finalImpact+=1)
         {
+          TRACE(finalImpact);
           std::vector<std::string> expDirs
             = yaatk::listDirectories(yaatk::getcwd());
           for(size_t i = 0; i < expDirs.size(); ++i)
@@ -510,7 +509,6 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
             const std::string& expname = expDirs[i];
             if (expname.find("_on_PE_") != std::string::npos)
             {
-              TRACE(expname);
               yaatk::ChDir cd(expname, false);
               std::vector<std::string> haloDirs
                 = yaatk::listDirectories(yaatk::getcwd());
@@ -519,7 +517,6 @@ Report bugs to <oleksandr.yermolenko@gmail.com>\n\
                 const std::string& haloname = haloDirs[j];
                 if (haloname.find("halo-") != std::string::npos)
                 {
-                  TRACE(haloname);
                   yaatk::ChDir cd(haloname, false);
                   retcode |= runImpactSequence("../base", startFromImpact, finalImpact);
                 }
