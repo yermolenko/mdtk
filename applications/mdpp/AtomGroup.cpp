@@ -94,7 +94,30 @@ AtomGroup::update(const mdtk::SimLoop& ml)
     a.V = aUpd.V;
     a.coords = aUpd.coords;
   }
-}  
+}
+
+void
+AtomGroup::update(
+  const mdtk::SnapshotList::SelectedAtomSnapshotList& atomSnapshotList,
+  const mdtk::SnapshotList& sn)
+{
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    bool atomFoundInSnapshot = false;
+    mdtk::Atom& a = atoms[ai];
+    for(size_t i = 0; i < atomSnapshotList.size(); i++)
+    {
+      if (a.globalIndex == sn.atomsSelectedForSaving[i])
+      {
+        const mdtk::SnapshotList::AtomSnapshot& as = atomSnapshotList[i];
+        as.restoreToAtom(a);
+        atomFoundInSnapshot = true;
+        break;
+      }
+    }
+    REQUIRE(atomFoundInSnapshot);
+  }
+}
 
 void
 AtomGroup::build(const mdtk::SimLoop& ml, 
@@ -221,5 +244,17 @@ AtomGroup::massCenter() const
   };
   return sumOfP/sumOfM;    
 }  
+
+Float
+AtomGroup::kineticEnergy() const
+{
+  Float e = 0;
+  for(size_t ai = 0; ai < atoms.size(); ai++)
+  {
+    const mdtk::Atom& atom = atoms[ai];
+    e += atom.M*SQR(atom.V.module())/2.0;
+  }
+  return e;
+}
 
 }

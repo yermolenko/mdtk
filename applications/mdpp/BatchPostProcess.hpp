@@ -32,20 +32,18 @@ using namespace mdtk;
 
 class BatchPostProcess
 {
-  size_t getHaloIndex(std::string);
+  static size_t getHaloIndex(std::string);
 public:
-  std::vector<mdepp::StatPostProcess> pps;
+  std::vector< std::vector<std::string> > pps;
 
-  BatchPostProcess(std::string mdeppinPath, size_t haloIndex = 0);
+  BatchPostProcess(const std::string mdeppinPath, const size_t haloIndex = 0);
   BatchPostProcess();
 
-  void saveToStream(std::ostream& os) const;
-  void loadFromStream(std::istream& is);
-
-  void execute();
-  void addHalo(const mdepp::BatchPostProcess&);
+  void addHalo(const std::string mdeppinPath, const size_t haloIndex);
 
   void printResults() const;
+
+  void plot_Ekin_t(StatPostProcess::FProcessClassicMolecule fpm, Float ionEnergyFilter) const;
 
   void plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
                                   std::string idStr = "yields",

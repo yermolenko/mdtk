@@ -9,7 +9,10 @@ ClassicMolecule::hasAtom(mdtk::Atom& a) const
   bool found = false;
   for(size_t i = 0; i < atoms.size(); i++)
     if (atoms[i].globalIndex == a.globalIndex)
+    {
       found = true;
+      break;
+    }
   return found;
 }  
 

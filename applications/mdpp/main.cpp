@@ -57,6 +57,11 @@ try
 {
   TRACE(mdtk::buildID);
 
+  mdepp::StatPostProcess::stateTemplate.allowToFreePotentials = true;
+  setupPotentials(mdepp::StatPostProcess::stateTemplate);
+
+  yaatk::mkdir(mdepp::StatPostProcess::cacheDir.c_str());
+
   std::vector<mdepp::BatchPostProcess> bpps;
   bpps.resize(4);
 
@@ -69,40 +74,10 @@ try
       resultsDir << "halo" << haloIndex;
     yaatk::ChDir cd(resultsDir.str());
 
-    bool fullpp = !yaatk::exists("pp.state.orig");
-
-    if (!fullpp)
-    {
-      yaatk::text_ifstream fi("pp.state.orig");
-      bpps[haloIndex].loadFromStream(fi);
-      fi.close();
-
-      bpps[haloIndex].printResults();
-
-      {
-        yaatk::text_ofstream fo("pp.state.after");
-        bpps[haloIndex].saveToStream(fo);
-        fo.close();
-      }
-    }
-    else
     {
       bpps[haloIndex] = mdepp::BatchPostProcess("../../mdepp.in", haloIndex);
-      bpps[haloIndex].execute();
 
       bpps[haloIndex].printResults();
-
-      {
-        yaatk::text_ofstream fo("pp.state.orig");
-        bpps[haloIndex].saveToStream(fo);
-        fo.close();
-      }
-
-      {
-        yaatk::text_ofstream fo("pp.state.after");
-        bpps[haloIndex].saveToStream(fo);
-        fo.close();
-      }
     }
   }
 
@@ -112,21 +87,36 @@ try
     mdepp::BatchPostProcess bppsArea;                                \
     bppsArea = bpps[0];                                              \
     for(size_t haloIndex = 1; haloIndex <= areaIndex; haloIndex++)   \
-      bppsArea.addHalo(bpps[haloIndex]);                             \
+      bppsArea.addHalo("../../mdepp.in", haloIndex);                 \
                                                                      \
     bppsArea.printResults();                                         \
-                                                                     \
-    {                                                                \
-      yaatk::text_ofstream fo("pp.state.after");                     \
-      bppsArea.saveToStream(fo);                                     \
-      fo.close();                                                    \
-    }                                                                \
   }
 
   PROCESS_AREA("area0-reproducibility-test", 0);
   PROCESS_AREA("area1", 1);
   PROCESS_AREA("area2", 2);
   PROCESS_AREA("area3", 3);
+
+#define PROCESS_AREA_INTACT_ONLY(areaDirName,areaIndex)              \
+  {                                                                  \
+    yaatk::ChDir cd(areaDirName);                                    \
+    mdepp::BatchPostProcess bppsArea;                                \
+    bppsArea = bpps[0];                                              \
+    for(size_t haloIndex = 1; haloIndex <= areaIndex; haloIndex++)   \
+      bppsArea.addHalo("../../mdepp.in", haloIndex);                 \
+                                                                     \
+    mdepp::StatPostProcess::TrajFilter trajFilterBackup =            \
+      mdepp::StatPostProcess::trajFilter;                            \
+    mdepp::StatPostProcess::trajFilter =                             \
+      mdepp::StatPostProcess::TrajFilterProcessIntactClusterOnly;    \
+    bppsArea.printResults();                                         \
+    mdepp::StatPostProcess::trajFilter = trajFilterBackup;           \
+  }
+
+  PROCESS_AREA_INTACT_ONLY("area0-intact-only-reproducibility-test", 0);
+  PROCESS_AREA_INTACT_ONLY("area1-intact-only", 1);
+  PROCESS_AREA_INTACT_ONLY("area2-intact-only", 2);
+  PROCESS_AREA_INTACT_ONLY("area3-intact-only", 3);
 }
 catch(mdtk::Exception& e)
 { 

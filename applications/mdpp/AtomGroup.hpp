@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <mdtk/SimLoop.hpp>
+#include <mdtk/SnapshotList.hpp>
 #include <algorithm>
 #include <vector>
 #include "ClassicMolecule.hpp"
@@ -38,6 +39,9 @@ public:
   void buildByTag(const mdtk::SimLoop& ml,
                   const unsigned int tag);
   void update(const mdtk::SimLoop& ml);
+  void update(
+    const mdtk::SnapshotList::SelectedAtomSnapshotList& atomSnapshotList,
+    const mdtk::SnapshotList& sn);
 
   Molecule molecule(size_t atomIndex) const;
   Molecule molecule(const mdtk::Atom& a) const;
@@ -50,6 +54,7 @@ public:
 
   Float          mass() const;
   mdtk::Vector3D velocity() const;
+  Float          kineticEnergy() const;
 
   friend std::istream&  operator>> (std::istream& is, AtomGroup& vec);
   friend std::ostream&  operator<< (std::ostream& os, const AtomGroup& vec);

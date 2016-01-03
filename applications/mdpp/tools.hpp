@@ -1,7 +1,7 @@
 /* 
    tools.hpp (molecular dynamics postprocessor, tools)
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Oleksandr
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2015 Oleksandr
    Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -113,6 +113,10 @@ addTrajDirNames(std::vector<std::string> &stateFileNames,const char *trajsetDir_
     {
       char trajdir_src[10000];
       char stateFileName[10000];
+
+      TRACE("======= addTrajDirNames");
+      TRACE(yaatk::getcwd());
+      TRACE(trajsetDir_);
 
       DIR* trajsetDirHandle = opendir(trajsetDir);
       REQUIRE(trajsetDirHandle != NULL);

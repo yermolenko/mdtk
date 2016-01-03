@@ -71,7 +71,7 @@ BatchPostProcess::getHaloIndex(std::string trajsetDir)
   return haloIndex;
 }
 
-BatchPostProcess::BatchPostProcess(std::string mdeppinPath, size_t haloIndex)
+BatchPostProcess::BatchPostProcess(const std::string mdeppinPath, const size_t haloIndex)
   :pps()
 {
   char trajsetDir[10000];
@@ -85,9 +85,11 @@ BatchPostProcess::BatchPostProcess(std::string mdeppinPath, size_t haloIndex)
     if (strlen(trajsetDir) > 0 && trajsetDir[0] != '#' &&
         haloIndex == getHaloIndex(trajsetDir))
     {
-      pps.push_back(mdepp::StatPostProcess(trajsetDir));
+      std::vector<std::string> pp;
+      pp.push_back(trajsetDir);
+      pps.push_back(pp);
     }
-  };
+  }
 
   fi.close();
 }
@@ -98,47 +100,47 @@ BatchPostProcess::BatchPostProcess()
 }
 
 void
-BatchPostProcess::saveToStream(std::ostream& os) const
-{
-  os << pps.size() << "\n";
-  for(size_t i = 0; i < pps.size(); i++)
-    pps[i].saveToStream(os);
-}
-
-void
-BatchPostProcess::loadFromStream(std::istream& is)
-{
-  size_t sz;
-  is >> sz;
-  for(size_t i = 0; i < sz; i++)
-  {
-    mdepp::StatPostProcess pp;
-    pp.loadFromStream(is);
-    pps.push_back(pp);
-  }
-}
-
-void
-BatchPostProcess::execute()
-{
-  for(size_t i = 0; i < pps.size(); ++i)
-    pps[i].execute();
-}
-
-void
-BatchPostProcess::addHalo(const mdepp::BatchPostProcess& bppHalo)
+BatchPostProcess::addHalo(const std::string mdeppinPath, const size_t haloIndex)
 {
   REQUIRE(pps.size() != 0);
   for(size_t i = 0; i < pps.size(); ++i)
   {
+    REQUIRE(pps[i].size() > 0);
+    REQUIRE(getHaloIndex(pps[i][0]) != haloIndex);
+
+    char trajsetDir[10000];
+
+    REQUIRE(yaatk::exists(mdeppinPath));
+
+    std::ifstream fi(mdeppinPath.c_str());
+
     size_t haloMatches = 0;
-    for(size_t j = 0; j < bppHalo.pps.size(); ++j)
-      if (pps[i].id.str == bppHalo.pps[j].id.str)
+
+    while(fi.getline(trajsetDir, 1000-1, '\n'))
+    {
+      if (strlen(trajsetDir) > 0 && trajsetDir[0] != '#' &&
+          haloIndex == getHaloIndex(trajsetDir))
       {
-        ++haloMatches;
-        pps[i].addHalo(bppHalo.pps[j]);
+        TRACE(pps[i][0]);
+        TRACE(trajsetDir);
+        mdepp::StatPostProcess::Id id0(yaatk::extractItemFromEnd(pps[i][0],1));
+        mdepp::StatPostProcess::Id idi(yaatk::extractItemFromEnd(trajsetDir,1));
+
+        if (id0.clusterElement == idi.clusterElement &&
+            id0.clusterSize == idi.clusterSize &&
+            id0.ionElement == idi.ionElement &&
+            id0.ionEnergy == idi.ionEnergy)
+        {
+          pps[i].push_back(trajsetDir);
+          ++haloMatches;
+          TRACE(haloMatches);
+        }
       }
+    }
+
     REQUIRE(haloMatches <= 1);
+
+    fi.close();
   }
 }
 
@@ -150,7 +152,7 @@ BatchPostProcess::printResults() const
 
   for(size_t i = 0; i < pps.size(); ++i)
   {
-    const mdepp::StatPostProcess& pp = pps[i];
+    const mdepp::StatPostProcess pp(pps[i]);
 
     yaatk::mkdir(pp.id.str.c_str());
     yaatk::chdir(pp.id.str.c_str());
@@ -160,7 +162,7 @@ BatchPostProcess::printResults() const
 
     for(size_t i = 0; i < pp.trajData.size(); i++)
     {
-      TRACE(pp.trajData[i].trajDir);
+      TRACE(pp.trajData[i]->trajDir);
 
       TRACE(pp.getYield(i,mdepp::StatPostProcess::ProcessFullerene));
       TRACE(pp.getYield(i,mdepp::StatPostProcess::ProcessCluster));
@@ -204,10 +206,10 @@ BatchPostProcess::printResults() const
       yaatk::chdir("..");\
     }
 
-    MDPP_PROCESS_ONLY(Cluster);
-    MDPP_PROCESS_ONLY(Projectile);
-    MDPP_PROCESS_ONLY(Substrate);
-    MDPP_PROCESS_ONLY(All);
+    // MDPP_PROCESS_ONLY(Cluster);
+    // MDPP_PROCESS_ONLY(Projectile);
+    // MDPP_PROCESS_ONLY(Substrate);
+    // MDPP_PROCESS_ONLY(All);
 
     yaatk::chdir("..");
   }
@@ -228,6 +230,7 @@ BatchPostProcess::printResults() const
   std::vector<ElementID> elements;
   elements.push_back(Ar_EL);
   elements.push_back(Xe_EL);
+  if (0)
   for(size_t i = 0; i < elements.size(); i++)
   {
 //    plotEnergyLoss(elements[i]);
@@ -270,6 +273,7 @@ BatchPostProcess::printResults() const
   clusterSizes.push_back(39);
   clusterSizes.push_back(75);
 //  clusterSizes.push_back(195);
+  if (0)
   for(size_t i = 0; i < clusterSizes.size(); i++)
   {
 //    plotEnergyLoss(DUMMY_EL, clusterSizes[i]);
@@ -360,7 +364,7 @@ BatchPostProcess::printResults() const
 
     for(size_t i = 0; i < pps.size(); ++i)
     {
-      const mdepp::StatPostProcess& pp = pps[i];
+      const mdepp::StatPostProcess pp(pps[i]);
 
       TRACE(pp.id.str);
 
@@ -380,11 +384,11 @@ BatchPostProcess::printResults() const
 
     for(size_t i = 0; i < pps.size(); ++i)
     {
-      const mdepp::StatPostProcess& pp = pps[i];
+      const mdepp::StatPostProcess pp(pps[i]);
 
       for(size_t trajIndex = 0; trajIndex < pp.trajData.size(); trajIndex++)
       {
-        const mdepp::StatPostProcess::TrajData& td = pp.trajData[trajIndex];
+        const mdepp::StatPostProcess::TrajData& td = *pp.trajData[trajIndex];
         trajdb << td.trajDir << "\t"
                << pp.getYield(trajIndex, mdepp::StatPostProcess::ProcessCluster) << "\t"
                << pp.getYieldNormalizedByClusterSize(trajIndex, mdepp::StatPostProcess::ProcessCluster) << "\t"
@@ -393,6 +397,135 @@ BatchPostProcess::printResults() const
       }
     }
   }
+
+  plot_Ekin_t(mdepp::StatPostProcess::ProcessCluster, 100);
+  plot_Ekin_t(mdepp::StatPostProcess::ProcessProjectile, 100);
+
+  plot_Ekin_t(mdepp::StatPostProcess::ProcessCluster, 200);
+  plot_Ekin_t(mdepp::StatPostProcess::ProcessProjectile, 200);
+
+  plot_Ekin_t(mdepp::StatPostProcess::ProcessCluster, 400);
+  plot_Ekin_t(mdepp::StatPostProcess::ProcessProjectile, 400);
+}
+
+void
+BatchPostProcess::plot_Ekin_t(mdepp::StatPostProcess::FProcessClassicMolecule fpm, Float ionEnergyFilter) const
+{
+  std::stringstream fnb;
+  fnb << ionEnergyFilter << "eV-";
+  fnb << "Ekin_t";
+
+  bool pCluster = (fpm==mdepp::StatPostProcess::ProcessCluster);
+  bool pProjectile = (fpm==mdepp::StatPostProcess::ProcessProjectile);
+
+  REQUIRE(pCluster || pProjectile);
+
+  string atomGroup = "";
+  if (pCluster)
+  {
+    atomGroup += "cluster";
+    fnb << "_cluster";
+  }
+  if (pProjectile)
+  {
+    atomGroup += "projectile";
+    fnb << "_projectile";
+  }
+
+  ofstream fplt((fnb.str()+".plt").c_str());
+  fplt << "\
+reset\n\
+set xrange [0:10]\n\
+set yrange [0:*]\n\
+#set xtics (100,200,400)\n\
+set pointsize 1.5\n\
+#set grid ytics\n\
+" << (pProjectile?"#":"") << "set key left top\n\
+set key right top\n\
+set key spacing 1.5\n\
+set xlabel \"time, ps\"\n\
+set ylabel \"E_{kin} of " << atomGroup << ", eV\"\n\
+set encoding koi8u\n\
+set output  \"" << fnb.str() << ".eps\"\n\
+set terminal postscript eps size 16cm, 8cm \"Arial,18\" enhanced\n\
+plot \\\n\
+";
+
+  std::vector<std::string> plotCmds;
+  std::ostringstream data;
+
+  for(size_t ppi = 0; ppi < pps.size(); ++ppi)
+  {
+    const mdepp::StatPostProcess pp(pps[ppi]);
+
+    if (pp.id.ionEnergy != ionEnergyFilter)
+      continue;
+
+    for(size_t trajIndex = 0; trajIndex < pp.trajData.size(); trajIndex++)
+    {
+      const mdepp::StatPostProcess::TrajData& td = *pp.trajData[trajIndex];
+
+      REQUIRE(td.trajCluster.size() > 0);
+      if (!td.trajCluster.rbegin()->second.isMolecule())
+        continue;
+      if (!isAmongSputtered(td.trajCluster.rbegin()->second,td.molecules))
+        continue;
+
+      std::map <Float,Float> singlePlot;
+      if (fpm == mdepp::StatPostProcess::ProcessCluster)
+        singlePlot = td.plot_Ekin_t(td.getTrajWithPartialSnapshots(td.trajCluster));
+      else if (fpm == mdepp::StatPostProcess::ProcessProjectile)
+        singlePlot = td.plot_Ekin_t(td.getTrajWithPartialSnapshots(td.trajProjectile));
+      else
+        throw Exception("plot_Ekin_t : cannot process requested atom groups");
+
+      std::map<Float,Float>::const_iterator i;
+      for(i = singlePlot.begin(); i != singlePlot.end(); ++i)
+        data << i->first/mdtk::ps << " " << i->second/mdtk::eV << "\n";
+
+      {
+        std::ostringstream cmd;
+        cmd << "'-' title \"{/Italic "
+            << pp.id.ionEnergy << "eV "
+            << ElementIDtoString(pp.id.ionElement) << " -> "
+            << ElementIDtoString(pp.id.clusterElement)
+            << "_{" << pp.id.clusterSize << "}"
+            << " " << yaatk::extractItemFromEnd(td.trajDir,1) << "/"
+            << yaatk::extractLastItem(td.trajDir)
+            << "}\" "
+            << " with linespoints pt -1 ";
+        plotCmds.push_back(cmd.str());
+
+        data << "e\n";
+      }
+    }
+  }
+
+  if (!(plotCmds.size() > 0))
+  {
+    TRACE(atomGroup);
+  }
+
+//  REQUIRE(plotCmds.size() > 0);
+  for(size_t i = 0; i < plotCmds.size(); ++i)
+  {
+    if (i != plotCmds.size()-1)
+      fplt << plotCmds[i] << ",\\\n";
+    else
+      fplt << plotCmds[i] << "\n";
+  }
+
+  fplt << data.str();
+
+  fplt << "\
+set xrange [0:2]\n\
+set output  \"" << fnb.str() << "-2ps" << ".eps\"\n\
+replot\n\
+";
+
+  fplt << data.str();
+
+  fplt.close();
 }
 
 void
@@ -455,7 +588,7 @@ plot \\\n\
 
   for(size_t i = 0; i < pps.size(); ++i)
   {
-    const mdepp::StatPostProcess& pp = pps[i];
+    const mdepp::StatPostProcess pp(pps[i]);
 
     if (specIonElement != DUMMY_EL)
     {
@@ -619,7 +752,7 @@ set xtics nomirror 0,base_mass,2*base_mass\n\
 
   for(size_t i = 0; i < pps.size(); ++i)
   {
-    const mdepp::StatPostProcess& pp = pps[i];
+    const mdepp::StatPostProcess pp(pps[i]);
 
     if (specIonElement != DUMMY_EL)
     {
@@ -875,7 +1008,7 @@ plot \\\n\
 
   for(size_t i = 0; i < pps.size(); ++i)
   {
-    const mdepp::StatPostProcess& pp = pps[i];
+    const mdepp::StatPostProcess pp(pps[i]);
 
     if (specIonElement != DUMMY_EL)
     {
@@ -1018,7 +1151,7 @@ plot \\\n\
 
   for(size_t i = 0; i < pps.size(); ++i)
   {
-    const mdepp::StatPostProcess& pp = pps[i];
+    const mdepp::StatPostProcess pp(pps[i]);
 
     if (specIonElement != DUMMY_EL)
     {
@@ -1049,7 +1182,7 @@ plot \\\n\
 
     for(size_t ti = 0; ti < pp.trajData.size(); ti++)
     {
-      const StatPostProcess::TrajData& td = pp.trajData[ti];
+      const StatPostProcess::TrajData& td = *pp.trajData[ti];
 
       SnapshotList sn;
       {

@@ -34,70 +34,335 @@
 namespace mdepp
 {
 
-StatPostProcess::Id::Id(std::string s)
-  :str(s),
-   clusterElement(),
-   clusterSize(),
-   ionElement(),
-   ionEnergy()
+std::string initialWorkingDirectory = yaatk::getcwd() + DIR_DELIMIT_STR;
+
+bool
+StatPostProcess::ProcessAll(const ClassicMolecule&)
 {
-  {
-    std::string clusterElementString = s.substr(0,2);
-    bool elementRecognized = false;
-    if (clusterElementString == "Cu")
-    {
-      clusterElement = Cu_EL; elementRecognized = true;
-    }
-    if (clusterElementString == "Au")
-    {
-      clusterElement = Au_EL; elementRecognized = true;
-    }
-    REQUIRE(elementRecognized);
-  }
+  return true;
+}
 
-  {
-    istringstream is(s.substr(2,3));
-    is >> clusterSize;
-  }
+bool
+StatPostProcess::ProcessProjectile(const ClassicMolecule& mol)
+{
+  return mol.hasProjectileAtoms();
+}
 
-  {
-    size_t istart = s.find("_by_");
-    REQUIRE(istart != std::string::npos);
-    istart += 4;
+bool
+StatPostProcess::ProcessCluster(const ClassicMolecule& mol)
+{
+  return mol.hasClusterAtoms();
+}
 
-    std::string ionElementString = s.substr(istart,2);
-    bool elementRecognized = false;
-    if (ionElementString == "Ar")
-    {
-      ionElement = Ar_EL; elementRecognized = true;
-    }
-    if (ionElementString == "Xe")
-    {
-      ionElement = Xe_EL; elementRecognized = true;
-    }
-    REQUIRE(elementRecognized);
-  }
+bool
+StatPostProcess::ProcessFullerene(const ClassicMolecule& mol)
+{
+  return mol.hasFullereneAtoms();
+}
 
-  {
-    istringstream is(s.substr(s.find("_by_")+7,4));
-    is >> ionEnergy;
-  }
+bool
+StatPostProcess::ProcessSubstrate(const ClassicMolecule& mol)
+{
+  return mol.hasSubstrateAtoms();
+}
 
-  TRACE(str);
-  TRACE(ElementIDtoString(clusterElement));
-  TRACE(clusterSize);
-  TRACE(ElementIDtoString(ionElement));
-  TRACE(ionEnergy);
-  REQUIRE(str.size()>1);
-  REQUIRE(*str.begin()=='C' || *str.begin()=='A');
-  REQUIRE(*(str.end()-1)=='V');
+bool
+StatPostProcess::ProcessClusterAndSubstrate(const ClassicMolecule& mol)
+{
+//  return mol.hasSubstrateAtoms() || mol.hasClusterAtoms();
+  return mol.hasOnlySubstrateOrClusterAtoms();
+}
+
+StatPostProcess::TrajData::TrajData() :
+  trajDir(),
+  molecules(),
+  trajProjectile(),
+  trajCluster(),
+  PBC(),
+  SPOTTED_DISTANCE(-5.0*mdtk::Ao)
+{
 }
 
 void
-StatPostProcess::buildSputteredClassicMolecules(mdtk::SimLoop& state,size_t trajIndex,
-  StatPostProcess::StateType s, NeighbourList& nl)
+StatPostProcess::TrajData::saveToStream(std::ostream& os) const
 {
-  TrajData& td = trajData[trajIndex];
+  os << trajDir << "\n";
+  os << molecules.size() << "\n";
+  for(size_t i = 0; i < molecules.size(); i++)
+    molecules[i].saveToStream(os);
+
+  {
+    os << trajProjectile.size() << "\n";
+    std::map< Float, AtomGroup >::const_iterator i;
+    for( i = trajProjectile.begin(); i != trajProjectile.end() ; ++i )
+      os << i->first << "\t " << i->second << "\n";
+  }
+
+  {
+    os << trajCluster.size() << "\n";
+    std::map< Float, AtomGroup >::const_iterator i;
+    for( i = trajCluster.begin(); i != trajCluster.end() ; ++i )
+      os << i->first << "\t " << i->second << "\n";
+  }
+
+  os << PBC << "\n";
+
+  os << SPOTTED_DISTANCE << "\n";
+}
+
+void
+StatPostProcess::TrajData::loadFromStream(std::istream& is)
+{
+  is >> trajDir;
+  size_t sz, i;
+  is >> sz;
+  molecules.resize(sz);
+  for(i = 0; i < molecules.size(); i++)
+    molecules[i].loadFromStream(is);
+
+  is >> sz;
+  for(i = 0; i < sz; ++i)
+  {
+    Float t;
+    AtomGroup f;
+    is >> t >> f;
+    trajProjectile[t] = f;
+  }
+
+  is >> sz;
+  for(i = 0; i < sz; ++i)
+  {
+    Float t;
+    AtomGroup f;
+    is >> t >> f;
+    trajCluster[t] = f;
+  }
+
+  is >> PBC;
+
+  is >> SPOTTED_DISTANCE;
+}
+
+void
+StatPostProcess::TrajData::execute(mdtk::SimLoop& state)
+{
+    yaatk::ChDir cd(initialWorkingDirectory +
+                    DIR_DELIMIT_STR +
+                    trajDir, false);
+
+    {
+      state.initNLafterLoading = false;
+
+      TRACE(yaatk::getcwd());
+
+      mdtk::SimLoopSaver mds(state);
+      REQUIRE(mds.loadIterationLatest() & mdtk::SimLoopSaver::LOADED_R);
+
+      state.atoms.prepareForSimulatation();
+      setTags(state);
+      {
+        REQUIRE(mds.listIterations().size() > 0);
+        cout << "State " << *mds.listIterations().rbegin() << " loaded." << std::endl;
+      }
+    }
+    {
+      SimLoop::Check& check = state.check;
+      Float Eo_plus_Eb = check.initialEnergy + check.energyTransferredFromBath;
+      Float dE = check.currentEnergy - Eo_plus_Eb;
+      Float dE_by_Eo_plus_Eb = dE/Eo_plus_Eb;
+      if (fabs(dE_by_Eo_plus_Eb) > 0.01)
+      {
+        cerr << "Trajectory " << trajDir
+             << " has bad energy conservation."
+             << " Handle it separately." << endl;
+        throw mdepp::BadTrajectoryException();
+      }
+    }
+    {
+      if (state.simTimeFinal > state.simTime)
+      {
+        cerr << "Trajectory " << trajDir
+             << " seems to be unfinished."
+             << " Handle it separately." << endl;
+        throw mdepp::BadTrajectoryException();
+      }
+    }
+
+    NeighbourList nl(state.atoms);
+
+    Molecule projectile;
+    {
+      projectile.buildByTag(state,ATOMTAG_PROJECTILE);
+      trajProjectile[state.simTime] = projectile;
+
+      projectile.update(state);
+      trajProjectile[state.simTime] = projectile;
+    }
+
+    Molecule cluster;
+    {
+      cluster.buildByTag(state,ATOMTAG_CLUSTER);
+      trajCluster[state.simTime] = cluster;
+
+      cluster.update(state);
+      trajCluster[state.simTime] = cluster;
+    }
+
+    PBC = state.atoms.PBC();
+    TRACE(PBC/mdtk::Ao);
+
+//    TRACE(getAboveSpottedHeight(*state));
+
+    buildSputteredClassicMolecules(state,STATE_FINAL,nl);
+//    buildClusterDynamics(*state,trajIndex,STATE_FINAL,nl);
+//    buildProjectileDynamics(*state,trajIndex,STATE_FINAL);
+
+//  if (molecules.size() > 0)
+
+    if (0)
+    {
+      SnapshotList snapshots;
+      snapshots.loadstate();
+
+      {
+        if (state.simTimeFinal -
+            snapshots.snapshots[snapshots.snapshots.size()-1].first >
+            (5e-16*50*4)*2)
+        {
+          cerr << "Trajectory " << trajDir
+               << " seems to have incomplete partial snapshot info."
+               << " Handle it separately." << endl;
+          throw mdepp::BadTrajectoryException();
+        }
+
+        if (snapshots.snapshots[0].first > (5e-16*5*4)*2)
+        {
+          cerr << "Trajectory " << trajDir
+               << " seems to have incomplete partial snapshot info."
+               << " Handle it separately." << endl;
+          throw mdepp::BadTrajectoryException();
+        }
+      }
+
+      for(size_t index = 0; index < snapshots.snapshots.size(); ++index)
+      {
+        state.simTime = snapshots.snapshots[index].first;
+        for(size_t ai = 0; ai < snapshots.snapshots[index].second.size(); ++ai)
+        {
+          const SnapshotList::AtomSnapshot& as =
+            snapshots.snapshots[index].second[ai];
+          size_t atomIndex = snapshots.atomsSelectedForSaving[ai];
+          mdtk::Atom& a = state.atoms[atomIndex];
+          as.restoreToAtom(a);
+          // upToDate[atomIndex] = true;
+          // accurate[atomIndex] = true;
+        }
+        {
+          projectile.update(state);
+          trajProjectile[state.simTime] = projectile;
+        }
+        {
+          cluster.update(state);
+          trajCluster[state.simTime] = cluster;
+        }
+      }
+    }
+
+#if 0
+
+//    if (0)
+    {
+      mdtk::SimLoop mde_init;
+      mde_init.allowToFreePotentials = true;
+//      mde_init.allowToFreeAtoms = true;
+      setupPotentials(mde_init);
+      std::string mde_init_filename = trajDir+"mde_init";
+      cout << "Loading state " << mde_init_filename << std::endl;
+      yaatk::text_ifstream fi(mde_init_filename.c_str());
+      mde_init.initNLafterLoading = false;
+      mde_init.loadFromStream(fi);
+      mde_init.atoms.prepareForSimulatation();
+      setTags(mde_init);
+      NeighbourList nl(mde_init.atoms);
+      fi.close();
+
+      cout << "State " << mde_init_filename << " loaded." << std::endl;
+
+      buildSputteredClassicMolecules(mde_init,trajIndex,STATE_INIT,nl);
+//      buildClusterDynamics(mde_init,trajIndex,STATE_INIT,nl);
+//      buildProjectileDynamics(mde_init,trajIndex,STATE_INIT);
+
+      {
+        projectile.update(mde_init);
+        trajProjectile[mde_init.simTime] = projectile;
+      }
+
+      {
+        cluster.update(mde_init);
+        trajCluster[mde_init.simTime] = cluster;
+      }
+    }
+
+//  if (molecules.size() > 0)
+    {
+      std::vector<std::string> interStates;
+      findIntermediateStates(trajDir,interStates);
+
+      mdtk::SimLoop mde_inter;
+      mde_inter.allowToFreePotentials = true;
+//      mde_inter.allowToFreeAtoms = true;
+      setupPotentials(mde_inter);
+
+      std::string trajFinalName = trajDir+"mde_init";
+      cout << "Loading state " << trajFinalName << std::endl;
+      yaatk::text_ifstream fi(trajFinalName.c_str());
+      mde_inter.initNLafterLoading = false;
+      mde_inter.loadFromStream(fi);
+      fi.close();
+
+      for(int stateIndex = interStates.size()-1; stateIndex >= 0; stateIndex--)
+      {
+//	if (stateIndex != interStates.size()-1) continue;
+	std::string mde_inter_filename = trajDir+interStates[stateIndex];
+
+	{
+	  //to remove .GZ simply resize
+	  mde_inter_filename.resize(mde_inter_filename.size()-3);
+	}
+
+	TRACE(mde_inter_filename);
+	yaatk::text_ifstream fi(mde_inter_filename.c_str());
+	mde_inter.loadFromStreamXVA(fi);
+	mde_inter.atoms.prepareForSimulatation();
+	setTags(mde_inter);
+	NeighbourList nl(mde_inter.atoms);
+	fi.close();
+
+	buildSputteredClassicMolecules(mde_inter,trajIndex,STATE_INTER,nl);
+//	buildClusterDynamics(mde_inter,trajIndex,STATE_INTER,nl);
+//	buildProjectileDynamics(mde_inter,trajIndex,STATE_INTER);
+
+//        if (bombardingWithFullerene)
+        {
+          projectile.update(mde_inter);
+          trajProjectile[mde_inter.simTime] = projectile;
+        }
+        {
+          cluster.update(mde_inter);
+          trajCluster[mde_inter.simTime] = cluster;
+        }
+      }
+    }
+
+#endif
+}
+
+void
+StatPostProcess::TrajData::buildSputteredClassicMolecules(
+  mdtk::SimLoop& state,
+  StatPostProcess::TrajData::StateType s,
+  NeighbourList& nl)
+{
   if (s == STATE_FINAL)
   {
     cout << "Building molecules for state ..." << std::endl;
@@ -107,9 +372,9 @@ StatPostProcess::buildSputteredClassicMolecules(mdtk::SimLoop& state,size_t traj
       if (atom.coords.z < SPOTTED_DISTANCE)
       {
 	bool account_atom = true;
-	for(size_t mi = 0; mi < td.molecules.size(); mi++)
+	for(size_t mi = 0; mi < molecules.size(); mi++)
 	{
-	  if (td.molecules[mi].hasAtom(atom))
+	  if (molecules[mi].hasAtom(atom))
 	  {
 	    account_atom = false;
 	    break;
@@ -122,38 +387,38 @@ StatPostProcess::buildSputteredClassicMolecules(mdtk::SimLoop& state,size_t traj
 	  if (molecule.atoms.size() > 0 && molecule.getVelocity().z < 0.0)
 	  {
 	    cout << "Adding molecule." << std::endl;
-	    td.molecules.push_back(molecule);
+	    molecules.push_back(molecule);
 	  }
 	}
       }
     }
-    std::sort(td.molecules.begin(),td.molecules.end());
+    std::sort(molecules.begin(),molecules.end());
   }
   else if (s == STATE_INIT)
   {
     mdtk::SimLoop* mde_init = &state;
-    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    for(size_t mi = 0; mi < molecules.size(); mi++)
     {
-      for(size_t ai = 0; ai < td.molecules[mi].atoms.size(); ai++)
+      for(size_t ai = 0; ai < molecules[mi].atoms.size(); ai++)
       {
-        const mdtk::Atom& atom = td.molecules[mi].atoms[ai];
+        const mdtk::Atom& atom = molecules[mi].atoms[ai];
         const mdtk::Atom& atom_init = mde_init->atoms[atom.globalIndex];
-        td.molecules[mi].atoms_init.push_back(atom_init);
-        REQUIRE(td.molecules[mi].atoms[ai].globalIndex ==
-		td.molecules[mi].atoms_init[ai].globalIndex);
+        molecules[mi].atoms_init.push_back(atom_init);
+        REQUIRE(molecules[mi].atoms[ai].globalIndex ==
+		molecules[mi].atoms_init[ai].globalIndex);
       }
-      REQUIRE(td.molecules[mi].atoms.size() ==
-	      td.molecules[mi].atoms_init.size());
+      REQUIRE(molecules[mi].atoms.size() ==
+	      molecules[mi].atoms_init.size());
     }
   }
   else if (s == STATE_INTER)
   {
     mdtk::SimLoop* mde_inter = &state;
-    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    for(size_t mi = 0; mi < molecules.size(); mi++)
     {
       bool formedNowOrEarlier = true;
       bool escapedNowOrEarlier = true;
-      ClassicMolecule& molecule = td.molecules[mi];
+      ClassicMolecule& molecule = molecules[mi];
       for(size_t ai = 0; ai < molecule.atoms.size(); ai++)
       {
 	mdtk::Atom& atom_i = molecule.atoms[ai];
@@ -225,10 +490,10 @@ StatPostProcess::buildSputteredClassicMolecules(mdtk::SimLoop& state,size_t traj
 }
 
 void
-StatPostProcess::buildDummyDynamics(mdtk::SimLoop& state,size_t trajIndex,
-  StatPostProcess::StateType s)
+StatPostProcess::TrajData::buildDummyDynamics(
+  mdtk::SimLoop& state,
+  StatPostProcess::TrajData::StateType s)
 {
-  TrajData& td = trajData[trajIndex];
   if (s == STATE_FINAL)
   {
   }
@@ -242,87 +507,60 @@ StatPostProcess::buildDummyDynamics(mdtk::SimLoop& state,size_t trajIndex,
   }
 }
 
-void
-StatPostProcess::removeBadTrajectories()
+std::map <Float,AtomGroup>
+StatPostProcess::TrajData::getTrajWithPartialSnapshots(
+      const std::map<Float,AtomGroup>& trajectorySeed) const
 {
-  mdtk::SimLoop state;
-  state.allowToFreePotentials = true;
-  setupPotentials(state);
+  std::map<Float,AtomGroup> trajectory = trajectorySeed;
 
-  std::vector<size_t> badTrajIndices;
-  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
-    bool trajectoryIsBad = false;
+    yaatk::ChDir cd(initialWorkingDirectory +
+                    DIR_DELIMIT_STR +
+                    trajDir, false);
 
-    TrajData& td = trajData[trajIndex];
-
-    yaatk::ChDir cd(td.trajDir, false);
-
-    state.initNLafterLoading = false;
-
-    mdtk::SimLoopSaver mds(state);
-    REQUIRE(mds.loadIterationLatest() & mdtk::SimLoopSaver::LOADED_R);
-
-    state.atoms.prepareForSimulatation();
+    SnapshotList snapshots;
+    snapshots.loadstate();
 
     {
-      SimLoop::Check& check = state.check;
-      Float Eo_plus_Eb = check.initialEnergy + check.energyTransferredFromBath;
-      Float dE = check.currentEnergy - Eo_plus_Eb;
-      Float dE_by_Eo_plus_Eb = dE/Eo_plus_Eb;
-      if (fabs(dE_by_Eo_plus_Eb) > 0.01)
+      if (/*state.simTimeFinal*/ 10.0*mdtk::ps -
+          snapshots.snapshots[snapshots.snapshots.size()-1].first >
+          (5e-16*50*4)*2)
       {
-        cerr << "Trajectory " << trajData[trajIndex].trajDir << " has bad energy conservation. Handle it separately." << endl;
-        trajectoryIsBad = true;
-      }
-    }
-    {
-      if (state.simTimeFinal > state.simTime)
-      {
-        cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to be unfinished. Handle it separately." << endl;
-        trajectoryIsBad = true;
-      }
-    }
-    {
-      SnapshotList sn;
-      sn.loadstate();
-
-      if (state.simTimeFinal - sn.snapshots[sn.snapshots.size()-1].first > (5e-16*50*4)*2)
-      {
-        cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to have incomplete partial snapshot info. Handle it separately." << endl;
-        trajectoryIsBad = true;
+        cerr << "Trajectory " << trajDir
+             << " seems to have incomplete partial snapshot info."
+             << " Handle it separately." << endl;
+        throw mdepp::BadTrajectoryException();
       }
 
-      if (sn.snapshots[0].first > (5e-16*5*4)*2)
+      if (snapshots.snapshots[0].first > (5e-16*5*4)*2)
       {
-        cerr << "Trajectory " << trajData[trajIndex].trajDir << " seems to have incomplete partial snapshot info. Handle it separately." << endl;
-        trajectoryIsBad = true;
+        cerr << "Trajectory " << trajDir
+             << " seems to have incomplete partial snapshot info."
+             << " Handle it separately." << endl;
+        throw mdepp::BadTrajectoryException();
       }
     }
 
-    if (trajectoryIsBad)
-      badTrajIndices.push_back(trajIndex);
+    for(size_t index = 0; index < snapshots.snapshots.size(); ++index)
+    {
+      mdtk::Float simTime = snapshots.snapshots[index].first;
+      AtomGroup m = trajectorySeed.begin()->second;
+      {
+        m.update(snapshots.snapshots[index].second,snapshots);
+        trajectory[simTime] = m;
+      }
+    }
   }
 
-  size_t oldSize = trajData.size();
-
-  for(int i = badTrajIndices.size()-1; i >= 0; i--)
-  {
-    REQUIRE(i == 0 || (badTrajIndices[i] > badTrajIndices[i-1]));
-    cerr << "Removing trajectory from postprocess: "
-         << (trajData.begin()+badTrajIndices[i])->trajDir << endl;
-    trajData.erase(trajData.begin()+badTrajIndices[i]);
-  }
-
-  cerr << "Removed " << oldSize - trajData.size() << " trajectories." << endl;
+  return trajectory;
 }
 
 void
-StatPostProcess::setSpottedDistanceFromInit()
+StatPostProcess::TrajData::setSpottedDistanceFromInit()
 {
   using mdtk::Exception;
 
-  REQUIRE(trajData.size() > 0);
+  // REQUIRE(trajData.size() > 0);
 
   SimLoop mdbase;
   mdtk::SimLoopSaver mds(mdbase);
@@ -346,179 +584,325 @@ StatPostProcess::setSpottedDistanceFromInit()
   TRACE(SPOTTED_DISTANCE/mdtk::Ao);
 }
 
-void
-StatPostProcess::execute()
+int
+StatPostProcess::TrajData::getAboveSpottedHeight(mdtk::SimLoop& state) const
 {
-  using mdtk::Exception;
-
-  removeBadTrajectories();
-
-  if (0)
+  int spotted;
   {
-    REQUIRE(trajData.size() >= 1);
-    trajData.resize(1);
+    spotted = 0;
+    for(size_t atomIndex = 0; atomIndex < state.atoms.size(); atomIndex++)
+    {
+      mdtk::Atom &atom = state.atoms[atomIndex];
+      if (atom.coords.z < SPOTTED_DISTANCE)
+      {
+        spotted++;
+      }
+    }
+  }
+  return spotted;
+}
+
+bool
+StatPostProcess::TrajData::hasIntactClusterSputtering() const
+{
+  Id id(yaatk::extractItemFromEnd(trajDir,2));
+
+  bool hasClusterAmongSputtered = false;
+
+  for(size_t mi = 0; mi < molecules.size(); mi++)
+  {
+    if (molecules[mi].atoms.size() < id.clusterSize)
+      continue;
+    size_t clusterAtomsCount = 0;
+    for(size_t ai = 0; ai < molecules[mi].atoms.size(); ai++)
+    {
+      if (molecules[mi].atoms[ai].ID == id.clusterElement)
+        ++clusterAtomsCount;
+    }
+    REQUIRE(clusterAtomsCount <= id.clusterSize);
+    if (clusterAtomsCount == id.clusterSize)
+      hasClusterAmongSputtered = true;
   }
 
-  cout << "PostProcess::execute() started." << std::endl;
-  cerr << "PostProcess::execute() started." << std::endl;
+  return hasClusterAmongSputtered;
+}
 
-  mdtk::SimLoop state;
-  state.allowToFreePotentials = true;
-  setupPotentials(state);
+std::map <Float,Float>
+StatPostProcess::TrajData::plot_Ekin_t(const std::map<Float,AtomGroup>& trajectory)
+{
+  std::map <Float,Float> plot;
 
-  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
+  std::map<Float,AtomGroup>::const_iterator i;
+  for(i = trajectory.begin(); i != trajectory.end(); ++i)
+    plot[i->first] = i->second.kineticEnergy();
+
+  return plot;
+}
+
+bool
+StatPostProcess::TrajFilterProcessAll(const TrajData&)
+{
+  return true;
+}
+
+bool
+StatPostProcess::TrajFilterProcessIntactClusterOnly(const TrajData& td)
+{
+  return td.hasIntactClusterSputtering();
+}
+
+StatPostProcess::TrajFilter
+StatPostProcess::trajFilter =
+  StatPostProcess::TrajFilterProcessAll;
+
+StatPostProcess::Id::Id(std::string s)
+  :str(s),
+   clusterElement(),
+   clusterSize(),
+   ionElement(),
+   ionEnergy()
+{
   {
-    TrajData& td = trajData[trajIndex];
-
-    yaatk::ChDir cd(td.trajDir, false);
-
+    std::string clusterElementString = s.substr(0,2);
+    bool elementRecognized = false;
+    if (clusterElementString == "Cu")
     {
-      state.initNLafterLoading = false;
-
-      mdtk::SimLoopSaver mds(state);
-      REQUIRE(mds.loadIterationLatest() & mdtk::SimLoopSaver::LOADED_R);
-
-      state.atoms.prepareForSimulatation();
-      setTags(state);
-      {
-        REQUIRE(mds.listIterations().size() > 0);
-        cout << "State " << *mds.listIterations().rbegin() << " loaded." << std::endl;
-      }
+      clusterElement = Cu_EL; elementRecognized = true;
     }
-    NeighbourList nl(state.atoms);
-
-    Molecule projectile;
+    if (clusterElementString == "Au")
     {
-      projectile.buildByTag(state,ATOMTAG_PROJECTILE);
-      td.trajProjectile[state.simTime] = projectile;
-
-      projectile.update(state);
-      td.trajProjectile[state.simTime] = projectile;
+      clusterElement = Au_EL; elementRecognized = true;
     }
-
-    Molecule cluster;
-    {
-      cluster.buildByTag(state,ATOMTAG_CLUSTER);
-      td.trajCluster[state.simTime] = cluster;
-
-      cluster.update(state);
-      td.trajCluster[state.simTime] = cluster;
-    }
-
-    td.PBC = state.atoms.PBC();
-    TRACE(td.PBC/mdtk::Ao);
-
-//    TRACE(getAboveSpottedHeight(*state));
-
-    buildSputteredClassicMolecules(state,trajIndex,STATE_FINAL,nl);
-//    buildClusterDynamics(*state,trajIndex,STATE_FINAL,nl);
-//    buildProjectileDynamics(*state,trajIndex,STATE_FINAL);
-
-//  if (td.molecules.size() > 0)
-
-#if 0
-
-//    if (0)
-    {
-      mdtk::SimLoop mde_init;
-      mde_init.allowToFreePotentials = true;
-//      mde_init.allowToFreeAtoms = true;
-      setupPotentials(mde_init);
-      std::string mde_init_filename = td.trajDir+"mde_init";
-      cout << "Loading state " << mde_init_filename << std::endl;
-      yaatk::text_ifstream fi(mde_init_filename.c_str());
-      mde_init.initNLafterLoading = false;
-      mde_init.loadFromStream(fi);
-      mde_init.atoms.prepareForSimulatation();
-      setTags(mde_init);
-      NeighbourList nl(mde_init.atoms);
-      fi.close();
-
-      cout << "State " << mde_init_filename << " loaded." << std::endl;
-
-      buildSputteredClassicMolecules(mde_init,trajIndex,STATE_INIT,nl);
-//      buildClusterDynamics(mde_init,trajIndex,STATE_INIT,nl);
-//      buildProjectileDynamics(mde_init,trajIndex,STATE_INIT);
-
-      {
-        projectile.update(mde_init);
-        td.trajProjectile[mde_init.simTime] = projectile;
-      }
-
-      {
-        cluster.update(mde_init);
-        td.trajCluster[mde_init.simTime] = cluster;
-      }
-    }
-
-//  if (td.molecules.size() > 0)
-    {
-      std::vector<std::string> interStates;
-      findIntermediateStates(td.trajDir,interStates);
-
-      mdtk::SimLoop mde_inter;
-      mde_inter.allowToFreePotentials = true;
-//      mde_inter.allowToFreeAtoms = true;
-      setupPotentials(mde_inter);
-
-      std::string trajFinalName = td.trajDir+"mde_init";
-      cout << "Loading state " << trajFinalName << std::endl;
-      yaatk::text_ifstream fi(trajFinalName.c_str());
-      mde_inter.initNLafterLoading = false;
-      mde_inter.loadFromStream(fi);
-      fi.close();
-
-      for(int stateIndex = interStates.size()-1; stateIndex >= 0; stateIndex--)
-      {
-//	if (stateIndex != interStates.size()-1) continue;
-	std::string mde_inter_filename = td.trajDir+interStates[stateIndex];
-
-	{
-	  //to remove .GZ simply resize
-	  mde_inter_filename.resize(mde_inter_filename.size()-3);
-	}
-
-	TRACE(mde_inter_filename);
-	yaatk::text_ifstream fi(mde_inter_filename.c_str());
-	mde_inter.loadFromStreamXVA(fi);
-	mde_inter.atoms.prepareForSimulatation();
-	setTags(mde_inter);
-	NeighbourList nl(mde_inter.atoms);
-	fi.close();
-
-	buildSputteredClassicMolecules(mde_inter,trajIndex,STATE_INTER,nl);
-//	buildClusterDynamics(mde_inter,trajIndex,STATE_INTER,nl);
-//	buildProjectileDynamics(mde_inter,trajIndex,STATE_INTER);
-
-//        if (bombardingWithFullerene)
-        {
-          projectile.update(mde_inter);
-          td.trajProjectile[mde_inter.simTime] = projectile;
-        }
-        {
-          cluster.update(mde_inter);
-          td.trajCluster[mde_inter.simTime] = cluster;
-        }
-      }
-    }
-
-#endif
-
-    cout << "Building molecules for state done." << std::endl;
+    REQUIRE(elementRecognized);
   }
 
-  cout << "PostProcess::execute() done." << std::endl;
-  cerr << "PostProcess::execute() done." << std::endl;
+  {
+    istringstream is(s.substr(2,3));
+    is >> clusterSize;
+  }
+
+  {
+    size_t istart = s.find("_by_");
+    REQUIRE(istart != std::string::npos);
+    istart += 4;
+
+    std::string ionElementString = s.substr(istart,2);
+    bool elementRecognized = false;
+    if (ionElementString == "Ar")
+    {
+      ionElement = Ar_EL; elementRecognized = true;
+    }
+    if (ionElementString == "Xe")
+    {
+      ionElement = Xe_EL; elementRecognized = true;
+    }
+    REQUIRE(elementRecognized);
+  }
+
+  {
+    istringstream is(s.substr(s.find("_by_")+7,4));
+    is >> ionEnergy;
+  }
+
+  TRACE(str);
+  TRACE(ElementIDtoString(clusterElement));
+  TRACE(clusterSize);
+  TRACE(ElementIDtoString(ionElement));
+  TRACE(ionEnergy);
+  REQUIRE(str.size()>1);
+  REQUIRE(*str.begin()=='C' || *str.begin()=='A');
+  REQUIRE(*(str.end()-1)=='V');
+}
+
+StatPostProcess::Id::Id() :
+  str(),
+  clusterElement(),
+  clusterSize(),
+  ionElement(),
+  ionEnergy()
+{
 }
 
 void
-StatPostProcess::addHalo(const StatPostProcess& pp)
+StatPostProcess::Id::saveToStream(std::ostream& os) const
 {
-  REQUIRE(id.str == pp.id.str);
-  REQUIRE(SPOTTED_DISTANCE == pp.SPOTTED_DISTANCE);
-  for(size_t i = 0; i < pp.trajData.size(); i++)
-    trajData.push_back(pp.trajData[i]);
+  os << str << "\n";
+  os << clusterElement << "\n";
+  os << clusterSize << "\n";
+  os << ionElement << "\n";
+  os << ionEnergy << "\n";
 }
+
+void
+StatPostProcess::Id::loadFromStream(std::istream& is)
+{
+  is >> str;
+  int ID;
+  is >> ID; clusterElement = ElementID(ID);
+  is >> clusterSize;
+  is >> ID; ionElement = ElementID(ID);
+  is >> ionEnergy;
+}
+
+std::string StatPostProcess::cacheDir = initialWorkingDirectory + DIR_DELIMIT_STR + "cache";
+
+std::string
+StatPostProcess::getCacheFilename(std::string trajsetDir)
+{
+  for(size_t i = 0; i < trajsetDir.size(); ++i)
+  {
+    if (trajsetDir[i] == '.' || trajsetDir[i] == '/' || trajsetDir[i] == '\'')
+      trajsetDir[i] = '_';
+  }
+  return cacheDir + DIR_DELIMIT_STR + trajsetDir;
+}
+
+std::map<std::string,StatPostProcess::TrajData> StatPostProcess::ramCache;
+
+mdtk::SimLoop StatPostProcess::stateTemplate;
+
+StatPostProcess::StatPostProcess(const std::vector<std::string> trajdirs)
+  :testProcessClassicMolecule(&ProcessAll),
+   trajData(),
+   id(yaatk::extractItemFromEnd(trajdirs[0],1))
+{
+  instanceCounter++;
+  REQUIRE(instanceCounter <= 1);
+
+  if (ramCache.size() > 500)
+    ramCache.clear();
+
+  stateTemplate.atoms.clear();
+
+  REQUIRE(trajdirs.size() > 0);
+  REQUIRE(trajdirs.size() < 5);
+  for(size_t tdi = 0; tdi < trajdirs.size(); ++tdi)
+  {
+    std::string trajsetDir = trajdirs[tdi];
+
+    if (tdi > 0)
+    {
+      TRACE(trajdirs[0]);
+      TRACE(trajsetDir);
+      Id id0(yaatk::extractItemFromEnd(trajdirs[0],1));
+      Id idi(yaatk::extractItemFromEnd(trajsetDir,1));
+      REQUIRE(id0.clusterElement == idi.clusterElement);
+      REQUIRE(id0.clusterSize == idi.clusterSize);
+      REQUIRE(id0.ionElement == idi.ionElement);
+      REQUIRE(id0.ionEnergy == idi.ionEnergy);
+    }
+
+    TRACE(yaatk::getcwd());
+    TRACE(trajsetDir);
+
+    using mdtk::Exception;
+
+    std::vector<std::string> savedStateNames;
+    mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Custom2;
+    {
+      yaatk::ChDir cd(
+        initialWorkingDirectory,
+        false);
+      mdepp::addTrajDirNames(savedStateNames,trajsetDir.c_str(),fpt);
+    }
+    std::sort(savedStateNames.begin(),savedStateNames.end());
+
+    std::vector<_SavedStateSortStruct> sorted;
+    for(size_t i = 0; i < savedStateNames.size(); i++)
+      sorted.push_back(savedStateNames[i]);
+
+    sort(sorted.begin(), sorted.end());
+
+    for(size_t i = 0; i < sorted.size(); i++)
+    {
+      std::string trajDir = sorted[i].fullTrajDirName;
+
+      if (ramCache.find(trajDir) != ramCache.end())
+      {
+        TRACE("**** getting trajData from cache");
+        TrajData& td = ramCache.find(trajDir)->second;
+        if (trajFilter(td))
+          trajData.push_back(&td);
+      }
+      else
+      {
+        try
+        {
+          ramCache[trajDir].trajDir = trajDir;
+          TrajData& td = ramCache[trajDir];
+
+          bool alreadyProcessed =
+            yaatk::exists(getCacheFilename(trajDir));
+          if (!alreadyProcessed)
+          {
+            TRACE("**** getting trajData from execute()");
+            TRACE("**** execute()");
+
+            cout << "execute() started : " << trajDir << std::endl;
+            cerr << "execute() started : " << trajDir << std::endl;
+
+            {
+              yaatk::ChDir cd(
+                initialWorkingDirectory + DIR_DELIMIT_STR +
+                trajsetDir +
+                DIR_DELIMIT_STR + ".." + DIR_DELIMIT_STR,
+                false);
+              td.setSpottedDistanceFromInit();
+            }
+
+            td.execute(stateTemplate);
+
+            cout << "execute() done : " << trajDir << std::endl;
+            cerr << "execute() done : " << trajDir << std::endl;
+
+            TRACE("**** ~execute()");
+
+            {
+              TRACE(yaatk::getcwd());
+              TRACE(getCacheFilename(trajDir));
+
+              yaatk::text_ofstream fo(getCacheFilename(trajDir));
+              td.saveToStream(fo);
+              fo.close();
+            }
+          }
+          else
+          {
+            TRACE("**** getting trajData from disk");
+            yaatk::text_ifstream fi(getCacheFilename(trajDir));
+            td.loadFromStream(fi);
+            fi.close();
+          }
+
+          if (trajFilter(td))
+            trajData.push_back(&td);
+        }
+        catch (mdepp::BadTrajectoryException& e)
+        {
+          EPRINT("Trajectory is bad. Excluding it from postprocess.");
+        }
+      }
+    }
+  }
+}
+
+// StatPostProcess::StatPostProcess()
+//   :testProcessClassicMolecule(&ProcessAll),
+//    trajData(),
+//    id()
+// {
+//   instanceCounter++;
+//   REQUIRE(instanceCounter <= 1);
+// }
+
+StatPostProcess::~StatPostProcess()
+{
+  REQUIRE(instanceCounter > 0);
+  instanceCounter--;
+}
+
+size_t
+StatPostProcess::instanceCounter = 0;
 
 std::map<ClassicMolecule, size_t>
 StatPostProcess::buildMassSpectrum(FProcessClassicMolecule fpm) const
@@ -526,7 +910,7 @@ StatPostProcess::buildMassSpectrum(FProcessClassicMolecule fpm) const
   std::map<ClassicMolecule, size_t> massSpectrum;
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
-    const TrajData& td = trajData[trajIndex];
+    const TrajData& td = *trajData[trajIndex];
     for(size_t mi = 0; mi < td.molecules.size(); mi++)
     {
       if (!fpm(td.molecules[mi])) continue;
@@ -541,10 +925,10 @@ void
 StatPostProcess::printClassicMoleculesTotal() const
 {
   for(size_t traj = 0; traj < trajData.size(); traj++)
-  if (trajData[traj].molecules.size() > 0)
+  if (trajData[traj]->molecules.size() > 0)
   {
     cout << "ClassicMolecules for trajectory " << traj <<
-     " ("  << trajData[traj].trajDir << ") " << " :\n";
+     " ("  << trajData[traj]->trajDir << ") " << " :\n";
     printClassicMolecules(traj);
     cout << std::endl;
   }
@@ -553,7 +937,7 @@ StatPostProcess::printClassicMoleculesTotal() const
 void
 StatPostProcess::printClassicMolecules(size_t trajIndex) const
 {
-  const TrajData& td = trajData[trajIndex];
+  const TrajData& td = *trajData[trajIndex];
   for(size_t mi = 0; mi < td.molecules.size(); mi++)
   {
     cout << "ClassicMolecule #" << mi << " : ";
@@ -574,10 +958,10 @@ void
 StatPostProcess::printFullereneInfo() const
 {
   for(size_t traj = 0; traj < trajData.size(); traj++)
-  if (trajData[traj].trajProjectile.size() > 0)
+  if (trajData[traj]->trajProjectile.size() > 0)
   {
     cout << "Fullerene for trajectory " << traj << 
-     " ("  << trajData[traj].trajDir << ") " << " :\n";
+     " ("  << trajData[traj]->trajDir << ") " << " :\n";
     printFullereneInfo(traj);
     cout << std::endl;
   }
@@ -587,7 +971,7 @@ void
 StatPostProcess::printFullereneInfo(size_t trajIndex) const
 {
   using namespace mdtk;
-  const TrajData& td = trajData[trajIndex];
+  const TrajData& td = *trajData[trajIndex];
   std::map< Float, AtomGroup >::const_iterator i;
 //  REQUIRE(fabs(td.trajProjectile.begin()->first-0.0*ps)<0.05*ps);
   REQUIRE(fabs(td.trajProjectile.rbegin()->first-6.0*ps)<0.05*ps);
@@ -669,7 +1053,7 @@ StatPostProcess::printCoefficients() const
 
   for(size_t traj = 0; traj < trajData.size(); traj++)
   {
-    const TrajData& td = trajData[traj];
+    const TrajData& td = *trajData[traj];
     REQUIRE(td.trajProjectile.size() > 0);
 //    REQUIRE(fabs(td.trajProjectile.begin()->first-0.0*ps)<0.05*ps);
     REQUIRE(fabs(td.trajProjectile.rbegin()->first-6.0*ps)<0.05*ps);
@@ -780,24 +1164,6 @@ StatPostProcess::printCoefficients() const
 }
 
 int
-StatPostProcess::getAboveSpottedHeight(mdtk::SimLoop& state) const
-{
-  int spotted;
-  {
-    spotted = 0;
-    for(size_t atomIndex = 0; atomIndex < state.atoms.size(); atomIndex++)
-    {
-      mdtk::Atom &atom = state.atoms[atomIndex];
-      if (atom.coords.z < SPOTTED_DISTANCE)
-      {
-        spotted++;
-      }
-    }
-  }
-  return spotted;
-}
-
-int
 StatPostProcess::getYieldSum( FProcessClassicMolecule fpm) const
 {
   int totalSpotted = 0;
@@ -812,7 +1178,7 @@ int
 StatPostProcess::getYield(size_t trajIndex, FProcessClassicMolecule fpm) const
 {
   int spotted = 0;
-  const TrajData& td = trajData[trajIndex];
+  const TrajData& td = *trajData[trajIndex];
   for(size_t mi = 0; mi < td.molecules.size(); mi++)
   {
     const ClassicMolecule& mol = td.molecules[mi];
@@ -861,7 +1227,7 @@ int
 StatPostProcess::getYieldFragmentsCount(size_t trajIndex, FProcessClassicMolecule fpm) const
 {
   int spotted = 0;
-  const TrajData& td = trajData[trajIndex];
+  const TrajData& td = *trajData[trajIndex];
   for(size_t mi = 0; mi < td.molecules.size(); mi++)
   {
     const ClassicMolecule& mol = td.molecules[mi];
@@ -892,7 +1258,7 @@ Float
 StatPostProcess::getEnergyOfSputtered(size_t trajIndex, FProcessClassicMolecule fpm) const
 {
   Float spotted = 0;
-  const TrajData& td = trajData[trajIndex];
+  const TrajData& td = *trajData[trajIndex];
   for(size_t mi = 0; mi < td.molecules.size(); mi++)
   {
     const ClassicMolecule& mol = td.molecules[mi];
@@ -1007,9 +1373,9 @@ StatPostProcess::spottedByDepth() const
   std::vector<Float> depth_C;
   for(size_t traj = 0; traj < trajData.size(); traj++)
   {
-    if (trajData[traj].molecules.size() == 0)
+    if (trajData[traj]->molecules.size() == 0)
       continue;
-    const TrajData& td = trajData[traj];
+    const TrajData& td = *trajData[traj];
 
     for(size_t mi = 0; mi < td.molecules.size(); mi++)
     {
@@ -1125,7 +1491,7 @@ StatPostProcess::buildAtomByEnergy(const Float energyStep, FProcessClassicMolecu
 
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
-    const TrajData& td = trajData[trajIndex];
+    const TrajData& td = *trajData[trajIndex];
     for(size_t mi = 0; mi < td.molecules.size(); mi++)
     {
       const ClassicMolecule& mol = td.molecules[mi];
@@ -1151,7 +1517,7 @@ StatPostProcess::histEnergyByPolar(gsl_histogram* h, bool byAtom, FProcessClassi
 
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
-    const TrajData& td = trajData[trajIndex];
+    const TrajData& td = *trajData[trajIndex];
     for(size_t mi = 0; mi < td.molecules.size(); mi++)
     {
       const ClassicMolecule& mol = td.molecules[mi];
@@ -1177,7 +1543,7 @@ StatPostProcess::histAtomsCountByPolar(gsl_histogram* h, FProcessClassicMolecule
 
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
-    const TrajData& td = trajData[trajIndex];
+    const TrajData& td = *trajData[trajIndex];
     for(size_t mi = 0; mi < td.molecules.size(); mi++)
     {
       const ClassicMolecule& mol = td.molecules[mi];
@@ -1208,7 +1574,7 @@ StatPostProcess::histEnergyByPolarByAtomsInRange(gsl_histogram* h, FProcessClass
 
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
-    const TrajData& td = trajData[trajIndex];
+    const TrajData& td = *trajData[trajIndex];
     for(size_t mi = 0; mi < td.molecules.size(); mi++)
     {
       const ClassicMolecule& mol = td.molecules[mi];
@@ -1295,7 +1661,7 @@ StatPostProcess::histEnergyByAzimuth(gsl_histogram *h, bool byAtom, FProcessClas
 
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
-    const TrajData& td = trajData[trajIndex];
+    const TrajData& td = *trajData[trajIndex];
     for(size_t mi = 0; mi < td.molecules.size(); mi++)
     {
       const ClassicMolecule& mol = td.molecules[mi];
@@ -1321,7 +1687,7 @@ StatPostProcess::histAtomsCountByAzimuth(gsl_histogram *h,  FProcessClassicMolec
 
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
-    const TrajData& td = trajData[trajIndex];
+    const TrajData& td = *trajData[trajIndex];
     for(size_t mi = 0; mi < td.molecules.size(); mi++)
     {
       const ClassicMolecule& mol = td.molecules[mi];
@@ -1352,7 +1718,7 @@ StatPostProcess::histEnergyByAzimuthByAtomsInRange(gsl_histogram *h, FProcessCla
 
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
-    const TrajData& td = trajData[trajIndex];
+    const TrajData& td = *trajData[trajIndex];
     for(size_t mi = 0; mi < td.molecules.size(); mi++)
     {
       const ClassicMolecule& mol = td.molecules[mi];
@@ -1761,7 +2127,7 @@ StatPostProcess::buildByTime(FProcessClassicMolecule fpm) const
 
   for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
   {
-    const TrajData& td = trajData[trajIndex];
+    const TrajData& td = *trajData[trajIndex];
     for(size_t mi = 0; mi < td.molecules.size(); mi++)
     {
       const ClassicMolecule& m = td.molecules[mi];

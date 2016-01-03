@@ -55,110 +55,64 @@ namespace mdepp
 
 using namespace mdtk;
 
+extern std::string initialWorkingDirectory;
+
 class StatPostProcess
 {
 public:
   typedef bool (*FProcessClassicMolecule)(const ClassicMolecule&);
   FProcessClassicMolecule testProcessClassicMolecule;
-  static
-  bool ProcessAll(const ClassicMolecule&)
-  {
-    return true;
-  }
-  static
-  bool ProcessProjectile(const ClassicMolecule& mol)
-  {
-    return mol.hasProjectileAtoms();
-  }
-  static
-  bool ProcessCluster(const ClassicMolecule& mol)
-  {
-    return mol.hasClusterAtoms();
-  }
-  static
-  bool ProcessFullerene(const ClassicMolecule& mol)
-  {
-    return mol.hasFullereneAtoms();
-  }
-  static
-  bool ProcessSubstrate(const ClassicMolecule& mol)
-  {
-    return mol.hasSubstrateAtoms();
-  }
-  static
-  bool ProcessClusterAndSubstrate(const ClassicMolecule& mol)
-  {
-//    return mol.hasSubstrateAtoms() || mol.hasClusterAtoms();
-    return mol.hasOnlySubstrateOrClusterAtoms();
-  }
+  static bool ProcessAll(const ClassicMolecule&);
+  static bool ProcessProjectile(const ClassicMolecule& mol);
+  static bool ProcessCluster(const ClassicMolecule& mol);
+  static bool ProcessFullerene(const ClassicMolecule& mol);
+  static bool ProcessSubstrate(const ClassicMolecule& mol);
+  static bool ProcessClusterAndSubstrate(const ClassicMolecule& mol);
+
   struct TrajData
   {
     std::string trajDir;
     std::vector<ClassicMolecule> molecules;
     std::map <Float,AtomGroup> trajProjectile;
     std::map <Float,AtomGroup> trajCluster;
+
     Vector3D PBC;
-    TrajData() :
-      trajDir(),
-      molecules(),
-      trajProjectile(),
-      trajCluster(),
-      PBC() {;}
-    void saveToStream(std::ostream& os) const
-    {
-      os << trajDir << "\n";
-      os << molecules.size() << "\n";
-      for(size_t i = 0; i < molecules.size(); i++)
-        molecules[i].saveToStream(os);
 
-      {
-        os << trajProjectile.size() << "\n";
-        std::map< Float, AtomGroup >::const_iterator i;
-        for( i = trajProjectile.begin(); i != trajProjectile.end() ; ++i )
-          os << i->first << "\t " << i->second << "\n";
-      }
+    TrajData();
+    void saveToStream(std::ostream& os) const;
+    void loadFromStream(std::istream& is);
+    void execute(mdtk::SimLoop& state);
 
-      {
-        os << trajCluster.size() << "\n";
-        std::map< Float, AtomGroup >::const_iterator i;
-        for( i = trajCluster.begin(); i != trajCluster.end() ; ++i )
-          os << i->first << "\t " << i->second << "\n";
-      }
+    enum StateType{STATE_FINAL,STATE_INIT,STATE_INTER};
+    void  buildSputteredClassicMolecules(
+      mdtk::SimLoop& state,
+      StateType s,
+      NeighbourList& nl);
+    void  buildDummyDynamics(
+      mdtk::SimLoop& state,
+      StateType s);
 
-      os << PBC << "\n";
-    }
-   void loadFromStream(std::istream& is)
-    {
-      is >> trajDir;
-      size_t sz, i;
-      is >> sz;
-      molecules.resize(sz);
-      for(i = 0; i < molecules.size(); i++)
-        molecules[i].loadFromStream(is);
+    std::map <Float,AtomGroup> getTrajWithPartialSnapshots(
+      const std::map<Float,AtomGroup>& trajectorySeed) const;
 
-      is >> sz;
-      for(i = 0; i < sz; ++i)
-      {
-	Float t;
-	AtomGroup f;
-	is >> t >> f;
-	trajProjectile[t] = f;
-      }
+    double SPOTTED_DISTANCE;
+    void  setSpottedDistanceFromInit();
 
-      is >> sz;
-      for(i = 0; i < sz; ++i)
-      {
-	Float t;
-	AtomGroup f;
-	is >> t >> f;
-	trajCluster[t] = f;
-      }
+    int   getAboveSpottedHeight(mdtk::SimLoop&) const;
 
-      is >> PBC;
-    }
+    bool hasIntactClusterSputtering() const;
+    static std::map <Float,Float> plot_Ekin_t(const std::map <Float,AtomGroup>&);
   };
-  std::vector<TrajData> trajData;
-  double SPOTTED_DISTANCE;
+  static std::string getCacheFilename(std::string);
+  static std::string cacheDir;
+  static std::map<std::string,TrajData> ramCache;
+  std::vector<TrajData*> trajData;
+
+  typedef bool (*TrajFilter)(const TrajData&);
+  static TrajFilter trajFilter;
+  static bool TrajFilterProcessAll(const TrajData&);
+  static bool TrajFilterProcessIntactClusterOnly(const TrajData&);
+
   struct Id
   {
     std::string str;
@@ -167,76 +121,17 @@ public:
     mdtk::ElementID ionElement;
     Float ionEnergy;
     Id(std::string s);
-    Id():str(),
-         clusterElement(),
-         clusterSize(),
-         ionElement(),
-         ionEnergy(){};
-    void saveToStream(std::ostream& os) const
-      {
-        os << str << "\n";
-        os << clusterElement << "\n";
-        os << clusterSize << "\n";
-        os << ionElement << "\n";
-        os << ionEnergy << "\n";
-      }
-    void loadFromStream(std::istream& is)
-      {
-        is >> str;
-        int ID;
-        is >> ID; clusterElement = ElementID(ID);
-        is >> clusterSize;
-        is >> ID; ionElement = ElementID(ID);
-        is >> ionEnergy;
-      }
+    Id();
+    void saveToStream(std::ostream& os) const;
+    void loadFromStream(std::istream& is);
   }id;
-  StatPostProcess(std::string trajsetDir)
-   :testProcessClassicMolecule(&ProcessAll),
-    trajData(),
-    SPOTTED_DISTANCE(-5.0*mdtk::Ao),
-    id(yaatk::extractItemFromEnd(trajsetDir,1))
-  {
-    using mdtk::Exception;
 
-    std::vector<std::string> savedStateNames;
-    mdepp::FProcessTrajectory fpt = mdepp::trajProcess_Custom2;
-    mdepp::addTrajDirNames(savedStateNames,trajsetDir.c_str(),fpt);
-    std::sort(savedStateNames.begin(),savedStateNames.end());
+  static mdtk::SimLoop stateTemplate;
 
-    std::vector<_SavedStateSortStruct> sorted;
-    for(size_t i = 0; i < savedStateNames.size(); i++)
-      sorted.push_back(savedStateNames[i]);
-
-    sort(sorted.begin(), sorted.end());
-
-    for(size_t i = 0; i < sorted.size(); i++)
-    {
-      trajData.push_back(TrajData());
-      trajData.back().trajDir = sorted[i].fullTrajDirName;
-    }
-
-    REQUIRE(savedStateNames.size() == trajData.size());
-
-    {
-      yaatk::ChDir cd(trajsetDir+"/../", false);
-      setSpottedDistanceFromInit();
-    }
-
-    TRACE(trajData.size());
-
-    for(size_t i = 0; i < trajData.size(); i++)
-      TRACE(trajData[i].trajDir);
-  }
-  StatPostProcess()
-   :testProcessClassicMolecule(&ProcessAll),
-    trajData(),
-    SPOTTED_DISTANCE(-5.0*mdtk::Ao),
-    id()
-  {
-  }
-  void  setSpottedDistanceFromInit();
-
-  int   getAboveSpottedHeight(mdtk::SimLoop&) const; 
+  StatPostProcess(const std::vector<std::string> trajDirs);
+  // StatPostProcess();
+  static size_t instanceCounter;
+  virtual ~StatPostProcess();
 
   int   getYield(size_t trajIndex, FProcessClassicMolecule fpm) const;
   Float getYieldNormalizedByClusterSize(size_t trajIndex, FProcessClassicMolecule fpm) const;
@@ -264,11 +159,6 @@ public:
   Float   getEnergyOfSputtered(size_t trajIndex, FProcessClassicMolecule fpm) const;
   Float   getTotalEnergyOfSputtered( FProcessClassicMolecule fpm) const;
   Float   getAverageEnergyOfSputtered( FProcessClassicMolecule fpm) const;
-
-  enum StateType{STATE_FINAL,STATE_INIT,STATE_INTER};
-
-  void  buildSputteredClassicMolecules(mdtk::SimLoop&,size_t trajIndex, StateType s, NeighbourList& nl);
-  void  buildDummyDynamics(mdtk::SimLoop&,size_t trajIndex, StateType s);
 
   void  printClassicMolecules(size_t trajIndex) const;
   void  printClassicMoleculesTotal() const;
@@ -303,45 +193,22 @@ public:
   void  buildAngular(FProcessClassicMolecule fpm) const;
 
   void  buildByTime( FProcessClassicMolecule fpm) const;
+};
 
-  void  saveToStream(std::ostream& os) const
+bool
+isAmongSputtered(const AtomGroup& atoms, const std::vector<ClassicMolecule>& molecules);
+
+class BadTrajectoryException
+{
+  std::string _msg;
+public:
+  BadTrajectoryException() : _msg("Trajectory is bad.") { }
+  BadTrajectoryException(const char* msg) : _msg(msg) { }
+  BadTrajectoryException(std::string msg) : _msg(msg) { }
+  const char* what() const
   {
-    os << trajData.size() << "\n";
-    for(size_t i = 0; i < trajData.size(); i++)
-      trajData[i].saveToStream(os);
-
-    os << SPOTTED_DISTANCE << "\n";
-
-    id.saveToStream(os);
+    return _msg.c_str();
   }
-  void loadFromStream(std::istream& is)
-  {
-    size_t sz;
-    is >> sz;
-    trajData.resize(sz);
-    for(size_t i = 0; i < trajData.size(); i++)
-      trajData[i].loadFromStream(is);
-
-    is >> SPOTTED_DISTANCE;
-
-    id.loadFromStream(is);
-  }
-  void loadFromStreamADD(std::istream& is)
-  {
-    size_t sz;
-    is >> sz;
-    size_t oldSize = trajData.size();
-    TRACE(oldSize);
-    trajData.resize(oldSize+sz);
-    TRACE(trajData.size());
-    for(size_t i = oldSize+0; i < trajData.size(); i++)
-      trajData[i].loadFromStream(is);
-
-    is >> SPOTTED_DISTANCE;
-  }
-  void execute();
-  void addHalo(const StatPostProcess&);
-  void removeBadTrajectories();
 };
 
 }
