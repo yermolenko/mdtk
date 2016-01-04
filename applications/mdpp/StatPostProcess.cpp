@@ -1,8 +1,8 @@
 /* 
    Molecular dynamics postprocessor, main classes
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015
-   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
+   2016 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -1412,6 +1412,84 @@ StatPostProcess::spottedByDepth() const
   }
 
   yaatk::chdir("..");
+}
+
+double
+StatPostProcess::moleculeEnergy(const ClassicMolecule& mol)
+{
+  return 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
+}
+
+double
+StatPostProcess::moleculeAtomsCount(const ClassicMolecule& mol)
+{
+  return mol.atoms.size();
+}
+
+double
+StatPostProcess::moleculeEnergyByAtom(const ClassicMolecule& mol)
+{
+  return moleculeEnergy(mol)/moleculeAtomsCount(mol);
+}
+
+std::map<Float, Float>
+StatPostProcess::distByAngle(
+  AngleType angleType,
+  const int n,
+  FMoleculeAttribute fma,
+  FProcessClassicMolecule fpm) const
+{
+  gsl_histogram * h = gsl_histogram_alloc (n);
+
+  const Float minAngle = (angleType == ANGLE_POLAR) ?  0.0 : -180.0;
+  const Float maxAngle = (angleType == ANGLE_POLAR) ? 90.0 : +180.0;
+
+  gsl_histogram_set_ranges_uniform (h, minAngle, maxAngle);
+
+  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
+  {
+    const TrajData& td = *trajData[trajIndex];
+    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      const ClassicMolecule& mol = td.molecules[mi];
+      if (!fpm(mol)) continue;
+      mdtk::Vector3D v = mol.getVelocity();
+      Float polar = atan2(sqrt(SQR(v.x)+SQR(v.y)),-v.z)/mdtk::Deg;
+      Float azimuthal = atan2(v.y,v.x)/mdtk::Deg;
+      gsl_histogram_accumulate(
+        h,
+        (angleType == ANGLE_POLAR) ? polar : azimuthal,
+        fma(mol)/Float(trajData.size()));
+    }
+  }
+
+  std::map<Float, Float> histData;
+
+  for(size_t i = 0; i < gsl_histogram_bins(h); i++)
+  {
+    double lower, upper;
+    gsl_histogram_get_range (h, i, &lower, &upper);
+    histData[(lower+upper)/2.0] = gsl_histogram_get(h,i);
+  }
+
+  gsl_histogram_free (h);
+
+  return histData;;
+}
+
+std::map<Float, Float>
+StatPostProcess::divideHistograms(
+  std::map<Float, Float>& h1,
+  std::map<Float, Float>& h2)
+{
+  REQUIRE(h1.size() == h2.size());
+
+  std::map<Float, Float> h;
+  std::map<Float, Float>::iterator i;
+  for(i = h1.begin(); i != h1.end(); ++i)
+    h[i->first] = h1[i->first] / h2[i->first];
+
+  return h;
 }
 
 void

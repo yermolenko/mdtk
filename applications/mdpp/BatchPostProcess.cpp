@@ -1,7 +1,7 @@
 /* 
    Molecular dynamics postprocessor, BatchPostProcess  class
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2014, 2015
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2014, 2015, 2016
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -230,7 +230,7 @@ BatchPostProcess::printResults() const
   std::vector<ElementID> elements;
   elements.push_back(Ar_EL);
   elements.push_back(Xe_EL);
-  if (0)
+  // if (0)
   for(size_t i = 0; i < elements.size(); i++)
   {
 //    plotEnergyLoss(elements[i]);
@@ -273,7 +273,7 @@ BatchPostProcess::printResults() const
   clusterSizes.push_back(39);
   clusterSizes.push_back(75);
 //  clusterSizes.push_back(195);
-  if (0)
+  // if (0)
   for(size_t i = 0; i < clusterSizes.size(); i++)
   {
 //    plotEnergyLoss(DUMMY_EL, clusterSizes[i]);
@@ -327,7 +327,7 @@ BatchPostProcess::printResults() const
         clusterElements.push_back(Au_EL);
         for(size_t l = 0; l < clusterElements.size(); l++)
         {
-          plotEnergyLoss(elements[j], clusterSizes[i], energies[k], clusterElements[l]);
+          // plotEnergyLoss(elements[j], clusterSizes[i], energies[k], clusterElements[l]);
           PLOT_ANGULAR(true,elements[j],clusterSizes[i], clusterElements[l]);
           PLOT_ANGULAR(false,elements[j],clusterSizes[i], clusterElements[l]);
 
@@ -1029,22 +1029,16 @@ plot \\\n\
     }
 
     {
-      ostringstream sfname;
-      sfname << pp.id.str << "/" << "Process" << idStr << "/"
-             << "_angular" << "/"
-             << (plotPolar?"atomsCount_by_polar_":"atomsCount_by_azimuth_")
-             << n_str
-             << ".dat";
-      TRACE(sfname.str());
-      std::ifstream fiSingle(sfname.str().c_str());
-      REQUIRE(fiSingle);
-      for(size_t i = 0; i < n; ++i)
-      {
-        Float x,y;
-        fiSingle >> x >> y;
-        data << x << " " << y << "\n";
-      }
-      fiSingle.close();
+      std::map<Float, Float> histData =
+        pp.distByAngle(
+          plotPolar ? StatPostProcess::ANGLE_POLAR : StatPostProcess::ANGLE_AZIMUTH,
+          n,
+          StatPostProcess::moleculeAtomsCount,
+          fpm);
+
+      std::map<Float, Float>::iterator i;
+      for(i = histData.begin(); i != histData.end(); ++i)
+        data << i->first << " " << histData[i->first] << "\n";
     }
 
     {

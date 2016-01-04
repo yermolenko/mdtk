@@ -1,8 +1,8 @@
 /* 
    Molecular dynamics postprocessor, main classes, header
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015
-   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
+   2016 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -171,6 +171,23 @@ public:
   std::map<ClassicMolecule, size_t>  buildMassSpectrum(FProcessClassicMolecule fpm = &ProcessAll) const;
 
   void  spottedByDepth() const;
+
+  typedef double (*FMoleculeAttribute)(const ClassicMolecule&);
+  static double moleculeEnergy(const ClassicMolecule&);
+  static double moleculeAtomsCount(const ClassicMolecule&);
+  static double moleculeEnergyByAtom(const ClassicMolecule&);
+
+  enum AngleType{ANGLE_POLAR,ANGLE_AZIMUTH};
+  std::map<Float, Float> distByAngle(
+    AngleType angleType,
+    const int n,
+    FMoleculeAttribute fma,
+    FProcessClassicMolecule fpm) const;
+
+  static std::map<Float, Float>
+  divideHistograms(
+    std::map<Float, Float>& h1,
+    std::map<Float, Float>& h2);
 
   std::string  buildAtomByEnergy(const Float energyStep, FProcessClassicMolecule fpm) const;
 
