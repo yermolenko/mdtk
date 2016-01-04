@@ -197,125 +197,24 @@ BatchPostProcess::printResults() const
 
     // pp.buildMassSpectrum();
 
-#define MDPP_PROCESS_ONLY(FPM) \
-    {\
-      std::string s = "Process"#FPM;\
-      yaatk::mkdir(s.c_str());\
-      yaatk::chdir(s.c_str());\
-      pp.buildAngular(mdepp::StatPostProcess::Process##FPM); \
-      yaatk::chdir("..");\
-    }
-
-    // MDPP_PROCESS_ONLY(Cluster);
-    // MDPP_PROCESS_ONLY(Projectile);
-    // MDPP_PROCESS_ONLY(Substrate);
-    // MDPP_PROCESS_ONLY(All);
-
     yaatk::chdir("..");
   }
 
-  {
-    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,"yields-Cluster");
-    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,"yields-Projectile");
-    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessSubstrate,"yields-Substrate");
-    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,"yields-All");
-
-    plotMassSpectrum(mdepp::StatPostProcess::ProcessCluster,"MassSpectrum-Cluster");
-    plotMassSpectrum(mdepp::StatPostProcess::ProcessProjectile,"MassSpectrum-Projectile");
-    plotMassSpectrum(mdepp::StatPostProcess::ProcessSubstrate,"MassSpectrum-Substrate");
-    plotMassSpectrum(mdepp::StatPostProcess::ProcessAll,"MassSpectrum-All");
-  }
-
-
-  std::vector<ElementID> elements;
-  elements.push_back(Ar_EL);
-  elements.push_back(Xe_EL);
-  // if (0)
-  for(size_t i = 0; i < elements.size(); i++)
-  {
-//    plotEnergyLoss(elements[i]);
-
-    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,
-                               "yields-Cluster", elements[i]);
-    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,
-                               "yields-Projectile", elements[i]);
-    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessSubstrate,
-                               "yields-Substrate", elements[i]);
-    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
-                               "yields-All", elements[i]);
-
-    plotMassSpectrum(mdepp::StatPostProcess::ProcessCluster,
-                               "MassSpectrum-Cluster", elements[i]);
-    plotMassSpectrum(mdepp::StatPostProcess::ProcessProjectile,
-                               "MassSpectrum-Projectile", elements[i]);
-    plotMassSpectrum(mdepp::StatPostProcess::ProcessSubstrate,
-                               "MassSpectrum-Substrate", elements[i]);
-    plotMassSpectrum(mdepp::StatPostProcess::ProcessAll,
-                               "MassSpectrum-All", elements[i]);
-
-#define PLOT_ANGULAR_ION_TYPE(angleType)\
-    plotAngular(angleType,mdepp::StatPostProcess::ProcessCluster,\
-                "Cluster", elements[i]);\
-    plotAngular(angleType,mdepp::StatPostProcess::ProcessProjectile,\
-                "Projectile", elements[i]);\
-    plotAngular(angleType,mdepp::StatPostProcess::ProcessSubstrate,\
-                "Substrate", elements[i]);\
-    plotAngular(angleType,mdepp::StatPostProcess::ProcessAll,\
-                "All", elements[i]);
-
-//    PLOT_ANGULAR_ION_TYPE(true);
-//    PLOT_ANGULAR_ION_TYPE(false);
-  }
-
   std::vector<size_t> clusterSizes;
+  clusterSizes.push_back(0);
   clusterSizes.push_back(13);
   clusterSizes.push_back(27);
   clusterSizes.push_back(39);
   clusterSizes.push_back(75);
 //  clusterSizes.push_back(195);
-  // if (0)
   for(size_t i = 0; i < clusterSizes.size(); i++)
   {
-//    plotEnergyLoss(DUMMY_EL, clusterSizes[i]);
-
-    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,
-                               "yields-Cluster", DUMMY_EL, clusterSizes[i]);
-    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,
-                               "yields-Projectile", DUMMY_EL, clusterSizes[i]);
-    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessSubstrate,
-                               "yields-Substrate", DUMMY_EL, clusterSizes[i]);
-    plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
-                               "yields-All", DUMMY_EL, clusterSizes[i]);
-
-    plotMassSpectrum(mdepp::StatPostProcess::ProcessCluster,
-                     "MassSpectrum-Cluster", DUMMY_EL, clusterSizes[i]);
-    plotMassSpectrum(mdepp::StatPostProcess::ProcessProjectile,
-                     "MassSpectrum-Projectile", DUMMY_EL, clusterSizes[i]);
-    plotMassSpectrum(mdepp::StatPostProcess::ProcessSubstrate,
-                     "MassSpectrum-Substrate", DUMMY_EL, clusterSizes[i]);
-    plotMassSpectrum(mdepp::StatPostProcess::ProcessAll,
-                     "MassSpectrum-All", DUMMY_EL, clusterSizes[i]);
-
-#define PLOT_ANGULAR(angleType,elementType,clusterSize,clusterElement)  \
-    plotAngular(angleType,mdepp::StatPostProcess::ProcessCluster,       \
-                "Cluster", elementType, clusterSize, clusterElement);   \
-    plotAngular(angleType,mdepp::StatPostProcess::ProcessProjectile,    \
-                "Projectile", elementType, clusterSize, clusterElement); \
-    plotAngular(angleType,mdepp::StatPostProcess::ProcessSubstrate,     \
-                "Substrate", elementType, clusterSize, clusterElement); \
-    plotAngular(angleType,mdepp::StatPostProcess::ProcessAll,           \
-                "All", elementType, clusterSize, clusterElement);
-
-//    PLOT_ANGULAR(true,DUMMY_EL,clusterSizes[i]);
-//    PLOT_ANGULAR(false,DUMMY_EL,clusterSizes[i]);
-
     std::vector<ElementID> elements;
+    elements.push_back(DUMMY_EL);
     elements.push_back(Ar_EL);
     elements.push_back(Xe_EL);
     for(size_t j = 0; j < elements.size(); j++)
     {
-//      plotEnergyLoss(elements[j], clusterSizes[i]);
-
       std::vector<Float> energies;
       energies.push_back(100*eV);
       energies.push_back(200*eV);
@@ -323,36 +222,65 @@ BatchPostProcess::printResults() const
       for(size_t k = 0; k < energies.size(); k++)
       {
         std::vector<ElementID> clusterElements;
+        clusterElements.push_back(DUMMY_EL);
         clusterElements.push_back(Cu_EL);
         clusterElements.push_back(Au_EL);
         for(size_t l = 0; l < clusterElements.size(); l++)
         {
           // plotEnergyLoss(elements[j], clusterSizes[i], energies[k], clusterElements[l]);
-          PLOT_ANGULAR(true,elements[j],clusterSizes[i], clusterElements[l]);
-          PLOT_ANGULAR(false,elements[j],clusterSizes[i], clusterElements[l]);
 
-          plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessCluster,
-                                     "yields-Cluster", elements[j],0,clusterElements[l]);
-          plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessProjectile,
-                                     "yields-Projectile", elements[j],0,clusterElements[l]);
-          plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessSubstrate,
-                                     "yields-Substrate", elements[j],0,clusterElements[l]);
-          plotYieldsAgainstIonEnergy(mdepp::StatPostProcess::ProcessAll,
-                                     "yields-All", elements[j],0,clusterElements[l]);
+#define PLOT_ANGULAR(angleType,elementType,clusterSize,clusterElement)  \
+          plotAngular(angleType,mdepp::StatPostProcess::ProcessCluster, \
+                      "Cluster", elementType, clusterSize, clusterElement); \
+          plotAngular(angleType,mdepp::StatPostProcess::ProcessProjectile, \
+                      "Projectile", elementType, clusterSize, clusterElement); \
+          plotAngular(angleType,mdepp::StatPostProcess::ProcessSubstrate, \
+                      "Substrate", elementType, clusterSize, clusterElement); \
+          plotAngular(angleType,mdepp::StatPostProcess::ProcessAll,     \
+                      "All", elementType, clusterSize, clusterElement);
 
-          plotMassSpectrum(mdepp::StatPostProcess::ProcessCluster,
-                           "MassSpectrum-Cluster", elements[j],0,clusterElements[l]);
-          plotMassSpectrum(mdepp::StatPostProcess::ProcessProjectile,
-                           "MassSpectrum-Projectile", elements[j],0,clusterElements[l]);
-          plotMassSpectrum(mdepp::StatPostProcess::ProcessSubstrate,
-                           "MassSpectrum-Substrate", elements[j],0,clusterElements[l]);
-          plotMassSpectrum(mdepp::StatPostProcess::ProcessAll,
-                           "MassSpectrum-All", elements[j],0,clusterElements[l]);
+          PLOT_ANGULAR(
+            true,
+            elements[j], clusterSizes[i], clusterElements[l]);
+          PLOT_ANGULAR(
+            false,
+            elements[j], clusterSizes[i], clusterElements[l]);
+
+          plotYieldsAgainstIonEnergy(
+            mdepp::StatPostProcess::ProcessCluster,
+            "yields-Cluster",
+            elements[j], clusterSizes[i], clusterElements[l]);
+          plotYieldsAgainstIonEnergy(
+            mdepp::StatPostProcess::ProcessProjectile,
+            "yields-Projectile",
+            elements[j], clusterSizes[i], clusterElements[l]);
+          plotYieldsAgainstIonEnergy(
+            mdepp::StatPostProcess::ProcessSubstrate,
+            "yields-Substrate",
+            elements[j], clusterSizes[i], clusterElements[l]);
+          plotYieldsAgainstIonEnergy(
+            mdepp::StatPostProcess::ProcessAll,
+            "yields-All",
+            elements[j], clusterSizes[i], clusterElements[l]);
+
+          plotMassSpectrum(
+            mdepp::StatPostProcess::ProcessCluster,
+            "MassSpectrum-Cluster",
+            elements[j], clusterSizes[i], clusterElements[l]);
+          plotMassSpectrum(
+            mdepp::StatPostProcess::ProcessProjectile,
+            "MassSpectrum-Projectile",
+            elements[j], clusterSizes[i], clusterElements[l]);
+          plotMassSpectrum(
+            mdepp::StatPostProcess::ProcessSubstrate,
+            "MassSpectrum-Substrate",
+            elements[j], clusterSizes[i], clusterElements[l]);
+          plotMassSpectrum(
+            mdepp::StatPostProcess::ProcessAll,
+            "MassSpectrum-All",
+            elements[j], clusterSizes[i], clusterElements[l]);
         }
       }
-
-      PLOT_ANGULAR(true,elements[j],clusterSizes[i],DUMMY_EL);
-      PLOT_ANGULAR(false,elements[j],clusterSizes[i],DUMMY_EL);
     }
   }
 
