@@ -808,17 +808,18 @@ StatPostProcess::StatPostProcess(const std::vector<std::string> trajdirs)
         false);
       mdepp::addTrajDirNames(savedStateNames,trajsetDir.c_str(),fpt);
     }
-    std::sort(savedStateNames.begin(),savedStateNames.end());
+    // std::sort(savedStateNames.begin(),savedStateNames.end());
 
-    std::vector<_SavedStateSortStruct> sorted;
+    // std::vector<_SavedStateSortStruct> sorted;
+    // for(size_t i = 0; i < savedStateNames.size(); i++)
+    //   sorted.push_back(savedStateNames[i]);
+
+    // sort(sorted.begin(), sorted.end());
+
+    // for(size_t i = 0; i < sorted.size(); i++)
     for(size_t i = 0; i < savedStateNames.size(); i++)
-      sorted.push_back(savedStateNames[i]);
-
-    sort(sorted.begin(), sorted.end());
-
-    for(size_t i = 0; i < sorted.size(); i++)
     {
-      std::string trajDir = sorted[i].fullTrajDirName;
+      std::string trajDir = savedStateNames[i];
 
       if (ramCache.find(trajDir) != ramCache.end())
       {
