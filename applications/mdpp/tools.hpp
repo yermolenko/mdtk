@@ -1,8 +1,8 @@
 /* 
    tools.hpp (molecular dynamics postprocessor, tools)
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2015 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2015, 2016
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -101,7 +101,8 @@ inline
 void
 addTrajDirNames(std::vector<std::string> &stateFileNames,const char *trajsetDir_, FProcessTrajectory fpt)
 {
-  std::cout << "Adding states from " << trajsetDir_ << std::endl;
+  TRACE("Adding trajectories ...");
+  TRACE(trajsetDir_);
 
   char trajsetDir[10000];
   strcpy(trajsetDir,trajsetDir_);

@@ -704,6 +704,7 @@ StatPostProcess::Id::Id(std::string s)
     is >> ionEnergy;
   }
 
+  yaatk::VerboseOutput suppressVerboseOutput(false);
   TRACE(str);
   TRACE(ElementIDtoString(clusterElement));
   TRACE(clusterSize);
@@ -766,6 +767,8 @@ StatPostProcess::StatPostProcess(const std::vector<std::string> trajdirs)
    trajData(),
    id(yaatk::extractItemFromEnd(trajdirs[0],1))
 {
+  yaatk::VerboseOutput suppressVerboseOutput(false);
+
   instanceCounter++;
   REQUIRE(instanceCounter <= 1);
 
