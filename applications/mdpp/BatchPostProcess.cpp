@@ -384,10 +384,11 @@ plot \\\n\
 
   for(size_t ppi = 0; ppi < pps.size(); ++ppi)
   {
-    const mdepp::StatPostProcess pp(pps[ppi]);
-
-    if (pp.id.ionEnergy != ionEnergyFilter)
+    mdepp::StatPostProcess::Id id(yaatk::extractItemFromEnd(pps[ppi][0],1));
+    if (id.ionEnergy != ionEnergyFilter)
       continue;
+
+    const mdepp::StatPostProcess pp(pps[ppi]);
 
     for(size_t trajIndex = 0; trajIndex < pp.trajData.size(); trajIndex++)
     {
@@ -516,25 +517,27 @@ plot \\\n\
 
   for(size_t i = 0; i < pps.size(); ++i)
   {
-    const mdepp::StatPostProcess pp(pps[i]);
+    mdepp::StatPostProcess::Id id(yaatk::extractItemFromEnd(pps[i][0],1));
 
     if (specIonElement != DUMMY_EL)
     {
-      if (pp.id.ionElement != specIonElement)
+      if (id.ionElement != specIonElement)
         continue;
     }
 
     if (specClusterElement != DUMMY_EL)
     {
-      if (pp.id.clusterElement != specClusterElement)
+      if (id.clusterElement != specClusterElement)
         continue;
     }
 
     if (specClusterSize > 0)
     {
-      if (pp.id.clusterSize != specClusterSize)
+      if (id.clusterSize != specClusterSize)
         continue;
     }
+
+    const mdepp::StatPostProcess pp(pps[i]);
 
     data << pp.id.ionEnergy << " " << pp.getYieldAverage(fpm) << "\n";
 
@@ -680,28 +683,30 @@ set xtics nomirror 0,base_mass,2*base_mass\n\
 
   for(size_t i = 0; i < pps.size(); ++i)
   {
-    const mdepp::StatPostProcess pp(pps[i]);
+    mdepp::StatPostProcess::Id id(yaatk::extractItemFromEnd(pps[i][0],1));
 
     if (specIonElement != DUMMY_EL)
     {
-      if (pp.id.ionElement != specIonElement)
+      if (id.ionElement != specIonElement)
         continue;
     }
 
     if (specClusterElement != DUMMY_EL)
     {
-      if (pp.id.clusterElement != specClusterElement)
+      if (id.clusterElement != specClusterElement)
         continue;
     }
 
     if (specClusterSize > 0)
     {
-      if (pp.id.clusterSize != specClusterSize)
+      if (id.clusterSize != specClusterSize)
         continue;
     }
 
-    if (pp.id.ionEnergy > 199.0 && pp.id.ionEnergy < 201.0)
+    if (id.ionEnergy > 199.0 && id.ionEnergy < 201.0)
       continue;
+
+    const mdepp::StatPostProcess pp(pps[i]);
 
     {
       std::ostringstream cmd;
@@ -936,25 +941,27 @@ plot \\\n\
 
   for(size_t i = 0; i < pps.size(); ++i)
   {
-    const mdepp::StatPostProcess pp(pps[i]);
+    mdepp::StatPostProcess::Id id(yaatk::extractItemFromEnd(pps[i][0],1));
 
     if (specIonElement != DUMMY_EL)
     {
-      if (pp.id.ionElement != specIonElement)
+      if (id.ionElement != specIonElement)
         continue;
     }
 
     if (specClusterElement != DUMMY_EL)
     {
-      if (pp.id.clusterElement != specClusterElement)
+      if (id.clusterElement != specClusterElement)
         continue;
     }
 
     if (specClusterSize > 0)
     {
-      if (pp.id.clusterSize != specClusterSize)
+      if (id.clusterSize != specClusterSize)
         continue;
     }
+
+    const mdepp::StatPostProcess pp(pps[i]);
 
     {
       std::map<Float, Float> histData =
@@ -1073,31 +1080,33 @@ plot \\\n\
 
   for(size_t i = 0; i < pps.size(); ++i)
   {
-    const mdepp::StatPostProcess pp(pps[i]);
+    mdepp::StatPostProcess::Id id(yaatk::extractItemFromEnd(pps[i][0],1));
 
     if (specIonElement != DUMMY_EL)
     {
-      if (pp.id.ionElement != specIonElement)
+      if (id.ionElement != specIonElement)
         continue;
     }
 
     if (specClusterElement != DUMMY_EL)
     {
-      if (pp.id.clusterElement != specClusterElement)
+      if (id.clusterElement != specClusterElement)
         continue;
     }
 
     if (specClusterSize > 0)
     {
-      if (pp.id.clusterSize != specClusterSize)
+      if (id.clusterSize != specClusterSize)
         continue;
     }
 
     if (specIonEnergy > 0)
     {
-      if (fabs(pp.id.ionEnergy*eV - specIonEnergy) > 0.05*eV)
+      if (fabs(id.ionEnergy*eV - specIonEnergy) > 0.05*eV)
         continue;
     }
+
+    const mdepp::StatPostProcess pp(pps[i]);
 
     std::vector<Float> dEs;
     dEs.resize(bounds.size()-1);
