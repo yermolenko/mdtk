@@ -772,7 +772,7 @@ StatPostProcess::StatPostProcess(const std::vector<std::string> trajdirs)
   instanceCounter++;
   REQUIRE(instanceCounter <= 1);
 
-  if (ramCache.size() > 500)
+  if (ramCache.size() > 10000)
     ramCache.clear();
 
   stateTemplate.atoms.clear();
