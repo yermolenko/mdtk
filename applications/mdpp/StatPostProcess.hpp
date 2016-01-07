@@ -102,6 +102,8 @@ public:
 
     bool hasIntactClusterSputtering() const;
     static std::map <Float,Float> plot_Ekin_t(const std::map <Float,AtomGroup>&);
+
+    int yield(FProcessClassicMolecule fpm) const;
   };
   static std::string getCacheFilename(std::string);
   static std::string cacheDir;
@@ -132,6 +134,8 @@ public:
   // StatPostProcess();
   static size_t instanceCounter;
   virtual ~StatPostProcess();
+
+  Float yield(FProcessClassicMolecule fpm);
 
   int   getYield(size_t trajIndex, FProcessClassicMolecule fpm) const;
   Float getYieldNormalizedByClusterSize(size_t trajIndex, FProcessClassicMolecule fpm) const;

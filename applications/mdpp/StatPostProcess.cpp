@@ -639,6 +639,19 @@ StatPostProcess::TrajData::plot_Ekin_t(const std::map<Float,AtomGroup>& trajecto
   return plot;
 }
 
+int
+StatPostProcess::TrajData::yield(FProcessClassicMolecule fpm) const
+{
+  int sputtered = 0;
+  for(size_t mi = 0; mi < molecules.size(); mi++)
+  {
+    const ClassicMolecule& mol = molecules[mi];
+    if (!fpm(mol)) continue;
+    sputtered += mol.atoms.size();
+  }
+  return sputtered;
+}
+
 bool
 StatPostProcess::TrajFilterProcessAll(const TrajData&)
 {
@@ -1181,15 +1194,7 @@ StatPostProcess::getYieldSum( FProcessClassicMolecule fpm) const
 int
 StatPostProcess::getYield(size_t trajIndex, FProcessClassicMolecule fpm) const
 {
-  int spotted = 0;
-  const TrajData& td = *trajData[trajIndex];
-  for(size_t mi = 0; mi < td.molecules.size(); mi++)
-  {
-    const ClassicMolecule& mol = td.molecules[mi];
-    if (!fpm(mol)) continue;
-    spotted += mol.atoms.size();
-  }
-  return spotted;
+  return trajData[trajIndex]->yield(fpm);
 }
 
 Float
