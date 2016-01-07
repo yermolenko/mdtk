@@ -515,6 +515,8 @@ plot \\\n\
   std::vector<std::string> plotCmds;
   std::ostringstream data;
 
+  std::map < std::string, std::map <Float, Float> > plot;
+
   for(size_t i = 0; i < pps.size(); ++i)
   {
     mdepp::StatPostProcess::Id id(yaatk::extractItemFromEnd(pps[i][0],1));
@@ -539,15 +541,26 @@ plot \\\n\
 
     const mdepp::StatPostProcess pp(pps[i]);
 
-    data << pp.id.ionEnergy << " " << pp.getYieldAverage(fpm) << "\n";
+    std::stringstream expIdWithoutEnergy;
+    expIdWithoutEnergy << ElementIDtoString(pp.id.ionElement) << " -> "
+                       << ElementIDtoString(pp.id.clusterElement)
+                       << "_{" << pp.id.clusterSize << "}";
+    plot[expIdWithoutEnergy.str()][pp.id.ionEnergy] = pp.getYieldAverage(fpm);
+  }
 
-    if (i%3 == 2)
+  std::map < std::string, std::map <Float, Float> >::const_iterator expId;
+  for(expId = plot.begin(); expId != plot.end(); ++expId)
+  {
+    std::map <Float, Float>::const_iterator dataPoint;
+    for(dataPoint = expId->second.begin(); dataPoint != expId->second.end(); ++dataPoint)
+    {
+      data << dataPoint->first << " " << dataPoint->second << "\n";
+    }
+
     {
       std::ostringstream cmd;
       cmd << "'-' title \"{/Italic "
-          << ElementIDtoString(pp.id.ionElement) << " -> "
-          << ElementIDtoString(pp.id.clusterElement)
-          << "_{" << pp.id.clusterSize << "}"
+          << expId->first
           << "}\" "
           << "with linespoints";
       plotCmds.push_back(cmd.str());
