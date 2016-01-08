@@ -68,6 +68,7 @@ public:
   static bool ProcessFullerene(const ClassicMolecule& mol);
   static bool ProcessSubstrate(const ClassicMolecule& mol);
   static bool ProcessClusterAndSubstrate(const ClassicMolecule& mol);
+  static std::string FProcessClassicMoleculeToString(FProcessClassicMolecule fpm);
 
   struct TrajData
   {

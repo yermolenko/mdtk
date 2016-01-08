@@ -73,6 +73,19 @@ StatPostProcess::ProcessClusterAndSubstrate(const ClassicMolecule& mol)
   return mol.hasOnlySubstrateOrClusterAtoms();
 }
 
+std::string
+StatPostProcess::FProcessClassicMoleculeToString(FProcessClassicMolecule fpm)
+{
+  if (fpm == ProcessAll) return "All";
+  if (fpm == ProcessProjectile) return "Projectile";
+  if (fpm == ProcessCluster) return "Cluster";
+  if (fpm == ProcessFullerene) return "Fullerene";
+  if (fpm == ProcessSubstrate) return "Substrate";
+  if (fpm == ProcessClusterAndSubstrate) return "ClusterAndSubstrate";
+
+  throw Exception("Unknown FProcessClassicMolecule filter");
+}
+
 StatPostProcess::TrajData::TrajData() :
   trajDir(),
   molecules(),

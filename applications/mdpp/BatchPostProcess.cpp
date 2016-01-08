@@ -231,13 +231,13 @@ BatchPostProcess::printResults() const
 
 #define PLOT_ANGULAR(angleType,elementType,clusterSize,clusterElement)  \
           plotAngular(angleType,mdepp::StatPostProcess::ProcessCluster, \
-                      "Cluster", elementType, clusterSize, clusterElement); \
+                      elementType, clusterSize, clusterElement); \
           plotAngular(angleType,mdepp::StatPostProcess::ProcessProjectile, \
-                      "Projectile", elementType, clusterSize, clusterElement); \
+                      elementType, clusterSize, clusterElement); \
           plotAngular(angleType,mdepp::StatPostProcess::ProcessSubstrate, \
-                      "Substrate", elementType, clusterSize, clusterElement); \
+                      elementType, clusterSize, clusterElement); \
           plotAngular(angleType,mdepp::StatPostProcess::ProcessAll,     \
-                      "All", elementType, clusterSize, clusterElement);
+                      elementType, clusterSize, clusterElement);
 
           PLOT_ANGULAR(
             true,
@@ -248,36 +248,28 @@ BatchPostProcess::printResults() const
 
           plotYieldsAgainstIonEnergy(
             mdepp::StatPostProcess::ProcessCluster,
-            "yields-Cluster",
             elements[j], clusterSizes[i], clusterElements[l]);
           plotYieldsAgainstIonEnergy(
             mdepp::StatPostProcess::ProcessProjectile,
-            "yields-Projectile",
             elements[j], clusterSizes[i], clusterElements[l]);
           plotYieldsAgainstIonEnergy(
             mdepp::StatPostProcess::ProcessSubstrate,
-            "yields-Substrate",
             elements[j], clusterSizes[i], clusterElements[l]);
           plotYieldsAgainstIonEnergy(
             mdepp::StatPostProcess::ProcessAll,
-            "yields-All",
             elements[j], clusterSizes[i], clusterElements[l]);
 
           plotMassSpectrum(
             mdepp::StatPostProcess::ProcessCluster,
-            "MassSpectrum-Cluster",
             elements[j], clusterSizes[i], clusterElements[l]);
           plotMassSpectrum(
             mdepp::StatPostProcess::ProcessProjectile,
-            "MassSpectrum-Projectile",
             elements[j], clusterSizes[i], clusterElements[l]);
           plotMassSpectrum(
             mdepp::StatPostProcess::ProcessSubstrate,
-            "MassSpectrum-Substrate",
             elements[j], clusterSizes[i], clusterElements[l]);
           plotMassSpectrum(
             mdepp::StatPostProcess::ProcessAll,
-            "MassSpectrum-All",
             elements[j], clusterSizes[i], clusterElements[l]);
         }
       }
@@ -459,13 +451,12 @@ replot\n\
 
 void
 BatchPostProcess::plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
-                                             std::string idStr,
                                              ElementID specIonElement,
                                              size_t specClusterSize,
                                              ElementID specClusterElement) const
 {
   std::stringstream fnb;
-  fnb << idStr;
+  fnb << "yields-" << StatPostProcess::FProcessClassicMoleculeToString(fpm);
 
   bool pCluster = (fpm==mdepp::StatPostProcess::ProcessCluster);
   bool pProjectile = (fpm==mdepp::StatPostProcess::ProcessProjectile);
@@ -572,7 +563,7 @@ plot \\\n\
   if (!(plotCmds.size() > 0))
   {
     TRACE(yieldOfWhat);
-    TRACE(idStr);
+    TRACE(StatPostProcess::FProcessClassicMoleculeToString(fpm));
     TRACE(specIonElement);
     TRACE(specClusterSize);
     TRACE(specClusterElement);
@@ -594,13 +585,12 @@ plot \\\n\
 
 void
 BatchPostProcess::plotMassSpectrum(StatPostProcess::FProcessClassicMolecule fpm,
-                                   std::string idStr,
                                    ElementID specIonElement,
                                    size_t specClusterSize,
                                    ElementID specClusterElement) const
 {
   std::stringstream fnb;
-  fnb << idStr;
+  fnb << "MassSpectrum-" << StatPostProcess::FProcessClassicMoleculeToString(fpm);
 /*
   bool pCluster = (fpm==mdepp::StatPostProcess::ProcessCluster);
   bool pProjectile = (fpm==mdepp::StatPostProcess::ProcessProjectile);
@@ -782,7 +772,7 @@ set xtics nomirror 0,base_mass,2*base_mass\n\
   if (!(plotCmds.size() > 0))
   {
 //    TRACE(yieldOfWhat);
-    TRACE(idStr);
+    TRACE(StatPostProcess::FProcessClassicMoleculeToString(fpm));
     TRACE(specIonElement);
     TRACE(specClusterSize);
     TRACE(specClusterElement);
@@ -875,13 +865,12 @@ set key samplen 1.0 spacing 1.3\n\
 void
 BatchPostProcess::plotAngular(bool plotPolar,
                               StatPostProcess::FProcessClassicMolecule fpm,
-                              std::string idStr,
                               ElementID specIonElement,
                               size_t specClusterSize,
                               ElementID specClusterElement) const
 {
   std::stringstream fnb;
-  fnb << idStr;
+  fnb << StatPostProcess::FProcessClassicMoleculeToString(fpm);
 
   if (specIonElement != DUMMY_EL)
     fnb << "_" << ElementIDtoString(specIonElement);

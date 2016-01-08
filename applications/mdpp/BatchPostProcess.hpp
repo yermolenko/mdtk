@@ -1,7 +1,7 @@
 /* 
    Molecular dynamics postprocessor, BatchPostProcess classes, header
 
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2014, 2015
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2014, 2015, 2016
    Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -46,18 +46,15 @@ public:
   void plot_Ekin_t(StatPostProcess::FProcessClassicMolecule fpm, Float ionEnergyFilter) const;
 
   void plotYieldsAgainstIonEnergy(StatPostProcess::FProcessClassicMolecule fpm,
-                                  std::string idStr = "yields",
                                   ElementID specIonElement = DUMMY_EL,
                                   size_t specClusterSize = 0,
                                   ElementID specClusterElement = DUMMY_EL) const;
   void plotMassSpectrum(StatPostProcess::FProcessClassicMolecule fpm,
-                        std::string idStr = "massSpectrum",
                         ElementID specIonElement = DUMMY_EL,
                         size_t specClusterSize = 0,
                         ElementID specClusterElement = DUMMY_EL) const;
   void plotAngular(bool plotPolar,
                    StatPostProcess::FProcessClassicMolecule fpm,
-                   std::string idStr = "undefined",
                    ElementID specIonElement = DUMMY_EL,
                    size_t specClusterSize = 0,
                    ElementID specClusterElement = DUMMY_EL) const;
