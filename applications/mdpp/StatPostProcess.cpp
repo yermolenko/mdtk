@@ -1443,6 +1443,12 @@ StatPostProcess::moleculeEnergy(const ClassicMolecule& mol)
 }
 
 double
+StatPostProcess::moleculeCount(const ClassicMolecule& mol)
+{
+  return 1.0;
+}
+
+double
 StatPostProcess::moleculeAtomsCount(const ClassicMolecule& mol)
 {
   return mol.atoms.size();
@@ -1452,6 +1458,17 @@ double
 StatPostProcess::moleculeEnergyByAtom(const ClassicMolecule& mol)
 {
   return moleculeEnergy(mol)/moleculeAtomsCount(mol);
+}
+
+std::string
+StatPostProcess::FMoleculeAttributeToString(FMoleculeAttribute fma)
+{
+  if (fma == moleculeEnergy) return "moleculeEnergy";
+  if (fma == moleculeCount) return "moleculeCount";
+  if (fma == moleculeAtomsCount) return "moleculeAtomsCount";
+  if (fma == moleculeEnergyByAtom) return "moleculeEnergyByAtom";
+
+  throw Exception("Unknown FMoleculeAttribute");
 }
 
 std::map<Float, Float>

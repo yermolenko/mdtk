@@ -229,21 +229,37 @@ BatchPostProcess::printResults() const
         {
           // plotEnergyLoss(elements[j], clusterSizes[i], energies[k], clusterElements[l]);
 
-#define PLOT_ANGULAR(angleType,elementType,clusterSize,clusterElement)  \
+#define PLOT_ANGULAR(angleType,moleculeAttribute,elementType,clusterSize,clusterElement) \
           plotAngular(angleType,mdepp::StatPostProcess::ProcessCluster, \
+                      moleculeAttribute,                                \
                       elementType, clusterSize, clusterElement); \
           plotAngular(angleType,mdepp::StatPostProcess::ProcessProjectile, \
+                      moleculeAttribute,                                \
                       elementType, clusterSize, clusterElement); \
           plotAngular(angleType,mdepp::StatPostProcess::ProcessSubstrate, \
+                      moleculeAttribute,                                \
                       elementType, clusterSize, clusterElement); \
           plotAngular(angleType,mdepp::StatPostProcess::ProcessAll,     \
+                      moleculeAttribute,                                \
                       elementType, clusterSize, clusterElement);
 
           PLOT_ANGULAR(
-            true,
+            true, StatPostProcess::moleculeAtomsCount,
             elements[j], clusterSizes[i], clusterElements[l]);
           PLOT_ANGULAR(
-            false,
+            false, StatPostProcess::moleculeAtomsCount,
+            elements[j], clusterSizes[i], clusterElements[l]);
+          PLOT_ANGULAR(
+            true, StatPostProcess::moleculeCount,
+            elements[j], clusterSizes[i], clusterElements[l]);
+          PLOT_ANGULAR(
+            false, StatPostProcess::moleculeCount,
+            elements[j], clusterSizes[i], clusterElements[l]);
+          PLOT_ANGULAR(
+            true, StatPostProcess::moleculeEnergy,
+            elements[j], clusterSizes[i], clusterElements[l]);
+          PLOT_ANGULAR(
+            false, StatPostProcess::moleculeEnergy,
             elements[j], clusterSizes[i], clusterElements[l]);
 
           plotYieldsAgainstIonEnergy(
@@ -865,6 +881,7 @@ set key samplen 1.0 spacing 1.3\n\
 void
 BatchPostProcess::plotAngular(bool plotPolar,
                               StatPostProcess::FProcessClassicMolecule fpm,
+                              StatPostProcess::FMoleculeAttribute fma,
                               ElementID specIonElement,
                               size_t specClusterSize,
                               ElementID specClusterElement) const
@@ -886,6 +903,10 @@ BatchPostProcess::plotAngular(bool plotPolar,
   }
 
   fnb << (plotPolar?"-polar":"-azimuthal");
+
+  fnb << "-";
+
+  fnb << StatPostProcess::FMoleculeAttributeToString(fma);
 
   ofstream fplt((fnb.str()+".plt").c_str());
 
@@ -970,7 +991,7 @@ plot \\\n\
         pp.distByAngle(
           plotPolar ? StatPostProcess::ANGLE_POLAR : StatPostProcess::ANGLE_AZIMUTH,
           n,
-          StatPostProcess::moleculeAtomsCount,
+          fma,
           fpm);
 
       std::map<Float, Float>::iterator i;

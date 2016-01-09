@@ -55,6 +55,7 @@ public:
                         ElementID specClusterElement = DUMMY_EL) const;
   void plotAngular(bool plotPolar,
                    StatPostProcess::FProcessClassicMolecule fpm,
+                   StatPostProcess::FMoleculeAttribute fma,
                    ElementID specIonElement = DUMMY_EL,
                    size_t specClusterSize = 0,
                    ElementID specClusterElement = DUMMY_EL) const;

@@ -179,8 +179,10 @@ public:
 
   typedef double (*FMoleculeAttribute)(const ClassicMolecule&);
   static double moleculeEnergy(const ClassicMolecule&);
+  static double moleculeCount(const ClassicMolecule&);
   static double moleculeAtomsCount(const ClassicMolecule&);
   static double moleculeEnergyByAtom(const ClassicMolecule&);
+  static std::string FMoleculeAttributeToString(FMoleculeAttribute fma);
 
   enum AngleType{ANGLE_POLAR,ANGLE_AZIMUTH};
   std::map<Float, Float> distByAngle(
