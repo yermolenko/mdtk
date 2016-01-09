@@ -1,8 +1,8 @@
 /*
    The Simple Molecule class (header file).
 
-   Copyright (C) 2010, 2011, 2012, 2014, 2015 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2010, 2011, 2012, 2014, 2015, 2016 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -383,19 +383,9 @@ operator =(const ClassicMolecule &C)
   friend int operator<(ClassicMolecule& left, ClassicMolecule& right);
 };  
 
+int operator<(const ClassicMolecule& left, const ClassicMolecule& right);
 
-inline
-int operator<(const ClassicMolecule& left, const ClassicMolecule& right)
-{
-  return left.getAMUMass() < right.getAMUMass();
-}
-
-inline
-int operator<(ClassicMolecule& left, ClassicMolecule& right)
-{
-  return left.getAMUMass() < right.getAMUMass();
-}
-
+int operator<(ClassicMolecule& left, ClassicMolecule& right);
 
 }
 

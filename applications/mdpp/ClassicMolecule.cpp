@@ -1,8 +1,8 @@
 /*
    The Simple Molecule class.
 
-   Copyright (C) 2010, 2011, 2012, 2014, 2015 Oleksandr Yermolenko
-   <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2010, 2011, 2012, 2014, 2015, 2016 Oleksandr
+   Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -77,5 +77,24 @@ ClassicMolecule::buildFromAtom(mdtk::Atom& a, NeighbourList& nl,double SPOTTED_D
     }  
   }  
 }  
+
+int operator<(const ClassicMolecule& left, const ClassicMolecule& right)
+{
+  Float m_left = left.getAMUMass();
+  Float m_right = right.getAMUMass();
+
+  if (m_left != m_right)
+    return m_left < m_right;
+
+  if (left.atoms.size() != right.atoms.size())
+    return left.atoms.size() < right.atoms.size();
+
+  return left.formula() < right.formula();
+}
+
+int operator<(ClassicMolecule& left, ClassicMolecule& right)
+{
+  return operator<(left, right);
+}
 
 }
