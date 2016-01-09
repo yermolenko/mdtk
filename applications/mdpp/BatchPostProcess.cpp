@@ -229,64 +229,44 @@ BatchPostProcess::printResults() const
         {
           // plotEnergyLoss(elements[j], clusterSizes[i], energies[k], clusterElements[l]);
 
-#define PLOT_ANGULAR(angleType,moleculeAttribute,elementType,clusterSize,clusterElement) \
-          plotAngular(angleType,mdepp::StatPostProcess::ProcessCluster, \
-                      moleculeAttribute,                                \
-                      elementType, clusterSize, clusterElement); \
-          plotAngular(angleType,mdepp::StatPostProcess::ProcessProjectile, \
-                      moleculeAttribute,                                \
-                      elementType, clusterSize, clusterElement); \
-          plotAngular(angleType,mdepp::StatPostProcess::ProcessSubstrate, \
-                      moleculeAttribute,                                \
-                      elementType, clusterSize, clusterElement); \
-          plotAngular(angleType,mdepp::StatPostProcess::ProcessAll,     \
-                      moleculeAttribute,                                \
-                      elementType, clusterSize, clusterElement);
+          std::vector<StatPostProcess::FProcessClassicMolecule>
+            moleculeFilters;
+          moleculeFilters.push_back(mdepp::StatPostProcess::ProcessCluster);
+          moleculeFilters.push_back(mdepp::StatPostProcess::ProcessProjectile);
+          moleculeFilters.push_back(mdepp::StatPostProcess::ProcessSubstrate);
+          moleculeFilters.push_back(mdepp::StatPostProcess::ProcessAll);
 
-          PLOT_ANGULAR(
-            true, StatPostProcess::moleculeAtomsCount,
-            elements[j], clusterSizes[i], clusterElements[l]);
-          PLOT_ANGULAR(
-            false, StatPostProcess::moleculeAtomsCount,
-            elements[j], clusterSizes[i], clusterElements[l]);
-          PLOT_ANGULAR(
-            true, StatPostProcess::moleculeCount,
-            elements[j], clusterSizes[i], clusterElements[l]);
-          PLOT_ANGULAR(
-            false, StatPostProcess::moleculeCount,
-            elements[j], clusterSizes[i], clusterElements[l]);
-          PLOT_ANGULAR(
-            true, StatPostProcess::moleculeEnergy,
-            elements[j], clusterSizes[i], clusterElements[l]);
-          PLOT_ANGULAR(
-            false, StatPostProcess::moleculeEnergy,
-            elements[j], clusterSizes[i], clusterElements[l]);
+          std::vector<StatPostProcess::FProcessClassicMolecule>::const_iterator
+            moleculeFilter;
+          for(moleculeFilter = moleculeFilters.begin();
+              moleculeFilter != moleculeFilters.end();
+              ++moleculeFilter)
+          {
+            std::vector<StatPostProcess::FMoleculeAttribute> moleculeAttributes;
+            // moleculeAttributes.push_back(StatPostProcess::moleculeAtomsCount);
+            moleculeAttributes.push_back(StatPostProcess::moleculeCount);
+            moleculeAttributes.push_back(StatPostProcess::moleculeEnergy);
 
-          plotYieldsAgainstIonEnergy(
-            mdepp::StatPostProcess::ProcessCluster,
-            elements[j], clusterSizes[i], clusterElements[l]);
-          plotYieldsAgainstIonEnergy(
-            mdepp::StatPostProcess::ProcessProjectile,
-            elements[j], clusterSizes[i], clusterElements[l]);
-          plotYieldsAgainstIonEnergy(
-            mdepp::StatPostProcess::ProcessSubstrate,
-            elements[j], clusterSizes[i], clusterElements[l]);
-          plotYieldsAgainstIonEnergy(
-            mdepp::StatPostProcess::ProcessAll,
-            elements[j], clusterSizes[i], clusterElements[l]);
+            std::vector<StatPostProcess::FMoleculeAttribute>::const_iterator
+              moleculeAttribute;
+            for(moleculeAttribute = moleculeAttributes.begin();
+                moleculeAttribute != moleculeAttributes.end();
+                ++moleculeAttribute)
+            {
+              plotAngular(true, *moleculeFilter, *moleculeAttribute,
+                          elements[j], clusterSizes[i], clusterElements[l]);
+              plotAngular(false, *moleculeFilter, *moleculeAttribute,
+                          elements[j], clusterSizes[i], clusterElements[l]);
+            }
 
-          plotMassSpectrum(
-            mdepp::StatPostProcess::ProcessCluster,
-            elements[j], clusterSizes[i], clusterElements[l]);
-          plotMassSpectrum(
-            mdepp::StatPostProcess::ProcessProjectile,
-            elements[j], clusterSizes[i], clusterElements[l]);
-          plotMassSpectrum(
-            mdepp::StatPostProcess::ProcessSubstrate,
-            elements[j], clusterSizes[i], clusterElements[l]);
-          plotMassSpectrum(
-            mdepp::StatPostProcess::ProcessAll,
-            elements[j], clusterSizes[i], clusterElements[l]);
+            plotYieldsAgainstIonEnergy(
+              *moleculeFilter,
+              elements[j], clusterSizes[i], clusterElements[l]);
+
+            plotMassSpectrum(
+              *moleculeFilter,
+              elements[j], clusterSizes[i], clusterElements[l]);
+          }
         }
       }
     }
