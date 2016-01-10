@@ -307,6 +307,16 @@ operator =(const ClassicMolecule &C)
     } 
     return mdtk::academic_round(moleculeMass/mdtk::amu/10)*10;
   }
+  Float getMass() const
+  {
+    Float moleculeMass = 0;
+    for(size_t ai = 0; ai < atoms.size(); ai++)
+    {
+      const mdtk::Atom& atom = atoms[ai];
+      moleculeMass += atom.M;
+    }
+    return moleculeMass;
+  }
   mdtk::Vector3D getVelocity() const
   {
     using mdtk::Exception;    
