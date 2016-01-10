@@ -659,7 +659,7 @@ set yrange [0:*]\n\
 set border 1+2+4+8 lw 2\n\
 \n\
 set encoding koi8u\n\
-set output \"" << fnb.str() << ".eps\"\n\
+set output \"" << fnb.str() << "-multi" << ".eps\"\n\
 set terminal postscript eps size 16cm, 8cm \"Arial,18\" enhanced\n\
 \n\
 set multiplot\n\
