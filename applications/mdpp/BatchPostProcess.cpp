@@ -266,6 +266,34 @@ BatchPostProcess::printResults() const
             plotMassSpectrum(
               *moleculeFilter,
               elements[j], clusterSizes[i], clusterElements[l]);
+
+            ClassicMolecule mol;
+            mol.atoms.push_back(Atom(H_EL));
+            Float binWidth = mol.getMass();
+            if (*moleculeFilter == StatPostProcess::ProcessCluster ||
+                *moleculeFilter == StatPostProcess::ProcessAll)
+            {
+              mol.atoms.clear();
+              mol.atoms.push_back(Atom(clusterElements[l]));
+              binWidth = mol.getMass();
+            }
+            if (*moleculeFilter == StatPostProcess::ProcessProjectile)
+            {
+              mol.atoms.clear();
+              mol.atoms.push_back(Atom(elements[j]));
+              binWidth = mol.getMass();
+            }
+            if (*moleculeFilter == StatPostProcess::ProcessSubstrate)
+            {
+              mol.atoms.clear();
+              mol.atoms.push_back(Atom(C_EL));
+              binWidth = mol.getMass();
+            }
+            plotMassSpectrumHistogram(
+              binWidth,
+              *moleculeFilter,
+              StatPostProcess::moleculeCount,
+              elements[j], clusterSizes[i], clusterElements[l]);
           }
         }
       }
@@ -856,6 +884,295 @@ set key samplen 1.0 spacing 1.3\n\
   fplt.close();
   fo.close();
   fsameMass.close();
+}
+
+void
+BatchPostProcess::plotMassSpectrumHistogram(
+  Float binWidth,
+  StatPostProcess::FProcessClassicMolecule fpm,
+  StatPostProcess::FMoleculeAttribute fma,
+  ElementID specIonElement,
+  size_t specClusterSize,
+  ElementID specClusterElement) const
+{
+  std::stringstream fnb;
+  fnb << "MassSpectrum-" << StatPostProcess::FProcessClassicMoleculeToString(fpm);
+
+  if (specIonElement != DUMMY_EL)
+    fnb << "_" << ElementIDtoString(specIonElement);
+
+  if (specClusterElement != DUMMY_EL)
+    fnb << "_" << ElementIDtoString(specClusterElement);
+
+  if (specClusterSize > 0)
+  {
+    if (specClusterElement == DUMMY_EL)
+      fnb << "_";
+    fnb << specClusterSize;
+  }
+
+  fnb << "-histogram";
+
+  fnb << "-";
+
+  fnb << StatPostProcess::FMoleculeAttributeToString(fma);
+
+  std::ofstream fplt((fnb.str()+".plt").c_str());
+  std::ofstream fpltmulti((fnb.str()+"-multi.plt").c_str());
+
+  fplt << "\
+reset\n\
+set yrange [0:*]\n\
+set xrange [0:*]\n\
+set border 1+2+4+8 lw 2\n\
+\n\
+set output \"" << fnb.str() << ".eps\"\n\
+set terminal postscript eps size 16cm, 8cm \"Arial,18\" enhanced\n\
+set xlabel \"Mass (amu)\"\n\
+set ylabel ""\n\
+\n\
+#set label \"H\" at 2,279/1000.0+0.012\n\
+#set label \"Cu_2\" at 63.5*2,0.43\n\
+#set label \"Cu_1_3\" at 63.5*13,0.07\n\
+#set label \"Cu_2_5\" at 63.5*25,0.05\n\
+#set label \"Cu_3_5\" at 63.5*35,0.03\n\
+#set label \"H_2\" at 2,83/1000.0+0.012\n\
+#set label \"CH_3\" at 15,10/1000.0+0.012\n\
+#set label \"C_2H_2\" at 26,27/1000.0+0.012 center\n\
+#set label \"C_2H_4\" at 28,241/1000.0+0.012 center\n\
+#set label \"C_3H_6\" at 42,16/1000.0+0.012 center\n\
+#set label \"C_4H_7\" at 55,10/1000.0+0.012 center\n\
+#set label \"C_6H_1_0\" at 82,2/1000.0+0.012 center\n\
+#set label \"C_6H_1_0\\n(cyclohexene)\" at 82,2/1000.0+0.03 center\n\
+#set label \"C_6H_1_0\\n(cyclohexene)\" at 82,(7+6+1)/500.0 center\n\
+\n\
+set xtics nomirror 200\n\
+set tics scale -1\n\
+\n\
+plot \\\n\
+";
+
+  fpltmulti << "\
+reset\n\
+base_mass=64\n\
+xrange_cut=2.5*base_mass\n\
+set yrange [0:*]\n\
+set border 1+2+4+8 lw 2\n\
+\n\
+set encoding koi8u\n\
+set output \"" << fnb.str() << "-multi" << ".eps\"\n\
+set terminal postscript eps size 16cm, 8cm \"Arial,18\" enhanced\n\
+\n\
+set multiplot\n\
+set size 0.25,1\n\
+set origin 0.0,0.0\n\
+#set lmargin 10\n\
+set rmargin 0\n\
+set xrange [0:xrange_cut]\n\
+set xlabel \" \"\n\
+set ylabel \"Sputtering yield, specie/impact\"\n\
+#set label \"Cu\" at 63.5+10,2.1\n\
+#set label \"Cu_{2}\" at 63.5*2-20,0.40\n\
+\n\
+set key off\n\
+set xtics nomirror 0,base_mass,2*base_mass\n\
+";
+
+  std::vector<std::string> plotCmds;
+  std::ostringstream data;
+
+  for(size_t i = 0; i < pps.size(); ++i)
+  {
+    mdepp::StatPostProcess::Id id(yaatk::extractItemFromEnd(pps[i][0],1));
+
+    if (specIonElement != DUMMY_EL)
+    {
+      if (id.ionElement != specIonElement)
+        continue;
+    }
+
+    if (specClusterElement != DUMMY_EL)
+    {
+      if (id.clusterElement != specClusterElement)
+        continue;
+    }
+
+    if (specClusterSize > 0)
+    {
+      if (id.clusterSize != specClusterSize)
+        continue;
+    }
+
+    if (id.ionEnergy > 199.0 && id.ionEnergy < 201.0)
+      continue;
+
+    const mdepp::StatPostProcess pp(pps[i]);
+
+    {
+      std::ostringstream cmd;
+      cmd << "'-' with points title \"{/Italic "
+          << pp.id.ionEnergy << "eV "
+          << ElementIDtoString(pp.id.ionElement) << " -> "
+          << ElementIDtoString(pp.id.clusterElement)
+          << "_{" << pp.id.clusterSize << "}"
+          << "}\", "
+          << "'-' with boxes notitle";
+      plotCmds.push_back(cmd.str());
+    }
+
+    Float maxMass = 0.0;
+    {
+      for(size_t trajIndex = 0; trajIndex < pp.trajData.size(); trajIndex++)
+      {
+        const StatPostProcess::TrajData& td = *(pp.trajData[trajIndex]);
+        for(size_t mi = 0; mi < td.molecules.size(); mi++)
+        {
+          const ClassicMolecule& mol = td.molecules[mi];
+          if (!fpm(mol)) continue;
+          Float mass = mol.getMass();
+          if (mass > maxMass)
+            maxMass = mass;
+        }
+      }
+    }
+
+    std::map<Float, Float> histData;
+    {
+      const Float minHist = 0.0;
+      const int n = (maxMass - minHist)/binWidth + 1;
+      double range[n+1];
+      range[0] = 0.0;
+      for(size_t massIndex = 0; massIndex < n; ++massIndex)
+        range[massIndex + 1] = range[massIndex] + binWidth;
+
+      gsl_histogram * h = gsl_histogram_alloc (n);
+
+      gsl_histogram_set_ranges(h, range, n+1);
+
+      for(size_t trajIndex = 0; trajIndex < pp.trajData.size(); trajIndex++)
+      {
+        const StatPostProcess::TrajData& td = *(pp.trajData[trajIndex]);
+        for(size_t mi = 0; mi < td.molecules.size(); mi++)
+        {
+          const ClassicMolecule& mol = td.molecules[mi];
+          if (!fpm(mol)) continue;
+          gsl_histogram_accumulate(
+            h,
+            mol.getMass(),
+            fma(mol)/Float(pp.trajData.size()));
+        }
+      }
+
+      for(size_t i = 0; i < gsl_histogram_bins(h); i++)
+      {
+        double lower, upper;
+        gsl_histogram_get_range (h, i, &lower, &upper);
+        histData[(lower+upper)/2.0] = gsl_histogram_get(h,i);
+      }
+
+      gsl_histogram_free (h);
+    }
+
+    for(size_t c = 0; c < 2; ++c)
+    {
+      std::map<Float, Float>::iterator i = histData.begin();
+      while (i != histData.end())
+      {
+        data << i->first/mdtk::amu << " " << i->second << "\n";
+        i++;
+      }
+      data << "e\n";
+    }
+  }
+
+  if (!(plotCmds.size() > 0))
+  {
+    TRACE(StatPostProcess::FProcessClassicMoleculeToString(fpm));
+    TRACE(specIonElement);
+    TRACE(specClusterSize);
+    TRACE(specClusterElement);
+  }
+
+//  REQUIRE(plotCmds.size() > 0);
+  for(size_t i = 0; i < plotCmds.size(); ++i)
+  {
+    if (i != plotCmds.size()-1)
+      fplt << plotCmds[i] << ",\\\n";
+    else
+      fplt << plotCmds[i] << "\n";
+  }
+
+  fplt << data.str();
+
+  fpltmulti << "plot \\\n";
+  for(size_t i = 0; i < plotCmds.size(); ++i)
+  {
+    if (i != plotCmds.size()-1)
+      fpltmulti << plotCmds[i] << ",\\\n";
+    else
+      fpltmulti << plotCmds[i] << "\n";
+  }
+
+  fpltmulti << data.str();
+
+  fpltmulti << "\
+set size 0.7,1\n\
+set origin 0.25,0.0\n\
+set format y \"\"\n\
+#set format y2 \"%7g\"\n\
+set lmargin 0\n\
+set rmargin 2\n\
+#set nolog x\n\
+set xrange [xrange_cut:*]\n\
+#set xtic 0,10\n\
+#set mxtic 5\n\
+\n\
+set xlabel \"Mass, a.m.u.\"\n\
+set ylabel \"\"\n\
+\n\
+#set label \"H\" at 2,279/1000.0+0.012\n\
+#set label \"Cu_{3}\" at 63.5*3+30,0.085\n\
+#set label \"Cu_{11}\" at 63.5*11,0.040\n\
+#set label \"Cu_{15}\" at 63.5*15,0.040\n\
+#set label \"Cu_{21}\" at 63.5*21+25,0.076\n\
+#set label \"Cu_{23}\" at 63.5*23-20,0.059\n\
+#set label \"Cu_{25}\" at 63.5*25,0.059\n\
+#set label \"Cu_{27}\" at 63.5*27,0.021\n\
+#set label \"Cu_{35}\" at 63.5*35,0.055\n\
+#set label \"H_2\" at 2,83/1000.0+0.012\n\
+#set label \"CH_3\" at 15,10/1000.0+0.012\n\
+#set label \"C_2H_2\" at 26,27/1000.0+0.012 center\n\
+#set label \"C_2H_4\" at 28,241/1000.0+0.012 center\n\
+#set label \"C_3H_6\" at 42,16/1000.0+0.012 center\n\
+#set label \"C_4H_7\" at 55,10/1000.0+0.012 center\n\
+#set label \"C_6H_1_0\" at 82,2/1000.0+0.012 center\n\
+#set label \"C_6H_1_0\\n(cyclohexene)\" at 82,2/1000.0+0.03 center\n\
+#set label \"C_6H_1_0\\n(cyclohexene)\" at 82,(7+6+1)/500.0 center\n\
+\n\
+set xtics nomirror 5*base_mass\n\
+set xtics add (sprintf(\"%d\",3*base_mass) 3*base_mass)\n\
+\n\
+set y2tics\n\
+\n\
+set key samplen 1.0 spacing 1.3\n\
+#set key left samplen 1.0 spacing 1.3\n\
+";
+
+  fpltmulti << "plot \\\n";
+  for(size_t i = 0; i < plotCmds.size(); ++i)
+  {
+    if (i != plotCmds.size()-1)
+      fpltmulti << plotCmds[i] << ",\\\n";
+    else
+      fpltmulti << plotCmds[i] << "\n";
+  }
+
+  fpltmulti << data.str();
+
+  fpltmulti << "set nomultiplot\n";
+
+  fpltmulti.close();
+  fplt.close();
 }
 
 void
