@@ -294,6 +294,16 @@ BatchPostProcess::printResults() const
               *moleculeFilter,
               StatPostProcess::moleculeCount,
               elements[j], clusterSizes[i], clusterElements[l]);
+            plotMassSpectrumHistogram(
+              binWidth,
+              *moleculeFilter,
+              StatPostProcess::moleculeMass,
+              elements[j], clusterSizes[i], clusterElements[l]);
+            plotMassSpectrumHistogram(
+              binWidth,
+              *moleculeFilter,
+              StatPostProcess::moleculeEnergy,
+              elements[j], clusterSizes[i], clusterElements[l]);
           }
         }
       }

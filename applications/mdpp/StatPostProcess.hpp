@@ -179,6 +179,7 @@ public:
 
   typedef double (*FMoleculeAttribute)(const ClassicMolecule&);
   static double moleculeEnergy(const ClassicMolecule&);
+  static double moleculeMass(const ClassicMolecule&);
   static double moleculeCount(const ClassicMolecule&);
   static double moleculeAtomsCount(const ClassicMolecule&);
   static double moleculeEnergyByAtom(const ClassicMolecule&);

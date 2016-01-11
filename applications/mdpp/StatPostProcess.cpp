@@ -1443,6 +1443,12 @@ StatPostProcess::moleculeEnergy(const ClassicMolecule& mol)
 }
 
 double
+StatPostProcess::moleculeMass(const ClassicMolecule& mol)
+{
+  return mol.getAMUMass();
+}
+
+double
 StatPostProcess::moleculeCount(const ClassicMolecule& mol)
 {
   return 1.0;
@@ -1464,6 +1470,7 @@ std::string
 StatPostProcess::FMoleculeAttributeToString(FMoleculeAttribute fma)
 {
   if (fma == moleculeEnergy) return "moleculeEnergy";
+  if (fma == moleculeMass) return "moleculeMass";
   if (fma == moleculeCount) return "moleculeCount";
   if (fma == moleculeAtomsCount) return "moleculeAtomsCount";
   if (fma == moleculeEnergyByAtom) return "moleculeEnergyByAtom";
