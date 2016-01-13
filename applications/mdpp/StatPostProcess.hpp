@@ -196,9 +196,9 @@ public:
 
   Float maxMoleculeAttribute(
     FMoleculeAttribute fma, FProcessClassicMolecule moleculeFilter) const;
-  Float suggestedBinWidth(
+  static Float suggestedBinWidth(
     FMoleculeAttribute fma, FProcessClassicMolecule moleculeFilter,
-    ElementID ionElement, size_t clusterSize, ElementID clusterElement) const;
+    ElementID ionElement, size_t clusterSize, ElementID clusterElement);
 
   std::map<Float, Float> distBy(
     FMoleculeAttribute histFunc,

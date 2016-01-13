@@ -267,28 +267,9 @@ BatchPostProcess::printResults() const
               *moleculeFilter,
               elements[j], clusterSizes[i], clusterElements[l]);
 
-            ClassicMolecule mol;
-            mol.atoms.push_back(Atom(H_EL));
-            Float binWidth = mol.getMass();
-            if (*moleculeFilter == StatPostProcess::ProcessCluster ||
-                *moleculeFilter == StatPostProcess::ProcessAll)
-            {
-              mol.atoms.clear();
-              mol.atoms.push_back(Atom(clusterElements[l]));
-              binWidth = mol.getMass();
-            }
-            if (*moleculeFilter == StatPostProcess::ProcessProjectile)
-            {
-              mol.atoms.clear();
-              mol.atoms.push_back(Atom(elements[j]));
-              binWidth = mol.getMass();
-            }
-            if (*moleculeFilter == StatPostProcess::ProcessSubstrate)
-            {
-              mol.atoms.clear();
-              mol.atoms.push_back(Atom(C_EL));
-              binWidth = mol.getMass();
-            }
+            Float binWidth = StatPostProcess::suggestedBinWidth(
+                StatPostProcess::moleculeMass, *moleculeFilter,
+                elements[j], clusterSizes[i], clusterElements[l]);
             plotMassSpectrumHistogram(
               binWidth,
               *moleculeFilter,

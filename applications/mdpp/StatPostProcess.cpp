@@ -1563,7 +1563,7 @@ StatPostProcess::maxMoleculeAttribute(
 Float
 StatPostProcess::suggestedBinWidth(
   FMoleculeAttribute fma, FProcessClassicMolecule moleculeFilter,
-  ElementID ionElement, size_t clusterSize, ElementID clusterElement) const
+  ElementID ionElement, size_t clusterSize, ElementID clusterElement)
 {
   Float binWidth = 0.0;
 
