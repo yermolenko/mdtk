@@ -207,27 +207,39 @@ BatchPostProcess::printResults() const
   clusterSizes.push_back(39);
   clusterSizes.push_back(75);
 //  clusterSizes.push_back(195);
-  for(size_t i = 0; i < clusterSizes.size(); i++)
+  std::vector<size_t>::const_iterator clusterSize;
+  for(clusterSize = clusterSizes.begin();
+      clusterSize != clusterSizes.end();
+      clusterSize++)
   {
-    std::vector<ElementID> elements;
-    elements.push_back(DUMMY_EL);
-    elements.push_back(Ar_EL);
-    elements.push_back(Xe_EL);
-    for(size_t j = 0; j < elements.size(); j++)
+    std::vector<ElementID> ionElements;
+    ionElements.push_back(DUMMY_EL);
+    ionElements.push_back(Ar_EL);
+    ionElements.push_back(Xe_EL);
+    std::vector<ElementID>::const_iterator ionElement;
+    for(ionElement = ionElements.begin();
+        ionElement != ionElements.end();
+        ionElement++)
     {
-      std::vector<Float> energies;
-      energies.push_back(100*eV);
-      energies.push_back(200*eV);
-      energies.push_back(400*eV);
-      for(size_t k = 0; k < energies.size(); k++)
+      std::vector<Float> ionEnergies;
+      ionEnergies.push_back(100*eV);
+      ionEnergies.push_back(200*eV);
+      ionEnergies.push_back(400*eV);
+      std::vector<Float>::const_iterator ionEnergy;
+      for(ionEnergy = ionEnergies.begin();
+          ionEnergy != ionEnergies.end();
+          ionEnergy++)
       {
         std::vector<ElementID> clusterElements;
         clusterElements.push_back(DUMMY_EL);
         clusterElements.push_back(Cu_EL);
         clusterElements.push_back(Au_EL);
-        for(size_t l = 0; l < clusterElements.size(); l++)
+        std::vector<ElementID>::const_iterator clusterElement;
+        for(clusterElement = clusterElements.begin();
+            clusterElement != clusterElements.end();
+            clusterElement++)
         {
-          // plotEnergyLoss(elements[j], clusterSizes[i], energies[k], clusterElements[l]);
+          // plotEnergyLoss(*ionElement, *clusterSize, *ionEnergy, *clusterElement);
 
           std::vector<StatPostProcess::FProcessClassicMolecule>
             moleculeFilters;
@@ -254,46 +266,46 @@ BatchPostProcess::printResults() const
                 ++moleculeAttribute)
             {
               plotAngular(true, *moleculeFilter, *moleculeAttribute,
-                          elements[j], clusterSizes[i], clusterElements[l]);
+                          *ionElement, *clusterSize, *clusterElement);
               plotAngular(false, *moleculeFilter, *moleculeAttribute,
-                          elements[j], clusterSizes[i], clusterElements[l]);
+                          *ionElement, *clusterSize, *clusterElement);
             }
 
             plotYieldsAgainstIonEnergy(
               *moleculeFilter,
-              elements[j], clusterSizes[i], clusterElements[l]);
+              *ionElement, *clusterSize, *clusterElement);
 
             plotMassSpectrum(
               *moleculeFilter,
-              elements[j], clusterSizes[i], clusterElements[l]);
+              *ionElement, *clusterSize, *clusterElement);
 
             Float binWidth = StatPostProcess::suggestedBinWidth(
                 StatPostProcess::moleculeMass, *moleculeFilter,
-                elements[j], clusterSizes[i], clusterElements[l]);
+                *ionElement, *clusterSize, *clusterElement);
             plotMassSpectrumHistogram(
               binWidth,
               *moleculeFilter,
               StatPostProcess::moleculeCount,
-              elements[j], clusterSizes[i], clusterElements[l]);
+              *ionElement, *clusterSize, *clusterElement);
             plotMassSpectrumHistogram(
               binWidth,
               *moleculeFilter,
               StatPostProcess::moleculeMassInAMU,
-              elements[j], clusterSizes[i], clusterElements[l]);
+              *ionElement, *clusterSize, *clusterElement);
             plotMassSpectrumHistogram(
               binWidth,
               *moleculeFilter,
               StatPostProcess::moleculeEnergyInEV,
-              elements[j], clusterSizes[i], clusterElements[l]);
+              *ionElement, *clusterSize, *clusterElement);
 
             plotEnergySpectrum(
               *moleculeFilter,
               StatPostProcess::moleculeCount,
-              elements[j], clusterSizes[i], clusterElements[l]);
+              *ionElement, *clusterSize, *clusterElement);
             plotEnergySpectrum(
               *moleculeFilter,
               StatPostProcess::moleculeEnergyInEV,
-              elements[j], clusterSizes[i], clusterElements[l]);
+              *ionElement, *clusterSize, *clusterElement);
           }
         }
       }
