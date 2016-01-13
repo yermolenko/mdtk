@@ -192,6 +192,21 @@ public:
     FMoleculeAttribute fma,
     FProcessClassicMolecule fpm) const;
 
+  Float maxMoleculeAttribute(
+    FMoleculeAttribute fma, FProcessClassicMolecule moleculeFilter) const;
+  Float suggestedBinWidth(
+    FMoleculeAttribute fma, FProcessClassicMolecule moleculeFilter,
+    ElementID ionElement, size_t clusterSize, ElementID clusterElement) const;
+
+  std::map<Float, Float> distBy(
+    FMoleculeAttribute histFunc,
+    Float binWidth,
+    Float histMin,
+    Float histMax,
+    FMoleculeAttribute fma,
+    FProcessClassicMolecule fpm
+    ) const;
+
   static std::map<Float, Float>
   divideHistograms(
     std::map<Float, Float>& h1,

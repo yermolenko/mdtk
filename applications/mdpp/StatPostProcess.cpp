@@ -1523,6 +1523,121 @@ StatPostProcess::distByAngle(
   return histData;;
 }
 
+
+Float
+StatPostProcess::maxMoleculeAttribute(
+  FMoleculeAttribute fma, FProcessClassicMolecule moleculeFilter) const
+{
+  Float maxVal = 0.0;
+
+  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
+  {
+    const StatPostProcess::TrajData& td = *trajData[trajIndex];
+    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      const ClassicMolecule& mol = td.molecules[mi];
+      if (!moleculeFilter(mol)) continue;
+      Float val = fma(mol);
+      if (val > maxVal)
+        maxVal = val;
+    }
+  }
+
+  return maxVal;
+}
+
+Float
+StatPostProcess::suggestedBinWidth(
+  FMoleculeAttribute fma, FProcessClassicMolecule moleculeFilter,
+  ElementID ionElement, size_t clusterSize, ElementID clusterElement) const
+{
+  Float binWidth = 0.0;
+
+  if (fma == moleculeMass)
+  {
+    ClassicMolecule mol;
+    mol.atoms.push_back(Atom(H_EL));
+    binWidth = mol.getMass();
+    if (*moleculeFilter == StatPostProcess::ProcessCluster ||
+        *moleculeFilter == StatPostProcess::ProcessAll)
+    {
+      mol.atoms.clear();
+      mol.atoms.push_back(Atom(clusterElement));
+      binWidth = mol.getMass();
+    }
+    if (*moleculeFilter == StatPostProcess::ProcessProjectile)
+    {
+      mol.atoms.clear();
+      mol.atoms.push_back(Atom(ionElement));
+      binWidth = mol.getMass();
+    }
+    if (*moleculeFilter == StatPostProcess::ProcessSubstrate)
+    {
+      mol.atoms.clear();
+      mol.atoms.push_back(Atom(C_EL));
+      binWidth = mol.getMass();
+    }
+  }
+
+  if (fma == moleculeEnergy)
+  {
+    binWidth = 10.0*eV/eV;
+  }
+
+  REQUIRE(binWidth > 0.0);
+
+  return binWidth;
+}
+
+std::map<Float, Float>
+StatPostProcess::distBy(
+  FMoleculeAttribute histFunc,
+  Float binWidth,
+  Float histMin,
+  Float histMax,
+  FMoleculeAttribute fma,
+  FProcessClassicMolecule fpm
+  ) const
+{
+  const int n = (histMax - histMin)/binWidth + 1;
+  REQUIRE(n > 0);
+  REQUIRE(n < 1000000);
+  double range[n+1];
+  range[0] = 0.0;
+  for(size_t binIndex = 0; binIndex < n; ++binIndex)
+    range[binIndex + 1] = range[binIndex] + binWidth;
+
+  gsl_histogram* h = gsl_histogram_alloc (n);
+  gsl_histogram_set_ranges(h, range, n+1);
+
+  for(size_t trajIndex = 0; trajIndex < trajData.size(); trajIndex++)
+  {
+    const TrajData& td = *trajData[trajIndex];
+    for(size_t mi = 0; mi < td.molecules.size(); mi++)
+    {
+      const ClassicMolecule& mol = td.molecules[mi];
+      if (!fpm(mol)) continue;
+      gsl_histogram_accumulate(
+        h,
+        histFunc(mol),
+        fma(mol)/Float(trajData.size()));
+    }
+  }
+
+  std::map<Float, Float> histData;
+
+  for(size_t i = 0; i < gsl_histogram_bins(h); i++)
+  {
+    double lower, upper;
+    gsl_histogram_get_range (h, i, &lower, &upper);
+    histData[(lower+upper)/2.0] = gsl_histogram_get(h,i);
+  }
+
+  gsl_histogram_free (h);
+
+  return histData;
+}
+
 std::map<Float, Float>
 StatPostProcess::divideHistograms(
   std::map<Float, Float>& h1,

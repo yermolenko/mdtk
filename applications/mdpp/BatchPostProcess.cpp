@@ -304,6 +304,15 @@ BatchPostProcess::printResults() const
               *moleculeFilter,
               StatPostProcess::moleculeEnergy,
               elements[j], clusterSizes[i], clusterElements[l]);
+
+            plotEnergySpectrum(
+              *moleculeFilter,
+              StatPostProcess::moleculeCount,
+              elements[j], clusterSizes[i], clusterElements[l]);
+            plotEnergySpectrum(
+              *moleculeFilter,
+              StatPostProcess::moleculeEnergy,
+              elements[j], clusterSizes[i], clusterElements[l]);
           }
         }
       }
@@ -1182,6 +1191,127 @@ set key samplen 1.0 spacing 1.3\n\
   fpltmulti << "set nomultiplot\n";
 
   fpltmulti.close();
+  fplt.close();
+}
+
+void
+BatchPostProcess::plotEnergySpectrum(
+  StatPostProcess::FProcessClassicMolecule fpm,
+  StatPostProcess::FMoleculeAttribute fma,
+  ElementID specIonElement,
+  size_t specClusterSize,
+  ElementID specClusterElement) const
+{
+  std::stringstream fnb;
+
+  fnb << "EnergySpectrum-";
+
+  fnb << StatPostProcess::FProcessClassicMoleculeToString(fpm);
+
+  if (specIonElement != DUMMY_EL)
+    fnb << "_" << ElementIDtoString(specIonElement);
+
+  if (specClusterElement != DUMMY_EL)
+    fnb << "_" << ElementIDtoString(specClusterElement);
+
+  if (specClusterSize > 0)
+  {
+    if (specClusterElement == DUMMY_EL)
+      fnb << "_";
+    fnb << specClusterSize;
+  }
+
+  fnb << "-";
+
+  fnb << StatPostProcess::FMoleculeAttributeToString(fma);
+
+  ofstream fplt((fnb.str()+".plt").c_str());
+
+  fplt << "\
+reset\n\
+set yrange [0:*]\n\
+set xrange [0:*]\n\
+set border 1+2+4+8 lw 2\n\
+\n\
+set output \"" << fnb.str() << ".eps\"\n\
+set terminal postscript eps size 16cm, 8cm \"Arial,18\" enhanced\n\
+set xlabel \"Mass (amu)\"\n\
+set ylabel ""\n\
+\n\
+plot \\\n\
+";
+
+  std::vector<std::string> plotCmds;
+  std::ostringstream data;
+
+  for(size_t i = 0; i < pps.size(); ++i)
+  {
+    mdepp::StatPostProcess::Id id(yaatk::extractItemFromEnd(pps[i][0],1));
+
+    if (specIonElement != DUMMY_EL)
+    {
+      if (id.ionElement != specIonElement)
+        continue;
+    }
+
+    if (specClusterElement != DUMMY_EL)
+    {
+      if (id.clusterElement != specClusterElement)
+        continue;
+    }
+
+    if (specClusterSize > 0)
+    {
+      if (id.clusterSize != specClusterSize)
+        continue;
+    }
+
+    const mdepp::StatPostProcess pp(pps[i]);
+
+    {
+      std::map<Float, Float> histData =
+        pp.distBy(
+          StatPostProcess::moleculeEnergy,
+          pp.suggestedBinWidth(
+            StatPostProcess::moleculeEnergy, *fpm,
+            specIonElement, specClusterSize, specClusterElement),
+          0.0,
+          pp.maxMoleculeAttribute(
+            StatPostProcess::moleculeEnergy, *fpm),
+          fma,
+          fpm);
+
+      std::map<Float, Float>::iterator i;
+      for(i = histData.begin(); i != histData.end(); ++i)
+        data << i->first << " " << histData[i->first] << "\n";
+    }
+
+    {
+      std::ostringstream cmd;
+      cmd << "'-' with boxes title \"{/Italic "
+          << pp.id.ionEnergy << "eV "
+          << ElementIDtoString(pp.id.ionElement) << " -> "
+          << ElementIDtoString(pp.id.clusterElement)
+          << "_{" << pp.id.clusterSize << "}"
+          << "}\" "
+          << "";
+      plotCmds.push_back(cmd.str());
+
+      data << "e\n";
+    }
+  }
+
+//  REQUIRE(plotCmds.size() > 0);
+  for(size_t i = 0; i < plotCmds.size(); ++i)
+  {
+    if (i != plotCmds.size()-1)
+      fplt << plotCmds[i] << ",\\\n";
+    else
+      fplt << plotCmds[i] << "\n";
+  }
+
+  fplt << data.str();
+
   fplt.close();
 }
 
