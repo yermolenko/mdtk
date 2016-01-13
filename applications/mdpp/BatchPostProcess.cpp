@@ -245,7 +245,7 @@ BatchPostProcess::printResults() const
             std::vector<StatPostProcess::FMoleculeAttribute> moleculeAttributes;
             // moleculeAttributes.push_back(StatPostProcess::moleculeAtomsCount);
             moleculeAttributes.push_back(StatPostProcess::moleculeCount);
-            moleculeAttributes.push_back(StatPostProcess::moleculeEnergy);
+            moleculeAttributes.push_back(StatPostProcess::moleculeEnergyInEV);
 
             std::vector<StatPostProcess::FMoleculeAttribute>::const_iterator
               moleculeAttribute;
@@ -297,12 +297,12 @@ BatchPostProcess::printResults() const
             plotMassSpectrumHistogram(
               binWidth,
               *moleculeFilter,
-              StatPostProcess::moleculeMass,
+              StatPostProcess::moleculeMassInAMU,
               elements[j], clusterSizes[i], clusterElements[l]);
             plotMassSpectrumHistogram(
               binWidth,
               *moleculeFilter,
-              StatPostProcess::moleculeEnergy,
+              StatPostProcess::moleculeEnergyInEV,
               elements[j], clusterSizes[i], clusterElements[l]);
 
             plotEnergySpectrum(
@@ -311,7 +311,7 @@ BatchPostProcess::printResults() const
               elements[j], clusterSizes[i], clusterElements[l]);
             plotEnergySpectrum(
               *moleculeFilter,
-              StatPostProcess::moleculeEnergy,
+              StatPostProcess::moleculeEnergyInEV,
               elements[j], clusterSizes[i], clusterElements[l]);
           }
         }
@@ -1039,21 +1039,8 @@ set xtics nomirror 0,base_mass,2*base_mass\n\
       plotCmds.push_back(cmd.str());
     }
 
-    Float maxMass = 0.0;
-    {
-      for(size_t trajIndex = 0; trajIndex < pp.trajData.size(); trajIndex++)
-      {
-        const StatPostProcess::TrajData& td = *(pp.trajData[trajIndex]);
-        for(size_t mi = 0; mi < td.molecules.size(); mi++)
-        {
-          const ClassicMolecule& mol = td.molecules[mi];
-          if (!fpm(mol)) continue;
-          Float mass = mol.getMass();
-          if (mass > maxMass)
-            maxMass = mass;
-        }
-      }
-    }
+    Float maxMass = pp.maxMoleculeAttribute(
+      StatPostProcess::moleculeMass, *fpm);
 
     std::map<Float, Float> histData;
     {
@@ -1283,7 +1270,7 @@ plot \\\n\
 
       std::map<Float, Float>::iterator i;
       for(i = histData.begin(); i != histData.end(); ++i)
-        data << i->first << " " << histData[i->first] << "\n";
+        data << i->first/mdtk::eV << " " << histData[i->first] << "\n";
     }
 
     {

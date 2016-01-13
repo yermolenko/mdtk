@@ -1439,11 +1439,23 @@ StatPostProcess::spottedByDepth() const
 double
 StatPostProcess::moleculeEnergy(const ClassicMolecule& mol)
 {
+  return 0.5*SQR(mol.getVelocity().module())*mol.getMass();
+}
+
+double
+StatPostProcess::moleculeEnergyInEV(const ClassicMolecule& mol)
+{
   return 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
 }
 
 double
 StatPostProcess::moleculeMass(const ClassicMolecule& mol)
+{
+  return mol.getMass();
+}
+
+double
+StatPostProcess::moleculeMassInAMU(const ClassicMolecule& mol)
 {
   return mol.getAMUMass();
 }
@@ -1470,7 +1482,9 @@ std::string
 StatPostProcess::FMoleculeAttributeToString(FMoleculeAttribute fma)
 {
   if (fma == moleculeEnergy) return "moleculeEnergy";
+  if (fma == moleculeEnergyInEV) return "moleculeEnergy";
   if (fma == moleculeMass) return "moleculeMass";
+  if (fma == moleculeMassInAMU) return "moleculeMassInAMU";
   if (fma == moleculeCount) return "moleculeCount";
   if (fma == moleculeAtomsCount) return "moleculeAtomsCount";
   if (fma == moleculeEnergyByAtom) return "moleculeEnergyByAtom";
@@ -1581,7 +1595,7 @@ StatPostProcess::suggestedBinWidth(
 
   if (fma == moleculeEnergy)
   {
-    binWidth = 10.0*eV/eV;
+    binWidth = 10.0*eV;
   }
 
   REQUIRE(binWidth > 0.0);
