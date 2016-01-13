@@ -1445,7 +1445,7 @@ StatPostProcess::moleculeEnergy(const ClassicMolecule& mol)
 double
 StatPostProcess::moleculeEnergyInEV(const ClassicMolecule& mol)
 {
-  return 0.5*SQR(mol.getVelocity().module())*mol.getAMUMass()*mdtk::amu/mdtk::eV;
+  return 0.5*SQR(mol.getVelocity().module())*mol.getMass()/mdtk::eV;
 }
 
 double
