@@ -627,20 +627,7 @@ BatchPostProcess::plotMassSpectrum(StatPostProcess::FProcessClassicMolecule fpm,
 {
   std::stringstream fnb;
   fnb << "MassSpectrum-" << StatPostProcess::FProcessClassicMoleculeToString(fpm);
-/*
-  bool pCluster = (fpm==mdepp::StatPostProcess::ProcessCluster);
-  bool pProjectile = (fpm==mdepp::StatPostProcess::ProcessProjectile);
-  bool pSubstrate = (fpm==mdepp::StatPostProcess::ProcessSubstrate);
-  bool pAll = (fpm==mdepp::StatPostProcess::ProcessAll);
 
-  string yieldOfWhat = "розпилення";
-  if (pCluster)
-  yieldOfWhat = "розпилення кластера";
-  if (pSubstrate)
-  yieldOfWhat = "розпилення підкладинки";
-  if (pProjectile)
-  yieldOfWhat = "зворотного розсіювання";
-*/
   if (specIonElement != DUMMY_EL)
     fnb << "_" << ElementIDtoString(specIonElement);
 

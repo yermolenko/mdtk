@@ -214,26 +214,6 @@ public:
     std::map<Float, Float>& h1,
     std::map<Float, Float>& h2);
 
-  std::string  buildAtomByEnergy(const Float energyStep, FProcessClassicMolecule fpm) const;
-
-  std::string  buildEnergyByPolar(const int n, bool byAtom = false, FProcessClassicMolecule fpm = &ProcessAll) const;
-  std::string  buildAtomsCountByPolar(const int n, FProcessClassicMolecule fpm) const;
-  std::string  buildEnergyByAzimuth(const int n, bool byAtom = false, FProcessClassicMolecule fpm = &ProcessAll) const;
-  std::string  buildAtomsCountByAzimuth(const int n, FProcessClassicMolecule fpm) const;
-
-  std::string  buildEnergyByPolarByAtomsInRange(const int n, FProcessClassicMolecule fpm) const;
-  std::string  buildEnergyByAzimuthByAtomsInRange(const int n, FProcessClassicMolecule fpm) const;
-
-  void  histEnergyByPolar(gsl_histogram* h, bool byAtom = false, FProcessClassicMolecule fpm = &ProcessAll) const;
-  void  histAtomsCountByPolar(gsl_histogram* h, FProcessClassicMolecule fpm) const;
-  void  histEnergyByAzimuth(gsl_histogram* h, bool byAtom = false, FProcessClassicMolecule fpm = &ProcessAll) const;
-  void  histAtomsCountByAzimuth(gsl_histogram* h, FProcessClassicMolecule fpm) const;
-
-  void  histEnergyByPolarByAtomsInRange(gsl_histogram* h, FProcessClassicMolecule fpm) const;
-  void  histEnergyByAzimuthByAtomsInRange(gsl_histogram* h, FProcessClassicMolecule fpm) const;
-
-  void  buildAngular(FProcessClassicMolecule fpm) const;
-
   void  buildByTime( FProcessClassicMolecule fpm) const;
 };
 
