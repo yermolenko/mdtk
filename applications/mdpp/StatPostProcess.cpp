@@ -774,14 +774,21 @@ StatPostProcess::Id::loadFromStream(std::istream& is)
 std::string StatPostProcess::cacheDir = initialWorkingDirectory + DIR_DELIMIT_STR + "cache";
 
 std::string
-StatPostProcess::getCacheFilename(std::string trajsetDir)
+StatPostProcess::getCacheFilename(std::string trajDir)
 {
-  for(size_t i = 0; i < trajsetDir.size(); ++i)
+  std::string trajDirID;
+  for(size_t itemFromEnd = 0; itemFromEnd < 3; ++itemFromEnd)
   {
-    if (trajsetDir[i] == '.' || trajsetDir[i] == '/' || trajsetDir[i] == '\'')
-      trajsetDir[i] = '_';
+    std::string pathItem = yaatk::extractItemFromEnd(trajDir,itemFromEnd);
+    REQUIRE(pathItem != ".");
+    REQUIRE(pathItem != "..");
+    REQUIRE(pathItem != "...");
+    REQUIRE(pathItem.find(DIR_DELIMIT_STR) == std::string::npos);
+    REQUIRE(pathItem.find("/") == std::string::npos);
+    REQUIRE(pathItem.find("\\") == std::string::npos);
+    trajDirID = pathItem + "_" + trajDirID;
   }
-  return cacheDir + DIR_DELIMIT_STR + trajsetDir;
+  return cacheDir + DIR_DELIMIT_STR + trajDirID;
 }
 
 std::map<std::string,StatPostProcess::TrajData> StatPostProcess::ramCache;
