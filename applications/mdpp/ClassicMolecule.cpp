@@ -78,7 +78,7 @@ ClassicMolecule::buildFromAtom(mdtk::Atom& a, NeighbourList& nl,double SPOTTED_D
   }  
 }  
 
-int operator<(const ClassicMolecule& left, const ClassicMolecule& right)
+int cmp(const ClassicMolecule& left, const ClassicMolecule& right)
 {
   Float m_left = left.getAMUMass();
   Float m_right = right.getAMUMass();
@@ -92,9 +92,14 @@ int operator<(const ClassicMolecule& left, const ClassicMolecule& right)
   return left.formula() < right.formula();
 }
 
+int operator<(const ClassicMolecule& left, const ClassicMolecule& right)
+{
+  return cmp(left, right);
+}
+
 int operator<(ClassicMolecule& left, ClassicMolecule& right)
 {
-  return operator<(left, right);
+  return cmp(left, right);
 }
 
 }
