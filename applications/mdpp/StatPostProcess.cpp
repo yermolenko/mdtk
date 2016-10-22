@@ -917,6 +917,7 @@ StatPostProcess::StatPostProcess(const std::vector<std::string> trajdirs)
         catch (mdepp::BadTrajectoryException& e)
         {
           EPRINT("Trajectory is bad. Excluding it from postprocess.");
+          ramCache.erase(trajDir);
         }
       }
     }
