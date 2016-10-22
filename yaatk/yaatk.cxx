@@ -1,8 +1,8 @@
 /*
    Yet another auxiliary toolkit.
 
-   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012, 2013, 2015
-   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012, 2013, 2015,
+   2016 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of YAATK, Yet another auxiliary toolkit.
 
@@ -217,8 +217,14 @@ Stream::close()
 {
   if (opened)
   {
-    if (output) 
-      opened = zipMe(); 
+    if (output)
+    {
+      int zipMe_retcode = zipMe();
+      if (zipMe_retcode != 0)
+        throw Exception("Failed to compress output file");
+      else
+        opened = false;
+    }
     else
       opened = false;
   }
