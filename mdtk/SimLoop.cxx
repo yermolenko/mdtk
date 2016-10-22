@@ -2,7 +2,7 @@
    The molecular dynamics simulation loop class.
 
    Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-   2013 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
+   2013, 2016 Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -1112,7 +1112,7 @@ SimLoop::loadstate()
     yaatk::binary_ifstream fo1("simloop.conf");
     loadFromStream(fo1,YAATK_FSTREAM_BIN);
 
-    REQUIRE(fo1!=0);
+    REQUIRE(fo1);
     fo1.close();
   }
   catch(Exception& e)
@@ -1120,7 +1120,7 @@ SimLoop::loadstate()
     std::cerr << "simloop.conf is corrupted. Trying simloop.conf.bak" << std::endl;
     yaatk::binary_ifstream fo1bak("simloop.conf.bak");
     loadFromStream(fo1bak,YAATK_FSTREAM_BIN);
-    if (fo1bak == 0)
+    if (!fo1bak)
     {
       std::cerr << "simloop.conf.bak is ALSO corrupted. Exiting..." << std::endl;
       exit(1);
