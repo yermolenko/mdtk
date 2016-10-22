@@ -1,8 +1,8 @@
 /*
    Building of various clusters
 
-   Copyright (C) 2007, 2008, 2010, 2011, 2012, 2013, 2015 Oleksandr
-   Yermolenko <oleksandr.yermolenko@gmail.com>
+   Copyright (C) 2007, 2008, 2010, 2011, 2012, 2013, 2015, 2016
+   Oleksandr Yermolenko <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
 
@@ -1048,9 +1048,9 @@ bomb_Cluster_with_Ions(
     REQUIRE(coord2d_qrng != NULL);
 
     std::ofstream rngUsedTrace("rng.used.trace");
-    REQUIRE(rngUsedTrace != NULL);
+    REQUIRE(rngUsedTrace);
     std::ofstream rngSkippedTrace("rng.skipped.trace");
-    REQUIRE(rngSkippedTrace != NULL);
+    REQUIRE(rngSkippedTrace);
 
     yaatk::binary_ofstream ionpos_bin("ionpos.bin");
     yaatk::text_ofstream ionpos_txt("ionpos.txt");
@@ -1240,11 +1240,11 @@ bomb_orthorhombic_with_clusters(
   yaatk::ChDir cd(dirname);
 
   std::ofstream rngSelected("rng.selected.log");
-  REQUIRE(rngSelected != NULL);
+  REQUIRE(rngSelected);
   std::ofstream rngExcluded("rng.excluded.log");
-  REQUIRE(rngExcluded != NULL);
+  REQUIRE(rngExcluded);
   std::ofstream bombXY("bombXY.log");
-  REQUIRE(bombXY != NULL);
+  REQUIRE(bombXY);
 
   {
     bombXY << 0 << " " << 0 << "\n"
