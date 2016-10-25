@@ -805,8 +805,18 @@ StatPostProcess::StatPostProcess(const std::vector<std::string> trajdirs)
   instanceCounter++;
   REQUIRE(instanceCounter <= 1);
 
+#ifdef __linux__
+  if (memUsage() > ramSize()/2.0)
+  {
+    FTRACE(memUsage());
+    FTRACE(ramSize());
+    FPRINT("Clearing RAM cache.\n");
+    ramCache.clear();
+  }
+#else
   if (ramCache.size() > 10000)
     ramCache.clear();
+#endif
 
   stateTemplate.atoms.clear();
 

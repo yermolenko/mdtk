@@ -300,7 +300,35 @@ void printGlobalIndexes(const std::vector<mdtk::Atom>& atoms,
   } 
 } 
 */
-  
+
+#ifdef __linux__
+
+inline
+double memUsage()
+{
+  long rss;
+  std::string skip;
+  std::ifstream stat("/proc/self/stat");
+  stat >> skip >> skip >> skip >> skip >> skip >> skip >> skip
+       >> skip >> skip >> skip >> skip >> skip >> skip >> skip
+       >> skip >> skip >> skip >> skip >> skip >> skip >> skip
+       >> skip >> skip >> rss;
+  return double(rss)*sysconf(_SC_PAGESIZE)/1024;
+}
+
+#include "sys/types.h"
+#include "sys/sysinfo.h"
+
+inline
+double ramSize()
+{
+  struct sysinfo memInfo;
+  sysinfo(&memInfo);
+  return double(memInfo.totalram)*memInfo.mem_unit/1024;
+}
+
+#endif
+
 }
 
 #endif
