@@ -24,6 +24,7 @@
 #include "NeighbourList.hpp"
 
 #include <algorithm>
+#include <limits>
 
 //using namespace std;
 #include <fstream>
@@ -99,6 +100,9 @@ StatPostProcess::TrajData::TrajData() :
 void
 StatPostProcess::TrajData::saveToStream(std::ostream& os) const
 {
+  std::streamsize prevFloatPrecision = os.precision();
+  os.precision(std::numeric_limits<double>::digits10 + 2);
+
   os << trajDir << "\n";
   os << molecules.size() << "\n";
   for(size_t i = 0; i < molecules.size(); i++)
@@ -121,6 +125,8 @@ StatPostProcess::TrajData::saveToStream(std::ostream& os) const
   os << PBC << "\n";
 
   os << SPOTTED_DISTANCE << "\n";
+
+  os.precision(prevFloatPrecision);
 }
 
 void
