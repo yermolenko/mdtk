@@ -378,7 +378,7 @@ StatPostProcess::TrajData::buildSputteredClassicMolecules(
 {
   if (s == STATE_FINAL)
   {
-    cout << "Building molecules for state ..." << std::endl;
+    cout << "Building molecules for state ..." << "\n";
     for(size_t atomIndex = 0; atomIndex < state.atoms.size(); atomIndex++)
     {
       mdtk::Atom &atom = state.atoms[atomIndex];
@@ -399,7 +399,7 @@ StatPostProcess::TrajData::buildSputteredClassicMolecules(
 	  molecule.buildFromAtom(atom,nl,SPOTTED_DISTANCE);
 	  if (molecule.atoms.size() > 0 && molecule.getVelocity().z < 0.0)
 	  {
-	    cout << "Adding molecule." << std::endl;
+	    cout << "Adding molecule." << "\n";
 	    molecules.push_back(molecule);
 	  }
 	}
@@ -978,7 +978,7 @@ StatPostProcess::printClassicMoleculesTotal() const
     cout << "ClassicMolecules for trajectory " << traj <<
      " ("  << trajData[traj]->trajDir << ") " << " :\n";
     printClassicMolecules(traj);
-    cout << std::endl;
+    cout << "\n";
   }
 }
 
@@ -998,7 +998,7 @@ StatPostProcess::printClassicMolecules(size_t trajIndex) const
          << ", escape time = " << td.molecules[mi].escapeTime/mdtk::ps << " ps";
     if (td.molecules[mi].hasSubstrateAtoms() && td.molecules[mi].hasClusterAtoms())
       cout << "\nThis is HETEROGENEOUS molecule!!!";
-    cout << std::endl;
+    cout << "\n";
   }
 }
 
@@ -1011,7 +1011,7 @@ StatPostProcess::printFullereneInfo() const
     cout << "Fullerene for trajectory " << traj << 
      " ("  << trajData[traj]->trajDir << ") " << " :\n";
     printFullereneInfo(traj);
-    cout << std::endl;
+    cout << "\n";
   }
 }
 

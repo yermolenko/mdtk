@@ -1,7 +1,7 @@
 /*
    The Fragment class (header file).
 
-   Copyright (C) 2010, 2012 Oleksandr Yermolenko
+   Copyright (C) 2010, 2012, 2016 Oleksandr Yermolenko
    <oleksandr.yermolenko@gmail.com>
 
    This file is part of MDTK, the Molecular Dynamics Toolkit.
@@ -97,11 +97,11 @@ public:
   }  
   void printGlobalIndexes(std::ostream& fo) const
   {
-    fo << atoms.size() << std::endl;
+    fo << atoms.size() << "\n";
     for(size_t ai = 0; ai < atoms.size(); ai++)
     {
       const mdtk::Atom& atom = atoms[ai];
-      fo << atom.globalIndex << std::endl;
+      fo << atom.globalIndex << "\n";
     } 
   } 
   void saveToStream(std::ostream& os) const

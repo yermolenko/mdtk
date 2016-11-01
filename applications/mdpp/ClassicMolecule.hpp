@@ -334,11 +334,11 @@ operator =(const ClassicMolecule &C)
   }  
   void printGlobalIndexes(std::ostream& fo) const
   {
-    fo << atoms.size() << std::endl;
+    fo << atoms.size() << "\n";
     for(size_t ai = 0; ai < atoms.size(); ai++)
     {
       const mdtk::Atom& atom = atoms[ai];
-      fo << atom.globalIndex << std::endl;
+      fo << atom.globalIndex << "\n";
     } 
   } 
   std::string formula() const
