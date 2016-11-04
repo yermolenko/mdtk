@@ -76,9 +76,9 @@ public:
     for(size_t ai = 0; ai < atoms.size(); ai++)
     {
       const mdtk::Atom& atom = atoms[ai];
-      moleculeMass += atom.M;
-    } 
-    return mdtk::academic_round(moleculeMass/mdtk::amu/10)*10;
+      moleculeMass += atom.M/mdtk::amu;
+    }
+    return mdtk::academic_round(moleculeMass/10)*10;
   }
   mdtk::Vector3D getVelocity() const
   {
